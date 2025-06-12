@@ -48,5 +48,3 @@
 - PRs should be tested locally before push
 
 ---
-
-> For questions, roadmap updates, or styling conventions, check the internal Notion or Discord Dev channel.
