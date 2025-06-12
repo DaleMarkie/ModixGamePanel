@@ -1,0 +1,188 @@
+/* PanelSettings.css */
+
+.panel-settings-container {
+  max-width: 480px;
+  margin: 2rem auto;
+  background-color: #1e1e1e;
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.25);
+  color: #eee;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+}
+
+.panel-settings-container h2 {
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #00ffab;
+  text-align: center;
+  letter-spacing: 1px;
+  user-select: text;
+}
+
+.panel-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #00ffaa;
+  user-select: text;
+}
+
+.form-group input[type="text"],
+.form-group input[type="color"],
+.form-group select {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: 1.8px solid #333;
+  background-color: #121212;
+  color: #eee;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="color"]:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #00ffaa;
+  box-shadow: 0 0 5px #00ffaaaa;
+}
+
+.form-group.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #00ffaa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-group.checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #00ffaa;
+  user-select: none;
+}
+
+/* Theme Options */
+
+.theme-options {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  user-select: none;
+}
+
+.theme-box {
+  flex: 1;
+  background-color: #111;
+  border-radius: 10px;
+  padding: 1rem 0.6rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2.5px solid transparent;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  user-select: none;
+}
+
+.theme-box:hover {
+  background-color: #222;
+}
+
+.theme-box.active {
+  border-color: #00ffaa;
+  background-color: #222;
+}
+
+.theme-preview {
+  width: 50px;
+  height: 30px;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+/* Individual theme preview styles */
+.theme-preview[data-theme="dark"] {
+  background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+  border: 1px solid #00ffaa;
+}
+
+.theme-preview[data-theme="light"] {
+  background: linear-gradient(135deg, #fafafa 0%, #e0e0e0 100%);
+  border: 1px solid #888;
+}
+
+.theme-preview[data-theme="auto"] {
+  background: linear-gradient(135deg, #121212 0%, #fafafa 100%);
+  border: 1px dashed #00ffaa99;
+  position: relative;
+}
+
+.theme-label {
+  font-size: 0.9rem;
+  color: #aaa;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Save button */
+
+button[type="submit"] {
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.2rem;
+  background-color: #00ffaa;
+  border: none;
+  border-radius: 10px;
+  color: #121212;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+button[type="submit"]:hover {
+  background-color: #00cc88;
+}
+
+button[type="submit"]:active {
+  background-color: #009955;
+  transform: scale(0.97);
+}
+
+/* Responsive tweaks */
+
+@media (max-width: 520px) {
+  .panel-settings-container {
+    margin: 1rem;
+    padding: 1.5rem 1.8rem;
+  }
+
+  .theme-options {
+    gap: 0.7rem;
+  }
+}
+.config-file-path {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #bbb;
+  margin-bottom: 10px;
+  word-break: break-all;
+}

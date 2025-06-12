@@ -1,0 +1,219 @@
+:root {
+  --primary: #4caf50;
+  --accent: #5566ff;
+  --danger: #ff4d4d;
+  --bg-main: #111;
+  --bg-card: #1a1a1a;
+  --bg-glass: rgba(30, 30, 30, 0.7);
+  --text-main: #ddd;
+  --text-muted: #888;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  --transition: 0.25s ease;
+}
+
+/* Global Styles */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Header Background */
+.header-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(to right, #0d0d0d, #1a1a1a);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* Header */
+.top-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: rgba(18, 18, 18, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  border: 1px solid var(--primary);
+  padding: 8px 40px;
+  border-radius: var(--radius);
+  max-width: 1200px;
+  margin: -50px auto 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+  user-select: none;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+/* Logo */
+.logo {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  user-select: text;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.06em;
+  font-family: 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-right: 24px;
+  flex-shrink: 0;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.logo:hover {
+  color: #ffffffcc;
+  text-shadow: 0 0 10px #ffffffcc;
+}
+
+.logo::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: width 0.3s ease;
+  margin-top: 4px;
+  border-radius: 1px;
+}
+
+.logo:hover::after {
+  width: 100%;
+}
+
+/* Top Menu */
+.top-menu {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-left: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.top-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.top-menu a {
+  color: #ccc;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.top-menu a:hover {
+  background-color: #262626;
+  color: var(--primary);
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+}
+
+/* DROPDOWN MENU (Fixed & Integrated) */
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 10000; /* Ensure stacking context below submenu but above most elements */
+}
+
+.nav-dropdown > a {
+  position: relative;
+  display: inline-block;
+  color: #ccc;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: var(--transition);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-dropdown > a:hover {
+  background-color: #262626;
+  color: var(--primary);
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+}
+
+.nav-dropdown .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background-color: #1f1f1f;
+  border-radius: 10px;
+  min-width: 180px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+  z-index: 11000 !important; /* VERY high to be on top of warnings and everything else */
+  flex-direction: column;
+  padding: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.nav-dropdown:hover .dropdown-menu {
+  display: flex;
+}
+
+.dropdown-menu a {
+  padding: 10px 20px;
+  color: #eee;
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+  border-bottom: 1px solid #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  display: block;
+}
+
+.dropdown-menu a:last-child {
+  border-bottom: none;
+}
+
+.dropdown-menu a:hover {
+  background-color: #2a2a2a;
+  color: var(--primary);
+}
+
+/* Optional Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Show submenu on hover */
+.nav-item-with-submenu:hover .submenu {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto;
+}
+
+/* Optional: submenu links hover effect */
+.submenu a:hover {
+  background-color: #444;
+  color: #fff;
+}

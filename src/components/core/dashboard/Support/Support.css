@@ -1,0 +1,165 @@
+.boxed-support-container {
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 2rem auto;
+  color: #e0e0e0;
+}
+
+.support-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn {
+  background: #111;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.support-box {
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 0 20px #00000080;
+}
+
+.support-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.create-btn {
+  padding: 0.6rem 1.2rem;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.support-form label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.support-form input,
+.support-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.submit-btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #28a745;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ticket-list {
+  margin-top: 2rem;
+}
+
+.ticket-card {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticket-id {
+  font-weight: bold;
+  color: #999;
+}
+
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-badge.open {
+  background: #0066ff;
+  color: white;
+}
+
+.status-badge.closed {
+  background: #777;
+  color: white;
+}
+
+.ticket-date {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.no-tickets {
+  text-align: center;
+  color: #888;
+}
+.support-form label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.support-form input,
+.support-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.4rem;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.support-form textarea {
+  resize: vertical;
+}
+.support-form select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #fff;
+}
+.ticket-info-text {
+  background: #2b2b2b;
+  border-left: 4px solid #007bff;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #ccc;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}

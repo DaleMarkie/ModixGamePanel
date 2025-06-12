@@ -1,0 +1,213 @@
+/* UserSettings.css */
+
+.usersettings-container {
+  padding: 30px;
+  background-color: #121620;
+  color: #ddd;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 75vh;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.usersettings-container h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #60a5fa;
+}
+
+.usersettings-container p {
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  color: #aaa;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1e2430;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+}
+
+.users-table th,
+.users-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #2e3450;
+  text-align: center;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.users-table th {
+  background-color: #29304b;
+  color: #93c5fd;
+  user-select: none;
+}
+
+.users-table tr:hover {
+  background-color: #2a2f45;
+}
+
+.users-table select {
+  background-color: #2a2f45;
+  border: 1px solid #444;
+  border-radius: 5px;
+  color: #ddd;
+  font-size: 1rem;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.users-table select:hover,
+.users-table select:focus {
+  background-color: #3b4252;
+  outline: none;
+}
+
+.users-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #60a5fa;
+  cursor: pointer;
+  transition: accent-color 0.3s ease;
+}
+
+.users-table input[type="checkbox"]:hover {
+  accent-color: #3b82f6;
+}
+
+.users-table button {
+  background-color: #ef4444;
+  border: none;
+  padding: 7px 14px;
+  color: white;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transition: background-color 0.3s ease;
+}
+
+.users-table button:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+@media (max-width: 720px) {
+  .users-table th,
+  .users-table td {
+    font-size: 0.9rem;
+    padding: 10px 8px;
+  }
+
+  .usersettings-container {
+    padding: 20px 15px;
+  }
+}
+.password-input {
+  background-color: #2a2f45;
+  border: 1px solid #444;
+  border-radius: 5px;
+  color: #ddd;
+  font-size: 1rem;
+  padding: 6px 8px;
+  width: 140px;
+  transition: background-color 0.2s ease;
+}
+
+.password-input:focus {
+  background-color: #3b4252;
+  outline: none;
+}
+
+.users-table button {
+  background-color: #3b82f6;
+  border: none;
+  padding: 7px 14px;
+  color: white;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.users-table button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.users-table button:disabled {
+  background-color: #ef4444;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.add-user-form {
+  background-color: #1f2430;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+}
+
+.add-user-form label {
+  display: block;
+  margin-bottom: 15px;
+  color: #ddd;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.add-user-form input[type="text"],
+.add-user-form input[type="email"],
+.add-user-form input[type="password"],
+.add-user-form select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #2a2f45;
+  color: #ddd;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.add-user-form input[type="text"]:focus,
+.add-user-form input[type="email"]:focus,
+.add-user-form input[type="password"]:focus,
+.add-user-form select:focus {
+  outline: none;
+  background-color: #3b4252;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 5px;
+  user-select: none;
+}
+
+.add-user-button {
+  margin-top: 20px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.add-user-button:hover {
+  background-color: #2563eb;
+}
