@@ -2,61 +2,29 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 
-import Welcome from "./components/welcome/Welcome";
-
-// === Core Pages ===
-import Dashboard2 from "./components/core/dashboard/Dashboard2";
-import MyAccount from "./components/core/dashboard/MyAccount/MyAccount";
-import Games from "./components/core/games/Games";
+import Dashboard2 from './components/core/dashboard/Dashboard2';
+import MyServers from "./components/core/games/myservers/MyServers";
+import FileManager from "./components/core/filemanager/FileManager";
+import Workshop from "./components/core/workshopmanager/Workshop";
+import ModManager from "./components/core/workshopmanager/ModManager";
+import PlayerManager from "./components/core/playermanager/PlayerManager";
+import Settings from "./components/core/workshopmanager/Settings";
+import TerminalLayout from "./components/core/terminal/TerminalLayout";
+import Webhook from "./components/core/webhook/Webhook";
 import Help from "./components/core/help/Help";
 import Login from "./components/core/auth/login";
 import Signup from "./components/core/auth/signup";
-import UserManager from "./components/core/usermanager/UserManager";
-import ServerHealth from "./components/core/serverhealth/ServerHealth";
-
-
-// === Game Management ===
-import MyServers from "./components/core/games/myservers/MyServers";
-import GameManager from "./components/core/gamemanager/GameManager";
-import SteamSetup from "./components/core/steamsetup/SteamSetup";
-import PlayerManager from "./components/core/playermanager/PlayerManager";
-import SteamPlayerManager from "./components/core/steamplayermanager/SteamPlayerManager";
-import BanManager from "./components/core/games/projectzomboid/modules/pzbanmanager/BanManager";
-import PzDatabase from "./components/core/games/projectzomboid/modules/pzdatabase/PzDatabase";
-import PzModManager from "./components/core/games/projectzomboid/modules/pzmodmanager/PzModManager";
-import PzPlayerManager from "./components/core/games/projectzomboid/modules/pzplayermanager/PzPlayerManager";
-// === Server Tools ===
-import TerminalLayout from "./components/core/terminal/TerminalLayout";
-import FileManager from "./components/core/filemanager/FileManager";
-import BackUpManager from "./components/core/backupmanager/BackUpManager";
-import TaskManager from "./components/core/taskmanager/TaskManager";
-import SystemMonitor from "./components/core/systemonitor/SystemMonitor";
-
-
-// === Workshop / Mods ===
-import Workshop from "./components/core/workshopmanager/Workshop";
-import ModManager from "./components/core/workshopmanager/ModManager";
-import Settings from "./components/core/workshopmanager/Settings";
-import PluginManager from "./components/core/pluginmanager/PluginManager";
-import SteamParser from "./components/core/steamparser/SteamParser";
-
-
-// === Panel Customization ===
-import PanelSettings from "./components/core/panelsettings/PanelSettings";
-import ThemeManager from "./components/core/thememanager/ThemeManager";
-import Webhook from "./components/core/webhook/Webhook";
-
-// === Logs & Monitoring ===
-import AuditLogs from "./components/core/auditlogs/AuditLogs";
+import Games from "./components/core/games/Games";
+import ThemeManager from './components/core/thememanager/ThemeManager';
+import GameManager from './components/core/gamemanager/GameManager';
+import MyAccount from "./components/core/dashboard/MyAccount/MyAccount";
 
 function App() {
   const [panelName, setPanelName] = useState("MODIX");
   const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
   const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
-
-  // Load backgroundImage from localStorage or use default
   const [backgroundImage, setBackgroundImage] = useState(
-    () => localStorage.getItem("backgroundImage") || 'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
+    'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
   );
   const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
 
@@ -67,11 +35,6 @@ function App() {
     if (storedText) setHeaderTextColor(storedText);
   }, []);
 
-  // Save backgroundImage to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("backgroundImage", backgroundImage);
-  }, [backgroundImage]);
-
   const appWrapperStyle = {
     backgroundColor: "#121212",
     backgroundImage,
@@ -79,13 +42,22 @@ function App() {
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center center",
     minHeight: "100vh",
-    transition: "background-color 0.3s ease, background-image 0.5s ease",
+    transition: "background-color 0.3s ease",
     position: "relative",
     zIndex: 0,
     color: "white",
   };
 
-  // (rest of your styles and JSX unchanged...)
+  const overlayStyle = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    pointerEvents: "none",
+    zIndex: 1,
+  };
 
   const headerStyle = {
     backgroundColor: headerBgColor,
@@ -102,7 +74,68 @@ function App() {
     zIndex: 3,
   };
 
-  // ...other styles omitted for brevity
+  const warningLabelStyle = {
+    backgroundColor: "#b33939",
+    color: "#fff",
+    textAlign: "center",
+    padding: "6px 12px",
+    fontWeight: "600",
+    fontSize: "0.9rem",
+    borderRadius: "0 0 12px 12px",
+    userSelect: "none",
+    marginTop: -6,
+    marginBottom: 12,
+    zIndex: 3,
+  };
+
+  const headerButtonStyle = {
+    color: headerTextColor,
+    padding: "8px 14px",
+    textDecoration: "none",
+    fontWeight: "600",
+    fontSize: "1rem",
+    cursor: "pointer",
+    borderRadius: 8,
+    userSelect: "none",
+    transition: "background-color 0.3s ease",
+    display: "inline-block",
+  };
+
+  const footerStyle = {
+    marginTop: 24,
+    padding: "16px 24px",
+    backgroundColor: "#1f1f1f",
+    color: "#eee",
+    borderRadius: "0 0 12px 12px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: "0.9rem",
+    userSelect: "none",
+    zIndex: 2,
+  };
+
+  const submenuContainerStyle = {
+    position: "absolute",
+    top: "calc(100% + 4px)",
+    left: 0,
+    backgroundColor: "#222",
+    borderRadius: 8,
+    boxShadow: "0 4px 8px rgba(0,0,0,0.8)",
+    padding: "8px 0",
+    minWidth: 140,
+    zIndex: 10,
+    display: gamesMenuOpen ? "block" : "none",
+  };
+
+  const submenuItemStyle = {
+    padding: "8px 16px",
+    color: "#eee",
+    textDecoration: "none",
+    display: "block",
+    fontWeight: 500,
+    cursor: "pointer",
+  };
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
@@ -116,7 +149,7 @@ function App() {
   return (
     <Router>
       <div className="app-wrapper" style={appWrapperStyle}>
-        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",backgroundColor:"rgba(0,0,0,0.5)",pointerEvents:"none",zIndex:1}} />
+        <div style={overlayStyle} />
         <div style={{ position: "relative", zIndex: 2 }}>
           <div
             style={{
@@ -146,45 +179,63 @@ function App() {
                 style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}
               >
                 {navLinks.map(({ to, label }) => (
-                  <Link key={label} to={to} style={{color: headerTextColor, padding: "8px 14px", fontWeight: 600, fontSize: "1rem", textDecoration:"none"}}>
+                  <Link key={label} to={to} style={headerButtonStyle}>
                     {label}
                   </Link>
                 ))}
 
-                {/* ... rest of nav and games menu unchanged ... */}
+                <div
+                  style={{ ...headerButtonStyle, userSelect: "none", position: "relative" }}
+                  onMouseEnter={() => setGamesMenuOpen(true)}
+                  onMouseLeave={() => setGamesMenuOpen(false)}
+                >
+                  Games
+                  <div style={submenuContainerStyle}>
+                    <Link
+                      to="/games"
+                      style={submenuItemStyle}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#444")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      onClick={() => setGamesMenuOpen(false)}
+                    >
+                      All Games
+                    </Link>
+                    <Link
+                      to="/myservers"
+                      style={submenuItemStyle}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#444")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      onClick={() => setGamesMenuOpen(false)}
+                    >
+                      My Servers
+                    </Link>
+                  </div>
+                </div>
 
-                <Link to="/login" style={{
-                  backgroundColor: "#3d3d3d",
-                  color: "#fff",
-                  padding: "8px 16px",
-                  borderRadius: 8,
-                  border: "1px solid #666",
-                  fontWeight: 600,
-                  fontSize: "1rem",
-                  textDecoration: "none",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#555"}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = "#3d3d3d"}
+                {/* ✅ Login Button */}
+                <Link
+                  to="/login"
+                  style={{
+                    backgroundColor: "#3d3d3d",
+                    color: "#fff",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    border: "1px solid #666",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    textDecoration: "none",
+                    transition: "all 0.2s ease-in-out",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#555")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3d3d3d")}
                 >
                   Login
                 </Link>
               </nav>
             </header>
 
-            <div style={{
-              backgroundColor: "#b33939",
-              color: "#fff",
-              textAlign: "center",
-              padding: "6px 12px",
-              fontWeight: "600",
-              fontSize: "0.9rem",
-              borderRadius: "0 0 12px 12px",
-              userSelect: "none",
-              marginTop: -6,
-              marginBottom: 12,
-              zIndex: 3,
-            }}>
+            {/* Warning Label */}
+            <div style={warningLabelStyle}>
               ⚠️ Modix is still in development. Some features may not work as expected.
             </div>
 
@@ -204,44 +255,13 @@ function App() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/games" element={<Games />} />
                 <Route path="/dashboard2" element={<Dashboard2 />} />
-                <Route
-                  path="/thememanager"
-                  element={<ThemeManager setBackgroundImage={setBackgroundImage} />}
-                />
+                <Route path="/thememanager" element={<ThemeManager />} />
                 <Route path="/gamemanager" element={<GameManager />} />
                 <Route path="/myaccount" element={<MyAccount />} />
-                <Route path="/panelsettings" element={<PanelSettings />} />
-                <Route path="/backupmanager" element={<BackUpManager />} />
-                <Route path="/system-monitor" element={<SystemMonitor />} />
-                <Route path="/taskmanager" element={<TaskManager />} />
-                <Route path="/steamplayermanager" element={<SteamPlayerManager />} />
-                <Route path="/pluginmanager" element={<PluginManager />} /> 
-                <Route path="/auditlogs" element={<AuditLogs />} /> 
-                <Route path="/steamparser" element={<SteamParser />} />
-                <Route path="/usermanager" element={<UserManager />} />
-                <Route path="/pzbanmanager" element={<BanManager />} />
-                <Route path="/pzdatabase" element={<PzDatabase />} />
-                <Route path="/pzmodmanager" element={<PzModManager />} /> 
-                <Route path="/pzplayermanager" element={<PzPlayerManager />} />      
-                <Route path="/steamparser" element={<SteamParser />} />  
-                <Route path="/serverhealth" element={<ServerHealth />} />
-     
               </Routes>
             </main>
 
-            <footer style={{
-              marginTop: 24,
-              padding: "16px 24px",
-              backgroundColor: "#1f1f1f",
-              color: "#eee",
-              borderRadius: "0 0 12px 12px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: "0.9rem",
-              userSelect: "none",
-              zIndex: 2,
-            }}>
+            <footer style={footerStyle}>
               <div>
                 <span>© 2025 {panelName}</span> &nbsp;|&nbsp;{" "}
                 <span>Made with 💚 for Project Zomboid</span>
