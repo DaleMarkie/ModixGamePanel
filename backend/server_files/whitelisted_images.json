@@ -1,0 +1,6 @@
+{
+  "whitelisted_images": [
+    "renegademaster/zomboid-dedicated-server",
+    "steamcmd/docker"
+  ]
+}

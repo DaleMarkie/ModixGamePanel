@@ -1,0 +1,62 @@
+{
+  "category": "docker",
+  "version": "1.0",
+  "fields": [
+    {
+      "name": "Game Template",
+      "key": "MODIX_GAME_TEMPLATE",
+      "type": ["string", "null"],
+      "default": null,
+      "description": "The game template to use, or null if not set."
+    },
+    {
+      "name": "Docker Image",
+      "key": "DOCKER_IMAGE",
+      "type": "string",
+      "default": "steamcmd/steamcmd",
+      "description": "The Docker image to use for the server."
+    },
+    {
+      "name": "Game is Steam",
+      "key": "GAME_IS_STEAM",
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the game uses Steam."
+    },
+    {
+      "name": "Game Steam ID",
+      "key": "GAME_STEAM_ID",
+      "type": "number",
+      "default": 108600,
+      "description": "The Steam App ID for the game."
+    },
+    {
+      "name": "Use Named Volume",
+      "key": "USE_NAMED_VOLUME",
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to use a named Docker volume."
+    },
+    {
+      "name": "Docker Volume Name",
+      "key": "DOCKER_VOLUME_NAME",
+      "type": ["string", "null"],
+      "default": null,
+      "description": "The name of the Docker volume, or null if not used."
+    },
+    {
+      "name": "Docker Volume Path",
+      "key": "DOCKER_VOLUME_PATH",
+      "type": "string",
+      "default": "/home/steam/pzserver",
+      "description": "The path inside the container where the volume is mounted."
+    },
+    {
+      "name": "Bind Mount Path",
+      "key": "BIND_MOUNT_PATH",
+      "type": ["string", "null"],
+      "default": null,
+      "description": "The host path to bind mount, or null if not used."
+    }
+  ]
+}

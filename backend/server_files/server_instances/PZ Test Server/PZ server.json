@@ -1,0 +1,34 @@
+{
+    "BaseSettings":{
+      "MODIX_GAME_TEMPLATE": null,
+      "DOCKER_IMAGE": "steamcmd/steamcmd",
+      "GAME_IS_STEAM": true,
+      "GAME_STEAM_ID": 108600,
+      "USE_NAMED_VOLUME": true,
+      "DOCKER_VOLUME_NAME": "pz_test_server_data",
+      "DOCKER_VOLUME_PATH": "/home/steam/pzserver",
+      "BIND_MOUNT_PATH": null
+    },
+    "ServerSettings":{
+      "name": "PZ Test Server",
+      "description": "A test server for Project Zomboid",
+      "max_players": 10,
+      "password": null,
+      "public": true,
+      "port": 16261,
+      "map": "Muldraugh, KY",
+      "motd": "Welcome to the PZ Test Server!",
+      "admin_password": null,
+      "admin_list": null,
+      "pvp": false,
+      "voice": true,
+      "preset": "Survivor",
+      "sandbox_config": null,
+      "spawn_regions": null,
+      "rcon_enabled": true,
+      "rcon_port": 27015,
+      "rcon_password": null,
+      "save_interval": 15,
+      "server_file_id": null
+    }
+  }
