@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 
-import Dashboard2 from './components/core/dashboard/Dashboard2';
+import Dashboard from './components/core/dashboard/Dashboard';
 import MyServers from "./components/core/games/myservers/MyServers";
 import FileManager from "./components/core/filemanager/FileManager";
 import Workshop from "./components/core/workshopmanager/Workshop";
@@ -241,7 +241,7 @@ function App() {
 
             <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
               <Routes>
-                <Route path="/dashboard" element={<Dashboard2 />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/myservers" element={<MyServers />} />
                 <Route path="/filemanager" element={<FileManager />} />
                 <Route path="/workshop" element={<Workshop />} />
@@ -254,7 +254,6 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/games" element={<Games />} />
-                <Route path="/dashboard2" element={<Dashboard2 />} />
                 <Route path="/thememanager" element={<ThemeManager />} />
                 <Route path="/gamemanager" element={<GameManager />} />
                 <Route path="/myaccount" element={<MyAccount />} />
