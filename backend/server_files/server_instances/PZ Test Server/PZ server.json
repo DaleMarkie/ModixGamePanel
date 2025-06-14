@@ -48,7 +48,6 @@
     "save_interval": 15,
     "server_file_id": null
   },
-  "ContainerID": "513d987a309adca8010d849aa6fd00fffbacb2396ecaafb3affd0526a7ca4e04",
   "Container": {
     "id": "a24b108c3e6bb633057e79ba4a0ad392dddbc9db46ff651836967f7eee215df7",
     "name": "modix_pz_test_server",
