@@ -2,6 +2,22 @@
   "game": "Project Zomboid",
   "version": "1.0",
   "category": "survival",
+  "required_ports": [
+    {
+      "name": "Server Port",
+      "key": "port",
+      "protocol": "udp",
+      "default": 16261,
+      "description": "Port used for the server"
+    },
+    {
+      "name": "RCON Port",
+      "key": "rcon_port",
+      "protocol": "tcp",
+      "default": 27015,
+      "description": "Port used for RCON remote control"
+    }
+  ],
   "fields": [
     {
       "name": "Server Name",

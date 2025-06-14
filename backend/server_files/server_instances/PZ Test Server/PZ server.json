@@ -1,34 +1,78 @@
 {
-    "BaseSettings":{
-      "MODIX_GAME_TEMPLATE": null,
-      "DOCKER_IMAGE": "steamcmd/steamcmd",
-      "GAME_IS_STEAM": true,
-      "GAME_STEAM_ID": 108600,
-      "USE_NAMED_VOLUME": true,
-      "DOCKER_VOLUME_NAME": "pz_test_server_data",
-      "DOCKER_VOLUME_PATH": "/home/steam/pzserver",
-      "BIND_MOUNT_PATH": null
+  "BaseSettings": {
+    "MODIX_GAME_TEMPLATE": null,
+    "DOCKER_IMAGE": "steamcmd/steamcmd:latest",
+    "GAME_IS_STEAM": true,
+    "GAME_STEAM_ID": 108600,
+    "USE_NAMED_VOLUME": true,
+    "DOCKER_VOLUME_NAME": "pz_test_server_data",
+    "DOCKER_VOLUME_PATH": "/home/steam/pzserver",
+    "BIND_MOUNT_PATH": null,
+    "protocal_ports": [
+      {
+        "desired_container_port": 16261,
+        "protocol": "udp",
+        "assigned_host_port": 20000
+      },
+      {
+        "desired_container_port": 16262,
+        "protocol": "udp",
+        "assigned_host_port": 20001
+      },
+      {
+        "desired_container_port": 27015,
+        "protocol": "tcp",
+        "assigned_host_port": 20002
+      }
+    ]
+  },
+  "ServerSettings": {
+    "name": "PZ Test Server",
+    "description": "A test server for Project Zomboid",
+    "max_players": 10,
+    "password": null,
+    "public": true,
+    "port": 16261,
+    "map": "Muldraugh, KY",
+    "motd": "Welcome to the PZ Test Server!",
+    "admin_password": null,
+    "admin_list": null,
+    "pvp": false,
+    "voice": true,
+    "preset": "Survivor",
+    "sandbox_config": null,
+    "spawn_regions": null,
+    "rcon_enabled": true,
+    "rcon_port": 27020,
+    "rcon_password": null,
+    "save_interval": 15,
+    "server_file_id": null
+  },
+  "ContainerID": "513d987a309adca8010d849aa6fd00fffbacb2396ecaafb3affd0526a7ca4e04",
+  "Container": {
+    "id": "a24b108c3e6bb633057e79ba4a0ad392dddbc9db46ff651836967f7eee215df7",
+    "name": "modix_pz_test_server",
+    "image": "steamcmd/steamcmd:latest",
+    "volumes": {
+      "pz_test_server_data": {
+        "bind": "/home/steam/pzserver",
+        "mode": "rw"
+      }
     },
-    "ServerSettings":{
-      "name": "PZ Test Server",
-      "description": "A test server for Project Zomboid",
-      "max_players": 10,
-      "password": null,
-      "public": true,
-      "port": 16261,
-      "map": "Muldraugh, KY",
-      "motd": "Welcome to the PZ Test Server!",
-      "admin_password": null,
-      "admin_list": null,
-      "pvp": false,
-      "voice": true,
-      "preset": "Survivor",
-      "sandbox_config": null,
-      "spawn_regions": null,
-      "rcon_enabled": true,
-      "rcon_port": 27015,
-      "rcon_password": null,
-      "save_interval": 15,
-      "server_file_id": null
+    "volume_path": "/home/steam/pzserver",
+    "bind_mount_path": null,
+    "created": "2025-06-14T03:00:46.701549988Z",
+    "status": "created",
+    "ports": {
+      "16261/udp": 20000,
+      "16262/udp": 20001,
+      "27015/tcp": 20002
+    },
+    "labels": {
+      "desktop.docker.io/wsl-distro": "Ubuntu-24.04",
+      "modix_managed": "1",
+      "org.opencontainers.image.ref.name": "ubuntu",
+      "org.opencontainers.image.version": "24.04"
     }
   }
+}

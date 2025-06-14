@@ -1,0 +1,26 @@
+{
+  "MODIX_VERSION": "Latest",
+  "MODIX_INSTANCE_ID": "modex1",
+  "MODIX_AUTO_DEPLOY": true,
+  "MODIX_MODULES": null,
+  "MODIX_CLUSTER": false,
+  "MODIX_USERNAME": null,
+  "MODIX_PASSWORD": null,
+  "MODIX_REQUIRE_AUTH": null,
+  "MODIX_SESSION_TIMEOUT": null,
+  "MODIX_ALLOW_USER_CREATION": true,
+  "MODIX_MULTI_SERVER": true,
+  "MODIX_MAX_SERVERS": null,
+  "MODIX_CREATE_CONTAINERS": true,
+  "MODIX_LINK_CONTAINERS_NETWORK": null,
+  "MODIX_WS_PORT": null,
+  "MODIX_SANDBOX": null,
+  "MODIX_DEBUG": null,
+  "MODIX_BLACKLISTED_IMAGES": null,
+  "MODIX_WHITELISTED_IMAGES": null,
+  "MODIX_RESUSE_PORTS": true,
+  "MODIX_PORT_ALLOCATION": {
+  "start": 20000,
+  "end": 20100
+  }
+}
