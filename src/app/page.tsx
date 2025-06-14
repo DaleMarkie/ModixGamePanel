@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
+import Dashboard from "./dashboard/Dashboard2"; // <- dashboard
+import Terminal from "./dashboard/terminal/TerminalLayout"; // <- dashboard
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -159,7 +161,12 @@ export default function Home() {
 
             <nav
               className="top-menu"
-              style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                position: "relative",
+              }}
             >
               {navLinks.map(({ href, label }) => (
                 <Link key={label} href={href} style={headerButtonStyle}>
@@ -168,7 +175,11 @@ export default function Home() {
               ))}
 
               <div
-                style={{ ...headerButtonStyle, userSelect: "none", position: "relative" }}
+                style={{
+                  ...headerButtonStyle,
+                  userSelect: "none",
+                  position: "relative",
+                }}
                 onMouseEnter={() => setGamesMenuOpen(true)}
                 onMouseLeave={() => setGamesMenuOpen(false)}
               >
@@ -205,8 +216,12 @@ export default function Home() {
                   textDecoration: "none",
                   transition: "all 0.2s ease-in-out",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#555")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3d3d3d")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#555")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#3d3d3d")
+                }
               >
                 Login
               </Link>
@@ -215,11 +230,13 @@ export default function Home() {
 
           {/* Warning Label */}
           <div style={warningLabelStyle}>
-            ⚠️ Modix is still in development. Some features may not work as expected.
+            ⚠️ Modix is still in development. Some features may not work as
+            expected.
           </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            {/* Here you would render the page content for the current route in Next.js */}
+            {/* Dashboard rendered here */}
+            <Dashboard />
           </main>
 
           <footer style={footerStyle}>
