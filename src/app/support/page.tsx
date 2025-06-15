@@ -2,15 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import SteamParser from "./modules/steamparser/SteamParser";
-import SteamPlayerManager from "./modules/steamplayermanager/SteamPlayerManager";
-import MyServers from "./games/myservers/MyServers";
-import WorkshopModUpdates from "./modules/workshopmoduppdates/WorkshopModUpdates";
-import Help from "./dashboard/Dashboard2";
-import Terms from "./terms/Terms";
-import Team from "./team/Team";
-import Welcome from "./welcome/Welcome";
-import LicenseModal from "./dashboard/license/LicenseModal";
+import Support from "../support/Support";
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" }, // fix here too
   { href: "/terminal", label: "Terminal" },
@@ -200,7 +192,7 @@ export default function Dashboard() {
           </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Welcome />
+            <Support />
           </main>
 
           <footer

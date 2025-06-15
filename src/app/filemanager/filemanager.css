@@ -1,0 +1,406 @@
+/* -----------------------------------
+   Container & Layout
+----------------------------------- */
+.filemanager-container {
+  display: flex;
+  height: 100vh;
+  background-color: #121212;
+  color: #eee;
+  font-family: "Fira Code", monospace, monospace;
+  user-select: none;
+}
+
+/* -----------------------------------
+   Sidebar - File Tree
+----------------------------------- */
+.file-tree {
+  width: 320px;
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.file-tree-header {
+  padding: 1rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 8px;
+}
+
+.file-tree-header h2 {
+  margin: 0 0 0.75rem 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #ffcc00;
+}
+
+.file-tree-buttons,
+.file-tree-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.file-tree-controls input[type="search"] {
+  flex-grow: 1;
+  padding: 0.3rem 0.5rem;
+  background: #121212;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #eee;
+  font-size: 0.9rem;
+  outline-offset: 2px;
+}
+
+.file-tree-controls input[type="search"]:focus {
+  border-color: #ffcc00;
+  outline: none;
+}
+
+.file-tree-controls button.btn-sort {
+  background: transparent;
+  border: none;
+  color: #eee;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.file-tree-controls button.btn-sort:hover {
+  color: #ffcc00;
+}
+
+/* -----------------------------------
+   Buttons
+----------------------------------- */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #222;
+  border: 1px solid #444;
+  color: #eee;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: #333;
+  border-color: #ffcc00;
+  color: #ffcc00;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-import {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-import input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* -----------------------------------
+   File Tree List & Nodes
+----------------------------------- */
+.file-tree-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0 0.5rem;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.15rem 0.2rem;
+  border-radius: 3px;
+  transition: background-color 0.15s ease;
+  outline-offset: 2px;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.tree-node:hover,
+.tree-node:focus-visible {
+  background-color: #2a2a2a;
+  outline: none;
+  color: #fff;
+}
+
+.tree-node.selected {
+  background-color: #ffcc00;
+  color: #121212;
+  font-weight: 700;
+}
+
+/* -----------------------------------
+   Icons
+----------------------------------- */
+.icon,
+.icon-placeholder {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.5em;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+}
+
+.folder-icon {
+  color: #ffcc00;
+}
+
+.file-icon {
+  color: #888;
+}
+
+/* -----------------------------------
+   Node Text
+----------------------------------- */
+.node-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
+}
+
+/* -----------------------------------
+   Empty Tree / Messages
+----------------------------------- */
+.empty-tree-msg,
+.loading,
+.no-files,
+.no-selection,
+.folder-info,
+.no-file-selected {
+  padding: 1rem 2rem;
+  font-style: italic;
+  color: #666;
+  user-select: none;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* -----------------------------------
+   Main Editor Panel
+----------------------------------- */
+.file-editor-container,
+.file-editor {
+  flex-grow: 1;
+  background: #1c1c1c;
+  padding: 1rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  color: #ddd;
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.editor-header h3 {
+  margin: 0;
+  font-weight: 700;
+  color: #ffcc00;
+  user-select: none;
+}
+
+.btn-save {
+  background: #ffcc00;
+  border: none;
+  color: #121212;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-save:hover {
+  background: #e6b800;
+}
+
+/* -----------------------------------
+   Editor Search Bar
+----------------------------------- */
+.editor-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  background: #252525;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+}
+
+.search-icon {
+  color: #888;
+  font-size: 1.1rem;
+}
+
+.editor-search-bar input[type="search"] {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #eee;
+  font-family: "Fira Code", monospace, monospace;
+  font-size: 0.9rem;
+}
+
+.btn-nav {
+  background: #333;
+  border: none;
+  color: #eee;
+  font-size: 1rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.btn-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.btn-nav:not(:disabled):hover {
+  background: #555;
+}
+
+.match-counter {
+  font-size: 0.9rem;
+  color: #aaa;
+  user-select: none;
+  font-weight: 600;
+}
+
+.btn-clear-search {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.btn-clear-search:hover {
+  color: #ffcc00;
+}
+
+/* -----------------------------------
+   Editor Textarea & Overlay (for syntax highlight)
+----------------------------------- */
+.editor-wrapper {
+  position: relative;
+  flex-grow: 1;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font-family: "Fira Code", monospace, monospace;
+  font-size: 14px;
+  line-height: 20px;
+  color: transparent; /* hide textarea text to show overlay */
+  box-shadow: inset 0 0 8px #0008;
+  overflow: hidden;
+  user-select: text;
+}
+
+.editor-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 0.75rem 1rem;
+  pointer-events: none;
+  color: #eee;
+  font-family: "Fira Code", monospace, monospace;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.editor-textarea {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #eee;
+  font-family: "Fira Code", monospace, monospace;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+  caret-color: #ffcc00;
+  user-select: text;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* -----------------------------------
+   Highlight marks (search matches)
+----------------------------------- */
+mark {
+  background-color: #ffc10755;
+  border-radius: 2px;
+  color: inherit;
+}
+
+mark.current-match {
+  background-color: #ffcc0044;
+  box-shadow: 0 0 10px #ffcc00aa;
+  color: inherit;
+}
+
+/* -----------------------------------
+   Folder Info Box & No Selection Messages
+----------------------------------- */
+.folder-info,
+.no-file-selected {
+  color: #888;
+  font-style: italic;
+  user-select: none;
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+}

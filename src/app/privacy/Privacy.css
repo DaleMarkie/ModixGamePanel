@@ -1,0 +1,78 @@
+/* Privacy.css */
+
+.terms-container {
+  background-color: #0f0f0f;
+  color: #dcdcdc;
+  min-height: 100vh;
+  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.terms-content {
+  max-width: 900px;
+  width: 100%;
+  background-color: #1a1a1a;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.65);
+}
+
+.terms-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #4caf50; /* bright green */
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.last-updated {
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+.terms-content section {
+  margin-bottom: 40px;
+}
+
+.terms-content h2 {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  color: #81c784; /* lighter green */
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.terms-content p,
+.terms-content li {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ccc;
+}
+
+.terms-content ul {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.terms-content a {
+  color: #66bb6a;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.terms-content a:hover {
+  color: #a5d6a7;
+}
+
+.terms-footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  padding-top: 30px;
+  border-top: 1px solid #333;
+  user-select: none;
+}

@@ -2,15 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import SteamParser from "./modules/steamparser/SteamParser";
-import SteamPlayerManager from "./modules/steamplayermanager/SteamPlayerManager";
-import MyServers from "./games/myservers/MyServers";
-import WorkshopModUpdates from "./modules/workshopmoduppdates/WorkshopModUpdates";
-import Help from "./dashboard/Dashboard2";
-import Terms from "./terms/Terms";
-import Team from "./team/Team";
-import Welcome from "./welcome/Welcome";
-import LicenseModal from "./dashboard/license/LicenseModal";
+import Login from "./Login";
+
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" }, // fix here too
   { href: "/terminal", label: "Terminal" },
@@ -101,27 +94,9 @@ export default function Dashboard() {
           >
             <div
               className="logo"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "default",
-                gap: 8, // space between logo and text
-              }}
+              style={{ fontWeight: 700, fontSize: "1.6rem", cursor: "default" }}
             >
-              <img
-                src="https://i.ibb.co/cMPwcn8/logo.png" // your logo URL here
-                alt="Modix Logo"
-                style={{ height: 50, objectFit: "contain" }}
-              />
-              <span
-                style={{
-                  fontWeight: 900,
-                  fontSize: "1.6rem",
-                  color: "inherit",
-                }}
-              >
-                MODIX
-              </span>
+              {panelName}
             </div>
 
             <nav
@@ -153,6 +128,62 @@ export default function Dashboard() {
                   {label}
                 </Link>
               ))}
+
+              <div
+                style={{
+                  color: headerTextColor,
+                  padding: "8px 14px",
+                  userSelect: "none",
+                  position: "relative",
+                }}
+                onMouseEnter={() => setGamesMenuOpen(true)}
+                onMouseLeave={() => setGamesMenuOpen(false)}
+              >
+                Games
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 4px)",
+                    left: 0,
+                    backgroundColor: "#222",
+                    borderRadius: 8,
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.8)",
+                    padding: "8px 0",
+                    minWidth: 140,
+                    zIndex: 10,
+                    display: gamesMenuOpen ? "block" : "none",
+                  }}
+                >
+                  <Link
+                    href="/games"
+                    style={{
+                      padding: "8px 16px",
+                      color: "#eee",
+                      textDecoration: "none",
+                      display: "block",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setGamesMenuOpen(false)}
+                  >
+                    All Games
+                  </Link>
+                  <Link
+                    href="/myservers"
+                    style={{
+                      padding: "8px 16px",
+                      color: "#eee",
+                      textDecoration: "none",
+                      display: "block",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setGamesMenuOpen(false)}
+                  >
+                    My Servers
+                  </Link>
+                </div>
+              </div>
 
               <Link
                 href="/login"
@@ -200,7 +231,7 @@ export default function Dashboard() {
           </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Welcome />
+            <Dashboard2 />
           </main>
 
           <footer
@@ -213,7 +244,7 @@ export default function Dashboard() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              fontSize: "0.75rem", // smaller font size here
+              fontSize: "0.9rem",
               userSelect: "none",
               zIndex: 2,
             }}
@@ -223,7 +254,7 @@ export default function Dashboard() {
               <span>Made with 💚 for Project Zomboid</span>
             </div>
 
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 12 }}>
               <a
                 href="https://discord.gg/EwWZUSR9tM"
                 target="_blank"
@@ -234,18 +265,18 @@ export default function Dashboard() {
                   gap: 6,
                   backgroundColor: "#444",
                   color: "#eee",
-                  padding: "6px 10px", // smaller padding for smaller text
+                  padding: "8px 14px",
                   borderRadius: 12,
                   textDecoration: "none",
                   fontWeight: 600,
-                  fontSize: "0.75rem", // smaller font size for links
+                  fontSize: "1rem",
                   transition: "background-color 0.3s ease, color 0.3s ease",
                   userSelect: "none",
                   cursor: "pointer",
                   border: "1px solid transparent",
                 }}
               >
-                <FaDiscord size={16} />
+                <FaDiscord size={20} />
                 Discord
               </a>
 
@@ -259,86 +290,19 @@ export default function Dashboard() {
                   gap: 6,
                   backgroundColor: "#444",
                   color: "#eee",
-                  padding: "6px 10px",
+                  padding: "8px 14px",
                   borderRadius: 12,
                   textDecoration: "none",
                   fontWeight: 600,
-                  fontSize: "0.75rem",
+                  fontSize: "1rem",
                   transition: "background-color 0.3s ease, color 0.3s ease",
                   userSelect: "none",
                   cursor: "pointer",
                   border: "1px solid transparent",
                 }}
               >
-                <FaCoffee size={16} />
+                <FaCoffee size={20} />
                 Ko-fi
-              </a>
-
-              {/* New links */}
-              <a
-                href="/terms"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Terms of Service
-              </a>
-
-              <a
-                href="/privacy"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Privacy Policy
-              </a>
-
-              <a
-                href="/contact"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Contact Us
               </a>
             </div>
           </footer>

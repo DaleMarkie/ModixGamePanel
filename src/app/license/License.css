@@ -1,0 +1,65 @@
+.license-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #121212;
+  color: #e0e0e0;
+  font-family: "Segoe UI", sans-serif;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.license-page header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.license-page h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #3ba55d; /* dark green */
+}
+
+.license-page p {
+  margin-bottom: 1rem;
+  color: #ccc;
+}
+
+.license-content {
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.license-content h2 {
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: #3ba55d; /* dark green for section titles */
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.3rem;
+}
+
+.license-content ul {
+  margin: 1rem 0 1rem 1.5rem;
+  list-style: disc;
+}
+
+.license-content li {
+  margin-bottom: 0.6rem;
+  color: #bbb;
+}
+
+.license-content strong {
+  color: #fff;
+}
+
+.license-content a {
+  color: #80cbc4;
+  text-decoration: underline;
+}
+
+.license-content a:hover {
+  color: #a7ffeb;
+}
