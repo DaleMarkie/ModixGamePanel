@@ -91,18 +91,6 @@ const allModules = [
     category: "Server Tools",
   },
   {
-    name: "🛠️ PZ Workshop Manager",
-    status: "Active",
-    tooltip: "Manage Project Zomboid workshop mods",
-    preinstalled: true,
-    version: "1.3.4",
-    author: "Modix Dev Team",
-    lastUpdated: "April 29, 2025",
-    description:
-      "Install, enable, or disable mods from the Steam Workshop directly within the panel.",
-    category: "Game Management",
-  },
-  {
     name: "⚙️ Task Manager",
     status: "Active",
     tooltip: "Schedule and manage tasks",
@@ -139,7 +127,55 @@ const allModules = [
     category: "Game Management",
   },
   {
+    name: "🧾 Workshop Mod Updates",
+    status: "Active",
+    tooltip: "Analyze Steam Workshop data",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Integration Team",
+    lastUpdated: "April 25, 2025",
+    description:
+      "Quickly identify missing dependencies that might disrupt your server. to fix or resolve broken dependencies, ensuring smooth gameplay.",
+    category: "Steam Settings",
+  },
+  {
+    name: "🧾 Setup SteamCMD",
+    status: "Active",
+    tooltip: "Analyze Steam Workshop data",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Integration Team",
+    lastUpdated: "April 25, 2025",
+    description:
+      "Parse and visualize Steam Workshop mod data to help manage dependencies and versions.",
+    category: "Steam Settings",
+  },
+  {
+    name: "🧾 Setup SteamCMD",
+    status: "Active",
+    tooltip: "Analyze Steam Workshop data",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Integration Team",
+    lastUpdated: "April 25, 2025",
+    description:
+      "Parse and visualize Steam Workshop mod data to help manage dependencies and versions.",
+    category: "Steam Settings",
+  },
+  {
     name: "🧾 Steam Parser",
+    status: "Active",
+    tooltip: "Analyze Steam Workshop data",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Integration Team",
+    lastUpdated: "April 25, 2025",
+    description:
+      "Parse and visualize Steam Workshop mod data to help manage dependencies and versions.",
+    category: "Steam Settings",
+  },
+  {
+    name: "🧾 Steam Player Manager",
     status: "Active",
     tooltip: "Analyze Steam Workshop data",
     preinstalled: false,
@@ -289,7 +325,8 @@ const Dashboard2 = () => {
       "⚙️ Task Manager": "/taskmanager",
       "🚫 PZ Ban Manager": "/pzbanmanager",
       "🛡️ Server Settings": "/serversettings",
-      "🧾 Steam Parser": "/steamparser",
+      "🧾 Steam Parser": "/modules/steamparser",
+      "🧾 Steam Player Manager": "/modules/steamplayermanager",
       "📜 Audit Log Viewer": "/auditlogs",
       "👥 User Manager": "/usermanager",
       "📂 PZ Database": "/pzdatabase",
@@ -305,23 +342,8 @@ const Dashboard2 = () => {
     <div className="dashboard2">
       <header className="dashboard-header">
         <div className="logo-container">
-          <img src="/modix-logo.png" alt="Modix Logo" className="modix-logo" />
-          <h1 className="panel-title">Modix Game Panel</h1>
+          <h1 className="panel-title">Dashboard</h1>
         </div>
-
-        <nav className="main-nav">
-          <button onClick={() => router.push("/dashboard")}>Dashboard</button>
-          <button onClick={() => router.push("/terminallayout")}>
-            Terminal
-          </button>
-          <button onClick={() => router.push("/filemanager")}>
-            File Manager
-          </button>
-          <button onClick={() => router.push("/modmanager")}>
-            Mod Manager
-          </button>
-          <button onClick={() => router.push("/webhook")}>Webhooks</button>
-        </nav>
 
         <div className="header-right">
           <span className="version-label">v1.1.2</span>
@@ -341,7 +363,9 @@ const Dashboard2 = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <nav className="quick-nav">
-            <button onClick={() => router.push("/docs")}>🎟 My License</button>
+            <button onClick={() => router.push("/license")}>
+              🎟 My License
+            </button>
             <button onClick={() => router.push("/docs")}>📄 Docs</button>
             <button onClick={() => router.push("/support")}>🛠 Support</button>
             <button onClick={() => router.push("/faq")}>❓ FAQ</button>
@@ -371,28 +395,6 @@ const Dashboard2 = () => {
           );
         })}
       </main>
-
-      <footer className="dashboard-footer">
-        <div className="footer-left">
-          <Link href="/terms" className="footer-link">
-            Terms of Service
-          </Link>
-          <Link href="/privacy" className="footer-link">
-            Privacy Policy
-          </Link>
-        </div>
-        <div className="footer-center">
-          &copy; 2023 Modix Game Panel — v1.1.2
-        </div>
-        <div className="footer-right">
-          <Link href="/contact" className="footer-link">
-            Contact
-          </Link>
-          <Link href="/about" className="footer-link">
-            About
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 };

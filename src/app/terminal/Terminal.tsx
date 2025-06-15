@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import "./TerminalLayout.css";
+import "./terminal.css";
 
 const API_BASE = "http://localhost:2010/api";
 
-const TerminalLayout = () => {
+const Terminal = () => {
   const [status, setStatus] = useState("Please start the server");
   const [logs, setLogs] = useState(() => {
     const saved = localStorage.getItem("pz-logs");
@@ -39,9 +41,14 @@ const TerminalLayout = () => {
         setServerStats(data);
         setMemory({ used: data.ramUsed, total: data.ramTotal });
         setIsServerRunning(data.status === "running");
-        setStatus(data.status === "running" ? "Server is running" : "Server stopped");
+        setStatus(
+          data.status === "running" ? "Server is running" : "Server stopped"
+        );
       } catch {
-        addLog("ERROR [102] Your frontend is not connecting to the server... close and restart Modix or contact us on our discord for support.", false);
+        addLog(
+          "ERROR [102] Your frontend is not connecting to the server... close and restart Modix or contact us on our discord for support.",
+          false
+        );
       }
     };
 
@@ -59,7 +66,9 @@ const TerminalLayout = () => {
     addLog("[System] Starting Project Zomboid server...");
 
     try {
-      const response = await fetch(`${API_BASE}/start-server`, { method: "POST" });
+      const response = await fetch(`${API_BASE}/start-server`, {
+        method: "POST",
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -173,7 +182,8 @@ const TerminalLayout = () => {
   const handleCopyLogs = (e) => {
     e.preventDefault();
     const text = logs.join("\n");
-    navigator.clipboard.writeText(text)
+    navigator.clipboard
+      .writeText(text)
       .then(() => alert("Logs copied!"))
       .catch(() => alert("Failed to copy logs."));
   };
@@ -184,32 +194,79 @@ const TerminalLayout = () => {
 
   return (
     <div className="boxed-container">
-
       {lowMemoryWarning && (
         <div className="warning-banner">
-          <p>⚠️ Warning: Low memory usage detected! Consider freeing up memory.</p>
+          <p>
+            ⚠️ Warning: Low memory usage detected! Consider freeing up memory.
+          </p>
         </div>
       )}
 
       <div className="terminal-layout">
-
         <div className="side-boxes left">
-          <div className="info-box"><h3>🌐 IP</h3><p>{serverStats?.ip || "..."}</p></div>
-          <div className="info-box"><h3>📦 Port</h3><p>{serverStats?.port || "..."}</p></div>
-          <div className="info-box"><h3>📊 CPU</h3><p>{serverStats ? `${serverStats.cpu}%` : "..."}</p></div>
-          <div className="info-box"><h3>🧠 RAM</h3><p>{serverStats ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB` : "..."}</p></div>
-          <div className="info-box"><h3>💽 Storage</h3><p>{serverStats ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB` : "..."}</p></div>
+          <div className="info-box">
+            <h3>🌐 IP</h3>
+            <p>{serverStats?.ip || "..."}</p>
+          </div>
+          <div className="info-box">
+            <h3>📦 Port</h3>
+            <p>{serverStats?.port || "..."}</p>
+          </div>
+          <div className="info-box">
+            <h3>📊 CPU</h3>
+            <p>{serverStats ? `${serverStats.cpu}%` : "..."}</p>
+          </div>
+          <div className="info-box">
+            <h3>🧠 RAM</h3>
+            <p>
+              {serverStats
+                ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB`
+                : "..."}
+            </p>
+          </div>
+          <div className="info-box">
+            <h3>💽 Storage</h3>
+            <p>
+              {serverStats
+                ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB`
+                : "..."}
+            </p>
+          </div>
         </div>
 
         {/* MAIN TERMINAL + CONTROLS SECTION */}
         <div className="terminal-wrapper">
           <header className="terminal-header-box">
-            <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>● {status}</div>
+            <div
+              className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              ● {status}
+            </div>
             <div className="controls">
-              <button onClick={() => handleCommand("start")} disabled={isServerRunning}>Start</button>
-              <button onClick={() => handleCommand("restart")} disabled={!isServerRunning}>Restart</button>
-              <button onClick={() => handleCommand("stop")} disabled={!isServerRunning}>Stop</button>
-              <button onClick={() => handleCommand("shutdown")} disabled={!isServerRunning}>Shutdown</button>
+              <button
+                onClick={() => handleCommand("start")}
+                disabled={isServerRunning}
+              >
+                Start
+              </button>
+              <button
+                onClick={() => handleCommand("restart")}
+                disabled={!isServerRunning}
+              >
+                Restart
+              </button>
+              <button
+                onClick={() => handleCommand("stop")}
+                disabled={!isServerRunning}
+              >
+                Stop
+              </button>
+              <button
+                onClick={() => handleCommand("shutdown")}
+                disabled={!isServerRunning}
+              >
+                Shutdown
+              </button>
               <input
                 className="log-search"
                 type="text"
@@ -223,7 +280,9 @@ const TerminalLayout = () => {
           <div className="terminal-logs">
             {filteredLogs.length > 0 ? (
               filteredLogs.map((log, index) => (
-                <pre key={index} className="terminal-log">{log}</pre>
+                <pre key={index} className="terminal-log">
+                  {log}
+                </pre>
               ))
             ) : (
               <p className="terminal-log no-results">No matching logs found.</p>
@@ -244,33 +303,55 @@ const TerminalLayout = () => {
         </div>
 
         <div className="side-boxes right">
-          <div className="info-box"><h3>📢 Alerts</h3><p>{serverStats?.serverAlerts || "..."}</p></div>
-          
-          <div className="info-box"><h3>🔧 Version</h3><p>{serverStats?.version || "..."}</p></div>
+          <div className="info-box">
+            <h3>📢 Alerts</h3>
+            <p>{serverStats?.serverAlerts || "..."}</p>
+          </div>
+
+          <div className="info-box">
+            <h3>🔧 Version</h3>
+            <p>{serverStats?.version || "..."}</p>
+          </div>
         </div>
       </div>
 
       {/* NEW SEPARATE SECTION BELOW terminal-layout */}
       <section className="server-health-section">
-  <h2>🩺 Server Health Overview</h2>
-  <div className="server-health-grid">
-    <div className="health-item"><strong>Uptime:</strong> {serverStats?.uptime || "N/A"}</div>
-    <div className="health-item"><strong>Downtime:</strong> {serverStats?.downtime || "N/A"}</div>
-    <div className="health-item"><strong>Status:</strong> {serverStats?.healthStatus || "Unknown"}</div>
-    <div className="health-item"><strong>CPU Load:</strong> {serverStats?.cpu ? `${serverStats.cpu.toFixed(1)}%` : "N/A"}</div>
-    <div className="health-item">
-      <strong>Memory Usage:</strong>{" "}
-      {serverStats ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB` : "N/A"}
-    </div>
-    <div className="health-item">
-      <strong>Storage Usage:</strong>{" "}
-      {serverStats ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB` : "N/A"}
-    </div>
-  </div>
-</section>
-      
+        <h2>🩺 Server Health Overview</h2>
+        <div className="server-health-grid">
+          <div className="health-item">
+            <strong>Uptime:</strong> {serverStats?.uptime || "N/A"}
+          </div>
+          <div className="health-item">
+            <strong>Downtime:</strong> {serverStats?.downtime || "N/A"}
+          </div>
+          <div className="health-item">
+            <strong>Status:</strong> {serverStats?.healthStatus || "Unknown"}
+          </div>
+          <div className="health-item">
+            <strong>CPU Load:</strong>{" "}
+            {serverStats?.cpu ? `${serverStats.cpu.toFixed(1)}%` : "N/A"}
+          </div>
+          <div className="health-item">
+            <strong>Memory Usage:</strong>{" "}
+            {serverStats
+              ? `${serverStats.ramUsed.toFixed(
+                  2
+                )} / ${serverStats.ramTotal.toFixed(2)} GB`
+              : "N/A"}
+          </div>
+          <div className="health-item">
+            <strong>Storage Usage:</strong>{" "}
+            {serverStats
+              ? `${serverStats.storageUsed.toFixed(
+                  2
+                )} / ${serverStats.storageTotal.toFixed(2)} GB`
+              : "N/A"}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
-export default TerminalLayout;
+export default Terminal;

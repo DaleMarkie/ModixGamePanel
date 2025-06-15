@@ -5,7 +5,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0,0,0,0.75);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -32,7 +32,7 @@
   overflow-y: auto;
   padding: 25px 30px;
   color: #e0e0e0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   position: relative;
   transform: translateY(-20px);
   transition: transform 0.3s ease;

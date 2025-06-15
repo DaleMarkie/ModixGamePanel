@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ForgotPasswordModal from "./ForgotPasswordModal";
-import "./login.css";
+import { useRouter } from "next/navigation";
+import ForgotPasswordModal from "./ForgotPasswordModal"; // Ensure this is Next-compatible
+import "./login.css"; // Adjust path as needed
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -9,7 +11,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +27,7 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        navigate("/dashboard");
+        router.push("/dashboard"); // ✅ Next.js route change
       } else {
         setError(data.message || "Invalid username or password.");
       }
@@ -35,7 +37,7 @@ const Login = () => {
   };
 
   const handleSignUp = () => {
-    navigate("/signup");
+    router.push("/signup"); // ✅ Next.js navigation
   };
 
   return (

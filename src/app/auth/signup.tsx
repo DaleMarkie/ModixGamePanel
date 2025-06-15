@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./login.css"; // Shared styles
+import { useRouter } from "next/navigation";
+import "./login.css"; // Adjust path if necessary
 
 const Signup = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -65,7 +67,7 @@ const Signup = () => {
   const handleLicenseConfirm = () => {
     console.log("License selected:", licensePlan);
     setShowLicenseModal(false);
-    navigate("/login");
+    router.push("/login"); // ✅ Next.js route navigation
   };
 
   const handleLicenseCancel = () => {
@@ -170,7 +172,13 @@ const Signup = () => {
             <p>Please choose a licensing plan to run Modix:</p>
 
             <div style={{ marginTop: "20px" }}>
-              <label style={{ display: "block", marginBottom: "12px", cursor: "pointer" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "12px",
+                  cursor: "pointer",
+                }}
+              >
                 <input
                   type="radio"
                   name="licensePlan"
