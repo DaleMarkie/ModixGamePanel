@@ -200,11 +200,13 @@ def create_or_update_container(client, server_name, config, server_folder, confi
 
     print(f"Creating container '{container_name}' with image '{image}' for Steam ID {steam_id}")
     try:
+        # FIX: Place +force_install_dir before +login
+        steamcmd_command = f"+force_install_dir {volume_path} +login anonymous +app_update {steam_id} validate +quit"
         container = client.containers.run(
             image,
             name=container_name,
             detach=True,
-            command=f"+login anonymous +force_install_dir {volume_path} +app_update {steam_id} validate +quit",
+            command=steamcmd_command,
             ports=ports if ports else None,
             volumes=volumes if volumes else None,
             labels={MODIX_CONTAINER_LABEL: "1"},

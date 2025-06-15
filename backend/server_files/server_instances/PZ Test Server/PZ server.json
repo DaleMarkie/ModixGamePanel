@@ -49,7 +49,7 @@
     "server_file_id": null
   },
   "Container": {
-    "id": "a24b108c3e6bb633057e79ba4a0ad392dddbc9db46ff651836967f7eee215df7",
+    "id": "35eb91a0562c506560ff318240e75b9cc01f5b6ad4ad0049a45c6e720ba7d2b1",
     "name": "modix_pz_test_server",
     "image": "steamcmd/steamcmd:latest",
     "volumes": {
@@ -60,7 +60,7 @@
     },
     "volume_path": "/home/steam/pzserver",
     "bind_mount_path": null,
-    "created": "2025-06-14T03:00:46.701549988Z",
+    "created": "2025-06-14T03:48:41.718394092Z",
     "status": "created",
     "ports": {
       "16261/udp": 20000,
