@@ -6,22 +6,11 @@ import Link from "next/link";
 import "./dashboard2.css";
 
 const allModules = [
-  {
-    name: "📜 Audit Log Viewer",
-    status: "Active",
-    tooltip: "Review panel activity logs",
-    preinstalled: true,
-    version: "1.0.3",
-    author: "Modix Dev Team",
-    lastUpdated: "April 26, 2025",
-    description:
-      "View and analyze detailed logs for all activities within the Modix Panel, providing full transparency and security auditing.",
-    category: "Core Pages",
-  },
+  // Core Pages
   {
     name: "🧩 Plugins",
     status: "Active",
-    tooltip: "Review panel activity logs",
+    tooltip: "Manage panel plugins",
     preinstalled: true,
     version: "1.0.3",
     author: "Modix Dev Team",
@@ -43,29 +32,6 @@ const allModules = [
     category: "Core Pages",
   },
   {
-    name: "🎨 Theme Manager",
-    status: "Active",
-    tooltip: "Customize the panel appearance",
-    preinstalled: false,
-    version: "1.0.0",
-    author: "Modix UI Team",
-    lastUpdated: "April 1, 2025",
-    description:
-      "Easily switch and configure themes for a personalized Modix Panel experience.",
-    category: "Panel Customization",
-  },
-  {
-    name: "🌐 Language & Localization",
-    status: "Active",
-    tooltip: "Customize the panel appearance",
-    preinstalled: false,
-    version: "1.0.0",
-    author: "Modix UI Team",
-    lastUpdated: "April 1, 2025",
-    description: "Choose your preferred language for the panel interface",
-    category: "Panel Customization",
-  },
-  {
     name: "🕹️ Game Selector",
     status: "Active",
     tooltip: "Switch between installed games",
@@ -75,7 +41,95 @@ const allModules = [
     lastUpdated: "May 2, 2025",
     description:
       "Quickly switch between different games hosted on your servers without downtime.",
+    category: "Core Pages",
+  },
+  {
+    name: "📜 Server Health",
+    status: "Active",
+    tooltip: "Check server health status",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Monitoring Team",
+    lastUpdated: "May 2, 2025",
+    description:
+      "Monitor overall server health, including uptime and performance alerts.",
+    category: "Core Pages",
+  },
+
+  // Game Management
+  {
+    name: "🚫 PZ Ban Manager",
+    status: "Active",
+    tooltip: "Manage bans on Project Zomboid servers",
+    preinstalled: true,
+    version: "1.0.1",
+    author: "Modix Dev Team",
+    lastUpdated: "April 20, 2025",
+    description:
+      "Ban or unban players across your Project Zomboid servers with a simple interface.",
     category: "Game Management",
+  },
+  {
+    name: "🛡️ Server Settings",
+    status: "Active",
+    tooltip: "Edit server configuration",
+    preinstalled: true,
+    version: "2.0.0",
+    author: "Modix Dev Team",
+    lastUpdated: "May 5, 2025",
+    description:
+      "Configure detailed server settings including server.ini and SandboxVars.lua in a user-friendly UI.",
+    category: "Game Management",
+  },
+  {
+    name: "📂 PZ Database",
+    status: "Active",
+    tooltip: "View Project Zomboid server database",
+    preinstalled: false,
+    version: "1.1.1",
+    author: "Modix Database Team",
+    lastUpdated: "May 3, 2025",
+    description:
+      "Access the Project Zomboid server database for advanced queries and management.",
+    category: "Game Management",
+  },
+  {
+    name: "🧩 PZ Mod Manager",
+    status: "Active",
+    tooltip: "Manage Project Zomboid mods",
+    preinstalled: false,
+    version: "1.2.0",
+    author: "Modix Dev Team",
+    lastUpdated: "May 4, 2025",
+    description:
+      "Add, remove, enable, or disable mods for Project Zomboid with a clear UI.",
+    category: "Game Management",
+  },
+  {
+    name: "👤 PZ Player Manager",
+    status: "Active",
+    tooltip: "Manage players on Project Zomboid servers",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix Dev Team",
+    lastUpdated: "April 28, 2025",
+    description:
+      "Track and manage player data, ban statuses, and stats across servers.",
+    category: "Game Management",
+  },
+
+  // Server Tools
+  {
+    name: "📜 Audit Log Viewer",
+    status: "Active",
+    tooltip: "Review panel activity logs",
+    preinstalled: true,
+    version: "1.0.3",
+    author: "Modix Dev Team",
+    lastUpdated: "April 26, 2025",
+    description:
+      "View and analyze detailed logs for all activities within the Modix Panel, providing full transparency and security auditing.",
+    category: "Server Tools",
   },
   {
     name: "💾 Backup Manager",
@@ -125,58 +179,24 @@ const allModules = [
       "Create and monitor scheduled tasks for server maintenance and automated scripts.",
     category: "Server Tools",
   },
-  {
-    name: "🚫 PZ Ban Manager",
-    status: "Active",
-    tooltip: "Manage bans on Project Zomboid servers",
-    preinstalled: true,
-    version: "1.0.1",
-    author: "Modix Dev Team",
-    lastUpdated: "April 20, 2025",
-    description:
-      "Ban or unban players across your Project Zomboid servers with a simple interface.",
-    category: "Game Management",
-  },
-  {
-    name: "🛡️ Server Settings",
-    status: "Active",
-    tooltip: "Edit server configuration",
-    preinstalled: true,
-    version: "2.0.0",
-    author: "Modix Dev Team",
-    lastUpdated: "May 5, 2025",
-    description:
-      "Configure detailed server settings including server.ini and SandboxVars.lua in a user-friendly UI.",
-    category: "Game Management",
-  },
+
+  // Steam Settings
   {
     name: "🧾 Workshop Mod Updates",
     status: "Active",
-    tooltip: "Analyze Steam Workshop data",
+    tooltip: "Identify missing mod dependencies",
     preinstalled: false,
     version: "1.0.0",
     author: "Modix Integration Team",
     lastUpdated: "April 25, 2025",
     description:
-      "Quickly identify missing dependencies that might disrupt your server. to fix or resolve broken dependencies, ensuring smooth gameplay.",
+      "Quickly identify missing dependencies that might disrupt your server and fix broken mods for smooth gameplay.",
     category: "Steam Settings",
   },
   {
     name: "🧾 Setup SteamCMD",
     status: "Active",
-    tooltip: "Analyze Steam Workshop data",
-    preinstalled: false,
-    version: "1.0.0",
-    author: "Modix Integration Team",
-    lastUpdated: "April 25, 2025",
-    description:
-      "Parse and visualize Steam Workshop mod data to help manage dependencies and versions.",
-    category: "Steam Settings",
-  },
-  {
-    name: "🧾 Setup SteamCMD",
-    status: "Active",
-    tooltip: "Analyze Steam Workshop data",
+    tooltip: "Manage SteamCMD for mods",
     preinstalled: false,
     version: "1.0.0",
     author: "Modix Integration Team",
@@ -188,7 +208,7 @@ const allModules = [
   {
     name: "🧾 Steam Parser",
     status: "Active",
-    tooltip: "Analyze Steam Workshop data",
+    tooltip: "Parse Steam Workshop data",
     preinstalled: false,
     version: "1.0.0",
     author: "Modix Integration Team",
@@ -200,7 +220,7 @@ const allModules = [
   {
     name: "🧾 Steam Player Manager",
     status: "Active",
-    tooltip: "Analyze Steam Workshop data",
+    tooltip: "Manage Steam Workshop player data",
     preinstalled: false,
     version: "1.0.0",
     author: "Modix Integration Team",
@@ -209,53 +229,30 @@ const allModules = [
       "Parse and visualize Steam Workshop mod data to help manage dependencies and versions.",
     category: "Steam Settings",
   },
+
+  // Panel Customization
   {
-    name: "📂 PZ Database",
+    name: "🎨 Theme Manager",
     status: "Active",
-    tooltip: "View Project Zomboid server database",
-    preinstalled: false,
-    version: "1.1.1",
-    author: "Modix Database Team",
-    lastUpdated: "May 3, 2025",
-    description:
-      "Access the Project Zomboid server database for advanced queries and management.",
-    category: "Game Management",
-  },
-  {
-    name: "🧩 PZ Mod Manager",
-    status: "Active",
-    tooltip: "Manage Project Zomboid mods",
-    preinstalled: false,
-    version: "1.2.0",
-    author: "Modix Dev Team",
-    lastUpdated: "May 4, 2025",
-    description:
-      "Add, remove, enable, or disable mods for Project Zomboid with a clear UI.",
-    category: "Game Management",
-  },
-  {
-    name: "👤 PZ Player Manager",
-    status: "Active",
-    tooltip: "Manage players on Project Zomboid servers",
+    tooltip: "Customize the panel appearance",
     preinstalled: false,
     version: "1.0.0",
-    author: "Modix Dev Team",
-    lastUpdated: "April 28, 2025",
+    author: "Modix UI Team",
+    lastUpdated: "April 1, 2025",
     description:
-      "Track and manage player data, ban statuses, and stats across servers.",
-    category: "Game Management",
+      "Easily switch and configure themes for a personalized Modix Panel experience.",
+    category: "Panel Customization",
   },
   {
-    name: "📜 Server Health",
+    name: "🌐 Language & Localization",
     status: "Active",
-    tooltip: "Check server health status",
+    tooltip: "Set panel language",
     preinstalled: false,
     version: "1.0.0",
-    author: "Modix Monitoring Team",
-    lastUpdated: "May 2, 2025",
-    description:
-      "Monitor overall server health, including uptime and performance alerts.",
-    category: "Core Pages",
+    author: "Modix UI Team",
+    lastUpdated: "April 1, 2025",
+    description: "Choose your preferred language for the panel interface.",
+    category: "Panel Customization",
   },
   {
     name: "🔗 Modix Updater",

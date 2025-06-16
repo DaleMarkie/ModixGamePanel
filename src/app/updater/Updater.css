@@ -63,13 +63,14 @@ html,
   align-items: center;
 }
 
+/* Buttons scaled down 25% */
 .download-button {
   background-color: var(--button-bg);
   border: none;
   color: var(--text-light);
   font-weight: 700;
-  font-size: 1.25rem;
-  padding: 14px 28px;
+  font-size: 0.9375rem; /* 1.25rem * 0.75 */
+  padding: 10.5px 21px; /* 14px * 0.75 and 28px * 0.75 */
   border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
@@ -95,8 +96,8 @@ html,
   border: none;
   color: var(--text-light);
   font-weight: 600;
-  font-size: 1rem;
-  padding: 10px 20px;
+  font-size: 0.75rem; /* 1rem * 0.75 */
+  padding: 7.5px 15px; /* 10px * 0.75 and 20px * 0.75 */
   border-radius: 6px;
   cursor: pointer;
   display: inline-flex;

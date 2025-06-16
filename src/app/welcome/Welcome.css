@@ -65,22 +65,24 @@ textarea {
   background: #991111;
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 5.4px 9px; /* 10% smaller */
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.9rem; /* 10% smaller */
 }
 
 .add-field-btn,
 .send-btn {
   background: #2c6ef5;
   color: white;
-  padding: 10px 16px;
+  padding: 9px 14.4px; /* 10% smaller */
   border: none;
   border-radius: 8px;
   margin-top: 10px;
   cursor: pointer;
   font-weight: bold;
   width: 100%;
+  font-size: 0.9rem; /* 10% smaller */
 }
 
 .send-btn {

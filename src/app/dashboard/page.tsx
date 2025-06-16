@@ -146,29 +146,6 @@ export default function Dashboard() {
                   {label}
                 </Link>
               ))}
-
-              <Link
-                href="/login"
-                style={{
-                  backgroundColor: "#3d3d3d",
-                  color: "#fff",
-                  padding: "8px 16px",
-                  borderRadius: 8,
-                  border: "1px solid #666",
-                  fontWeight: 600,
-                  fontSize: "1rem",
-                  textDecoration: "none",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#555")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#3d3d3d")
-                }
-              >
-                Login
-              </Link>
             </nav>
           </header>
 

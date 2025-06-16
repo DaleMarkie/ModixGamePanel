@@ -1,7 +1,7 @@
 /* === DASHBOARD MAIN === */
 .dashboard2 {
-  background: #10131a;
-  color: #eee;
+  background: #000000; /* pure black background */
+  color: #eee; /* white text */
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 14px;
@@ -14,13 +14,17 @@
   align-items: center;
   flex-wrap: wrap;
   padding-bottom: 16px;
-  border-bottom: 1px solid #222a3c;
+  border-bottom: 1px solid #222; /* dark border */
+  margin-bottom: 24px; /* space below header */
 }
 
 .dashboard-header h1 {
   font-size: 1.4rem;
   font-weight: 600;
   margin: 0;
+  color: #fff; /* white header text */
+  /* dark green glow */
+  text-shadow: 0 0 6px #14501f;
 }
 
 .header-right {
@@ -31,38 +35,68 @@
 }
 
 .version-label {
-  background-color: #2a2f45;
+  background-color: #111; /* nearly black */
   padding: 4px 10px;
   font-size: 0.8rem;
   font-weight: 500;
   border-radius: 6px;
   user-select: none;
+  color: #eee;
 }
 
 /* === SEARCH === */
 .search-input {
-  width: 200px;
+  width: 500px;
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
-  background: #222a3c;
+  background: #111; /* nearly black */
   color: #eee;
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
+  display: block; /* allow margin auto to work */
+  margin-left: auto; /* push input to right */
+  margin-right: 0;
+  margin-bottom: 16px; /* space below search input */
 }
 
 .search-input::placeholder {
-  color: #777b8a;
+  color: #888;
 }
 
 .search-input:focus {
   outline: none;
-  background-color: #2e3351;
+  background-color: #222; /* darker on focus */
+}
+
+.module-category-section > h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffffff; /* your primary dark green */
+  background: linear-gradient(90deg, #ffffff, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-left: 14px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-left: 8px solid #14501f; /* darker green bar */
+  box-shadow: 0 2px 6px rgba(20, 80, 31, 0.7), 0 0 12px rgba(42, 122, 66, 0.6);
+  user-select: none;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  transition: color 0.4s ease, border-color 0.4s ease;
+  cursor: default;
+}
+
+.module-category-section > h2:hover {
+  background: linear-gradient(90deg, #14501f, #2a7a42);
+  border-color: #2a7a42;
+  box-shadow: 0 3px 8px rgba(42, 122, 66, 0.9), 0 0 16px rgba(20, 80, 31, 0.8);
 }
 
 /* === QUICK NAVIGATION === */
 .quick-nav button {
-  background: #222a3c;
+  background: #111; /* nearly black */
   color: #eee;
   border: none;
   padding: 6px 12px;
@@ -71,10 +105,11 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-bottom: 12px; /* space below quick nav buttons */
 }
 
 .quick-nav button:hover {
-  background: #3c4062;
+  background: #333; /* slightly lighter on hover */
 }
 
 /* === SECTIONS === */
@@ -89,21 +124,22 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 14px;
+  margin-bottom: 16px; /* space below section heading */
   padding-left: 8px;
-  border-left: 4px solid #5063f9;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  border-left: 4px solid #14501f; /* dark green border instead of white */
+  /* dark green glow */
+  text-shadow: 0 0 6px #14501f;
 }
 
 .section h2 .icon {
   font-size: 1.2rem;
-  color: #62aaff;
+  color: #14501f; /* dark green icon */
 }
 
 /* === COLLAPSIBLE TOGGLE === */
 .toggle-btn {
-  background: #1d2233;
-  color: #ccc;
+  background: #111; /* nearly black */
+  color: #eee;
   padding: 5px 12px;
   font-size: 0.8rem;
   border: none;
@@ -114,7 +150,7 @@
 }
 
 .toggle-btn:hover {
-  background: #2b3147;
+  background: #222;
 }
 
 .section.collapsed .module-grid {
@@ -125,23 +161,26 @@
 .module-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  gap: 14px; /* spacing between module cards */
 }
 
 /* === MODULE CARD === */
 .module-card {
-  background: #1a1f30;
+  background: #000; /* pure black card */
   border-radius: 8px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+  /* dark green glow instead of white */
+  box-shadow: 0 0 6px rgba(20, 80, 31, 0.8);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #fff;
 }
 
 .module-card.clickable:hover {
   transform: scale(1.03);
-  box-shadow: 0 0 12px #5063f980;
+  /* stronger dark green glow */
+  box-shadow: 0 0 12px rgba(20, 80, 31, 0.9);
 }
 
 .module-card.disabled {
@@ -161,21 +200,25 @@
   font-size: 0.95rem;
   font-weight: 600;
   user-select: none;
+  color: #fff;
+  /* subtle dark green glow */
+  text-shadow: 0 0 3px #14501f;
 }
 
 .preinstalled-badge {
-  background: #5063f9;
-  color: #fff;
+  background: #14501f; /* dark green background */
+  color: #d4f1c5; /* light green text */
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 500;
   user-select: none;
+  box-shadow: 0 0 8px rgba(20, 80, 31, 0.9);
 }
 
 .module-description {
   font-size: 0.85rem;
-  color: #fff;
+  color: #eee;
   line-height: 1.4;
   margin: 6px 0 10px;
   flex-grow: 1;
@@ -187,25 +230,26 @@
   gap: 10px;
   margin-top: 8px;
   font-size: 0.75rem;
-  color: #bbb;
+  color: #ccc;
 }
 
 .meta-item {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.1);
   padding: 5px 8px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   gap: 6px;
+  color: #ffffff;
 }
 
 .meta-item strong {
-  color: #eee;
+  color: #ffffff;
   font-weight: 500;
 }
 
 .meta-item span {
-  color: #ccc;
+  color: #ffffff;
 }
 
 /* === MODULE STATUS === */
@@ -219,15 +263,17 @@
   letter-spacing: 0.05em;
   width: fit-content;
   user-select: none;
-}
-
-.module-status.active {
-  background: #5063f9;
   color: #fff;
 }
 
+.module-status.active {
+  background: #14501f; /* dark green background */
+  color: #d4f1c5; /* light green text */
+  box-shadow: 0 0 8px rgba(20, 80, 31, 0.8);
+}
+
 .module-status.coming-soon {
-  background: #555a75;
+  background: #555;
   color: #ccc;
 }
 
@@ -237,7 +283,7 @@
   text-align: center;
   padding: 16px;
   font-style: italic;
-  color: #888;
+  color: #aaa;
 }
 
 /* === FILTER TAGS === */
@@ -249,7 +295,7 @@
 }
 
 .filter-btn {
-  background: #222a3c;
+  background: #111;
   color: #eee;
   padding: 6px 14px;
   border: none;
@@ -263,8 +309,8 @@
 
 .filter-btn:hover,
 .filter-btn.active {
-  background: #5063f9;
-  color: white;
+  background: #14501f;
+  color: #d4f1c5;
 }
 
 /* === LOADING SPINNER === */
@@ -280,8 +326,8 @@
   width: 32px;
   height: 32px;
   margin: -16px 0 0 -16px;
-  border: 4px solid #5063f980;
-  border-top-color: #5063f9;
+  border: 4px solid rgba(20, 80, 31, 0.8);
+  border-top-color: #14501f;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   z-index: 10;
@@ -305,12 +351,12 @@
   bottom: 120%;
   left: 50%;
   transform: translateX(-50%);
-  background: #222a3c;
+  background: #111;
   color: #eee;
   padding: 6px 10px;
   font-size: 0.75rem;
   border-radius: 6px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -328,7 +374,7 @@
   position: relative;
   width: 46px;
   height: 24px;
-  background: #222a3c;
+  background: #111;
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s ease;
@@ -344,14 +390,14 @@
   left: 2px;
   width: 20px;
   height: 20px;
-  background: #5063f9;
+  background: #fff;
   border-radius: 50%;
   transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .toggle-switch input:checked + .toggle-slider {
   transform: translateX(22px);
-  background: #1db954;
+  background: #000;
 }
 
 /* === TOAST NOTIFICATION === */
@@ -359,13 +405,13 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: #5063f9;
-  color: white;
+  background: #14501f; /* dark green background */
+  color: #d4f1c5; /* light green text */
   padding: 12px 20px;
   font-size: 0.9rem;
   font-weight: 600;
   border-radius: 8px;
-  box-shadow: 0 0 12px #5063f980;
+  box-shadow: 0 0 12px rgba(20, 80, 31, 0.8);
   opacity: 0;
   pointer-events: none;
   transform: translateY(20px);

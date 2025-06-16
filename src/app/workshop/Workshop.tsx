@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 
 import ModCard from "./ModCard";
 import ModModal from "./ModModal";
 import ContextMenu from "./ContextMenu";
-import "./Workshop.css"; // make sure your CSS file is here
+import "./Workshop.css";
 
 const ExportModal = ({ modIds, onClose, listName }) => {
   const textareaRef = useRef(null);
@@ -117,9 +123,11 @@ export default function WorkshopPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Detect if input looks like a Steam Workshop Collection ID (digits only)
   const isCollectionId = (text) => /^\d{6,}$/.test(text.trim());
 
-  const fetchMods = async () => {
+  // fetchMods wrapped with useCallback so we can call it in useEffect safely
+  const fetchMods = useCallback(async () => {
     const query = input.trim();
     if (!query)
       return setError(
@@ -193,7 +201,12 @@ export default function WorkshopPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [input]);
+
+  // Run fetchMods on mount to load mods by default
+  useEffect(() => {
+    fetchMods();
+  }, [fetchMods]);
 
   const toggleFavorite = (modId) => {
     setFavorites((prev) =>
@@ -258,7 +271,6 @@ export default function WorkshopPage() {
 
   return (
     <div className="workshop-container">
-      {/* --- Professional Header Section --- */}
       <div className="workshop-header-container">
         <h1 className="workshop-title">Project Zomboid Workshop</h1>
         <p className="workshop-subtitle">
