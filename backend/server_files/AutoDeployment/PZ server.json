@@ -11,18 +11,15 @@
     "protocal_ports": [
       {
         "desired_container_port": 16261,
-        "protocol": "udp",
-        "assigned_host_port": 20000
+        "protocol": "udp"
       },
       {
         "desired_container_port": 16262,
-        "protocol": "udp",
-        "assigned_host_port": 20001
+        "protocol": "udp"
       },
       {
         "desired_container_port": 27015,
-        "protocol": "tcp",
-        "assigned_host_port": 20002
+        "protocol": "tcp"
       }
     ]
   },
@@ -47,31 +44,5 @@
     "rcon_password": null,
     "save_interval": 15,
     "server_file_id": null
-  },
-  "Container": {
-    "id": "35eb91a0562c506560ff318240e75b9cc01f5b6ad4ad0049a45c6e720ba7d2b1",
-    "name": "modix_pz_test_server",
-    "image": "steamcmd/steamcmd:latest",
-    "volumes": {
-      "pz_test_server_data": {
-        "bind": "/home/steam/pzserver",
-        "mode": "rw"
-      }
-    },
-    "volume_path": "/home/steam/pzserver",
-    "bind_mount_path": null,
-    "created": "2025-06-14T03:48:41.718394092Z",
-    "status": "created",
-    "ports": {
-      "16261/udp": 20000,
-      "16262/udp": 20001,
-      "27015/tcp": 20002
-    },
-    "labels": {
-      "desktop.docker.io/wsl-distro": "Ubuntu-24.04",
-      "modix_managed": "1",
-      "org.opencontainers.image.ref.name": "ubuntu",
-      "org.opencontainers.image.version": "24.04"
-    }
   }
 }
