@@ -4,6 +4,18 @@ import "./Games.css";
 
 const gamesList = [
   {
+    name: "Arma 3",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
+    id: "arma3",
+    canHost: false,
+    specs: {
+      cpu: "Intel Core i5-4460 / AMD FX 4300 or better",
+      ram: "8GB",
+      storage: "45GB",
+      os: "Windows 7 SP1 or newer",
+    },
+  },
+  {
     name: "ARK: Survival Evolved",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
     id: "ark",
@@ -19,7 +31,7 @@ const gamesList = [
     name: "Counter-Strike: Global Offensive",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg",
     id: "csgo",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "Intel Core 2 Duo E6600 or AMD Phenom X3 8750",
       ram: "4GB",
@@ -31,7 +43,7 @@ const gamesList = [
     name: "Counter-Strike: Source",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/240/header.jpg",
     id: "css",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "1.7 GHz Processor",
       ram: "512MB",
@@ -55,7 +67,7 @@ const gamesList = [
     name: "Don't Starve Together",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/322330/header.jpg",
     id: "dst",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "1.7 GHz",
       ram: "2GB",
@@ -67,7 +79,7 @@ const gamesList = [
     name: "Factorio",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/427520/header.jpg",
     id: "factorio",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "2.0 GHz Dual-Core",
       ram: "4GB",
@@ -79,7 +91,7 @@ const gamesList = [
     name: "Garry's Mod",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/4000/header.jpg",
     id: "gmod",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "Dual-core 2.0 GHz or better",
       ram: "4GB",
@@ -91,7 +103,7 @@ const gamesList = [
     name: "Killing Floor 2",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/232090/header.jpg",
     id: "kf2",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "Quad-core 2.4 GHz",
       ram: "6GB",
@@ -103,7 +115,7 @@ const gamesList = [
     name: "Left 4 Dead 2",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/550/header.jpg",
     id: "l4d2",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "3.0 GHz",
       ram: "2GB",
@@ -113,7 +125,7 @@ const gamesList = [
   },
   {
     name: "Minecraft",
-    icon: "https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png",
+    icon: "https://logo.com/image-cdn/images/kts928pd/production/e1d61cc6d5f05c33c1cd0fbf96c51554671750ba-1140x620.png?q=72&fm=webp",
     id: "mc",
     canHost: false,
     specs: {
@@ -125,9 +137,9 @@ const gamesList = [
   },
   {
     name: "Minecraft Bedrock Edition",
-    icon: "https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png",
+    icon: "https://i.redd.it/iqvo2xlr1wob1.jpg",
     id: "mcbedrock",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "Intel i3 or better",
       ram: "4GB",
@@ -139,7 +151,7 @@ const gamesList = [
     name: "Minecraft Java Edition",
     icon: "https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png",
     id: "mcjava",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "Intel i3 or better",
       ram: "4GB",
@@ -160,6 +172,18 @@ const gamesList = [
     },
   },
   {
+    name: "RedM",
+    icon: "https://cdn2.steamgriddb.com/icon/eb06b9db06012a7a4179b8f3cb5384d3.ico", // (Note: placeholder URL, replace if you want a different icon)
+    id: "redm",
+    canHost: false,
+    specs: {
+      cpu: "Intel Core i5-6600K or AMD Ryzen 5 2600",
+      ram: "8GB",
+      storage: "50GB",
+      os: "Windows 10 64-bit",
+    },
+  },
+  {
     name: "Rust",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
     id: "rust",
@@ -175,7 +199,7 @@ const gamesList = [
     name: "Satisfactory",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
     id: "satisfactory",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "3.0 GHz Quad-Core",
       ram: "8GB",
@@ -184,10 +208,22 @@ const gamesList = [
     },
   },
   {
+    name: "FiveM",
+    icon: "https://logos-world.net/wp-content/uploads/2021/03/FiveM-Symbol.png",
+    id: "fivem",
+    canHost: false,
+    specs: {
+      cpu: "3.2 GHz Quad-Core",
+      ram: "6GB",
+      storage: "10GB",
+      os: "Windows or Linux",
+    },
+  },
+  {
     name: "Space Engineers",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
     id: "spaceengineers",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "3.0 GHz Quad-Core",
       ram: "8GB",
@@ -199,7 +235,7 @@ const gamesList = [
     name: "Team Fortress 2",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/440/header.jpg",
     id: "tf2",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "1.7 GHz Processor",
       ram: "512MB",
@@ -211,7 +247,7 @@ const gamesList = [
     name: "Terraria",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/105600/header.jpg",
     id: "terraria",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "2.0 GHz",
       ram: "2.5GB",
@@ -223,7 +259,7 @@ const gamesList = [
     name: "Unturned",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/304930/header.jpg",
     id: "unturned",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "2.4 GHz Dual-Core",
       ram: "4GB",
@@ -235,7 +271,7 @@ const gamesList = [
     name: "Valheim",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
     id: "valheim",
-    canHost: true,
+    canHost: false,
     specs: {
       cpu: "2.6 GHz Dual Core",
       ram: "8GB",

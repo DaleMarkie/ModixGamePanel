@@ -19,7 +19,19 @@ const allModules = [
     category: "Core Pages",
   },
   {
-    name: "👥 User Manager",
+    name: "🧩 Plugins",
+    status: "Active",
+    tooltip: "Review panel activity logs",
+    preinstalled: true,
+    version: "1.0.3",
+    author: "Modix Dev Team",
+    lastUpdated: "April 26, 2025",
+    description:
+      "Easily add and manage plugins to extend panel features without changing core code.",
+    category: "Core Pages",
+  },
+  {
+    name: "🔒 User Permissions",
     status: "Active",
     tooltip: "Manage user accounts and permissions",
     preinstalled: true,
@@ -27,7 +39,7 @@ const allModules = [
     author: "Modix Dev Team",
     lastUpdated: "March 15, 2025",
     description:
-      "Add, remove, or modify user roles and access levels across your gaming servers and panel modules.",
+      "Add, remove, or modify user roles and access levels across your Modix Panel.",
     category: "Core Pages",
   },
   {
@@ -40,6 +52,17 @@ const allModules = [
     lastUpdated: "April 1, 2025",
     description:
       "Easily switch and configure themes for a personalized Modix Panel experience.",
+    category: "Panel Customization",
+  },
+  {
+    name: "🌐 Language & Localization",
+    status: "Active",
+    tooltip: "Customize the panel appearance",
+    preinstalled: false,
+    version: "1.0.0",
+    author: "Modix UI Team",
+    lastUpdated: "April 1, 2025",
+    description: "Choose your preferred language for the panel interface",
     category: "Panel Customization",
   },
   {
@@ -232,7 +255,7 @@ const allModules = [
     lastUpdated: "May 2, 2025",
     description:
       "Monitor overall server health, including uptime and performance alerts.",
-    category: "Server Tools",
+    category: "Core Pages",
   },
   {
     name: "🔗 Modix Updater",
@@ -328,7 +351,7 @@ const Dashboard2 = () => {
       "🧾 Steam Parser": "/modules/steamparser",
       "🧾 Steam Player Manager": "/modules/steamplayermanager",
       "📜 Audit Log Viewer": "/auditlogs",
-      "👥 User Manager": "/usermanager",
+      "🔒 User Permissions": "/usermanager",
       "📂 PZ Database": "/pzdatabase",
       "🧩 PZ Mod Manager": "/pzmodmanager",
       "👤 PZ Player Manager": "/pzplayermanager",
