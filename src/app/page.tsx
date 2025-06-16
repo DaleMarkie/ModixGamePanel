@@ -153,51 +153,8 @@ export default function Dashboard() {
                   {label}
                 </Link>
               ))}
-
-              <Link
-                href="/login"
-                style={{
-                  backgroundColor: "#3d3d3d",
-                  color: "#fff",
-                  padding: "8px 16px",
-                  borderRadius: 8,
-                  border: "1px solid #666",
-                  fontWeight: 600,
-                  fontSize: "1rem",
-                  textDecoration: "none",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#555")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#3d3d3d")
-                }
-              >
-                Login
-              </Link>
             </nav>
           </header>
-
-          {/* Warning Label */}
-          <div
-            style={{
-              backgroundColor: "#b33939",
-              color: "#fff",
-              textAlign: "center",
-              padding: "6px 12px",
-              fontWeight: 600,
-              fontSize: "0.9rem",
-              borderRadius: "0 0 12px 12px",
-              userSelect: "none",
-              marginTop: -6,
-              marginBottom: 12,
-              zIndex: 3,
-            }}
-          >
-            ⚠️ Modix is still in development. Some features may not work as
-            expected.
-          </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
             <Welcome />
