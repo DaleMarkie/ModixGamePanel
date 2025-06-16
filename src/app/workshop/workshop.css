@@ -16,49 +16,49 @@ body {
 
 /* Container */
 .workshop-container {
-  padding: 30px;
-  max-width: 1300px;
+  padding: 22.5px; /* 30 * 0.75 */
+  max-width: 1200px; /* 1300 * 0.75 */
   margin: 0 auto;
 }
 
 .workshop-header {
-  font-size: 28px;
-  margin-bottom: 8px;
+  font-size: 21px; /* 28 * 0.75 */
+  margin-bottom: 6px; /* 8 * 0.75 */
   color: #fff;
 }
 
 .workshop-description {
   color: #aaa;
-  margin-bottom: 24px;
-  font-size: 14px;
+  margin-bottom: 18px; /* 24 * 0.75 */
+  font-size: 10.5px; /* 14 * 0.75 */
 }
 
 /* Search */
 .search-container {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 7.5px; /* 10 * 0.75 */
+  margin-bottom: 15px; /* 20 * 0.75 */
 }
 
 .search-input {
   flex: 1;
-  padding: 10px 14px;
+  padding: 7.5px 10.5px; /* (10*0.75) (14*0.75) */
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4.5px; /* 6 * 0.75 */
   color: #fff;
-  font-size: 14px;
+  font-size: 10.5px; /* 14 * 0.75 */
 }
 
 .search-button {
   background-color: var(--accent-color);
   border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 7.5px 12px; /* (10*0.75) (16*0.75) */
+  border-radius: 4.5px; /* 6 * 0.75 */
   color: #fff;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 10.5px; /* 14 * 0.75 */
   transition: background-color 0.2s;
 }
 
@@ -72,38 +72,38 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 13.5px; /* 18 * 0.75 */
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 7.5px; /* 10 * 0.75 */
 }
 
 .dropdown-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7.5px; /* 10 * 0.75 */
 }
 
 .dropdown-container label {
-  font-size: 14px;
+  font-size: 10.5px; /* 14 * 0.75 */
 }
 
 .dropdown-container select {
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
   color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 4.5px 7.5px; /* (6*0.75) (10*0.75) */
+  border-radius: 4.5px; /* 6 * 0.75 */
 }
 
 .modlist-buttons button {
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
   color: #ccc;
-  padding: 6px 12px;
-  margin-right: 6px;
-  border-radius: 6px;
+  padding: 4.5px 9px; /* (6*0.75) (12*0.75) */
+  margin-right: 4.5px; /* 6 * 0.75 */
+  border-radius: 4.5px; /* 6 * 0.75 */
   cursor: pointer;
-  font-size: 13px;
+  font-size: 9.75px; /* 13 * 0.75 */
   transition: 0.2s;
 }
 
@@ -121,18 +121,18 @@ body {
 .category-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 7.5px; /* 10 * 0.75 */
+  margin-bottom: 15px; /* 20 * 0.75 */
 }
 
 .category-button {
   background-color: var(--panel-bg);
   color: #ccc;
-  padding: 8px 14px;
+  padding: 6px 10.5px; /* (8*0.75) (14*0.75) */
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4.5px; /* 6 * 0.75 */
   cursor: pointer;
-  font-size: 13px;
+  font-size: 9.75px; /* 13 * 0.75 */
   transition: 0.2s ease;
 }
 
@@ -152,25 +152,25 @@ body {
 /* Error + Empty */
 .error-message {
   color: var(--danger-color);
-  margin-bottom: 12px;
+  margin-bottom: 9px; /* 12 * 0.75 */
   font-weight: bold;
 }
 
 .empty-message {
   color: #888;
-  font-size: 16px;
+  font-size: 12px; /* 16 * 0.75 */
   font-style: italic;
   text-align: center;
-  padding: 60px 20px;
+  padding: 45px 15px; /* (60*0.75) (20*0.75) */
   grid-column: 1 / -1;
 }
 
 /* Mod Grid */
 .mod-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-  margin-top: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* 240 * 0.75 */
+  gap: 12px; /* 16 * 0.75 */
+  margin-top: 7.5px; /* 10 * 0.75 */
 }
 
 /* Modal (Export) */
@@ -189,49 +189,49 @@ body {
 
 .modal-content {
   background-color: var(--panel-bg);
-  padding: 25px;
-  border-radius: 10px;
+  padding: 18.75px; /* 25 * 0.75 */
+  border-radius: 7.5px; /* 10 * 0.75 */
   width: 90%;
-  max-width: 520px;
+  max-width: 390px; /* 520 * 0.75 */
   box-shadow: 0 0 10px #000;
   color: #fff;
 }
 
 .modal-header {
-  font-size: 20px;
-  margin-bottom: 12px;
+  font-size: 15px; /* 20 * 0.75 */
+  margin-bottom: 9px; /* 12 * 0.75 */
 }
 
 .modal-instruction {
-  font-size: 14px;
+  font-size: 10.5px; /* 14 * 0.75 */
   color: #bbb;
-  margin-bottom: 12px;
+  margin-bottom: 9px; /* 12 * 0.75 */
 }
 
 .modal-textarea {
   width: 100%;
-  height: 100px;
+  height: 75px; /* 100 * 0.75 */
   background-color: #111;
   color: #fff;
   border: 1px solid var(--border-color);
-  padding: 10px;
-  font-size: 13px;
+  padding: 7.5px; /* 10 * 0.75 */
+  font-size: 9.75px; /* 13 * 0.75 */
   font-family: monospace;
   resize: none;
-  border-radius: 6px;
-  margin-bottom: 12px;
+  border-radius: 4.5px; /* 6 * 0.75 */
+  margin-bottom: 9px; /* 12 * 0.75 */
 }
 
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 7.5px; /* 10 * 0.75 */
 }
 
 .modal-button {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
+  padding: 6px 12px; /* (8*0.75) (16*0.75) */
+  font-size: 10.5px; /* 14 * 0.75 */
+  border-radius: 4.5px; /* 6 * 0.75 */
   cursor: pointer;
   border: none;
   font-weight: bold;
@@ -255,22 +255,24 @@ body {
 .close-button:hover {
   background-color: #666;
 }
+
+/* Additional category buttons container & styles */
 .category-buttons-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px; /* 8 * 0.75 */
+  margin-bottom: 9px; /* 12 * 0.75 */
 }
 
 .category-button {
-  padding: 6px 12px;
+  padding: 4.5px 9px; /* (6*0.75) (12*0.75) */
   background: #222;
   color: #ccc;
   border: 1px solid #444;
-  border-radius: 4px;
+  border-radius: 3px; /* 4 * 0.75 */
   cursor: pointer;
   user-select: none;
-  font-size: 14px;
+  font-size: 10.5px; /* 14 * 0.75 */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -284,23 +286,24 @@ body {
   color: white;
   border-color: #007bff;
 }
+
 .category-button-wrapper {
   display: inline-flex;
   align-items: center;
-  margin: 4px;
-  gap: 4px;
+  margin: 3px; /* 4 * 0.75 */
+  gap: 3px; /* 4 * 0.75 */
 }
 
 .category-actions {
   display: flex;
   flex-direction: row;
-  gap: 2px;
+  gap: 1.5px; /* 2 * 0.75 */
 }
 
 .category-action-button {
   background: transparent;
   border: none;
-  font-size: 0.85rem;
+  font-size: 0.64rem; /* 0.85rem * 0.75 */
   cursor: pointer;
   color: #ccc;
   transition: color 0.2s;
@@ -308,4 +311,25 @@ body {
 
 .category-action-button:hover {
   color: white;
+}
+.workshop-header-container {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #444;
+}
+
+.workshop-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin: 0;
+}
+
+.workshop-subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #bbb;
+  margin-top: 0.25rem;
+  max-width: 600px;
+  line-height: 1.4;
 }
