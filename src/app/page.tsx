@@ -1,24 +1,32 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import SteamParser from "./modules/steamparser/SteamParser";
-import SteamPlayerManager from "./modules/steamplayermanager/SteamPlayerManager";
-import MyServers from "./games/myservers/MyServers";
-import WorkshopModUpdates from "./modules/workshopmoduppdates/WorkshopModUpdates";
-import Help from "./dashboard/Dashboard2";
-import Terms from "./terms/Terms";
-import Team from "./team/Team";
 import Welcome from "./welcome/Welcome";
-import LicenseModal from "./dashboard/license/LicenseModal";
+
+// Visible in top nav
 const navLinks = [
-  { href: "/dashboard", label: "Dashboard" }, // fix here too
-  { href: "/terminal", label: "Terminal" },
-  { href: "/filemanager", label: "FileManager" },
-  { href: "/modmanager", label: "Mod Manager" },
-  { href: "/workshop", label: "Workshop" },
-  { href: "/settings", label: "Settings" },
+  { label: "📊 Dashboard", href: "/dashboard" },
+  { label: "💻 Terminal", href: "/terminal" },
+  { label: "📁 Files", href: "/filemanager" },
+  { label: "🧩 Mod Manager", href: "/modmanager" },
+  { label: "🛠 Workshop", href: "/workshop" },
+  { label: "👥 Players", href: "/playermanager" },
+  { label: "🔐 Login", href: "/core/auth/login" },
 ];
+
+// Only appear in search
+const extraSearchPages = [
+  { label: "📄 About", href: "/about" },
+  { label: "📚 Docs", href: "/docs" },
+  { label: "📬 Contact", href: "/contact" },
+  { label: "👥 Team", href: "/team" },
+  { label: "⚖️ Terms of Service", href: "/terms" },
+  { label: "🔒 Privacy Policy", href: "/privacy" },
+];
+
+const searchablePages = [...navLinks, ...extraSearchPages];
 
 export default function Dashboard() {
   const [panelName, setPanelName] = useState("MODIX");
@@ -27,7 +35,8 @@ export default function Dashboard() {
   const [backgroundImage, setBackgroundImage] = useState(
     'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
   );
-  const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredResults, setFilteredResults] = useState([]);
 
   useEffect(() => {
     const storedBg = localStorage.getItem("headerBgColor");
@@ -36,7 +45,18 @@ export default function Dashboard() {
     if (storedText) setHeaderTextColor(storedText);
   }, []);
 
-  // ...rest of your styles and JSX here, same as your code
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredResults([]);
+      return;
+    }
+
+    const matches = searchablePages.filter((item) =>
+      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    setFilteredResults(matches);
+  }, [searchQuery]);
 
   return (
     <div
@@ -54,7 +74,6 @@ export default function Dashboard() {
         color: "white",
       }}
     >
-      {/* Overlay */}
       <div
         style={{
           position: "absolute",
@@ -80,9 +99,9 @@ export default function Dashboard() {
             display: "flex",
             flexDirection: "column",
             zIndex: 2,
+            overflow: "visible",
           }}
         >
-          {/* Header */}
           <header
             style={{
               backgroundColor: headerBgColor,
@@ -101,15 +120,10 @@ export default function Dashboard() {
           >
             <div
               className="logo"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "default",
-                gap: 8, // space between logo and text
-              }}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
             >
               <img
-                src="https://i.ibb.co/cMPwcn8/logo.png" // your logo URL here
+                src="https://i.ibb.co/cMPwcn8/logo.png"
                 alt="Modix Logo"
                 style={{ height: 50, objectFit: "contain" }}
               />
@@ -120,7 +134,7 @@ export default function Dashboard() {
                   color: "inherit",
                 }}
               >
-                MODIX
+                {panelName}
               </span>
             </div>
 
@@ -128,14 +142,14 @@ export default function Dashboard() {
               className="top-menu"
               style={{
                 display: "flex",
-                alignItems: "center",
-                gap: 12,
+                gap: 20,
                 position: "relative",
+                zIndex: 3,
               }}
             >
               {navLinks.map(({ href, label }) => (
                 <Link
-                  key={label}
+                  key={href}
                   href={href}
                   style={{
                     color: headerTextColor,
@@ -145,9 +159,10 @@ export default function Dashboard() {
                     fontSize: "1rem",
                     cursor: "pointer",
                     borderRadius: 8,
-                    userSelect: "none",
                     transition: "background-color 0.3s ease",
                     display: "inline-block",
+                    whiteSpace: "nowrap",
+                    userSelect: "none",
                   }}
                 >
                   {label}
@@ -155,6 +170,66 @@ export default function Dashboard() {
               ))}
             </nav>
           </header>
+
+          {/* 🔍 Search */}
+          <div
+            style={{
+              padding: "16px 20px",
+              position: "relative",
+              zIndex: 10,
+            }}
+          >
+            <input
+              type="text"
+              placeholder="🔍 Search Modix pages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                borderRadius: 8,
+                border: "none",
+                fontSize: "1rem",
+                backgroundColor: "#222",
+                color: "#fff",
+                outline: "none",
+              }}
+            />
+            {searchQuery && filteredResults.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: "#1e1e1e",
+                  borderRadius: 8,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                  marginTop: 8,
+                  maxHeight: 240,
+                  overflowY: "auto",
+                  padding: "6px 0",
+                  position: "absolute",
+                  width: "100%",
+                  zIndex: 10,
+                }}
+              >
+                {filteredResults.map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    style={{
+                      display: "block",
+                      padding: "10px 14px",
+                      color: "#ddd",
+                      textDecoration: "none",
+                      fontSize: "0.95rem",
+                      borderBottom: "1px solid #333",
+                      userSelect: "none",
+                    }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
             <Welcome />
@@ -170,7 +245,7 @@ export default function Dashboard() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              fontSize: "0.75rem", // smaller font size here
+              fontSize: "0.75rem",
               userSelect: "none",
               zIndex: 2,
             }}
@@ -181,126 +256,51 @@ export default function Dashboard() {
             </div>
 
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <a
-                href="https://discord.gg/EwWZUSR9tM"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  backgroundColor: "#444",
-                  color: "#eee",
-                  padding: "6px 10px", // smaller padding for smaller text
-                  borderRadius: 12,
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem", // smaller font size for links
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                  userSelect: "none",
-                  cursor: "pointer",
-                  border: "1px solid transparent",
-                }}
-              >
-                <FaDiscord size={16} />
-                Discord
-              </a>
-
-              <a
-                href="https://ko-fi.com/modixgamepanel"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  backgroundColor: "#444",
-                  color: "#eee",
-                  padding: "6px 10px",
-                  borderRadius: 12,
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                  userSelect: "none",
-                  cursor: "pointer",
-                  border: "1px solid transparent",
-                }}
-              >
-                <FaCoffee size={16} />
-                Ko-fi
-              </a>
-
-              {/* New links */}
-              <a
-                href="/terms"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Terms of Service
-              </a>
-
-              <a
-                href="/privacy"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Privacy Policy
-              </a>
-
-              <a
-                href="/contact"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Contact Us
-              </a>
+              <FooterLink href="https://discord.gg/EwWZUSR9tM">
+                <FaDiscord size={16} /> Discord
+              </FooterLink>
+              <FooterLink href="https://ko-fi.com/modixgamepanel">
+                <FaCoffee size={16} /> Ko-fi
+              </FooterLink>
+              <FooterLink href="/about">About</FooterLink>
+              <FooterLink href="/team">Team</FooterLink>
+              <FooterLink href="/docs">Docs</FooterLink>
+              <FooterLink href="/terms">Terms</FooterLink>
+              <FooterLink href="/privacy">Privacy</FooterLink>
+              <FooterLink href="/contact">Contact</FooterLink>
             </div>
           </footer>
         </div>
       </div>
     </div>
+  );
+}
+
+function FooterLink({ href, children }) {
+  return (
+    <a
+      href={href}
+      target={href.startsWith("http") ? "_blank" : "_self"}
+      rel="noopener noreferrer"
+      style={{
+        color: "#eee",
+        padding: "6px 10px",
+        textDecoration: "none",
+        fontWeight: 600,
+        fontSize: "0.75rem",
+        borderRadius: 8,
+        transition: "background-color 0.3s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        userSelect: "none",
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#444")}
+      onMouseOut={(e) =>
+        (e.currentTarget.style.backgroundColor = "transparent")
+      }
+    >
+      {children}
+    </a>
   );
 }
