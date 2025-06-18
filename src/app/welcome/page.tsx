@@ -229,7 +229,7 @@ export default function Dashboard() {
           </header>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Webhook />
+            <Welcome />
           </main>
 
           <footer
