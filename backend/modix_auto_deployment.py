@@ -84,16 +84,32 @@ def main():
     deployed_count = 0
     for template_path in get_deploy_templates():
         config = load_template_config(template_path)
-        deploy_id, container_name = container_create.create_container_from_config(client, config, str(template_path))
-        if container_name:
+        # Check if the container already exists before attempting to create
+        base = config.get("BaseSettings", {})
+        server_name = config["ServerSettings"].get("name", Path(template_path).stem if template_path else base.get('name', 'server'))
+        steam_id = base.get("GAME_STEAM_ID")
+        if steam_id:
+            container_name = f"modix_{steam_id}_{server_name.replace(' ', '_').lower()}"
+        else:
+            container_name = f"modix_{server_name.replace(' ', '_').lower()}"
+        client = docker.from_env()
+        try:
+            client.containers.get(container_name)
+            debug.log(f"Container '{container_name}' already exists. Skipping creation.")
             managed_containers.append(container_name)
+            continue
+        except docker.errors.NotFound:
+            pass
+        deploy_id, created_container_name = container_create.create_container_from_config(client, config, str(template_path))
+        if created_container_name:
+            managed_containers.append(created_container_name)
             deployed_count += 1
             # Update the template file with deploy_id and container_name
             config['DeployID'] = deploy_id
-            config['ContainerName'] = container_name
+            config['ContainerName'] = created_container_name
             with open(template_path, 'w') as f:
                 json.dump(config, f, indent=2)
-            debug.log(f"Deployed container: {container_name} (Deploy ID: {deploy_id})")
+            debug.log(f"Deployed container: {created_container_name} (Deploy ID: {deploy_id})")
         else:
             debug.log(f"Failed to deploy container for template: {template_path}")
 

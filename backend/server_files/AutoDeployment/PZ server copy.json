@@ -24,7 +24,7 @@
     ]
   },
   "ServerSettings": {
-    "name": "PZ Test Server",
+    "name": "PZ Test 2 server",
     "description": "A test server for Project Zomboid",
     "max_players": 10,
     "password": null,
@@ -45,7 +45,7 @@
     "save_interval": 15,
     "server_file_id": null
   },
-  "DeployID": "PZ server",
-  "ContainerName": "modix_108600_pz_test_server",
-  "ContainerID": "5e34c0d620f1e41a21d32d456bf3bb954ddd0d159f553f174512f68d92ab103f"
+  "DeployID": "PZ server copy",
+  "ContainerName": "modix_108600_pz_test_2_server",
+  "ContainerID": "d0da54f0f054dd9509afca16b182c09aca2897b77b5c737869cad9d201256c52"
 }
