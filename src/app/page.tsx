@@ -12,8 +12,8 @@ const navLinks = [
   { label: "📁 Files", href: "/filemanager" },
   { label: "🧩 Mod Manager", href: "/modmanager" },
   { label: "🛠 Workshop", href: "/workshop" },
-  { label: "👥 Players", href: "/playermanager" },
-  { label: "🔐 Login", href: "/core/auth/login" },
+  { label: "👥 Players", href: "/modules/steamplayermanager" },
+  { label: "🔐 Login", href: "/login" },
 ];
 
 // Only appear in search
