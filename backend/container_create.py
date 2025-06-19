@@ -33,9 +33,9 @@ def create_container_from_config(client, config, template_path=None):
     base = config.get("BaseSettings", {})
     image = base.get("DOCKER_IMAGE", "steamcmd/steamcmd")
     steam_id = base.get("GAME_STEAM_ID")
-    use_named_volume = base.get("USE_NAMED_VOLUME", True)
-    volume_name = base.get("DOCKER_VOLUME_NAME", f"modix_{base.get('name', 'server').replace(' ', '_').lower()}_data")
+    use_named_volume = base.get("DOCKER_VOLUME_NAME", f"modix_{base.get('name', 'server').replace(' ', '_').lower()}_data")
     volume_path = base.get("DOCKER_VOLUME_PATH", "/home/steam/pzserver")
+    steamappdir = volume_path  # STEAMAPPDIR is always set to the volume path
     bind_mount_path = base.get("BIND_MOUNT_PATH")
     server_name = config["ServerSettings"].get("name", Path(template_path).stem if template_path else base.get('name', 'server'))
     # New naming scheme: modix + steamid (if present) + server name
@@ -68,25 +68,50 @@ def create_container_from_config(client, config, template_path=None):
         else:
             debug.log(f"Warning: No available host port for container port {container_port}/{proto}")
 
+    volume_name = base.get("DOCKER_VOLUME_NAME", f"modix_{base.get('name', 'server').replace(' ', '_').lower()}_data")
     volumes = build_volumes_dict(use_named_volume, volume_name, volume_path, bind_mount_path)
     if container_exists(client, container_name):
         debug.log(f"Container '{container_name}' already exists. Skipping creation.")
         return deploy_id, container_name
     debug.log(f"Creating container '{container_name}' with image '{image}' for Steam ID {steam_id}")
     try:
-        steamcmd_command = f"+force_install_dir {volume_path} +login anonymous +app_update {steam_id} validate +quit"
+        # Set restart policy based on debug mode
+        debug_mode = False
+        try:
+            with open(os.path.join(BASE_DIR, 'modix_config', 'modix_config.json'), 'r') as f:
+                modix_config = json.load(f)
+                debug_mode = modix_config.get('MODIX_DEBUG_LOG', False)
+        except Exception:
+            pass
+        restart_policy = {"Name": "unless-stopped"}
+        if debug_mode:
+            restart_policy = {"Name": "no"}
         labels = {
             "modix_deploy_id": deploy_id
+        }
+        # Collect extra server args from config if present
+        extra_args = base.get("SERVER_ARGS", "")
+        if not isinstance(extra_args, str):
+            extra_args = str(extra_args)
+        environment = {
+            "STEAMAPPID": steam_id,
+            "STEAMAPPDIR": steamappdir,
+            "STEAMAPP_BRANCH": base.get("STEAMAPP_BRANCH", "public"),
+            "STEAMAPP_BRANCH_PASSWORD": base.get("STEAMAPP_BRANCH_PASSWORD", None),
+            "MODIX_DEBUG": str(debug_mode).lower(),
+            "SERVER_ARGS": extra_args,
+            "AUTO_CONFIGURE": str(base.get("AUTO_CONFIGURE", True)).lower()
         }
         container = client.containers.run(
             image,
             name=container_name,
             detach=True,
-            command=steamcmd_command,
+            # Remove steamcmd_command, let entrypoint handle everything
             ports=ports if ports else None,
             volumes=volumes if volumes else None,
             labels=labels,
-            restart_policy={"Name": "unless-stopped"}
+            environment=environment,
+            restart_policy=restart_policy
         )
         debug.log(f"Started container: {container.name}")
         if template_path:

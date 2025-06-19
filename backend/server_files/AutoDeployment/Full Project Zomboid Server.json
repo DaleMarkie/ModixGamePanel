@@ -1,9 +1,13 @@
 {
   "BaseSettings": {
     "MODIX_GAME_TEMPLATE": null,
-    "DOCKER_IMAGE": "steamcmd/steamcmd:latest",
-    "GAME_IS_STEAM": true,
-    "GAME_STEAM_ID": 108600,
+    "MODIX_GAME_IS_STEAM": true,
+    "DOCKER_IMAGE": "modix-steamcmd-game-server:latest",
+    "GAME_STEAM_ID": 380870,
+    "STEAMAPP_BRANCH": "public",
+    "STEAMAPP_BRANCH_PASSWORD": null,
+    "SERVER_ARGS": "-debuglog=All",
+    "AUTO_CONFIGURE": true,
     "USE_NAMED_VOLUME": true,
     "DOCKER_VOLUME_NAME": "pz_test_server_data",
     "DOCKER_VOLUME_PATH": "/home/steam/pzserver",
@@ -24,7 +28,7 @@
     ]
   },
   "ServerSettings": {
-    "name": "PZ Test Server",
+    "name": "PZ Test 2 server",
     "description": "A test server for Project Zomboid",
     "max_players": 10,
     "password": null,
@@ -45,7 +49,7 @@
     "save_interval": 15,
     "server_file_id": null
   },
-  "DeployID": "PZ server",
-  "ContainerName": "modix_108600_pz_test_server",
-  "ContainerID": "5e34c0d620f1e41a21d32d456bf3bb954ddd0d159f553f174512f68d92ab103f"
+  "DeployID": "Full Project Zomboid Server",
+  "ContainerName": "modix_380870_pz_test_2_server",
+  "ContainerID": "6a577e56cae70cb59f4c73781c8c279f40253009b974bad187e0c15eb4789b79"
 }

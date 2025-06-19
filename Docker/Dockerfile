@@ -1,29 +1,36 @@
-# Dockerfile for any Steam Dedicated Server using SteamCMD
+# Generalized Dockerfile for any SteamCMD-based game server using steamcmd/steamcmd base image
 FROM steamcmd/steamcmd:latest
 
-# Set environment variables for flexibility
-ENV STEAMAPPID=90 \
-    STEAMAPPDIR=/home/steam/game_server \
-    USER=steam
+# Install additional dependencies if needed
+USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        && rm -rf /var/lib/apt/lists/*
 
-# Create server directory
-RUN mkdir -p $STEAMAPPDIR
-
-# Install the specified Steam Dedicated Server using SteamCMD
-RUN steamcmd +login anonymous +force_install_dir $STEAMAPPDIR +app_update $STEAMAPPID validate +quit
-
-# Set working directory
-WORKDIR $STEAMAPPDIR
-
-# Expose a range of common ports (can be overridden at runtime)
-EXPOSE 27015-27050/udp 27015-27050/tcp
+# Create a generic server directory (no chown needed, runs as root)
+RUN mkdir -p /home/steam/server
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Copy the Python server configuration script into the image
-COPY steam_server_configure.py /home/steam/game_server/steam_server_configure.py
+# Copy all custom scripts into the container
+COPY server_scripts/ /home/steam/server_scripts/
 
-# Set entrypoint
+WORKDIR /home/steam
+
+# Generalized environment variables for any Steam game server
+ENV STEAMAPPID=0
+ENV STEAMAPPDIR=/home/steam/server
+ENV STEAMAPP_BRANCH=public
+
+# Set MODIX_DEBUG as an environment variable (default: false)
+ENV MODIX_DEBUG=false
+
+WORKDIR $STEAMAPPDIR
+
+# Expose common ports (can be overridden)
+EXPOSE 27015/udp 27015/tcp 27016/udp 27016/tcp
+
 ENTRYPOINT ["/entrypoint.sh"]
