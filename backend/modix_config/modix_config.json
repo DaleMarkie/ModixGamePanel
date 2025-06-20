@@ -6,6 +6,19 @@
   "MODIX_CLUSTER": false,
   "MODIX_USERNAME": null,
   "MODIX_PASSWORD": null,
+  "MODIX_USERS":[
+    {
+      "username": "test",
+      "password": "test",
+      "email": "test",
+      "roles": [
+        "user"
+      ],
+      "permissions": [
+        "modix_dashboard_access"
+      ]
+    }
+  ],
   "MODIX_REQUIRE_AUTH": null,
   "MODIX_SESSION_TIMEOUT": null,
   "MODIX_ALLOW_USER_CREATION": true,
