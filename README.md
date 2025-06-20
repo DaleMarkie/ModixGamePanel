@@ -24,7 +24,8 @@
 | Layer       | Tech Used                     |
 |-------------|-------------------------------|
 | Frontend    | React (CRA), Tailwind, React Icons |
-| Backend     | Flask (Python 3), SSE, Systemd |
+| Backend     | Fast API (uvicorn) (Python 3), SSE, Systemd |
+| Database    | Json config, SQLite|
 | Hosting     | Linux (Ubuntu/Debian), Nginx recommended |
 | Game Support| Project Zomboid (Steam + Workshop) |
 
