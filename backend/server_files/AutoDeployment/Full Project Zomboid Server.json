@@ -1,5 +1,6 @@
 {
   "BaseSettings": {
+    "MODIX_SERVER_NAME": "Project Zomboid",
     "MODIX_GAME_TEMPLATE": null,
     "MODIX_GAME_IS_STEAM": true,
     "DOCKER_IMAGE": "modix-steamcmd-game-server:latest",

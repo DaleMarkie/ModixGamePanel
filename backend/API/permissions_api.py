@@ -83,6 +83,15 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+@router.delete("/users/{user_id}", dependencies=[Depends(require_permission("modix_user_delete"))])
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter_by(id=user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()
+    return {"status": "deleted", "user_id": user_id}
+
 # --- Role Endpoints ---
 @router.post("/roles", response_model=RoleOut, dependencies=[Depends(require_permission("modix_role_create"))])
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
@@ -108,6 +117,15 @@ def get_role(role_id: int, db: Session = Depends(get_db)):
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     return role
+
+@router.delete("/roles/{role_id}", dependencies=[Depends(require_permission("modix_role_delete"))])
+def delete_role(role_id: int, db: Session = Depends(get_db)):
+    role = db.query(Role).filter_by(id=role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    db.delete(role)
+    db.commit()
+    return {"status": "deleted", "role_id": role_id}
 
 # --- Permission Endpoints ---
 class PermissionAssign(BaseModel):
@@ -178,3 +196,7 @@ def get_role_permissions(role_id: int, db: Session = Depends(get_db)):
         }
         for p in perms
     ]
+
+@router.get("/permissions", dependencies=[Depends(require_permission("modix_manage_permissions"))])
+def list_permissions():
+    return {"permissions": list(PERMISSIONS)}

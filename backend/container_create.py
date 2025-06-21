@@ -3,7 +3,7 @@ from pathlib import Path
 import docker
 import importlib.util
 import os
-from debug_logger import DebugLogger
+from backend.debug_logger import DebugLogger
 from sqlalchemy.orm import sessionmaker
 from backend.API.models import Container, Base
 from sqlalchemy.orm import Session
@@ -46,6 +46,9 @@ def add_container_to_db(container_name, docker_id, description=None):
         db.add(Container(name=container_name, docker_id=docker_id, description=description or ""))
         db.commit()
     db.close()
+
+def create_container(config: dict, dockerClient, template_path=None):
+    return create_container_from_config(dockerClient, config, template_path)
 
 def create_container_from_config(client, config, template_path=None):
     base = config.get("BaseSettings", {})

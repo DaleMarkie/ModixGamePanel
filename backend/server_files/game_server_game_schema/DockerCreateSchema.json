@@ -1,7 +1,14 @@
 {
   "category": "docker",
-  "version": "1.0",
+  "version": "1.1",
   "fields": [
+    {
+      "name": "Server Name",
+      "key": "MODIX_SERVER_NAME",
+      "type": "string",
+      "default": "Project Zomboid",
+      "description": "The display name for this server instance."
+    },
     {
       "name": "Game Template",
       "key": "MODIX_GAME_TEMPLATE",
@@ -10,25 +17,53 @@
       "description": "The game template to use, or null if not set."
     },
     {
-      "name": "Docker Image",
-      "key": "DOCKER_IMAGE",
-      "type": "string",
-      "default": "steamcmd/steamcmd",
-      "description": "The Docker image to use for the server."
-    },
-    {
       "name": "Game is Steam",
-      "key": "GAME_IS_STEAM",
+      "key": "MODIX_GAME_IS_STEAM",
       "type": "boolean",
       "default": true,
       "description": "Whether the game uses Steam."
     },
     {
+      "name": "Docker Image",
+      "key": "DOCKER_IMAGE",
+      "type": "string",
+      "default": "modix-steamcmd-game-server:latest",
+      "description": "The Docker image to use for the server."
+    },
+    {
       "name": "Game Steam ID",
       "key": "GAME_STEAM_ID",
       "type": "number",
-      "default": 108600,
-      "description": "The Steam App ID for the game."
+      "default": 380870,
+      "description": "The Steam App ID for Project Zomboid."
+    },
+    {
+      "name": "Steam Branch",
+      "key": "STEAMAPP_BRANCH",
+      "type": "string",
+      "default": "public",
+      "description": "The Steam branch to use."
+    },
+    {
+      "name": "Steam Branch Password",
+      "key": "STEAMAPP_BRANCH_PASSWORD",
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Password for the Steam branch, if required."
+    },
+    {
+      "name": "Server Args",
+      "key": "SERVER_ARGS",
+      "type": "string",
+      "default": "-debuglog=All",
+      "description": "Additional arguments to pass to the server process."
+    },
+    {
+      "name": "Auto Configure",
+      "key": "AUTO_CONFIGURE",
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to auto-configure the server on first run."
     },
     {
       "name": "Use Named Volume",
@@ -40,9 +75,9 @@
     {
       "name": "Docker Volume Name",
       "key": "DOCKER_VOLUME_NAME",
-      "type": ["string", "null"],
-      "default": null,
-      "description": "The name of the Docker volume, or null if not used."
+      "type": "string",
+      "default": "pz_test_server_data",
+      "description": "The name of the Docker volume."
     },
     {
       "name": "Docker Volume Path",
@@ -57,6 +92,25 @@
       "type": ["string", "null"],
       "default": null,
       "description": "The host path to bind mount, or null if not used."
+    },
+    {
+      "name": "Protocol Ports",
+      "key": "protocal_ports",
+      "type": "array",
+      "default": [
+        { "desired_container_port": 16261, "protocol": "udp" },
+        { "desired_container_port": 16262, "protocol": "udp" },
+        { "desired_container_port": 27015, "protocol": "tcp" }
+      ],
+      "description": "List of ports and protocols to expose.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "desired_container_port": { "type": "number" },
+          "protocol": { "type": "string", "enum": ["tcp", "udp"] }
+        },
+        "required": ["desired_container_port", "protocol"]
+      }
     }
   ]
 }
