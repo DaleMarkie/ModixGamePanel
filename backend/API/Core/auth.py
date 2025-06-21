@@ -3,12 +3,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
-from backend.API.models import User
+from backend.API.Core.database import SessionLocal
+from backend.API.Core.models import User
 from passlib.hash import bcrypt
 from pydantic import BaseModel
 import os
-from backend.API.access_control import resolve_permission
+from backend.API.Core.access_control import resolve_permission
+import json
+from pathlib import Path
 
 SECRET_KEY = os.environ.get("MODIX_SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
@@ -38,18 +40,41 @@ def authenticate_user(db: Session, username: str, password: str):
         return None
     return user
 
+def get_modix_config():
+    config_path = Path(__file__).parent.parent.parent / "modix_config" / "modix_config.json"
+    with open(config_path) as f:
+        return json.load(f)
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    config = get_modix_config()
+    session_timeout = config.get("MODIX_SESSION_TIMEOUT")
+    if session_timeout is not None:
+        try:
+            session_timeout = int(session_timeout)
+        except Exception:
+            session_timeout = None
+    # If session_timeout is not set, refresh token for 24 hours after each login (default)
+    expire = datetime.utcnow() + (expires_delta or timedelta(hours=24 if session_timeout is None else session_timeout))
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 @auth_router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    config = get_modix_config()
+    require_auth = config.get("MODIX_REQUIRE_AUTH")
+    session_timeout = config.get("MODIX_SESSION_TIMEOUT")
+    # If auth is not required, allow any username and skip password check
+    if require_auth is False or require_auth is None:
+        username = form_data.username or "guest"
+        expires_delta = timedelta(hours=24) if session_timeout is None else timedelta(minutes=int(session_timeout))
+        access_token = create_access_token(data={"sub": username}, expires_delta=expires_delta)
+        return {"access_token": access_token, "token_type": "bearer"}
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username})
+    expires_delta = timedelta(hours=24) if session_timeout is None else timedelta(minutes=int(session_timeout))
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=expires_delta)
     return {"access_token": access_token, "token_type": "bearer"}
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -81,7 +106,7 @@ def require_permission(permission: str, container_id: int = None):
         # If container_id is provided, fetch container and check per-container permission
         container = None
         if container_id is not None:
-            from backend.API.models import Container
+            from backend.API.Core.models import Container
             container = db.query(Container).filter_by(id=container_id).first()
         allowed = resolve_permission(db, current_user, permission, container)
         if not allowed:
@@ -91,3 +116,17 @@ def require_permission(permission: str, container_id: int = None):
             )
         return current_user
     return dependency
+
+from fastapi import Request
+
+def require_auth_dependency(request: Request):
+    config = get_modix_config()
+    require_auth = config.get("MODIX_REQUIRE_AUTH")
+    if require_auth is False or require_auth is None:
+        return  # No-op, allow unauthenticated
+    # Otherwise, require authentication (handled by OAuth2PasswordBearer)
+    # This is a placeholder for global dependency if needed
+    pass
+
+# Example for 3 days session timeout in modix_config.json:
+# "MODIX_SESSION_TIMEOUT": 4320  # 3 days in minutes (3*24*60)

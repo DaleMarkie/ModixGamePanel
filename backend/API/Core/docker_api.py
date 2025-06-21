@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Query
-from backend.API.auth import require_permission
+from backend.API.Core.auth import require_permission
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
+from backend.API.Core.database import SessionLocal
 import docker
 import logging
 

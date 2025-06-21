@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 import docker
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
-from backend.API.models import Container
+from backend.API.Core.database import SessionLocal
+from backend.API.Core.models import Container
 
 class ContainerCreateConfig(BaseModel):
     BaseSettings: Dict[str, Any]

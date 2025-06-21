@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base
 import json
 from passlib.hash import bcrypt
-from backend.API.models import User, Role, UserRole, UserPermission, ROLE_TEMPLATES, PERMISSIONS
+from backend.API.Core.models import User, Role, UserRole, UserPermission, ROLE_TEMPLATES, PERMISSIONS
 from sqlalchemy.orm import Session
 from pathlib import Path
 

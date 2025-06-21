@@ -1,9 +1,9 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
-from backend.API.auth import require_permission
-from backend.API.models import Container
+from backend.API.Core.auth import require_permission
+from backend.API.Core.models import Container
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
+from backend.API.Core.database import SessionLocal
 import docker
 import asyncio
 import json
@@ -168,5 +168,5 @@ def list_processes(container_id: str, db: Session = Depends(get_db)):
 
 # Example usage: call audit_log_terminal_action() in your endpoints where needed.
 # To use, include this router in your main FastAPI app:
-# from backend.API.terminal_api import router as terminal_router
+# from backend.API.Core.terminal_api import router as terminal_router
 # app.include_router(terminal_router, prefix="/api")

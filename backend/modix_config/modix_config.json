@@ -19,8 +19,8 @@
       ]
     }
   ],
-  "MODIX_REQUIRE_AUTH": null,
-  "MODIX_SESSION_TIMEOUT": null,
+  "MODIX_REQUIRE_AUTH": true,
+  "MODIX_SESSION_TIMEOUT": 4320,
   "MODIX_ALLOW_USER_CREATION": true,
   "MODIX_MULTI_SERVER": true,
   "MODIX_MAX_SERVERS": null,
@@ -29,6 +29,7 @@
   "MODIX_WS_PORT": null,
   "MODIX_SANDBOX": null,
   "MODIX_DEBUG_LOG": true,
+  "MODIX_ENABLE_ROOT_FS": false,
   "MODIX_BLACKLISTED_IMAGES": null,
   "MODIX_WHITELISTED_IMAGES": null,
   "MODIX_RESUSE_PORTS": true,

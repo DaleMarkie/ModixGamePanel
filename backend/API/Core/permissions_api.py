@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
-from backend.API.models import User, Role, UserRole, UserPermission, PERMISSIONS
-from backend.API.auth import require_permission
+from backend.API.Core.database import SessionLocal
+from backend.API.Core.models import User, Role, UserRole, UserPermission, PERMISSIONS
+from backend.API.Core.auth import require_permission
 from passlib.hash import bcrypt
 from pydantic import BaseModel
 from typing import List, Optional
@@ -185,7 +185,7 @@ def get_role_permissions(role_id: int, db: Session = Depends(get_db)):
     # Fetch permissions for the role
     role_permissions = db.query(UserPermission).filter_by(user_id=None, container_id=None).all()
     # Actually, should use RolePermission table
-    from backend.API.models import RolePermission
+    from backend.API.Core.models import RolePermission
     perms = db.query(RolePermission).filter_by(role_id=role_id).all()
     return [
         {
