@@ -4,6 +4,10 @@ import docker
 import importlib.util
 import os
 from debug_logger import DebugLogger
+from sqlalchemy.orm import sessionmaker
+from backend.API.models import Container, Base
+from sqlalchemy.orm import Session
+from backend.API.database import SessionLocal
 
 # Dynamically import PortAllocator from port_allocator.py
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +32,20 @@ def build_volumes_dict(use_named_volume, volume_name, volume_path, bind_mount_pa
         return {bind_mount_path: {"bind": volume_path, "mode": "rw"}}
     else:
         return {}
+
+def add_container_to_db(container_name, docker_id, description=None):
+    """
+    Adds a new container record to the modix.db database if it does not already exist.
+    Args:
+        container_name (str): The name of the container (unique).
+        docker_id (str): The Docker container ID (unique).
+        description (str, optional): Description for the container.
+    """
+    db: Session = SessionLocal()
+    if not db.query(Container).filter_by(name=container_name).first():
+        db.add(Container(name=container_name, docker_id=docker_id, description=description or ""))
+        db.commit()
+    db.close()
 
 def create_container_from_config(client, config, template_path=None):
     base = config.get("BaseSettings", {})
@@ -114,6 +132,8 @@ def create_container_from_config(client, config, template_path=None):
             restart_policy=restart_policy
         )
         debug.log(f"Started container: {container.name}")
+        # Add to modix.db
+        add_container_to_db(container.name, container.id, description=server_name)
         if template_path:
             config["ContainerID"] = container.id
             with open(template_path, 'w') as f:

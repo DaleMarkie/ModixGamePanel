@@ -68,14 +68,17 @@ class UserPermission(Base):
 
 # Permission constants for use throughout the app
 PERMISSIONS = [
-    # MODIX-WIDE permissions
+# MODIX-WIDE permissions
     "modix_dashboard_access",         # Can view the Modix dashboard
+    # MODIX RBAK permissions
+    "modix_manage_permissions",       # Can manage permissions for users and roles
     "modix_user_create",              # Can create new users (RBAC control)
     "modix_user_edit",                # Can edit users
     "modix_user_delete",              # Can delete users
     "modix_role_create",              # Can create new roles
     "modix_role_edit",                # Can edit roles
     "modix_role_delete",              # Can delete roles
+    # MODIX Server Permissions
     "modix_server_create",            # Can create new servers/containers
     "modix_server_edit",              # Can edit server/container settings
     "modix_server_delete",            # Can delete servers/containers
@@ -84,7 +87,7 @@ PERMISSIONS = [
     "modix_settings_edit",            # Can edit Modix settings
     "modix_api_key_manage",           # Can create/revoke API keys
     "modix_notification_manage",      # Can manage global notifications
-    # CONTAINER-LEVEL permissions
+# CONTAINER-LEVEL permissions
     "container_discord_webhook_manage",   # Can manage Discord webhooks for a container
     "container_workshop_manage",          # Can manage workshop items for a container
     "container_terminal_access",          # Can open the terminal for a container

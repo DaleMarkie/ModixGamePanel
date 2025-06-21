@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.API.database import SessionLocal
 from backend.API.models import User, Role, UserRole, UserPermission, PERMISSIONS
+from backend.API.auth import require_permission
 from passlib.hash import bcrypt
 from pydantic import BaseModel
 from typing import List, Optional
 
-router = APIRouter()
-router = APIRouter(tags=["RBAC"])
+router = APIRouter(tags=["RBAC"], dependencies=[Depends(require_permission("modix_manage_permissions"))])
 
 def get_db():
     db = SessionLocal()
@@ -47,7 +47,7 @@ class RoleOut(BaseModel):
         orm_mode = True
 
 # --- User Endpoints ---
-@router.post("/users", response_model=UserOut)
+@router.post("/users", response_model=UserOut, dependencies=[Depends(require_permission("modix_user_create"))])
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter_by(username=user.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
@@ -72,11 +72,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     return db_user
 
-@router.get("/users", response_model=List[UserOut])
+@router.get("/users", response_model=List[UserOut], dependencies=[Depends(require_permission("modix_user_edit"))])
 def list_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
-@router.get("/users/{user_id}", response_model=UserOut)
+@router.get("/users/{user_id}", response_model=UserOut, dependencies=[Depends(require_permission("modix_user_edit"))])
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
@@ -84,7 +84,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 # --- Role Endpoints ---
-@router.post("/roles", response_model=RoleOut)
+@router.post("/roles", response_model=RoleOut, dependencies=[Depends(require_permission("modix_role_create"))])
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     if db.query(Role).filter_by(name=role.name).first():
         raise HTTPException(status_code=400, detail="Role already exists")
@@ -98,11 +98,11 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     db.refresh(db_role)
     return db_role
 
-@router.get("/roles", response_model=List[RoleOut])
+@router.get("/roles", response_model=List[RoleOut], dependencies=[Depends(require_permission("modix_role_edit"))])
 def list_roles(db: Session = Depends(get_db)):
     return db.query(Role).all()
 
-@router.get("/roles/{role_id}", response_model=RoleOut)
+@router.get("/roles/{role_id}", response_model=RoleOut, dependencies=[Depends(require_permission("modix_role_edit"))])
 def get_role(role_id: int, db: Session = Depends(get_db)):
     role = db.query(Role).filter_by(id=role_id).first()
     if not role:
@@ -115,7 +115,7 @@ class PermissionAssign(BaseModel):
     value: str  # "allow" or "deny"
     container_id: Optional[int] = None
 
-@router.post("/users/{user_id}/permissions")
+@router.post("/users/{user_id}/permissions", dependencies=[Depends(require_permission("modix_manage_permissions"))])
 def assign_permission(user_id: int, perm: PermissionAssign, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
@@ -126,7 +126,7 @@ def assign_permission(user_id: int, perm: PermissionAssign, db: Session = Depend
     db.commit()
     return {"status": "ok"}
 
-@router.get("/users/{user_id}/permissions")
+@router.get("/users/{user_id}/permissions", dependencies=[Depends(require_permission("modix_manage_permissions"))])
 def list_user_permissions(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
@@ -139,7 +139,7 @@ class RoleAssign(BaseModel):
     role_name: str
     container_id: Optional[int] = None
 
-@router.post("/users/{user_id}/roles")
+@router.post("/users/{user_id}/roles", dependencies=[Depends(require_permission("modix_manage_permissions"))])
 def assign_role(user_id: int, role: RoleAssign, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
@@ -151,10 +151,30 @@ def assign_role(user_id: int, role: RoleAssign, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "ok"}
 
-@router.get("/users/{user_id}/roles")
+@router.get("/users/{user_id}/roles", dependencies=[Depends(require_permission("modix_manage_permissions"))])
 def list_user_roles(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     roles = db.query(UserRole).filter_by(user_id=user_id).all()
     return [{"role": db.query(Role).filter_by(id=r.role_id).first().name, "container_id": r.container_id} for r in roles]
+
+@router.get("/roles/{role_id}/permissions", dependencies=[Depends(require_permission("modix_manage_permissions"))])
+def get_role_permissions(role_id: int, db: Session = Depends(get_db)):
+    role = db.query(Role).filter_by(id=role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    # Fetch permissions for the role
+    role_permissions = db.query(UserPermission).filter_by(user_id=None, container_id=None).all()
+    # Actually, should use RolePermission table
+    from backend.API.models import RolePermission
+    perms = db.query(RolePermission).filter_by(role_id=role_id).all()
+    return [
+        {
+            "permission": p.permission,
+            "value": p.value.value if hasattr(p.value, 'value') else p.value,
+            "scope": p.scope,
+            "container_id": p.container_id
+        }
+        for p in perms
+    ]

@@ -5,14 +5,14 @@
   "MODIX_MODULES": null,
   "MODIX_CLUSTER": false,
   "MODIX_USERNAME": null,
-  "MODIX_PASSWORD": null,
+  "MODIX_PASSWORD": "test",
   "MODIX_USERS":[
     {
       "username": "test",
       "password": "test",
       "email": "test",
       "roles": [
-        "user"
+        "Moderator"
       ],
       "permissions": [
         "modix_dashboard_access"
