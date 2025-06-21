@@ -5,9 +5,9 @@ import importlib.util
 import os
 from backend.debug_logger import DebugLogger
 from sqlalchemy.orm import sessionmaker
-from backend.API.models import Container, Base
+from backend.API.Core.models import Container, Base
 from sqlalchemy.orm import Session
-from backend.API.database import SessionLocal
+from backend.API.Core.database import SessionLocal
 
 # Dynamically import PortAllocator from port_allocator.py
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

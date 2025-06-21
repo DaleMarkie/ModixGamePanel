@@ -31,7 +31,7 @@ def create_base_users_from_config():
     - Never deletes or overwrites DB entries missing from config/templates.
     - Host can safely delete or modify DB entries without them being re-created unless present in config.
     """
-    config_path = Path(__file__).parent.parent / "modix_config" / "modix_config.json"
+    config_path = Path(__file__).parent.parent.parent / "modix_config" / "modix_config.json"
     with open(config_path) as f:
         config = json.load(f)
 
