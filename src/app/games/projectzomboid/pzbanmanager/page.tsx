@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import Games from "./Games";
+import ModManager from "./PZBanManager"; // if lowercase
+import PZBanManager from "./PZBanManager";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" }, // fix here too
@@ -173,7 +174,7 @@ export default function Dashboard() {
           </header>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Workshop />
+            <PZBanManager />
           </main>
 
           <footer

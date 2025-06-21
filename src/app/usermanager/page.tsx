@@ -232,7 +232,7 @@ export default function Dashboard() {
           </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Welcome />
+            <UserManager />
           </main>
 
           <footer

@@ -343,7 +343,7 @@ const Dashboard2 = () => {
       "🖥️ System Monitor": "/system-monitor",
       "🛠️ PZ Workshop Manager": "/pzworkshopmanager",
       "⚙️ Task Manager": "/taskmanager",
-      "🚫 PZ Ban Manager": "/pzbanmanager",
+      "🚫 PZ Ban Manager": "/games/projectzomboid/pzbanmanager",
       "🛡️ Server Settings": "/serversettings",
       "🧾 Steam Parser": "/modules/steamparser",
       "🧾 Steam Player Manager": "/modules/steamplayermanager",
