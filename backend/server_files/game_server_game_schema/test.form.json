@@ -1,0 +1,10 @@
+{
+  "schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "uischema": {
+    "type": "VerticalLayout",
+    "elements": []
+  }
+}
