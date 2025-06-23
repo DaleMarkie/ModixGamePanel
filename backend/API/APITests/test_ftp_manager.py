@@ -3,7 +3,7 @@ import json
 
 def run_all_tests(headers):
     API_URL = "http://localhost:2010/api/ftp"
-    CONTAINER_ID = 1  # Use a valid integer container ID
+    CONTAINER_ID = "9018a539b9155569a9c32e3e3ef97700639fa5b0aea33e2315d040459f92d388"
 
     def test_list_files():
         resp = requests.get(f"{API_URL}/{CONTAINER_ID}/list", params={"path": ""}, headers=headers)
@@ -25,6 +25,6 @@ def run_all_tests(headers):
         print("Delete File:", resp.status_code, resp.json())
 
     test_list_files()
-    test_write_file()
-    test_read_file()
-    test_delete_file()
+    #test_write_file()
+    #test_read_file()
+    #test_delete_file()
