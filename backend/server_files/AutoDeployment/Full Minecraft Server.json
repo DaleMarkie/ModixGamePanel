@@ -1,0 +1,56 @@
+{
+  "BaseSettings": {
+    "MODIX_SERVER_NAME": "Minecraft Server",
+    "DOCKER_IMAGE": "itzg/minecraft-server:latest",
+    "USE_NAMED_VOLUME": true,
+    "DOCKER_VOLUME_NAME": "minecraft_server_data",
+    "DOCKER_VOLUME_PATH": "/data",
+    "BIND_MOUNT_PATH": null,
+    "protocal_ports": [
+      {
+        "desired_container_port": 25565,
+        "protocol": "tcp"
+      },
+      {
+        "desired_container_port": 25575,
+        "protocol": "tcp"
+      }
+    ],
+    "environment_variables": {
+      "EULA": "TRUE"
+    }
+  },
+  "ConfigFiles": [
+    {
+      "file": "server.properties",
+      "values": {
+        "motd": "A Minecraft Server",
+        "max-players": 20,
+        "online-mode": true,
+        "difficulty": "easy",
+        "gamemode": "survival",
+        "level-name": "world",
+        "allow-nether": true,
+        "enable-command-block": false,
+        "view-distance": 10,
+        "white-list": false,
+        "port": 25565,
+        "enable-rcon": false,
+        "rcon_port": 25575,
+        "rcon_password": null,
+        "server_file_id": "server.properties"
+      }
+    },
+    {
+      "file": "ops.json",
+      "values": {}
+    },
+    {
+      "file": "whitelist.json",
+      "values": {}
+    }
+  ],
+  "ContainerID": "cc147c04decd769b09f54926b69c0139e5f000481b92afa52642ff0c9ba3635b",
+  "DeployID": "Full Minecraft Server",
+  "ContainerName": "modix_minecraft_server"
+}

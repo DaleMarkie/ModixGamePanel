@@ -9,7 +9,7 @@ RUN apt-get update && \
         && rm -rf /var/lib/apt/lists/*
 
 # Create a generic server directory (no chown needed, runs as root)
-RUN mkdir -p /home/steam/server
+RUN mkdir -p /home/steam
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
@@ -22,8 +22,9 @@ WORKDIR /home/steam
 
 # Generalized environment variables for any Steam game server
 ENV STEAMAPPID=0
-ENV STEAMAPPDIR=/home/steam/server
+ENV STEAMAPPDIR=/home/steam
 ENV STEAMAPP_BRANCH=public
+ENV CUSTOM_START_SCRIPT=""
 
 # Set MODIX_DEBUG as an environment variable (default: false)
 ENV MODIX_DEBUG=false

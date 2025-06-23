@@ -10,6 +10,7 @@ import sys
 from backend.container_create import create_container
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
+from pathlib import Path
 
 router = APIRouter(tags=["ContainerManager"])
 
@@ -78,3 +79,32 @@ def delete_container(container_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error deleting container: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting container: {e}")
+
+SCHEMA_INDEX_PATH = Path(__file__).parent.parent.parent / "server_files" / "game_server_game_schema" / "schemas_index.json"
+SCHEMA_DIR = Path(__file__).parent.parent.parent / "server_files" / "game_server_game_schema"
+
+@router.get("/schemas", tags=["Schemas"], dependencies=[Depends(require_permission("modix_schemas"))])
+def list_schemas():
+    """List all available game/server schemas."""
+    try:
+        with open(SCHEMA_INDEX_PATH) as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not load schema index: {e}")
+
+@router.get("/schemas/{schema_id}", tags=["Schemas"], dependencies=[Depends(require_permission("modix_schemas"))])
+def get_schema(schema_id: str):
+    """Get the full JSON schema for a given schema_id."""
+    try:
+        with open(SCHEMA_INDEX_PATH) as f:
+            index = json.load(f)
+        entry = next((s for s in index if s["id"] == schema_id), None)
+        if not entry:
+            raise HTTPException(status_code=404, detail="Schema not found")
+        schema_file = SCHEMA_DIR / entry["file"]
+        with open(schema_file) as sf:
+            return json.load(sf)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not load schema: {e}")

@@ -86,7 +86,8 @@ PERMISSIONS = [
     "modix_settings_view",            # Can view Modix settings
     "modix_settings_edit",            # Can edit Modix settings
     "modix_api_key_manage",           # Can create/revoke API keys
-    "modix_notification_manage",      # Can manage global notifications
+    "modix_notification_manage",
+    "modix_schemas"      # Can manage global notifications
 # CONTAINER-LEVEL permissions
     "container_discord_webhook_manage",   # Can manage Discord webhooks for a container
     "container_workshop_manage",          # Can manage workshop items for a container

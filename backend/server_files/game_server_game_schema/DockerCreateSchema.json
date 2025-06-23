@@ -35,7 +35,39 @@
       "key": "GAME_STEAM_ID",
       "type": "number",
       "default": 380870,
-      "description": "The Steam App ID for Project Zomboid."
+      "description": "The Steam App ID for Project Zomboid or other server."
+    },
+    {
+      "name": "Custom Start Command",
+      "key": "CUSTOM_START_SCRIPT",
+      "type": "string",
+      "default": "",
+      "description": "The custom start command for the server. exsample: ./server_start.sh -debug"
+    },
+    {
+      "name": "Game Version",
+      "key": "GAME_VERSION",
+      "type": "string",
+      "default": "1.0",
+      "description": "The version of the game."
+    },
+    {
+      "name": "Server Port",
+      "key": "SERVER_PORT",
+      "type": "number",
+      "default": 16261,
+      "min": 1024,
+      "max": 65535,
+      "description": "Port used for the server."
+    },
+    {
+      "name": "RCON Port",
+      "key": "RCON_PORT",
+      "type": "number",
+      "default": 27015,
+      "min": 1024,
+      "max": 65535,
+      "description": "Port used for RCON remote control."
     },
     {
       "name": "Steam Branch",
@@ -57,13 +89,6 @@
       "type": "string",
       "default": "-debuglog=All",
       "description": "Additional arguments to pass to the server process."
-    },
-    {
-      "name": "Auto Configure",
-      "key": "AUTO_CONFIGURE",
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to auto-configure the server on first run."
     },
     {
       "name": "Use Named Volume",
@@ -110,7 +135,16 @@
           "protocol": { "type": "string", "enum": ["tcp", "udp"] }
         },
         "required": ["desired_container_port", "protocol"]
-      }
+      },
+      "environment_variables": [
+        {
+          "name": "MODIX_TEST",
+          "key": "MODIX_TEST",
+          "type": "string",
+          "default": "TESTESTESTEST",
+          "description": "Stay calm, this is just a test variable."
+        }
+      ]
     }
   ]
 }

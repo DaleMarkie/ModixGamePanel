@@ -82,9 +82,8 @@ def main():
     deployed_count = 0
     for template_path in get_deploy_templates():
         config = load_template_config(template_path)
-        # Check if the container already exists before attempting to create
         base = config.get("BaseSettings", {})
-        server_name = config["ServerSettings"].get("name", Path(template_path).stem if template_path else base.get('name', 'server'))
+        server_name = base.get("MODIX_SERVER_NAME", Path(template_path).stem if template_path else base.get('name', 'server'))
         steam_id = base.get("GAME_STEAM_ID")
         if steam_id:
             container_name = f"modix_{steam_id}_{server_name.replace(' ', '_').lower()}"
@@ -98,11 +97,11 @@ def main():
             continue
         except docker.errors.NotFound:
             pass
-        deploy_id, created_container_name = container_create.create_container_from_config(client, config, str(template_path))
+        # Use the unified create_container function, which will decide the type
+        deploy_id, created_container_name = container_create.create_container(config, client, str(template_path))
         if created_container_name:
             managed_containers.append(created_container_name)
             deployed_count += 1
-            # Update the template file with deploy_id and container_name
             config['DeployID'] = deploy_id
             config['ContainerName'] = created_container_name
             with open(template_path, 'w') as f:
