@@ -12,11 +12,6 @@ router = APIRouter(tags=["FTP/FileManager"])
 logger = logging.getLogger("uvicorn.error")
 logger.info("Native FastAPI logger is active. If you see this, logging is working.")
 
-def get_modix_config():
-    config_path = Path(__file__).parent.parent.parent / "modix_config" / "modix_config.json"
-    with open(config_path) as f:
-        return json.load(f)
-
 def get_docker_inspect(container_id: str):
     try:
         result = subprocess.run([
@@ -28,31 +23,13 @@ def get_docker_inspect(container_id: str):
 
 def get_container_root_and_mounts(container_id: str):
     inspect = get_docker_inspect(container_id)
-    merged_dir = None
     mounts = []
-    # Robustly check for MergedDir
-    graphdriver = inspect.get("GraphDriver")
-    if graphdriver:
-        data = graphdriver.get("Data")
-        if data and isinstance(data, dict):
-            merged_dir = data.get("MergedDir")
     if "Mounts" in inspect:
         mounts = [m["Source"] for m in inspect["Mounts"] if "Source" in m]
-    return merged_dir, mounts
+    return mounts
 
 def get_root_paths(container_id: str):
-    config = get_modix_config()
-    enable_root_fs = config.get("MODIX_ENABLE_ROOT_FS", False)
-    merged_dir, mounts = get_container_root_and_mounts(container_id)
-    if enable_root_fs:
-        if merged_dir:
-            return [merged_dir]
-        elif mounts:
-            # Fallback to mounts if root is not available (container stopped)
-            # Optionally, you could log or return a warning here
-            return mounts
-        else:
-            raise HTTPException(status_code=500, detail="Container root (MergedDir) not found and no mounts available.")
+    mounts = get_container_root_and_mounts(container_id)
     if not mounts:
         raise HTTPException(status_code=500, detail="No mounts found for container.")
     return mounts
@@ -89,9 +66,7 @@ def is_container_running(container_id: str) -> bool:
     return inspect.get("State", {}).get("Running", False)
 
 def resolve_host_path(container_id: str, user_path: str, require_root_fs: bool, current_user):
-    merged_dir, mounts = get_container_root_and_mounts(container_id)
-    config = get_modix_config()
-    enable_root_fs = config.get("MODIX_ENABLE_ROOT_FS", False)
+    mounts = get_container_root_and_mounts(container_id)
     inspect = get_docker_inspect(container_id)
     # Find the main mount (first mount with a Destination)
     main_mount = None
@@ -106,7 +81,6 @@ def resolve_host_path(container_id: str, user_path: str, require_root_fs: bool, 
         raise HTTPException(status_code=403, detail={
             "error": "No valid mount found for this container.",
             "permitted_mounts": [m.get("Destination") for m in inspect.get("Mounts", []) if m.get("Destination")],
-            "root_fs": merged_dir if merged_dir else None
         })
     # User path is always relative to the mount root
     user_path = user_path.lstrip("/")
@@ -114,20 +88,57 @@ def resolve_host_path(container_id: str, user_path: str, require_root_fs: bool, 
     logger.info(f"[resolve_host_path] container_id={container_id}, user_path={user_path}, main_mount_dest={main_mount.get('Destination')}, main_mount_src={main_mount.get('Source')}, host_path={host_path}")
     return host_path
 
-@router.api_route("/ftp/{container_id}/{path:path}", methods=["GET", "POST", "DELETE"], tags=["FTP/FileManager"])
-def ftp_catch_all(
+def get_container_mounts_dict(container_id: str):
+    inspect = get_docker_inspect(container_id)
+    mounts = {}
+    if "Mounts" in inspect:
+        for m in inspect["Mounts"]:
+            if "Source" in m and "Destination" in m:
+                parts = m["Source"].split(os.sep)
+                mount_name = None
+                if "volumes" in parts:
+                    idx = parts.index("volumes")
+                    if len(parts) > idx + 2 and parts[idx+2] == "_data":
+                        mount_name = parts[idx+1]
+                if not mount_name:
+                    mount_name = os.path.basename(m["Source"])
+                mounts[mount_name] = m["Source"]
+    return mounts
+
+def resolve_host_path_by_mount(container_id: str, mount_name: str, user_path: str):
+    mounts = get_container_mounts_dict(container_id)
+    if mount_name not in mounts:
+        logger.info(f"[resolve_host_path_by_mount] Invalid mount name '{mount_name}' for container {container_id}. Available: {list(mounts.keys())}")
+        raise HTTPException(status_code=404, detail=f"Mount '{mount_name}' not found for this container.")
+    base = mounts[mount_name]
+    user_path = user_path.lstrip("/")
+    abs_path = os.path.abspath(os.path.join(base, user_path))
+    if not abs_path.startswith(os.path.abspath(base)):
+        raise HTTPException(status_code=403, detail="Path traversal detected.")
+    logger.info(f"[resolve_host_path_by_mount] container_id={container_id}, mount_name={mount_name}, user_path={user_path}, abs_path={abs_path}")
+    return abs_path
+
+@router.api_route("/ftp/{container_id}/{mount_name}/{path:path}", methods=["GET", "POST", "DELETE"], tags=["FTP/FileManager"])
+async def ftp_catch_all(
     container_id: str,
+    mount_name: str,
     path: str = "",
     request: Request = None,
     current_user=Depends(require_permission("container_filemanager_access"))
 ):
     method = request.method if request else "GET"
-    abs_path = resolve_host_path(container_id, path, require_root_fs=True, current_user=current_user)
-    if method == "GET":
-        if not os.path.exists(abs_path):
+    abs_path = resolve_host_path_by_mount(container_id, mount_name, path)
+    if method == "POST":
+        parent_dir = os.path.dirname(abs_path)
+        if not os.path.exists(parent_dir):
+            raise HTTPException(status_code=404, detail="Parent directory does not exist. The volume may not be initialized. Try starting the container at least once.")
+    elif not os.path.exists(abs_path):
+        if path.strip() == "":
+            raise HTTPException(status_code=404, detail="Root directory for this mount does not exist. The volume may not be initialized. Try starting the container at least once.")
+        else:
             raise HTTPException(status_code=404, detail="Path not found")
+    if method == "GET":
         if os.path.isdir(abs_path):
-            # List directory
             files = []
             for entry in os.scandir(abs_path):
                 files.append({
@@ -137,7 +148,6 @@ def ftp_catch_all(
                 })
             return {"files": files}
         elif os.path.isfile(abs_path):
-            # Read file
             require_permission("container_file_read")(current_user)
             return FileResponse(abs_path)
         else:
@@ -145,13 +155,26 @@ def ftp_catch_all(
     elif method == "POST":
         require_permission("container_file_write")(current_user)
         req = None
+        content = None
         try:
-            req = FileWriteRequest(**(request.json() if request else {}))
-        except Exception:
-            req = FileWriteRequest(content=(request.body().decode() if request else ""))
+            req = FileWriteRequest(**(await request.json() if request else {}))
+            content = req.content
+            logger.info(f"[POST] Received JSON content for {abs_path}")
+        except Exception as e:
+            logger.warning(f"[POST] Failed to parse JSON: {e}. Trying raw body.")
+            try:
+                content = (await request.body()).decode() if request else ""
+                logger.info(f"[POST] Received raw body for {abs_path}")
+            except Exception as e2:
+                logger.error(f"[POST] Failed to parse body: {e2}")
+                raise HTTPException(status_code=400, detail="Invalid request body")
+        if not content:
+            logger.error(f"[POST] No content provided for file write to {abs_path}")
+            raise HTTPException(status_code=400, detail="No content provided")
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
         with open(abs_path, "w") as f:
-            f.write(req.content)
+            f.write(content)
+        logger.info(f"[POST] Wrote file {abs_path}")
         return {"status": "success"}
     elif method == "DELETE":
         require_permission("container_file_delete")(current_user)
@@ -165,4 +188,8 @@ def ftp_catch_all(
     else:
         raise HTTPException(status_code=405, detail="Method not allowed")
 
-# Remove old /list, /read, /write, /delete endpoints
+@router.get("/ftp/{container_id}/mounts", tags=["FTP/FileManager"])
+def list_mounts(container_id: str, current_user=Depends(require_permission("container_filemanager_access"))):
+    mounts = get_container_mounts_dict(container_id)
+    # Return a list of mount names and their source paths
+    return {"mounts": [{"name": name, "source": path} for name, path in mounts.items()]}

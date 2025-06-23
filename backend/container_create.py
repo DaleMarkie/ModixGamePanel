@@ -25,8 +25,17 @@ def container_exists(client, container_name):
     except docker.errors.NotFound:
         return False
 
-def build_volumes_dict(use_named_volume, volume_name, volume_path, bind_mount_path):
+def build_volumes_dict(client, use_named_volume, volume_name, volume_path, bind_mount_path, deploy_id=None):
+    # If using a named volume, ensure it exists and is labeled
     if use_named_volume:
+        # Check if volume exists
+        try:
+            client.volumes.get(volume_name)
+            debug.log(f"[VOLUME] Volume '{volume_name}' already exists.")
+        except Exception:
+            # Create volume with label if it doesn't exist
+            client.volumes.create(name=volume_name, labels={"modix_deploy_id": deploy_id} if deploy_id else None)
+            debug.log(f"[VOLUME] Created new volume '{volume_name}' with label modix_deploy_id={deploy_id}.")
         return {volume_name: {"bind": volume_path, "mode": "rw"}}
     elif bind_mount_path:
         return {bind_mount_path: {"bind": volume_path, "mode": "rw"}}
@@ -57,7 +66,7 @@ def get_container_name_and_id(base, template_path):
     deploy_id = Path(template_path).stem if template_path else server_name.replace(' ', '_').lower()
     return container_name, deploy_id, server_name
 
-def get_ports_and_volumes(base):
+def get_ports_and_volumes(client, base, deploy_id=None):
     requested_ports = []
     proto_map = {}
     for entry in base.get('protocal_ports', []):
@@ -80,7 +89,7 @@ def get_ports_and_volumes(base):
     volume_path = base.get("DOCKER_VOLUME_PATH", "/data")
     bind_mount_path = base.get("BIND_MOUNT_PATH")
     volume_name = base.get("DOCKER_VOLUME_NAME", f"modix_{base.get('name', 'server').replace(' ', '_').lower()}_data")
-    volumes = build_volumes_dict(use_named_volume, volume_name, volume_path, bind_mount_path)
+    volumes = build_volumes_dict(client, use_named_volume, volume_name, volume_path, bind_mount_path, deploy_id=deploy_id)
     return ports, volumes
 
 def create_container(config: dict, dockerClient, template_path=None):
@@ -95,7 +104,7 @@ def create_generic_container_from_config(client, config, template_path=None):
     base = config.get("BaseSettings", {})
     image = base.get("DOCKER_IMAGE", "steamcmd/steamcmd")
     container_name, deploy_id, server_name = get_container_name_and_id(base, template_path)
-    ports, volumes = get_ports_and_volumes(base)
+    ports, volumes = get_ports_and_volumes(client, base, deploy_id=deploy_id)
     if container_exists(client, container_name):
         debug.log(f"Container '{container_name}' already exists. Skipping creation.")
         return deploy_id, container_name
@@ -136,7 +145,7 @@ def create_container_from_config(client, config, template_path=None):
     base = config.get("BaseSettings", {})
     image = base.get("DOCKER_IMAGE", "steamcmd/steamcmd")
     container_name, deploy_id, server_name = get_container_name_and_id(base, template_path)
-    ports, volumes = get_ports_and_volumes(base)
+    ports, volumes = get_ports_and_volumes(client, base, deploy_id=deploy_id)
     if container_exists(client, container_name):
         debug.log(f"Container '{container_name}' already exists. Skipping creation.")
         return deploy_id, container_name
