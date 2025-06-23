@@ -71,7 +71,7 @@ def container_top(container_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error getting top: {e}")
 
 # --- Debug: List Running Processes in Container ---
-@router.get("/docker/{container_id}/processes", dependencies=[Depends(require_permission("container_terminal_exec"))])
+@router.get("/docker/{container_id}/processes", dependencies=[Depends(require_permission("container_processes_view"))])
 def list_processes(container_id: str, db: Session = Depends(get_db)):
     dockerClient = docker.from_env()
     try:
@@ -88,3 +88,4 @@ def list_processes(container_id: str, db: Session = Depends(get_db)):
             return {"command": cmd, "output": output}
     logger.warning(f"Could not list processes in container {container_id}")
     return {"error": "Could not list processes. No supported command found."}
+

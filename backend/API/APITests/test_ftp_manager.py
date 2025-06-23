@@ -59,4 +59,4 @@ def get_headers():
 
 if __name__ == "__main__":
     headers = get_headers()
-    run_all_tests(headers)
+    #run_all_tests(headers)

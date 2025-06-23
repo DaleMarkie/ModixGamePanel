@@ -118,23 +118,6 @@ async def websocket_logs(
     await websocket.close()
     logger.info(f"Log stream session closed for container {container_id} by user {getattr(current_user, 'username', None)}")
 
-# --- List Active Sessions (stub, for future) ---
-# List Docker containers that the user can access terminals for
-@router.get("/terminal/containers", dependencies=[Depends(require_permission("container_terminal_access"))])
-def list_accessible_containers(db: Session = Depends(get_db), current_user=Depends(require_permission("container_terminal_access"))):
-    dockerClient = docker.from_env()
-    containers = dockerClient.containers.list(all=True)
-    # Optionally, filter containers based on user permissions or DB records
-    result = []
-    for c in containers:
-        result.append({
-            "id": c.id,
-            "name": c.name,
-            "status": c.status,
-            "image": c.image.tags,
-        })
-    return {"containers": result}
-
 # --- Close Session (stub, for future) ---
 @router.post("/terminal/{session_id}/close", dependencies=[Depends(require_permission("modix_manage_permissions"))])
 def close_session(session_id: str):
@@ -145,26 +128,6 @@ def close_session(session_id: str):
 def audit_log_terminal_action(user, action, container_id=None, command=None, status=None):
     # This is a simple stub. In production, log to DB or file with timestamp, user, action, etc.
     print(f"[AUDIT] user={getattr(user, 'username', None)} action={action} container_id={container_id} command={command} status={status}")
-
-# --- Debug: List Running Processes in Container ---
-@router.get("/terminal/{container_id}/processes", dependencies=[Depends(require_permission("container_terminal_exec"))])
-def list_processes(container_id: str, db: Session = Depends(get_db)):
-    dockerClient = docker.from_env()
-    try:
-        container = dockerClient.containers.get(container_id)
-    except docker.errors.NotFound:
-        raise HTTPException(status_code=404, detail="Container not found")
-    if container.status != "running":
-        raise HTTPException(status_code=409, detail="Container is not running. Start the container before listing processes.")
-    # Try common commands to list processes
-    for cmd in ["ps aux", "ps -ef", "top -b -n 1"]:
-        exec_result = container.exec_run(cmd, stdout=True, stderr=True, stdin=False, tty=False)
-        output = exec_result.output.decode()
-        if exec_result.exit_code == 0 and output.strip():
-            logger.info(f"Listed processes in container {container_id} using '{cmd}'")
-            return {"command": cmd, "output": output}
-    logger.warning(f"Could not list processes in container {container_id}")
-    return {"error": "Could not list processes. No supported command found."}
 
 # Example usage: call audit_log_terminal_action() in your endpoints where needed.
 # To use, include this router in your main FastAPI app:

@@ -130,3 +130,10 @@ def require_auth_dependency(request: Request):
 
 # Example for 3 days session timeout in modix_config.json:
 # "MODIX_SESSION_TIMEOUT": 4320  # 3 days in minutes (3*24*60)
+
+@auth_router.post("/logout")
+def logout():
+    """
+    Logout endpoint. Since JWT is stateless, clients should delete their token.
+    """
+    return {"message": "Successfully logged out."}

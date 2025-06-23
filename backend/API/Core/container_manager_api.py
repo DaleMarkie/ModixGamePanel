@@ -83,27 +83,57 @@ def delete_container(container_id: str, db: Session = Depends(get_db)):
 SCHEMA_INDEX_PATH = Path(__file__).parent.parent.parent / "server_files" / "game_server_game_schema" / "schemas_index.json"
 SCHEMA_DIR = Path(__file__).parent.parent.parent / "server_files" / "game_server_game_schema"
 
-@router.get("/schemas", tags=["Schemas"], dependencies=[Depends(require_permission("modix_schemas"))])
+# --- List Docker Containers API ---
+@router.get("/docker/containers", dependencies=[Depends(require_permission("modix_get_containers"))])
+def list_accessible_containers(db: Session = Depends(get_db), current_user=Depends(require_permission("modix_get_containers"))):
+    dockerClient = docker.from_env()
+    containers = dockerClient.containers.list(all=True)
+    result = []
+    for c in containers:
+        result.append({
+            "id": c.id,
+            "name": c.name,
+            "status": c.status,
+            "image": c.image.tags,
+        })
+    return {"containers": result}
+
+@router.get("/schemas", dependencies=[Depends(require_permission("modix_schemas"))])
 def list_schemas():
     """List all available game/server schemas."""
     try:
-        with open(SCHEMA_INDEX_PATH) as f:
-            return json.load(f)
+        logger.info(f"Resolved SCHEMA_INDEX_PATH: {SCHEMA_INDEX_PATH}")
+        if not SCHEMA_INDEX_PATH.exists():
+            logger.error(f"Schema index file does not exist at: {SCHEMA_INDEX_PATH}")
+            raise HTTPException(status_code=404, detail=f"Schema index file not found at: {SCHEMA_INDEX_PATH}")
+        with open(SCHEMA_INDEX_PATH, "r", encoding="utf-8") as f:
+            index = json.load(f)
+        # Validate that each entry has required fields
+        for entry in index:
+            if "id" not in entry or "file" not in entry:
+                logger.error(f"Malformed schema index entry: {entry}")
+                raise HTTPException(status_code=500, detail="Malformed schema index entry.")
+        logger.info(f"Loaded {len(index)} schemas from index.")
+        return index
     except Exception as e:
+        logger.error(f"Exception in list_schemas: {e}")
         raise HTTPException(status_code=500, detail=f"Could not load schema index: {e}")
 
-@router.get("/schemas/{schema_id}", tags=["Schemas"], dependencies=[Depends(require_permission("modix_schemas"))])
+@router.get("/schemas/{schema_id}", dependencies=[Depends(require_permission("modix_schemas"))])
 def get_schema(schema_id: str):
     """Get the full JSON schema for a given schema_id."""
     try:
-        with open(SCHEMA_INDEX_PATH) as f:
+        with open(SCHEMA_INDEX_PATH, "r", encoding="utf-8") as f:
             index = json.load(f)
         entry = next((s for s in index if s["id"] == schema_id), None)
         if not entry:
             raise HTTPException(status_code=404, detail="Schema not found")
         schema_file = SCHEMA_DIR / entry["file"]
-        with open(schema_file) as sf:
-            return json.load(sf)
+        if not schema_file.exists():
+            raise HTTPException(status_code=404, detail="Schema file not found")
+        with open(schema_file, "r", encoding="utf-8") as sf:
+            schema = json.load(sf)
+        return schema
     except HTTPException:
         raise
     except Exception as e:

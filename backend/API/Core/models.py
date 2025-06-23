@@ -87,7 +87,8 @@ PERMISSIONS = [
     "modix_settings_edit",            # Can edit Modix settings
     "modix_api_key_manage",           # Can create/revoke API keys
     "modix_notification_manage",
-    "modix_schemas"      # Can manage global notifications
+    "modix_schemas"                   # Can manage global notifications
+    "modix_get_containers",          # Can get a list of all containers
 # CONTAINER-LEVEL permissions
     "container_discord_webhook_manage",   # Can manage Discord webhooks for a container
     "container_workshop_manage",          # Can manage workshop items for a container
@@ -99,7 +100,6 @@ PERMISSIONS = [
     "container_file_read",                # Can read files in the container
     "container_file_write",               # Can write/edit files in the container
     "container_file_delete",              # Can delete files in the container
-    "container_file_root_fs",             # Can access the root filesystem of the container
     "container_logs_view",                # Can view logs for a container
     "container_logs_download",            # Can download logs for a container
     "container_manage",                   # Can start/stop/restart the container
@@ -112,6 +112,7 @@ PERMISSIONS = [
     "container_mod_install",              # Can install mods
     "container_mod_remove",               # Can remove mods
     "container_mod_update",               # Can update mods
+    "container_processes_view",            # Can view running processes in the container
     "container_metrics_view",             # Can view container metrics (CPU, RAM, etc.)
     "container_webhook_trigger",          # Can trigger webhooks manually
     # Add more as needed for future features
