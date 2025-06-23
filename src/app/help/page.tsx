@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 import Help from "../help/Help";
 
-// Visible in top nav
 const navLinks = [
   { label: "📊 Dashboard", href: "/dashboard" },
   { label: "💻 Terminal", href: "/terminal" },
@@ -16,7 +15,6 @@ const navLinks = [
   { label: "🔐 Login", href: "/login" },
 ];
 
-// Only appear in search
 const extraSearchPages = [
   { label: "📄 About", href: "/about" },
   { label: "📚 Docs", href: "/docs" },
@@ -37,6 +35,7 @@ export default function Dashboard() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const storedBg = localStorage.getItem("headerBgColor");
@@ -50,11 +49,9 @@ export default function Dashboard() {
       setFilteredResults([]);
       return;
     }
-
     const matches = searchablePages.filter((item) =>
       item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     setFilteredResults(matches);
   }, [searchQuery]);
 
@@ -74,6 +71,7 @@ export default function Dashboard() {
         color: "white",
       }}
     >
+      {/* dark overlay */}
       <div
         style={{
           position: "absolute",
@@ -86,6 +84,7 @@ export default function Dashboard() {
           zIndex: 1,
         }}
       />
+
       <div style={{ position: "relative", zIndex: 2 }}>
         <div
           style={{
@@ -99,9 +98,9 @@ export default function Dashboard() {
             display: "flex",
             flexDirection: "column",
             zIndex: 2,
-            overflow: "visible",
           }}
         >
+          {/* Header with toggle */}
           <header
             style={{
               backgroundColor: headerBgColor,
@@ -111,73 +110,78 @@ export default function Dashboard() {
               justifyContent: "space-between",
               padding: "0 20px",
               height: 60,
-              userSelect: "none",
               borderTopLeftRadius: 12,
               borderTopRightRadius: 12,
               position: "relative",
               zIndex: 3,
             }}
           >
-            <div
-              className="logo"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <img
-                src="https://i.ibb.co/cMPwcn8/logo.png"
-                alt="Modix Logo"
-                style={{ height: 50, objectFit: "contain" }}
-              />
-              <span
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
                 style={{
-                  fontWeight: 900,
-                  fontSize: "1.6rem",
-                  color: "inherit",
+                  backgroundColor: "#333",
+                  color: "#fff",
+                  border: "none",
+                  fontSize: "1.2rem",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  cursor: "pointer",
                 }}
               >
-                {panelName}
-              </span>
+                {sidebarOpen ? "✖" : "☰"}
+              </button>
+
+              <div
+                className="logo"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <img
+                  src="https://i.ibb.co/cMPwcn8/logo.png"
+                  alt="Modix Logo"
+                  style={{ height: 50 }}
+                />
+                <span style={{ fontWeight: 900, fontSize: "1.6rem" }}>
+                  {panelName}
+                </span>
+              </div>
             </div>
 
+            {/* Top Menu (Main Nav) */}
             <nav
               className="top-menu"
               style={{
                 display: "flex",
                 gap: 20,
-                position: "relative",
-                zIndex: 3,
+                transition: "all 0.3s ease",
               }}
             >
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  style={{
-                    color: headerTextColor,
-                    padding: "8px 14px",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    borderRadius: 8,
-                    transition: "background-color 0.3s ease",
-                    display: "inline-block",
-                    whiteSpace: "nowrap",
-                    userSelect: "none",
-                  }}
-                >
-                  {label}
-                </Link>
-              ))}
+              {sidebarOpen &&
+                navLinks.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    style={{
+                      color: headerTextColor,
+                      padding: "8px 14px",
+                      textDecoration: "none",
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      cursor: "pointer",
+                      borderRadius: 8,
+                      transition: "background-color 0.3s ease",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {label}
+                  </Link>
+                ))}
             </nav>
           </header>
 
-          {/* 🔍 Search */}
+          {/* Search */}
           <div
-            style={{
-              padding: "16px 20px",
-              position: "relative",
-              zIndex: 10,
-            }}
+            style={{ padding: "16px 20px", position: "relative", zIndex: 10 }}
           >
             <input
               type="text"
@@ -221,7 +225,6 @@ export default function Dashboard() {
                       textDecoration: "none",
                       fontSize: "0.95rem",
                       borderBottom: "1px solid #333",
-                      userSelect: "none",
                     }}
                   >
                     {label}
@@ -231,10 +234,12 @@ export default function Dashboard() {
             )}
           </div>
 
+          {/* Main */}
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <Help />
+            <Dashboard />
           </main>
 
+          {/* Footer */}
           <footer
             style={{
               marginTop: 24,
@@ -246,8 +251,6 @@ export default function Dashboard() {
               justifyContent: "space-between",
               alignItems: "center",
               fontSize: "0.75rem",
-              userSelect: "none",
-              zIndex: 2,
             }}
           >
             <div>
@@ -293,7 +296,6 @@ function FooterLink({ href, children }) {
         display: "flex",
         alignItems: "center",
         gap: 6,
-        userSelect: "none",
       }}
       onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#444")}
       onMouseOut={(e) =>

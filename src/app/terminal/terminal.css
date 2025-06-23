@@ -3,7 +3,7 @@
   box-sizing: border-box;
 }
 body {
-  margin: 0;
+  margin: 20;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #121212;
   color: #e0e0e0;
@@ -90,7 +90,7 @@ body {
   display: flex;
   flex-direction: column;
   background: #222;
-  border-radius: 10px;
+  border-radius: 3px;
   box-shadow: 0 2px 14px rgb(0 0 0 / 0.7);
   overflow: hidden;
   max-height: 65vh; /* smaller height */
