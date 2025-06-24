@@ -1,382 +1,475 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  FaDiscord,
+  FaCoffee,
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaChevronRight,
+  FaServer,
+  FaUser,
+  FaLaptop,
+} from "react-icons/fa";
+import Workshop from "./Workshop";
 
-import ModCard from "./ModCard";
-import ModModal from "./ModModal";
-import ContextMenu from "./ContextMenu";
-import "./Workshop.css";
+const navLinks = [
+  // === SYSTEM ===
+  {
+    label: "📊 Terminal",
+    href: "/terminal/Terminal",
+  },
 
-const ExportModal = ({ modIds, onClose, listName }) => {
-  const textareaRef = useRef(null);
-  const formattedIds = modIds.join(",");
+  // === SERVER CONFIGURATION ===
+  {
+    label: "⚙️ Configuration",
+    href: "/settings",
+    submenu: [
+      { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
+      { label: "📄 server.ini", href: "/settings/serverini" },
+      { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
+      { label: "🧟 Zombie Settings", href: "/settings/zombies" },
+    ],
+  },
 
-  const fallbackCopy = () => {
-    if (!textareaRef.current) return;
-    textareaRef.current.select();
-    document.execCommand("copy");
-    alert(
-      "Copied mod IDs to clipboard! Paste into server.ini → WorkshopItems="
-    );
-  };
+  // === CONTENT MANAGEMENT ===
+  {
+    label: "🧩 Mods",
+    href: "/modmanager",
+    submenu: [
+      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
+      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
+    ],
+  },
 
-  const copyAll = () => {
-    navigator.clipboard
-      ?.writeText(formattedIds)
-      .then(() =>
-        alert(
-          "Copied mod IDs to clipboard! Paste into server.ini → WorkshopItems="
-        )
-      )
-      .catch(fallbackCopy);
-  };
+  // === FILES & DATA ===
+  {
+    label: "📁 Files",
+    href: "/filemanager",
+    submenu: [
+      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "⚙️ Config Files", href: "/filemanager/configs" },
+      { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
+      { label: "📄 Server Logs", href: "/filemanager/logs" },
+    ],
+  },
+
+  // === PLAYER MANAGEMENT ===
+  {
+    label: "👥 Players",
+    href: "/players",
+    submenu: [
+      { label: "👥 All Players", href: "/players/all" },
+      { label: "🟢 Online Players", href: "/players/online" },
+      { label: "🚫 Banned Players", href: "/players/banned" },
+      { label: "✅ Whitelist", href: "/players/whitelist" },
+    ],
+  },
+
+  // === INTEGRATIONS ===
+  {
+    label: "📡 Webhooks",
+    href: "/webhooks",
+    submenu: [
+      { label: "📤 Send Embed", href: "/webhooks/send" },
+      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
+      { label: "📝 Webhook Logs", href: "/webhooks/logs" },
+    ],
+  },
+
+  // === TOOLS ===
+  {
+    label: "🛠 Tools",
+    href: "/tools",
+    submenu: [
+      { label: "📈 Performance Stats", href: "/tools/performance" },
+      { label: "🌐 Port Checker", href: "/tools/portcheck" },
+      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "📦 Plugin Tools", href: "/tools/plugins" },
+    ],
+  },
+
+  // === SUPPORT ===
+  {
+    label: "🆘 Support",
+    href: "/support",
+    submenu: [
+      { label: "📚 Documentation", href: "/docs" },
+      { label: "🎫 Support Tickets", href: "/support/tickets" },
+      { label: "❓ FAQ", href: "/support/faq" },
+      { label: "💬 Community", href: "/support/community" },
+    ],
+  },
+
+  // === AUTH ===
+  {
+    label: "🔐 Account",
+    href: "/login",
+    submenu: [
+      { label: "🔐 Sign In", href: "/login/signin" },
+      { label: "🆕 Register", href: "/login/register" },
+    ],
+  },
+];
+
+function SidebarUserInfo({ hostname, container, loggedInUser }) {
+  if (!hostname || !container || !loggedInUser) return null;
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true">
-      <div className="modal-content">
-        <h3 className="modal-header">
-          Export Modlist: {listName || "All Mods"}
-        </h3>
-        <p className="modal-instruction">
-          Copy the mod IDs below and paste them into <code>server.ini</code>{" "}
-          under <code>WorkshopItems=</code>
-        </p>
-        <textarea
-          ref={textareaRef}
-          readOnly
-          value={formattedIds}
-          className="modal-textarea"
-          spellCheck={false}
-        />
-        <div className="modal-buttons">
-          <button onClick={copyAll} className="modal-button copy-button">
-            📋 Copy All
-          </button>
-          <button onClick={onClose} className="modal-button close-button">
-            ✖ Close
-          </button>
+    <section
+      aria-label="Server Information"
+      style={{
+        marginTop: 12,
+        padding: "9px 12px",
+        backgroundColor: "rgba(255, 255, 255, 0.06)",
+        borderRadius: 7.5,
+        color: "#c0c0c0",
+        fontSize: "0.6375rem",
+        userSelect: "none",
+        boxShadow: "inset 0 0 10px rgba(0,0,0,0.15)",
+        animation: "fadeIn 0.5s ease forwards",
+        width: "90%",
+        maxWidth: 165,
+      }}
+    >
+      {[
+        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
+        { icon: <FaServer size={12} />, label: "Container", value: container },
+        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
+      ].map(({ icon, label, value }) => (
+        <div
+          key={label}
+          title={`${label}: ${value}`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7.5,
+            marginBottom: 6,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            cursor: "default",
+          }}
+          aria-label={`${label}: ${value}`}
+        >
+          <span style={{ flexShrink: 0, color: "#6ec1e4" }}>{icon}</span>
+          <span
+            style={{
+              fontWeight: "600",
+              color: "#eee",
+              minWidth: 45,
+              flexShrink: 0,
+              userSelect: "text",
+            }}
+          >
+            {label}:
+          </span>
+          <span
+            style={{
+              flexGrow: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              userSelect: "text",
+            }}
+          >
+            {value}
+          </span>
         </div>
-      </div>
-    </div>
+      ))}
+      <style>{`
+        @keyframes fadeIn {
+          from {opacity: 0; transform: translateY(5px);}
+          to {opacity: 1; transform: translateY(0);}
+        }
+      `}</style>
+    </section>
   );
-};
+}
 
-export default function WorkshopPage() {
-  const [input, setInput] = useState("zomboid");
-  const [mods, setMods] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const [favorites, setFavorites] = useState(() =>
-    JSON.parse(localStorage.getItem("pz_favorites") || "[]")
-  );
-  const [modlists, setModlists] = useState(() =>
-    JSON.parse(localStorage.getItem("pz_modlists") || "{}")
-  );
-  const [activeList, setActiveList] = useState("");
-  const [showListOnly, setShowListOnly] = useState(false);
-
-  const [selectedMod, setSelectedMod] = useState(null);
-  const [contextMenu, setContextMenu] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    mod: null,
-  });
-  const [showExport, setShowExport] = useState(false);
-  const [modColors, setModColors] = useState(() =>
-    JSON.parse(localStorage.getItem("pz_modColors") || "{}")
-  );
-
-  const inputRef = useRef(null);
-  const contextMenuRef = useRef(null);
+export default function Dashboard() {
+  const [serverInfo, setServerInfo] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [openMenus, setOpenMenus] = useState({});
 
   useEffect(() => {
-    localStorage.setItem("pz_favorites", JSON.stringify(favorites));
-  }, [favorites]);
-
-  useEffect(() => {
-    localStorage.setItem("pz_modlists", JSON.stringify(modlists));
-  }, [modlists]);
-
-  useEffect(() => {
-    localStorage.setItem("pz_modColors", JSON.stringify(modColors));
-  }, [modColors]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-    const handleClickOutside = (e) => {
-      if (
-        contextMenuRef.current &&
-        !contextMenuRef.current.contains(e.target)
-      ) {
-        setContextMenu((prev) => ({ ...prev, visible: false }));
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    async function fetchServerInfo() {
+      // Replace with your real API call
+      await new Promise((r) => setTimeout(r, 400));
+      setServerInfo({
+        hostname: "modix-prod-server-01.longname.example.com",
+        container: "pz-prod-container-05",
+        loggedInUser: "adminUser42",
+      });
+    }
+    fetchServerInfo();
   }, []);
 
-  // Detect if input looks like a Steam Workshop Collection ID (digits only)
-  const isCollectionId = (text) => /^\d{6,}$/.test(text.trim());
-
-  // fetchMods wrapped with useCallback so we can call it in useEffect safely
-  const fetchMods = useCallback(async () => {
-    const query = input.trim();
-    if (!query)
-      return setError(
-        "Enter a mod keyword or paste a valid Workshop Collection ID."
-      );
-    setLoading(true);
-    setError("");
-    setMods([]);
-
-    const url = isCollectionId(query)
-      ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-      : `https://steamcommunity.com/workshop/browse/?appid=108600&searchtext=${encodeURIComponent(
-          query
-        )}&browsesort=trend`;
-
-    try {
-      const response = await fetch(`https://corsproxy.io/?${url}`);
-      const html = await response.text();
-      const doc = new DOMParser().parseFromString(html, "text/html");
-
-      const items = isCollectionId(query)
-        ? [...doc.querySelectorAll(".collectionItem")]
-        : [...doc.querySelectorAll(".workshopItem")];
-
-      if (!items.length) throw new Error("No mods found.");
-
-      const modsParsed = items.map((item) => {
-        const link = item.querySelector("a")?.href || "#";
-        const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
-        const title =
-          item.querySelector(".workshopItemTitle")?.textContent.trim() ||
-          "Untitled";
-        const image =
-          item.querySelector("img")?.src ||
-          "https://via.placeholder.com/260x140?text=No+Image";
-        const description =
-          item.querySelector(".workshopItemDescription")?.textContent.trim() ||
-          "No description provided.";
-        const author =
-          item.querySelector(".workshopItemAuthorName")?.textContent.trim() ||
-          "Unknown Author";
-        const subscribers = parseInt(
-          item
-            .querySelector(".numSubscribers")
-            ?.textContent.replace(/[^\d]/g, "") || "0",
-          10
-        );
-        const lastUpdated =
-          item.querySelector(".workshopItemUpdated")?.getAttribute("title") ||
-          "Unknown date";
-        const fileSize =
-          item.querySelector(".workshopItemFileSize")?.textContent.trim() ||
-          "Unknown size";
-        return {
-          modId,
-          title,
-          image,
-          link,
-          description,
-          author,
-          subscribers,
-          lastUpdated,
-          fileSize,
-        };
-      });
-
-      setMods(modsParsed);
-    } catch (err) {
-      console.error("Workshop fetch failed:", err);
-      setError("Failed to load mods. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [input]);
-
-  // Run fetchMods on mount to load mods by default
-  useEffect(() => {
-    fetchMods();
-  }, [fetchMods]);
-
-  const toggleFavorite = (modId) => {
-    setFavorites((prev) =>
-      prev.includes(modId)
-        ? prev.filter((id) => id !== modId)
-        : [...prev, modId]
-    );
+  const toggleSubMenu = (href) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }));
   };
-
-  const toggleModInList = (modId) => {
-    if (!activeList) return;
-    const current = modlists[activeList] || [];
-    const updated = current.includes(modId)
-      ? current.filter((id) => id !== modId)
-      : [...current, modId];
-    setModlists((prev) => ({ ...prev, [activeList]: updated }));
-  };
-
-  const createNewModlist = () => {
-    const name = prompt("Enter a name for the new modlist:");
-    if (!name || modlists[name])
-      return alert("Invalid or duplicate modlist name.");
-    setModlists((prev) => ({ ...prev, [name]: [] }));
-    setActiveList(name);
-  };
-
-  const renameModlist = () => {
-    if (!activeList) return;
-    const newName = prompt("Enter a new name for this modlist:");
-    if (!newName || modlists[newName])
-      return alert("Invalid or duplicate name.");
-    setModlists((prev) => {
-      const updated = { ...prev, [newName]: prev[activeList] };
-      delete updated[activeList];
-      return updated;
-    });
-    setActiveList(newName);
-  };
-
-  const deleteModlist = () => {
-    if (!activeList) return;
-    if (!window.confirm(`Delete modlist "${activeList}"?`)) return;
-    setModlists((prev) => {
-      const updated = { ...prev };
-      delete updated[activeList];
-      return updated;
-    });
-    setActiveList("");
-  };
-
-  const setModColor = (modId, color) => {
-    setModColors((prev) => ({ ...prev, [modId]: color }));
-  };
-
-  const displayedMods = useMemo(() => {
-    return showListOnly && activeList
-      ? mods.filter((mod) => (modlists[activeList] || []).includes(mod.modId))
-      : mods;
-  }, [showListOnly, activeList, modlists, mods]);
-
-  const exportIds = activeList ? modlists[activeList] || [] : [];
 
   return (
-    <div className="workshop-container">
-      <div className="workshop-header-container">
-        <h1 className="workshop-title">Project Zomboid Workshop</h1>
-        <p className="workshop-subtitle">
-          Discover and manage your favorite mods — create modlists, assign
-          colors, export IDs, and streamline your server setup.
-        </p>
-      </div>
+    <>
+      <style>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
 
-      <div className="search-container">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && fetchMods()}
-          placeholder="Search mods or enter Workshop Collection ID..."
-          className="search-input"
-        />
-        <button
-          onClick={fetchMods}
-          disabled={loading}
-          className="search-button"
+      <div
+        style={{
+          display: "flex",
+          backgroundColor: "#121212",
+          minHeight: "100vh",
+        }}
+      >
+        <aside
+          style={{
+            width: sidebarOpen ? 195 : 52,
+            backgroundColor: "#1c1c1c",
+            color: "#fff",
+            transition: "width 0.3s ease",
+            overflowX: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            padding: sidebarOpen ? "12px 6px" : "12px 4px",
+            boxSizing: "border-box",
+            position: "relative",
+          }}
         >
-          {loading ? "Loading..." : "Search"}
-        </button>
-      </div>
-
-      <div className="modlist-bar">
-        <div className="dropdown-container">
-          <label>📁 Modlist:</label>
-          <select
-            value={activeList}
-            onChange={(e) => setActiveList(e.target.value)}
-          >
-            <option value="">All Mods</option>
-            {Object.keys(modlists).map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="modlist-buttons">
-          <button onClick={createNewModlist}>➕ New</button>
-          {activeList && (
-            <>
-              <button onClick={renameModlist}>✏ Rename</button>
-              <button onClick={deleteModlist}>🗑 Delete</button>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showListOnly}
-                  onChange={() => setShowListOnly(!showListOnly)}
-                />{" "}
-                Show List
-              </label>
-              <button onClick={() => setShowExport(true)}>📤 Export</button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-
-      <div className="mod-grid">
-        {displayedMods.map((mod) => (
-          <ModCard
-            key={mod.modId}
-            mod={mod}
-            isFavorite={favorites.includes(mod.modId)}
-            inList={modlists[activeList]?.includes(mod.modId)}
-            onClick={() => setSelectedMod(mod)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setContextMenu({ visible: true, x: e.pageX, y: e.pageY, mod });
+          {/* Logo + Title */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: sidebarOpen ? "flex-start" : "center",
+              gap: sidebarOpen ? 6 : 0,
+              userSelect: "none",
+              marginBottom: 12,
             }}
-            onToggleFavorite={() => toggleFavorite(mod.modId)}
-            onToggleInList={() => toggleModInList(mod.modId)}
-            color={modColors[mod.modId]}
-            onSetColor={setModColor}
-          />
-        ))}
-      </div>
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: sidebarOpen ? "flex-start" : "center",
+                gap: sidebarOpen ? 12 : 0,
+                width: "100%",
+              }}
+            >
+              <img
+                src="https://i.ibb.co/cMPwcn8/logo.png"
+                alt="Modix Logo"
+                style={{
+                  height: 28,
+                  borderRadius: 8,
+                  // Removed glow effects here:
+                  // boxShadow: "0 0 8px #43b581cc",
+                  // filter: "drop-shadow(0 0 8px #43b581aa)",
+                  transition: "height 0.3s ease",
+                }}
+              />
+              {sidebarOpen && (
+                <span
+                  className="logo-title"
+                  aria-label="Modix Game Panel"
+                  style={{
+                    fontWeight: "900",
+                    fontSize: "0.8rem",
+                    background:
+                      "linear-gradient(270deg, #43b581, #70b5f9, #ffa94d, #43b581)",
+                    backgroundSize: "600% 600%",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    animation: "gradientShift 8s ease infinite",
+                    textShadow: "0 0 6px rgba(67, 181, 129, 0.6)",
+                    whiteSpace: "nowrap",
+                    userSelect: "none",
+                  }}
+                >
+                  Modix: Game Panel
+                </span>
+              )}
+            </div>
 
-      {selectedMod && (
-        <ModModal mod={selectedMod} onClose={() => setSelectedMod(null)} />
-      )}
-      {contextMenu.visible && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          mod={contextMenu.mod}
-          color={modColors[contextMenu.mod?.modId]}
-          ref={contextMenuRef}
-          onClose={() =>
-            setContextMenu((prev) => ({ ...prev, visible: false }))
-          }
-        />
-      )}
-      {showExport && (
-        <ExportModal
-          modIds={exportIds}
-          listName={activeList}
-          onClose={() => setShowExport(false)}
-        />
-      )}
-    </div>
+            {/* User info */}
+            {sidebarOpen && serverInfo && (
+              <SidebarUserInfo
+                hostname={serverInfo.hostname}
+                container={serverInfo.container}
+                loggedInUser={serverInfo.loggedInUser}
+              />
+            )}
+          </div>
+
+          {/* Collapse Button */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+            style={{
+              backgroundColor: "#2c2c2c",
+              border: "none",
+              color: "#fff",
+              padding: "9px 12px",
+              fontSize: "0.825rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: sidebarOpen ? "space-between" : "center",
+              cursor: "pointer",
+              marginTop: 13.5,
+              borderRadius: 8,
+              width: "100%",
+              userSelect: "none",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3a3a3a")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2c2c2c")
+            }
+          >
+            {sidebarOpen ? (
+              <>
+                <span>Collapse</span>
+                <FaTimes size={16} />
+              </>
+            ) : (
+              <FaBars size={16} />
+            )}
+          </button>
+
+          {/* Nav Menu */}
+          <nav
+            style={{
+              marginTop: 12,
+              flexGrow: 1,
+              overflowY: "auto",
+              paddingBottom: 40, // enough space so nav won't overlap version text
+            }}
+          >
+            {navLinks.map(({ label, href, submenu }) => (
+              <div key={href} style={{ marginBottom: 6 }}>
+                <div
+                  onClick={() => toggleSubMenu(href)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") toggleSubMenu(href);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: sidebarOpen ? "space-between" : "center",
+                    padding: sidebarOpen ? "9px 15px" : "9px",
+                    color: "#eee",
+                    fontWeight: 600,
+                    backgroundColor: "#222",
+                    borderRadius: 6,
+                    margin: "3px 6px",
+                    cursor: "pointer",
+                    userSelect: "none",
+                    transition: "background-color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#333")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#222")
+                  }
+                >
+                  <span
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontSize: "0.675rem",
+                    }}
+                  >
+                    {label}
+                  </span>
+                  {sidebarOpen &&
+                    submenu &&
+                    (openMenus[href] ? (
+                      <FaChevronDown size={14} />
+                    ) : (
+                      <FaChevronRight size={14} />
+                    ))}
+                </div>
+                {sidebarOpen &&
+                  submenu &&
+                  openMenus[href] &&
+                  submenu.map((sub) => (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      style={{
+                        display: "block",
+                        padding: "6px 30px",
+                        color: "#aaa",
+                        textDecoration: "none",
+                        fontSize: "0.65rem",
+                        userSelect: "none",
+                        transition: "color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#fff")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#aaa")
+                      }
+                    >
+                      {sub.label}
+                    </Link>
+                  ))}
+              </div>
+            ))}
+          </nav>
+
+          {/* Version at bottom */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 12,
+              width: "100%",
+              textAlign: "center",
+              fontSize: "0.65rem",
+              fontWeight: "600",
+              color: "#555",
+              userSelect: "none",
+              borderTop: "1px solid #333",
+              paddingTop: 1,
+              letterSpacing: 1.2,
+            }}
+          >
+            v1.1.2
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main
+          style={{
+            flexGrow: 1,
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "rgba(20,20,20,0.9)",
+            padding: 24,
+            minHeight: "100vh",
+            overflowY: "auto",
+          }}
+        >
+          <Workshop />
+        </main>
+      </div>
+    </>
   );
 }
