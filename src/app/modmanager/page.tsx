@@ -14,7 +14,7 @@ import {
   FaLaptop,
 } from "react-icons/fa";
 
-import ModManager from "./ModManager";
+import ModManager from "../modmanager/ModManager";
 
 const navLinks = [
   // === SYSTEM ===

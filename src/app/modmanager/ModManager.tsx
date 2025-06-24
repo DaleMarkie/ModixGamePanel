@@ -59,19 +59,14 @@ export default function ModManager() {
   const [mods, setMods] = useState(initialMods);
   const [categories, setCategories] = useState(defaultCategories);
   const [newCategory, setNewCategory] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All"); // New state for filter
+  const [activeCategory, setActiveCategory] = useState("All");
 
-  // Filter mods by search text
   const filteredMods = mods.filter(
     (mod) =>
       (activeCategory === "All" || mod.category === activeCategory) &&
       (mod.name.toLowerCase().includes(search.toLowerCase()) ||
         mod.description.toLowerCase().includes(search.toLowerCase()))
   );
-
-  // Group filtered mods by category (only those in filteredMods)
-  // But since we're filtering by category, grouping isn't necessary for the view,
-  // instead show the filteredMods flat.
 
   const handleCheckUpdate = (id) => {
     setCheckingId(id);
@@ -98,96 +93,108 @@ export default function ModManager() {
   };
 
   return (
-    <div className="modlist-wrapper">
-      <h1 className="modlist-title">🧩 Mod Manager</h1>
+    <div className="container">
+      <div className="modlist-wrapper">
+        <h1 className="modlist-title">🧩 Mod Manager</h1>
 
-      {/* Category filter buttons */}
-      <div
-        className="category-filters"
-        style={{
-          marginBottom: "1rem",
-          flexWrap: "wrap",
-          display: "flex",
-          gap: "0.5rem",
-        }}
-      >
-        <button
-          className={`mod-btn ${activeCategory === "All" ? "blue" : "gray"}`}
-          onClick={() => setActiveCategory("All")}
+        <div
+          className="category-filters"
+          style={{
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+            display: "flex",
+            gap: "0.5rem",
+          }}
         >
-          All
-        </button>
-        {categories.map((cat) => (
           <button
-            key={cat}
-            className={`mod-btn ${activeCategory === cat ? "blue" : "gray"}`}
-            onClick={() => setActiveCategory(cat)}
+            className={`mod-btn ${activeCategory === "All" ? "blue" : "gray"}`}
+            onClick={() => setActiveCategory("All")}
           >
-            {cat}
+            All
           </button>
-        ))}
-      </div>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className={`mod-btn ${activeCategory === cat ? "blue" : "gray"}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
-      <input
-        type="text"
-        placeholder="Search mods..."
-        className="modlist-search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      <div style={{ margin: "1rem 0" }}>
         <input
           type="text"
-          placeholder="Add new category"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          style={{ marginRight: "0.5rem" }}
+          placeholder="Search mods..."
+          className="modlist-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <button onClick={handleAddCategory} className="mod-btn green">
-          Add Category
-        </button>
-      </div>
 
-      <div className="modlist-list">
-        {filteredMods.length === 0 && (
-          <p className="modlist-empty">🔍 No mods match your filters.</p>
-        )}
-        {filteredMods.map((mod) => (
-          <div className="modlist-item vertical" key={mod.id}>
-            <img src={mod.thumbnail} alt={mod.name} className="modlist-thumb" />
-            <div className="modlist-info">
-              <h3>{mod.name}</h3>
-              <span className="mod-id">{mod.mod_id}</span>
-              <p>{mod.description}</p>
-              <label>
-                Category:{" "}
-                <select
-                  value={mod.category}
-                  onChange={(e) => handleCategoryChange(mod.id, e.target.value)}
+        <div style={{ margin: "1rem 0" }}>
+          <input
+            type="text"
+            placeholder="Add new category"
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            style={{ marginRight: "0.5rem" }}
+          />
+          <button onClick={handleAddCategory} className="mod-btn green">
+            Add Category
+          </button>
+        </div>
+
+        <div className="modlist-list">
+          {filteredMods.length === 0 && (
+            <p className="modlist-empty">🔍 No mods match your filters.</p>
+          )}
+          {filteredMods.map((mod) => (
+            <div className="modlist-item vertical" key={mod.id}>
+              <img
+                src={mod.thumbnail}
+                alt={mod.name}
+                className="modlist-thumb"
+              />
+              <div className="modlist-info">
+                <h3>{mod.name}</h3>
+                <span className="mod-id">{mod.mod_id}</span>
+                <p>{mod.description}</p>
+                <label>
+                  Category:{" "}
+                  <select
+                    value={mod.category}
+                    onChange={(e) =>
+                      handleCategoryChange(mod.id, e.target.value)
+                    }
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div
+                  className="modlist-buttons"
+                  style={{ marginTop: "0.5rem" }}
                 >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="modlist-buttons" style={{ marginTop: "0.5rem" }}>
-                <button className="mod-btn green">Enable</button>
-                <button className="mod-btn yellow">Disable</button>
-                <button className="mod-btn red">Uninstall</button>
-                <button
-                  className="mod-btn blue"
-                  onClick={() => handleCheckUpdate(mod.id)}
-                  disabled={checkingId === mod.id}
-                >
-                  {checkingId === mod.id ? "Checking..." : "Check for Updates"}
-                </button>
+                  <button className="mod-btn green">Enable</button>
+                  <button className="mod-btn yellow">Disable</button>
+                  <button className="mod-btn red">Uninstall</button>
+                  <button
+                    className="mod-btn blue"
+                    onClick={() => handleCheckUpdate(mod.id)}
+                    disabled={checkingId === mod.id}
+                  >
+                    {checkingId === mod.id
+                      ? "Checking..."
+                      : "Check for Updates"}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

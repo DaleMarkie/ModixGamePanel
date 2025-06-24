@@ -14,14 +14,10 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Terminal from "../terminal/Terminal";
+import ModUpdater from "../modupdater/ModUpdater";
 
 const navLinks = [
   // ... same navLinks array as before ...
-  {
-    label: "📊 Dashboard",
-    href: "/dashboard",
-  },
   {
     label: "📊 Terminal",
     href: "/terminal",
@@ -41,9 +37,9 @@ const navLinks = [
     label: "🧩 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
-      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
     ],
   },
   {
@@ -688,7 +684,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <Terminal />
+            <ModUpdater />
           </main>
         </div>
       </div>

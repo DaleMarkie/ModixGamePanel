@@ -10,11 +10,21 @@
   --transition: 0.2s ease;
 }
 
+/* Container to box the entire page */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
 .modlist-wrapper {
   background-color: var(--bg);
   padding: 2rem;
   min-height: 100vh;
   color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
 .modlist-title {
@@ -102,6 +112,7 @@
 .mod-btn.green {
   background: #166534;
 }
+
 .mod-btn.green:hover {
   background: #22c55e;
 }
@@ -109,6 +120,7 @@
 .mod-btn.yellow {
   background: #92400e;
 }
+
 .mod-btn.yellow:hover {
   background: #f59e0b;
 }
@@ -116,9 +128,11 @@
 .mod-btn.red {
   background: #7f1d1d;
 }
+
 .mod-btn.red:hover {
   background: #dc2626;
 }
+
 /* Modal styles */
 .mod-modal-overlay {
   position: fixed;
@@ -168,6 +182,7 @@
 .mod-btn.update {
   background: #2563eb;
 }
+
 .mod-btn.update:hover {
   background: #3b82f6;
 }
@@ -176,6 +191,7 @@
 .mod-btn.open {
   background: #4b5563;
 }
+
 .mod-btn.open:hover {
   background: #6b7280;
 }
@@ -190,6 +206,7 @@
     transform: scale(1);
   }
 }
+
 .mod-btn.gray {
   background-color: #444;
   color: #ddd;
@@ -199,6 +216,7 @@
   background-color: #2a7a42;
   color: white;
 }
+
 .modlist-categories {
   margin-bottom: 1rem;
   display: flex;
@@ -228,6 +246,7 @@
   color: #000;
   box-shadow: 0 0 8px var(--accent);
 }
+
 .favorite-glow {
   box-shadow: 0 0 10px 2px #4ade80;
   border-color: #4ade80 !important;

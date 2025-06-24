@@ -18,8 +18,12 @@ import Webhook from "./Webhook";
 const navLinks = [
   // === SYSTEM ===
   {
-    label: "📊 Terminal",
-    href: "/terminal/Terminal",
+    label: "🧩 Control",
+    href: "/modmanager",
+    submenu: [
+      { label: "🧩 Console", href: "/terminal" },
+      { label: "🛒 My Servers", href: "/myservers" },
+    ],
   },
 
   // === SERVER CONFIGURATION ===
@@ -27,7 +31,7 @@ const navLinks = [
     label: "⚙️ Configuration",
     href: "/settings",
     submenu: [
-      { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "⚙️ General Settings", href: "/serversettings" },
       { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
       { label: "📄 server.ini", href: "/settings/serverini" },
       { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
@@ -40,9 +44,9 @@ const navLinks = [
     label: "🧩 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
-      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
     ],
   },
 
@@ -51,7 +55,7 @@ const navLinks = [
     label: "📁 Files",
     href: "/filemanager",
     submenu: [
-      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "📂 My Files", href: "/filemanager" },
       { label: "⚙️ Config Files", href: "/filemanager/configs" },
       { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
       { label: "📄 Server Logs", href: "/filemanager/logs" },
@@ -75,8 +79,8 @@ const navLinks = [
     label: "📡 Webhooks",
     href: "/webhooks",
     submenu: [
-      { label: "📤 Send Embed", href: "/webhooks/send" },
-      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
+      { label: "📤 Send Embed", href: "/webhook" },
+      { label: "💾 Saved Webhooks", href: "/webhook/savedwebhooks" },
       { label: "📝 Webhook Logs", href: "/webhooks/logs" },
     ],
   },
@@ -88,7 +92,7 @@ const navLinks = [
     submenu: [
       { label: "📈 Performance Stats", href: "/tools/performance" },
       { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "🎨 Theme Manager", href: "/thememanager" },
       { label: "📦 Plugin Tools", href: "/tools/plugins" },
     ],
   },
@@ -110,8 +114,8 @@ const navLinks = [
     label: "🔐 Account",
     href: "/login",
     submenu: [
-      { label: "🔐 Sign In", href: "/login/signin" },
-      { label: "🆕 Register", href: "/login/register" },
+      { label: "🔐 Sign In", href: "/login/" },
+      { label: "🆕 Register", href: "/signup" },
     ],
   },
 ];

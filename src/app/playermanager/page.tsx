@@ -13,7 +13,7 @@ import {
   FaUser,
   FaLaptop,
 } from "react-icons/fa";
-import PlayerManager from "./PlayerManager";
+import ModUpdater from "./ModUpdater";
 
 const navLinks = [
   // === SYSTEM ===
@@ -467,7 +467,7 @@ export default function Dashboard() {
             overflowY: "auto",
           }}
         >
-          <PlayerManager />
+          <ModUpdater />
         </main>
       </div>
     </>
