@@ -120,7 +120,6 @@ export default function InstalledPage() {
           <FaGamepad size={18} />
           Go to Dashboard
         </Link>
-    
 
         {/* Support */}
         <a

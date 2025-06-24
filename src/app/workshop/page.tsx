@@ -19,7 +19,7 @@ const navLinks = [
   // === SYSTEM ===
   {
     label: "📊 Terminal",
-    href: "/terminal",
+    href: "/terminal/Terminal",
   },
 
   // === SERVER CONFIGURATION ===
@@ -40,8 +40,8 @@ const navLinks = [
     label: "🧩 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
-      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
       { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
     ],
   },
@@ -51,7 +51,7 @@ const navLinks = [
     label: "📁 Files",
     href: "/filemanager",
     submenu: [
-      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "📂 My Files", href: "/filemanager" },
       { label: "⚙️ Config Files", href: "/filemanager/configs" },
       { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
       { label: "📄 Server Logs", href: "/filemanager/logs" },
@@ -63,8 +63,8 @@ const navLinks = [
     label: "👥 Players",
     href: "/players",
     submenu: [
-      { label: "🟢 Online Players", href: "/players/online" },
       { label: "👥 All Players", href: "/players/all" },
+      { label: "🟢 Online Players", href: "/players/online" },
       { label: "🚫 Banned Players", href: "/players/banned" },
       { label: "✅ Whitelist", href: "/players/whitelist" },
     ],
@@ -75,7 +75,7 @@ const navLinks = [
     label: "📡 Webhooks",
     href: "/webhooks",
     submenu: [
-      { label: "📤 Send Embed", href: "/webhooks/send" },
+      { label: "📤 Send Embed", href: "/webhook" },
       { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
       { label: "📝 Webhook Logs", href: "/webhooks/logs" },
     ],
@@ -88,9 +88,8 @@ const navLinks = [
     submenu: [
       { label: "📈 Performance Stats", href: "/tools/performance" },
       { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "🎨 Theme Manager", href: "/thememanager" },
       { label: "📦 Plugin Tools", href: "/tools/plugins" },
-      { label: "📦 Update Modix", href: "/tools/plugins" },
     ],
   },
 
@@ -111,17 +110,11 @@ const navLinks = [
     label: "🔐 Account",
     href: "/login",
     submenu: [
-      { label: "🔐 Sign In", href: "/login/signin" },
-      { label: "🆕 Register", href: "/login/register" },
+      { label: "🔐 Sign In", href: "/login/" },
+      { label: "🆕 Register", href: "/signup" },
     ],
   },
 ];
-
-// Flatten navLinks + submenu for searching
-const searchablePages = navLinks.flatMap(({ label, href, submenu }) => [
-  { label, href },
-  ...(submenu || []),
-]);
 
 function SidebarUserInfo({ hostname, container, loggedInUser }) {
   if (!hostname || !container || !loggedInUser) return null;
@@ -130,23 +123,23 @@ function SidebarUserInfo({ hostname, container, loggedInUser }) {
     <section
       aria-label="Server Information"
       style={{
-        marginTop: 16,
-        padding: "12px 16px",
+        marginTop: 12,
+        padding: "9px 12px",
         backgroundColor: "rgba(255, 255, 255, 0.06)",
-        borderRadius: 10,
+        borderRadius: 7.5,
         color: "#c0c0c0",
-        fontSize: "0.85rem",
+        fontSize: "0.6375rem",
         userSelect: "none",
         boxShadow: "inset 0 0 10px rgba(0,0,0,0.15)",
         animation: "fadeIn 0.5s ease forwards",
         width: "90%",
-        maxWidth: 220,
+        maxWidth: 165,
       }}
     >
       {[
-        { icon: <FaLaptop />, label: "Host", value: hostname },
-        { icon: <FaServer />, label: "Container", value: container },
-        { icon: <FaUser />, label: "User", value: loggedInUser },
+        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
+        { icon: <FaServer size={12} />, label: "Container", value: container },
+        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
       ].map(({ icon, label, value }) => (
         <div
           key={label}
@@ -154,8 +147,8 @@ function SidebarUserInfo({ hostname, container, loggedInUser }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            marginBottom: 8,
+            gap: 7.5,
+            marginBottom: 6,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -168,7 +161,7 @@ function SidebarUserInfo({ hostname, container, loggedInUser }) {
             style={{
               fontWeight: "600",
               color: "#eee",
-              minWidth: 60,
+              minWidth: 45,
               flexShrink: 0,
               userSelect: "text",
             }}
@@ -201,8 +194,6 @@ export default function Dashboard() {
   const [serverInfo, setServerInfo] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState([]);
 
   useEffect(() => {
     async function fetchServerInfo() {
@@ -217,14 +208,6 @@ export default function Dashboard() {
     fetchServerInfo();
   }, []);
 
-  useEffect(() => {
-    if (!searchQuery) return setFilteredResults([]);
-    const matches = searchablePages.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredResults(matches);
-  }, [searchQuery]);
-
   const toggleSubMenu = (href) => {
     setOpenMenus((prev) => ({
       ...prev,
@@ -233,259 +216,260 @@ export default function Dashboard() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        backgroundColor: "#121212",
-        minHeight: "100vh",
-      }}
-    >
-      <aside
+    <>
+      <style>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+
+      <div
         style={{
-          width: sidebarOpen ? 260 : 70,
-          backgroundColor: "#1c1c1c",
-          color: "#fff",
-          transition: "width 0.3s ease",
-          overflowX: "hidden",
           display: "flex",
-          flexDirection: "column",
-          padding: "16px 8px",
-          boxSizing: "border-box",
+          backgroundColor: "#121212",
+          minHeight: "100vh",
         }}
       >
-        {/* Logo + Title */}
-        <div
+        <aside
           style={{
+            width: sidebarOpen ? 195 : 52,
+            backgroundColor: "#1c1c1c",
+            color: "#fff",
+            transition: "width 0.3s ease",
+            overflowX: "hidden",
             display: "flex",
             flexDirection: "column",
-            alignItems: sidebarOpen ? "flex-start" : "center",
-            gap: sidebarOpen ? 6 : 0,
+            padding: sidebarOpen ? "12px 6px" : "12px 4px",
+            boxSizing: "border-box",
+            position: "relative",
           }}
         >
+          {/* Logo + Title */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: sidebarOpen ? "flex-start" : "center",
-              gap: sidebarOpen ? 14 : 0,
-              width: "100%",
+              flexDirection: "column",
+              alignItems: sidebarOpen ? "flex-start" : "center",
+              gap: sidebarOpen ? 6 : 0,
+              userSelect: "none",
+              marginBottom: 12,
             }}
           >
-            <img
-              src="https://i.ibb.co/cMPwcn8/logo.png"
-              alt="Logo"
-              style={{ height: 44, borderRadius: 8 }}
-            />
-            {sidebarOpen && (
-              <span
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: sidebarOpen ? "flex-start" : "center",
+                gap: sidebarOpen ? 12 : 0,
+                width: "100%",
+              }}
+            >
+              <img
+                src="https://i.ibb.co/cMPwcn8/logo.png"
+                alt="Modix Logo"
                 style={{
-                  fontWeight: "bold",
-                  fontSize: "0.9rem",
-                  whiteSpace: "nowrap",
-                  userSelect: "none",
-                  color: "#70b5f9",
+                  height: 28,
+                  borderRadius: 8,
+                  // Removed glow effects here:
+                  // boxShadow: "0 0 8px #43b581cc",
+                  // filter: "drop-shadow(0 0 8px #43b581aa)",
+                  transition: "height 0.3s ease",
                 }}
-              >
-                Modix: Game Panel
-              </span>
+              />
+              {sidebarOpen && (
+                <span
+                  className="logo-title"
+                  aria-label="Modix Game Panel"
+                  style={{
+                    fontWeight: "900",
+                    fontSize: "0.8rem",
+                    background:
+                      "linear-gradient(270deg, #43b581, #70b5f9, #ffa94d, #43b581)",
+                    backgroundSize: "600% 600%",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    animation: "gradientShift 8s ease infinite",
+                    textShadow: "0 0 6px rgba(67, 181, 129, 0.6)",
+                    whiteSpace: "nowrap",
+                    userSelect: "none",
+                  }}
+                >
+                  Modix: Game Panel
+                </span>
+              )}
+            </div>
+
+            {/* User info */}
+            {sidebarOpen && serverInfo && (
+              <SidebarUserInfo
+                hostname={serverInfo.hostname}
+                container={serverInfo.container}
+                loggedInUser={serverInfo.loggedInUser}
+              />
             )}
           </div>
 
-          {/* User info with professional style */}
-          {sidebarOpen && serverInfo && (
-            <SidebarUserInfo
-              hostname={serverInfo.hostname}
-              container={serverInfo.container}
-              loggedInUser={serverInfo.loggedInUser}
-            />
-          )}
+          {/* Collapse Button */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+            style={{
+              backgroundColor: "#2c2c2c",
+              border: "none",
+              color: "#fff",
+              padding: "9px 12px",
+              fontSize: "0.825rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: sidebarOpen ? "space-between" : "center",
+              cursor: "pointer",
+              marginTop: 13.5,
+              borderRadius: 8,
+              width: "100%",
+              userSelect: "none",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3a3a3a")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2c2c2c")
+            }
+          >
+            {sidebarOpen ? (
+              <>
+                <span>Collapse</span>
+                <FaTimes size={16} />
+              </>
+            ) : (
+              <FaBars size={16} />
+            )}
+          </button>
 
-          {/* SEARCH INPUT */}
-          {sidebarOpen && (
-            <div style={{ padding: "10px 0 6px", width: "100%" }}>
-              <input
-                type="text"
-                placeholder="🔍 Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: 10,
-                  border: "none",
-                  fontSize: "0.9rem",
-                  backgroundColor: "#2a2a2a",
-                  color: "#fff",
-                  outline: "none",
-                  userSelect: "text",
-                  boxSizing: "border-box",
-                }}
-                aria-label="Search pages"
-                autoComplete="off"
-              />
-              {/* Dropdown results */}
-              {searchQuery && filteredResults.length > 0 && (
+          {/* Nav Menu */}
+          <nav
+            style={{
+              marginTop: 12,
+              flexGrow: 1,
+              overflowY: "auto",
+              paddingBottom: 40, // enough space so nav won't overlap version text
+            }}
+          >
+            {navLinks.map(({ label, href, submenu }) => (
+              <div key={href} style={{ marginBottom: 6 }}>
                 <div
-                  style={{
-                    backgroundColor: "#1e1e1e",
-                    borderRadius: 10,
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.7)",
-                    marginTop: 6,
-                    maxHeight: 240,
-                    overflowY: "auto",
-                    zIndex: 1000,
-                    position: "relative",
+                  onClick={() => toggleSubMenu(href)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") toggleSubMenu(href);
                   }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: sidebarOpen ? "space-between" : "center",
+                    padding: sidebarOpen ? "9px 15px" : "9px",
+                    color: "#eee",
+                    fontWeight: 600,
+                    backgroundColor: "#222",
+                    borderRadius: 6,
+                    margin: "3px 6px",
+                    cursor: "pointer",
+                    userSelect: "none",
+                    transition: "background-color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#333")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#222")
+                  }
                 >
-                  {filteredResults.map(({ label, href }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      style={{
-                        display: "block",
-                        padding: "10px 18px",
-                        color: "#ddd",
-                        textDecoration: "none",
-                        fontSize: "0.9rem",
-                        borderBottom: "1px solid #333",
-                        cursor: "pointer",
-                        userSelect: "none",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#333")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFilteredResults([]);
-                      }}
-                    >
-                      {label}
-                    </Link>
-                  ))}
+                  <span
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontSize: "0.675rem",
+                    }}
+                  >
+                    {label}
+                  </span>
+                  {sidebarOpen &&
+                    submenu &&
+                    (openMenus[href] ? (
+                      <FaChevronDown size={14} />
+                    ) : (
+                      <FaChevronRight size={14} />
+                    ))}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Collapse Button */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-          style={{
-            backgroundColor: "#2c2c2c",
-            border: "none",
-            color: "#fff",
-            padding: "12px 16px",
-            fontSize: "0.7rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: sidebarOpen ? "space-between" : "center",
-            cursor: "pointer",
-            marginTop: 18,
-            borderRadius: 8,
-            width: "100%",
-            userSelect: "none",
-            transition: "background-color 0.3s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#3a3a3a")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#2c2c2c")}
-        >
-          {sidebarOpen ? (
-            <>
-              <span>Collapse</span>
-              <FaTimes />
-            </>
-          ) : (
-            <FaBars />
-          )}
-        </button>
-
-        {/* Nav Menu */}
-        <nav style={{ marginTop: 16, flexGrow: 1, overflowY: "auto" }}>
-          {navLinks.map(({ label, href, submenu }) => (
-            <div key={href} style={{ marginBottom: 8 }}>
-              <div
-                onClick={() => toggleSubMenu(href)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") toggleSubMenu(href);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: sidebarOpen ? "space-between" : "center",
-                  padding: sidebarOpen ? "12px 10px" : "4px",
-                  color: "#eee",
-                  fontWeight: 150,
-                  backgroundColor: "#222",
-                  borderRadius: 8,
-                  margin: "1px 8px",
-                  cursor: "pointer",
-                  userSelect: "none",
-                  transition: "background-color 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#333")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#222")}
-              >
-                <span
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {label}
-                </span>
                 {sidebarOpen &&
                   submenu &&
-                  (openMenus[href] ? <FaChevronDown /> : <FaChevronRight />)}
+                  openMenus[href] &&
+                  submenu.map((sub) => (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      style={{
+                        display: "block",
+                        padding: "6px 30px",
+                        color: "#aaa",
+                        textDecoration: "none",
+                        fontSize: "0.65rem",
+                        userSelect: "none",
+                        transition: "color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#fff")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#aaa")
+                      }
+                    >
+                      {sub.label}
+                    </Link>
+                  ))}
               </div>
-              {sidebarOpen &&
-                submenu &&
-                openMenus[href] &&
-                submenu.map((sub) => (
-                  <Link
-                    key={sub.href}
-                    href={sub.href}
-                    style={{
-                      display: "block",
-                      padding: "8px 40px",
-                      color: "#aaa",
-                      textDecoration: "none",
-                      fontSize: "0.87rem",
-                      userSelect: "none",
-                      transition: "color 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#aaa")}
-                  >
-                    {sub.label}
-                  </Link>
-                ))}
-            </div>
-          ))}
-        </nav>
-      </aside>
+            ))}
+          </nav>
 
-      {/* Main Content */}
-      <main
-        style={{
-          flexGrow: 1,
-          position: "relative",
-          zIndex: 2,
-          backgroundColor: "rgba(20,20,20,0.9)",
-          padding: 24,
-          minHeight: "100vh",
-          overflowY: "auto",
-        }}
-      >
-        <Workshop />
-      </main>
-    </div>
+          {/* Version at bottom */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 12,
+              width: "100%",
+              textAlign: "center",
+              fontSize: "0.65rem",
+              fontWeight: "600",
+              color: "#555",
+              userSelect: "none",
+              borderTop: "1px solid #333",
+              paddingTop: 1,
+              letterSpacing: 1.2,
+            }}
+          >
+            v1.1.2
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main
+          style={{
+            flexGrow: 1,
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "rgba(20,20,20,0.9)",
+            padding: 24,
+            minHeight: "100vh",
+            overflowY: "auto",
+          }}
+        >
+          <Workshop />
+        </main>
+      </div>
+    </>
   );
 }
