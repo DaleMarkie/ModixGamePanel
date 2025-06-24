@@ -118,7 +118,12 @@ def resolve_host_path_by_mount(container_id: str, mount_name: str, user_path: st
     logger.info(f"[resolve_host_path_by_mount] container_id={container_id}, mount_name={mount_name}, user_path={user_path}, abs_path={abs_path}")
     return abs_path
 
-@router.api_route("/ftp/{container_id}/{mount_name}/{path:path}", methods=["GET", "POST", "DELETE"], tags=["FTP/FileManager"])
+@router.api_route(
+    "/ftp/{container_id}/{mount_name}/{path:path}",
+    methods=["GET", "POST", "DELETE"],
+    tags=["FTP/FileManager"],
+    operation_id="ftp_catch_all_{method}"
+)
 async def ftp_catch_all(
     container_id: str,
     mount_name: str,

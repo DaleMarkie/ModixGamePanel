@@ -4,3 +4,4 @@ sqlalchemy
 passlib[bcrypt]
 jose[cryptography]
 pydantic
+https://json-schema.org
