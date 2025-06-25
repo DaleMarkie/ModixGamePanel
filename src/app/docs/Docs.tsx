@@ -28,18 +28,18 @@ const Docs = () => {
       description: "Documentation for Modix API endpoints and usage.",
     },
     {
-      href: "https://modix.app/docs/theme-manager",
+      href: "/theme-manager",
       title: "🎨 Theme Manager",
       description: "Customize the appearance of your Modix Game Panel.",
     },
     {
-      href: "https://modix.app/docs/webhook-integration",
+      href: "/docs/webhookdocs",
       title: "📡 Webhook Integration",
       description:
         "Set up and manage Discord webhooks for alerts and notifications.",
     },
     {
-      href: "https://modix.app/docs/terminal-control",
+      href: "/docs/terminaldocs",
       title: "💻 Terminal Control",
       description:
         "Use the integrated terminal to run commands and manage your server.",
@@ -56,7 +56,7 @@ const Docs = () => {
       description: "Manage team members, roles, and permissions in Modix.",
     },
     {
-      href: "https://modix.app/docs/settings",
+      href: "/docs/serversettingsdocs",
       title: "⚙️ Server Settings",
       description:
         "Configure server settings including gameplay, mods, and network.",

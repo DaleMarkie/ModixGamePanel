@@ -15,7 +15,16 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Welcome from "./welcome/Welcome";
-
+const allPages = [
+  { label: "Dashboard Home", href: "/" },
+  { label: "Mod Updater", href: "/mod-updater" },
+  { label: "Workshop", href: "/workshop" },
+  { label: "Server Status", href: "/server-status" },
+  { label: "Support", href: "/support" },
+  { label: "Documentation", href: "/docs" },
+  { label: "FAQ", href: "/support/faq" },
+  // add more pages here as needed
+];
 const navLinks = [
   // ... same navLinks array as before ...
 

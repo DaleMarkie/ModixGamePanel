@@ -14,16 +14,13 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Webhook from "../webhook/Webhook";
+import WebhookDocs from "./WebhookDocs";
+
 const navLinks = [
   // ... same navLinks array as before ...
   {
-    label: "📊 Dashboard",
-    href: "/dashboard",
-  },
-  {
     label: "📊 Terminal",
-    href: "/terminal",
+    href: "/terminal/Terminal",
   },
   {
     label: "⚙️ Configuration",
@@ -460,9 +457,9 @@ export default function Dashboard() {
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 2px;
+          gap: 6px;
           font-size: 0.85rem;
-          padding: 2px 2px;
+          padding: 8px 10px;
           border-radius: 6px;
           width: 100%;
           text-align: left;
@@ -687,7 +684,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <Webhook />
+            <WebhookDocs />
           </main>
         </div>
       </div>
