@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import License from "../license/License";
+import ThemeManager from "../thememanager/ThemeManager";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
@@ -696,7 +696,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <License />
+            <ThemeManager />
           </main>
         </div>
       </div>

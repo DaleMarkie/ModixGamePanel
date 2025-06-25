@@ -15,12 +15,25 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Docs from "../docs/Docs";
-
+const allPages = [
+  { label: "Dashboard Home", href: "/" },
+  { label: "Mod Updater", href: "/mod-updater" },
+  { label: "Workshop", href: "/workshop" },
+  { label: "Server Status", href: "/server-status" },
+  { label: "Support", href: "/support" },
+  { label: "Documentation", href: "/docs" },
+  { label: "FAQ", href: "/support/faq" },
+  // add more pages here as needed
+];
 const navLinks = [
   // ... same navLinks array as before ...
   {
-    label: "📊 Terminal",
-    href: "/terminal/Terminal",
+    label: "🧭 Dashboard",
+    href: "/dashboard",
+  },
+  {
+    label: "🖥️ Terminal",
+    href: "/terminal",
   },
   {
     label: "⚙️ Configuration",
@@ -34,12 +47,12 @@ const navLinks = [
     ],
   },
   {
-    label: "🧩 Mods",
+    label: "🧰 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
-      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
     ],
   },
   {
@@ -86,17 +99,16 @@ const navLinks = [
     href: "/support",
     submenu: [
       { label: "📚 Documentation", href: "/docs" },
-      { label: "🎫 Support Tickets", href: "/support/tickets" },
+      { label: "🎫 Support Tickets", href: "/support/" },
       { label: "❓ FAQ", href: "/support/faq" },
-      { label: "💬 Community", href: "/support/community" },
     ],
   },
   {
     label: "🔐 Account",
     href: "/login",
     submenu: [
-      { label: "🔐 Sign In", href: "/login/signin" },
-      { label: "🆕 Register", href: "/login/register" },
+      { label: "🔐 Sign In", href: "/auth/login" },
+      { label: "🆕 Register", href: "/auth/register" },
     ],
   },
 ];
@@ -457,9 +469,9 @@ export default function Dashboard() {
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 2px;
           font-size: 0.85rem;
-          padding: 8px 10px;
+          padding: 2px 2px;
           border-radius: 6px;
           width: 100%;
           text-align: left;

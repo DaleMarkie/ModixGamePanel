@@ -9,13 +9,10 @@
   --badge-bg: #e53935;
 }
 
-.theme-manager-container {
-  padding: 24px;
-  background: var(--bg-dark);
-  color: var(--main-text);
-  font-family: "Segoe UI", sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 header {

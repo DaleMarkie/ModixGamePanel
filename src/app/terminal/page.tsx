@@ -15,15 +15,24 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Terminal from "../terminal/Terminal";
-
+const allPages = [
+  { label: "Dashboard Home", href: "/" },
+  { label: "Mod Updater", href: "/mod-updater" },
+  { label: "Workshop", href: "/workshop" },
+  { label: "Server Status", href: "/server-status" },
+  { label: "Support", href: "/support" },
+  { label: "Documentation", href: "/docs" },
+  { label: "FAQ", href: "/support/faq" },
+  // add more pages here as needed
+];
 const navLinks = [
   // ... same navLinks array as before ...
   {
-    label: "📊 Dashboard",
+    label: "🧭 Dashboard",
     href: "/dashboard",
   },
   {
-    label: "📊 Terminal",
+    label: "🖥️ Terminal",
     href: "/terminal",
   },
   {
@@ -38,12 +47,12 @@ const navLinks = [
     ],
   },
   {
-    label: "🧩 Mods",
+    label: "🧰 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
-      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
     ],
   },
   {
@@ -81,7 +90,7 @@ const navLinks = [
     submenu: [
       { label: "📈 Performance Stats", href: "/tools/performance" },
       { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "🎨 Theme Manager", href: "/tools/thememanager" },
       { label: "📦 Plugin Tools", href: "/tools/plugins" },
     ],
   },
@@ -90,17 +99,16 @@ const navLinks = [
     href: "/support",
     submenu: [
       { label: "📚 Documentation", href: "/docs" },
-      { label: "🎫 Support Tickets", href: "/support/tickets" },
+      { label: "🎫 Support Tickets", href: "/support/" },
       { label: "❓ FAQ", href: "/support/faq" },
-      { label: "💬 Community", href: "/support/community" },
     ],
   },
   {
     label: "🔐 Account",
     href: "/login",
     submenu: [
-      { label: "🔐 Sign In", href: "/login/signin" },
-      { label: "🆕 Register", href: "/login/register" },
+      { label: "🔐 Sign In", href: "/auth/login" },
+      { label: "🆕 Register", href: "/auth/register" },
     ],
   },
 ];

@@ -55,7 +55,7 @@ export default function InstalledPage() {
       <p
         style={{
           fontSize: "0.86rem", // 1.15 * 0.75
-          maxWidth: 450, // 600 * 0.75
+          maxWidth: 600, // 600 * 0.75
           marginBottom: 13.5, // 18 * 0.75
           lineHeight: 1.6,
           color: "#cfd8dc",

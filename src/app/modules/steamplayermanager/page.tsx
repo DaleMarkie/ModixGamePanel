@@ -2,305 +2,704 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FaDiscord, FaCoffee } from "react-icons/fa";
+import {
+  FaDiscord,
+  FaCoffee,
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaChevronRight,
+  FaServer,
+  FaUser,
+  FaLaptop,
+  FaSearch,
+} from "react-icons/fa";
 import SteamPlayerManager from "../steamplayermanager/SteamPlayerManager";
-
-// Visible in top nav
+const allPages = [
+  { label: "Dashboard Home", href: "/" },
+  { label: "Mod Updater", href: "/mod-updater" },
+  { label: "Workshop", href: "/workshop" },
+  { label: "Server Status", href: "/server-status" },
+  { label: "Support", href: "/support" },
+  { label: "Documentation", href: "/docs" },
+  { label: "FAQ", href: "/support/faq" },
+  // add more pages here as needed
+];
 const navLinks = [
-  { label: "📊 Dashboard", href: "/dashboard" },
-  { label: "💻 Terminal", href: "/terminal" },
-  { label: "📁 Files", href: "/filemanager" },
-  { label: "🧩 Mod Manager", href: "/modmanager" },
-  { label: "🛠 Workshop", href: "/workshop" },
-  { label: "👥 Players", href: "/modules/steamplayermanager" },
-  { label: "🔐 Login", href: "/login" },
+  // ... same navLinks array as before ...
+  {
+    label: "🧭 Dashboard",
+    href: "/dashboard",
+  },
+  {
+    label: "🖥️ Terminal",
+    href: "/terminal",
+  },
+  {
+    label: "⚙️ Configuration",
+    href: "/settings",
+    submenu: [
+      { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
+      { label: "📄 server.ini", href: "/settings/serverini" },
+      { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
+      { label: "🧟 Zombie Settings", href: "/settings/zombies" },
+    ],
+  },
+  {
+    label: "🧰 Mods",
+    href: "/modmanager",
+    submenu: [
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
+    ],
+  },
+  {
+    label: "📁 Files",
+    href: "/filemanager",
+    submenu: [
+      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "⚙️ Config Files", href: "/filemanager/configs" },
+      { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
+      { label: "📄 Server Logs", href: "/filemanager/logs" },
+    ],
+  },
+  {
+    label: "👥 Players",
+    href: "/players",
+    submenu: [
+      { label: "👥 All Players", href: "/players/all" },
+      { label: "🟢 Online Players", href: "/players/online" },
+      { label: "🚫 Banned Players", href: "/players/banned" },
+      { label: "✅ Whitelist", href: "/players/whitelist" },
+    ],
+  },
+  {
+    label: "📡 Webhooks",
+    href: "/webhooks",
+    submenu: [
+      { label: "📤 Send Embed", href: "/webhook" },
+      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
+      { label: "📝 Webhook Logs", href: "/webhooks/logs" },
+    ],
+  },
+  {
+    label: "🛠 Tools",
+    href: "/tools",
+    submenu: [
+      { label: "📈 Performance Stats", href: "/tools/performance" },
+      { label: "🌐 Port Checker", href: "/tools/portcheck" },
+      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "📦 Plugin Tools", href: "/tools/plugins" },
+    ],
+  },
+  {
+    label: "🆘 Support",
+    href: "/support",
+    submenu: [
+      { label: "📚 Documentation", href: "/docs" },
+      { label: "🎫 Support Tickets", href: "/support/" },
+      { label: "❓ FAQ", href: "/support/faq" },
+    ],
+  },
+  {
+    label: "🔐 Account",
+    href: "/login",
+    submenu: [
+      { label: "🔐 Sign In", href: "/auth/login" },
+      { label: "🆕 Register", href: "/auth/register" },
+    ],
+  },
 ];
 
-// Only appear in search
-const extraSearchPages = [
-  { label: "📄 About", href: "/about" },
-  { label: "📚 Docs", href: "/docs" },
-  { label: "📬 Contact", href: "/contact" },
-  { label: "👥 Team", href: "/team" },
-  { label: "⚖️ Terms of Service", href: "/terms" },
-  { label: "🔒 Privacy Policy", href: "/privacy" },
-];
-
-const searchablePages = [...navLinks, ...extraSearchPages];
-
-export default function Dashboard() {
-  const [panelName, setPanelName] = useState("MODIX");
-  const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
-  const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
-  const [backgroundImage, setBackgroundImage] = useState(
-    'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState([]);
-
-  useEffect(() => {
-    const storedBg = localStorage.getItem("headerBgColor");
-    const storedText = localStorage.getItem("headerTextColor");
-    if (storedBg) setHeaderBgColor(storedBg);
-    if (storedText) setHeaderTextColor(storedText);
-  }, []);
-
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredResults([]);
-      return;
-    }
-
-    const matches = searchablePages.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    setFilteredResults(matches);
-  }, [searchQuery]);
-
+// SidebarUserInfo refactored to use classNames
+function SidebarUserInfo({ hostname, container, loggedInUser }) {
+  if (!hostname || !container || !loggedInUser) return null;
   return (
-    <div
-      className="app-wrapper"
-      style={{
-        backgroundColor: "#121212",
-        backgroundImage,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center center",
-        minHeight: "100vh",
-        transition: "background-color 0.3s ease",
-        position: "relative",
-        zIndex: 0,
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0,0,0,0.5)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-      <div style={{ position: "relative", zIndex: 2 }}>
+    <section aria-label="Server Information" className="server-info-section">
+      {[
+        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
+        { icon: <FaServer size={12} />, label: "Container", value: container },
+        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
+      ].map(({ icon, label, value }) => (
         <div
-          style={{
-            maxWidth: 1200,
-            margin: "40px auto",
-            padding: "20px",
-            backgroundColor: "rgba(30,30,30,0.85)",
-            borderRadius: 12,
-            boxShadow: "0 0 20px rgba(0,0,0,0.7)",
-            minHeight: "calc(100vh - 80px)",
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 2,
-            overflow: "visible",
-          }}
+          key={label}
+          title={`${label}: ${value}`}
+          aria-label={`${label}: ${value}`}
+          className="server-info-item"
         >
-          <header
-            style={{
-              backgroundColor: headerBgColor,
-              color: headerTextColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 20px",
-              height: 60,
-              userSelect: "none",
-              borderTopLeftRadius: 12,
-              borderTopRightRadius: 12,
-              position: "relative",
-              zIndex: 3,
-            }}
-          >
-            <div
-              className="logo"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <img
-                src="https://i.ibb.co/cMPwcn8/logo.png"
-                alt="Modix Logo"
-                style={{ height: 50, objectFit: "contain" }}
-              />
-              <span
-                style={{
-                  fontWeight: 900,
-                  fontSize: "1.6rem",
-                  color: "inherit",
-                }}
-              >
-                {panelName}
-              </span>
-            </div>
-
-            <nav
-              className="top-menu"
-              style={{
-                display: "flex",
-                gap: 20,
-                position: "relative",
-                zIndex: 3,
-              }}
-            >
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  style={{
-                    color: headerTextColor,
-                    padding: "8px 14px",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    borderRadius: 8,
-                    transition: "background-color 0.3s ease",
-                    display: "inline-block",
-                    whiteSpace: "nowrap",
-                    userSelect: "none",
-                  }}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </header>
-
-          {/* 🔍 Search */}
-          <div
-            style={{
-              padding: "16px 20px",
-              position: "relative",
-              zIndex: 10,
-            }}
-          >
-            <input
-              type="text"
-              placeholder="🔍 Search Modix pages..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "none",
-                fontSize: "1rem",
-                backgroundColor: "#222",
-                color: "#fff",
-                outline: "none",
-              }}
-            />
-            {searchQuery && filteredResults.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: "#1e1e1e",
-                  borderRadius: 8,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                  marginTop: 8,
-                  maxHeight: 240,
-                  overflowY: "auto",
-                  padding: "6px 0",
-                  position: "absolute",
-                  width: "100%",
-                  zIndex: 10,
-                }}
-              >
-                {filteredResults.map(({ label, href }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    style={{
-                      display: "block",
-                      padding: "10px 14px",
-                      color: "#ddd",
-                      textDecoration: "none",
-                      fontSize: "0.95rem",
-                      borderBottom: "1px solid #333",
-                      userSelect: "none",
-                    }}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <SteamPlayerManager />
-          </main>
-
-          <footer
-            style={{
-              marginTop: 24,
-              padding: "16px 24px",
-              backgroundColor: "#1f1f1f",
-              color: "#eee",
-              borderRadius: "0 0 12px 12px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: "0.75rem",
-              userSelect: "none",
-              zIndex: 2,
-            }}
-          >
-            <div>
-              <span>© 2025 {panelName}</span> &nbsp;|&nbsp;{" "}
-              <span>Made with 💚 for Project Zomboid</span>
-            </div>
-
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <FooterLink href="https://discord.gg/EwWZUSR9tM">
-                <FaDiscord size={16} /> Discord
-              </FooterLink>
-              <FooterLink href="https://ko-fi.com/modixgamepanel">
-                <FaCoffee size={16} /> Ko-fi
-              </FooterLink>
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/team">Team</FooterLink>
-              <FooterLink href="/docs">Docs</FooterLink>
-              <FooterLink href="/terms">Terms</FooterLink>
-              <FooterLink href="/privacy">Privacy</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
-            </div>
-          </footer>
+          <span className="server-info-icon">{icon}</span>
+          <span className="server-info-label">{label}:</span>
+          <span className="server-info-value">{value}</span>
         </div>
-      </div>
-    </div>
+      ))}
+    </section>
   );
 }
 
-function FooterLink({ href, children }) {
-  return (
-    <a
-      href={href}
-      target={href.startsWith("http") ? "_blank" : "_self"}
-      rel="noopener noreferrer"
-      style={{
-        color: "#eee",
-        padding: "6px 10px",
-        textDecoration: "none",
-        fontWeight: 600,
-        fontSize: "0.75rem",
-        borderRadius: 8,
-        transition: "background-color 0.3s ease",
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        userSelect: "none",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#444")}
-      onMouseOut={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
+export default function Dashboard() {
+  const [serverInfo, setServerInfo] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [openMenus, setOpenMenus] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function fetchServerInfo() {
+      await new Promise((r) => setTimeout(r, 400));
+      setServerInfo({
+        hostname: "modix-prod-server-01.longname.example.com",
+        container: "pz-prod-container-05",
+        loggedInUser: "adminUser42",
+      });
+    }
+    fetchServerInfo();
+  }, []);
+
+  const toggleSubMenu = (href) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }));
+  };
+
+  // Filter navLinks by search term (checks label and submenu labels)
+  const filteredNavLinks = navLinks
+    .map(({ label, href, submenu }) => {
+      if (!searchTerm) return { label, href, submenu };
+
+      const lowerSearch = searchTerm.toLowerCase();
+
+      const mainMatch = label.toLowerCase().includes(lowerSearch);
+
+      let filteredSubmenu = null;
+      if (submenu) {
+        filteredSubmenu = submenu.filter((item) =>
+          item.label.toLowerCase().includes(lowerSearch)
+        );
       }
-    >
-      {children}
-    </a>
+
+      if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
+        return {
+          label,
+          href,
+          submenu: filteredSubmenu,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  return (
+    <>
+      <style>{`
+        /* ========== Global Animations ========== */
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes fadeIn {
+          from {opacity: 0; transform: translateY(5px);}
+          to {opacity: 1; transform: translateY(0);}
+        }
+
+        /* ========== Root Container ========== */
+        .dashboard-root {
+          min-height: 2vh;
+          background-color: rgb(18, 18, 18);
+          padding: 24px;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          box-sizing: border-box;
+          background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUKqTBBep5ERp6g-xAfOJX709psn-O6HdLw&s');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          position: relative;
+        }
+
+        .dashboard-overlay {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-color: rgba(18, 18, 18, 0.7);
+          z-index: 0;
+        }
+
+        .dashboard-container {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          max-width: 1280px;
+          width: 100%;
+          background-color: #181818;
+          border-radius: 16px;
+          box-shadow: 0 10px 15px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.03);
+          overflow: hidden;
+          min-height: 80vh;
+        }
+
+        /* ========== Sidebar Styles ========== */
+        .sidebar {
+          background-color: #1c1c1c;
+          color: #eee;
+          display: flex;
+          flex-direction: column;
+          user-select: none;
+          transition: width 0.3s ease;
+          overflow: hidden;
+        }
+        .sidebar.open {
+          width: 195px;
+          padding: 16px 10px;
+        }
+        .sidebar.closed {
+          width: 60px;
+          padding: 16px 6px;
+        }
+
+        /* Logo + Title Container */
+        .sidebar-header {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 16px;
+          gap: 6px;
+        }
+        .sidebar-header.closed {
+          align-items: center;
+          gap: 0;
+        }
+        .sidebar-header.open {
+          align-items: flex-start;
+          gap: 6px;
+        }
+
+        .sidebar-logo-row {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          gap: 12px;
+          justify-content: flex-start;
+        }
+        .sidebar-logo-row.closed {
+          justify-content: center;
+          gap: 0;
+        }
+
+        .sidebar-logo {
+          height: 28px;
+          border-radius: 8px;
+          transition: height 0.3s ease;
+          user-select: none;
+          flex-shrink: 0;
+        }
+
+        .sidebar-title {
+          font-weight: 900;
+          font-size: 0.8rem;
+          background: linear-gradient(270deg, #43b581, #70b5f9, #ffa94d, #43b581);
+          background-size: 600% 600%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: gradientShift 8s ease infinite;
+          text-shadow: 0 0 6px rgba(67, 181, 129, 0.6);
+          white-space: nowrap;
+          user-select: none;
+        }
+
+        /* Server Info */
+        .server-info-section {
+          margin-top: 12px;
+          padding: 9px 12px;
+          background-color: rgba(255,255,255,0.06);
+          border-radius: 8px;
+          color: #c0c0c0;
+          font-size: 0.625rem;
+          user-select: none;
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
+          animation: fadeIn 0.5s ease forwards;
+          width: 90%;
+          max-width: 165px;
+        }
+        .server-info-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 6px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          cursor: default;
+        }
+        .server-info-icon {
+          flex-shrink: 0;
+          color: #6ec1e4;
+          display: flex;
+          align-items: center;
+        }
+        .server-info-label {
+          font-weight: 600;
+          color: #eee;
+          min-width: 48px;
+          flex-shrink: 0;
+          user-select: text;
+        }
+        .server-info-value {
+          flex-grow: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          user-select: text;
+        }
+
+        /* Collapse Button */
+        .sidebar-collapse-btn {
+          background-color: #2c2c2c;
+          border: none;
+          color: #eee;
+          padding: 10px 14px;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          margin-top: 16px;
+          border-radius: 6px;
+          user-select: none;
+          transition: all 0.3s ease;
+          width: 100%;
+          justify-content: space-between;
+        }
+        .sidebar-collapse-btn.closed {
+          justify-content: center;
+        }
+
+        /* Search Bar */
+        .sidebar-search-wrapper {
+          margin-top: 12px;
+          margin-bottom: 8px;
+          position: relative;
+        }
+        .sidebar-search-icon {
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #888;
+          pointer-events: none;
+          user-select: none;
+        }
+        .sidebar-search-input {
+          width: 100%;
+          padding: 8px 8px 8px 32px;
+          font-size: 0.75rem;
+          border-radius: 6px;
+          border: none;
+          outline: none;
+          background-color: #262626;
+          color: #ddd;
+          transition: background-color 0.3s ease;
+        }
+        .sidebar-search-input::placeholder {
+          color: #888;
+        }
+        .sidebar-search-input:focus {
+          background-color: #333;
+        }
+
+        /* Navigation Links */
+        .sidebar-nav {
+          list-style: none;
+          padding-left: 0;
+          margin: 0;
+          flex-grow: 1;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #555 transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar {
+          width: 6px;
+        }
+        .sidebar-nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+          background-color: #555;
+          border-radius: 3px;
+        }
+
+        .sidebar-nav-item {
+          margin-bottom: 4px;
+          user-select: none;
+        }
+
+        .sidebar-link {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-weight: 600;
+          font-size: 0.85rem;
+          padding: 8px 10px;
+          border-radius: 6px;
+          color: #ddd;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .sidebar-link:hover,
+        .sidebar-link:focus {
+          background-color: #43b581;
+          color: white;
+          outline: none;
+          text-shadow: none;
+        }
+
+        .sidebar-link.submenu-label {
+          font-weight: 700;
+          user-select: none;
+        }
+
+        /* Submenu styles */
+        .submenu-toggle {
+          background: none;
+          border: none;
+          color: inherit;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 0.85rem;
+          padding: 2px 2px;
+          border-radius: 6px;
+          width: 100%;
+          text-align: left;
+          user-select: none;
+          transition: background-color 0.2s ease;
+        }
+        .submenu-toggle:hover,
+        .submenu-toggle:focus {
+          background-color: #43b581;
+          color: white;
+          outline: none;
+        }
+
+        .submenu-arrow {
+          flex-shrink: 0;
+          transition: transform 0.3s ease;
+          color: #bbb;
+        }
+        .submenu-arrow.open {
+          transform: rotate(90deg);
+          color: #43b581;
+        }
+
+        /* Submenu container */
+        .submenu-list {
+          list-style: none;
+          padding-left: 20px;
+          margin: 4px 0 0 0;
+          animation: fadeIn 0.25s ease forwards;
+        }
+        .submenu-list.closed {
+          display: none;
+        }
+
+        .submenu-item {
+          margin-bottom: 3px;
+        }
+
+        .submenu-link {
+          display: block;
+          font-weight: 500;
+          font-size: 0.8rem;
+          padding: 6px 10px;
+          border-radius: 6px;
+          color: #ccc;
+          text-decoration: none;
+          cursor: pointer;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: background-color 0.2s ease;
+        }
+        .submenu-link:hover,
+        .submenu-link:focus {
+          background-color: #2e8b57;
+          color: white;
+          outline: none;
+        }
+
+        /* Main content */
+        .dashboard-main-content {
+          flex-grow: 1;
+          padding: 2px 2px;
+          color: #ccc;
+          overflow-y: auto;
+          max-height: 95vh;
+          user-select: text;
+        }
+
+        /* Scrollbar for main content */
+        .dashboard-main-content::-webkit-scrollbar {
+          width: 8px;
+        }
+        .dashboard-main-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .dashboard-main-content::-webkit-scrollbar-thumb {
+          background-color: #555;
+          border-radius: 4px;
+        }
+      `}</style>
+
+      <div
+        className="dashboard-root"
+        role="main"
+        aria-label="Modix Game Panel Dashboard"
+      >
+        <div className="dashboard-overlay" aria-hidden="true"></div>
+
+        <div className="dashboard-container" aria-live="polite">
+          <aside
+            className={`sidebar ${sidebarOpen ? "open" : "closed"}`}
+            aria-label="Primary navigation sidebar"
+          >
+            <header
+              className={`sidebar-header ${sidebarOpen ? "open" : "closed"}`}
+            >
+              <div
+                className={`sidebar-logo-row ${
+                  sidebarOpen ? "open" : "closed"
+                }`}
+              >
+                <img
+                  src="https://i.ibb.co/cMPwcn8/logo.png"
+                  alt="Modix Logo"
+                  className="sidebar-logo"
+                  draggable="false"
+                />
+                {sidebarOpen && (
+                  <h1 className="sidebar-title">Modix Game Panel</h1>
+                )}
+              </div>
+
+              {sidebarOpen && (
+                <>
+                  <SidebarUserInfo
+                    hostname={serverInfo?.hostname}
+                    container={serverInfo?.container}
+                    loggedInUser={serverInfo?.loggedInUser}
+                  />
+
+                  <div className="sidebar-search-wrapper">
+                    <FaSearch
+                      className="sidebar-search-icon"
+                      aria-hidden="true"
+                    />
+                    <input
+                      type="text"
+                      aria-label="Search navigation menu"
+                      className="sidebar-search-input"
+                      placeholder="Search menu..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </div>
+                </>
+              )}
+            </header>
+
+            <nav role="navigation" aria-label="Sidebar navigation menu">
+              <ul className="sidebar-nav">
+                {filteredNavLinks.map(({ label, href, submenu }) => (
+                  <li key={href} className="sidebar-nav-item">
+                    {submenu ? (
+                      <>
+                        <button
+                          type="button"
+                          className="submenu-toggle"
+                          aria-expanded={!!openMenus[href]}
+                          aria-controls={`${href}-submenu`}
+                          onClick={() => toggleSubMenu(href)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleSubMenu(href);
+                            }
+                          }}
+                        >
+                          <span className="sidebar-link submenu-label">
+                            {label}
+                          </span>
+                          <FaChevronRight
+                            aria-hidden="true"
+                            className={`submenu-arrow ${
+                              openMenus[href] ? "open" : ""
+                            }`}
+                          />
+                        </button>
+                        <ul
+                          id={`${href}-submenu`}
+                          role="menu"
+                          aria-label={`${label} submenu`}
+                          className={`submenu-list ${
+                            openMenus[href] ? "open" : "closed"
+                          }`}
+                        >
+                          {submenu.map(({ label: subLabel, href: subHref }) => (
+                            <li
+                              key={subHref}
+                              className="submenu-item"
+                              role="none"
+                            >
+                              <Link
+                                href={subHref}
+                                role="menuitem"
+                                tabIndex={openMenus[href] ? 0 : -1}
+                                className="submenu-link"
+                              >
+                                {subLabel}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <Link href={href} className="sidebar-link">
+                        {label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              aria-pressed={sidebarOpen}
+              className={`sidebar-collapse-btn ${
+                sidebarOpen ? "open" : "closed"
+              }`}
+            >
+              {sidebarOpen ? "Collapse" : "Expand"}
+              {sidebarOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </aside>
+
+          <main
+            className="dashboard-main-content"
+            tabIndex={-1}
+            aria-label="Main dashboard content"
+          >
+            <SteamPlayerManager />
+          </main>
+        </div>
+      </div>
+    </>
   );
 }
