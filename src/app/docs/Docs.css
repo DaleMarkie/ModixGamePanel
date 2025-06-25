@@ -66,3 +66,35 @@
   bottom: 16px;
   right: 16px;
 }
+.doc-search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  margin: 20px auto;
+  display: block;
+}
+.doc-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.doc-category-button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  background-color: #222;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.doc-category-button.active {
+  background-color: #222;
+  color: #fff;
+  border-color: #222;
+}
