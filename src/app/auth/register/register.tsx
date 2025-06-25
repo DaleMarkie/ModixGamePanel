@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import "./login.css"; // Adjust path if necessary
+import "./register.css"; // Adjust path if necessary
 
-const Signup = () => {
+const Register = () => {
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -220,4 +220,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Register;

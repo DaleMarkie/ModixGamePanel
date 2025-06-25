@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import ForgotPasswordModal from "./ForgotPasswordModal"; // Ensure this is Next-compatible
+import ForgotPasswordModal from "../ForgotPasswordModal"; // Ensure this is Next-compatible
 import "./login.css"; // Adjust path as needed
 
 const Login = () => {
