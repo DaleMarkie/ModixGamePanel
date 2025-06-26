@@ -205,20 +205,28 @@ export default function Dashboard() {
         }
 
         /* ========== Root Container ========== */
-        .dashboard-root {
-          min-height: 2vh;
-          background-color: rgb(18, 18, 18);
-          padding: 24px;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          box-sizing: border-box;
-          background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUKqTBBep5ERp6g-xAfOJX709psn-O6HdLw&s');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          position: relative;
-        }
+.dashboard-root {
+  min-height: 100vh; /* full viewport height */
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  position: relative;
+
+  background-color: #010101; /* fallback color */
+  background-image: url('https://images7.alphacoders.com/627/627909.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  color: #fff; /* for text */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Optional: add a subtle text shadow to keep text readable on busy backgrounds */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
 
         .dashboard-overlay {
           position: absolute;
@@ -231,7 +239,7 @@ export default function Dashboard() {
           position: relative;
           z-index: 1;
           display: flex;
-          max-width: 1280px;
+          max-width: 1200px;
           width: 100%;
           background-color: #181818;
           border-radius: 16px;

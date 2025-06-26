@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
   const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
   const [backgroundImage, setBackgroundImage] = useState(
-    'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
+    'url("https://images7.alphacoders.com/627/627909.jpg")'
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState([]);

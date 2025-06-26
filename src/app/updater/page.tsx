@@ -255,7 +255,7 @@ export default function Dashboard() {
           boxSizing: "border-box",
 
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80')",
+            "url('https://images7.alphacoders.com/627/627909.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

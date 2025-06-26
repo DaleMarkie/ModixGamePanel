@@ -214,7 +214,7 @@ export default function Dashboard() {
           justify-content: center;
           align-items: flex-start;
           box-sizing: border-box;
-          background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUKqTBBep5ERp6g-xAfOJX709psn-O6HdLw&s');
+          background-image: url('https://images7.alphacoders.com/627/627909.jpg');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
