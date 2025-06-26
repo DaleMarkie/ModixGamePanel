@@ -21,29 +21,26 @@ export default function InstalledPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "30px 15px", // 40*0.75=30, 20*0.75=15
+        padding: "30px 15px",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         textAlign: "center",
-        fontSize: "0.75rem", // 1rem * 0.75
-        maxWidth: 1200, // 1200 * 0.75
+        fontSize: "0.75rem",
+        maxWidth: 1200,
         margin: "0 auto",
-        gap: 18, // 24 * 0.75
+        gap: 18,
       }}
     >
       <FaCheckCircle
-        size={60} // 80 * 0.75
+        size={60}
         color="#43b581"
-        style={{
-          marginBottom: 9, // 12 * 0.75
-          userSelect: "none",
-        }}
+        style={{ marginBottom: 9, userSelect: "none" }}
       />
 
       <h1
         style={{
-          fontSize: "2.1rem", // 2.8 * 0.75
+          fontSize: "2.1rem",
           fontWeight: "900",
-          marginBottom: 9, // 12 * 0.75
+          marginBottom: 9,
           userSelect: "none",
           color: "#43b581",
           lineHeight: 1.1,
@@ -54,9 +51,9 @@ export default function InstalledPage() {
 
       <p
         style={{
-          fontSize: "0.86rem", // 1.15 * 0.75
-          maxWidth: 600, // 600 * 0.75
-          marginBottom: 13.5, // 18 * 0.75
+          fontSize: "0.86rem",
+          maxWidth: 600,
+          marginBottom: 13.5,
           lineHeight: 1.6,
           color: "#cfd8dc",
           userSelect: "none",
@@ -67,54 +64,98 @@ export default function InstalledPage() {
         to power your Project Zomboid experience.
       </p>
 
-      {/* New login/signup info paragraph */}
-      <p
+      {/* Improved Access Info Section with two buttons */}
+      <section
+        aria-label="Access information and panel benefits"
         style={{
-          fontSize: "0.75rem",
           maxWidth: 450,
-          marginBottom: 18,
-          lineHeight: 1.5,
+          margin: "0 auto 24px",
           color: "#a0a0a0",
+          fontSize: "0.85rem",
+          lineHeight: 1.5,
           fontStyle: "italic",
           userSelect: "none",
+          textAlign: "center",
         }}
       >
-        Please <strong>login</strong> to access the panel. It’s free for
-        personal use, and signing up takes just a few minutes.
-      </p>
+        <p
+          aria-label="Login prompt"
+          style={{
+            marginBottom: 14,
+            fontWeight: 600,
+            color: "#cfd8dc",
+          }}
+        >
+          Please <strong>log in</strong> to access the panel — it’s free for
+          personal use and quick to sign up.
+        </p>
 
-      <p
-        style={{
-          fontSize: "0.75rem", // 1 * 0.75
-          maxWidth: 450, // 600 * 0.75
-          marginBottom: 24, // 32 * 0.75
-          lineHeight: 1.5,
-          color: "#a0a0a0",
-          fontStyle: "italic",
-          userSelect: "none",
-        }}
-      >
-        This panel helps you effortlessly manage mods, customize server
-        settings, and monitor your gameplay — all in one clean, modern
-        interface.
-      </p>
+        <p aria-label="Panel features description" style={{ fontWeight: 400 }}>
+          Manage your mods, customize settings, and monitor gameplay
+          effortlessly — all within one sleek, modern interface.
+        </p>
 
+        <div
+          style={{
+            marginTop: 24,
+            display: "flex",
+            justifyContent: "center",
+            gap: 16,
+            userSelect: "none",
+          }}
+        >
+          <button
+            type="button"
+            style={{
+              backgroundColor: "#ff9f43",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "12px 24px",
+              fontWeight: "700",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background-color 0.3s ease",
+              userSelect: "none",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#cc7f2f")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#ff9f43")
+            }
+            onClick={() => {
+              // Replace with your tutorial start logic
+              alert("Starting tutorial...");
+            }}
+          >
+            Start tutorial
+          </button>
+        </div>
+      </section>
+
+      {/* Next Steps Section */}
       <section
         style={{
           backgroundColor: "#1e1e1e",
-          padding: "18px 22.5px", // 24*0.75=18, 30*0.75=22.5
-          borderRadius: 10.5, // 14 * 0.75
-          maxWidth: 525, // 700 * 0.75
+          padding: "18px 22.5px",
+          borderRadius: 10.5,
+          maxWidth: 525,
           userSelect: "none",
+          textAlign: "left",
+          width: "100%",
         }}
       >
         <h2
           style={{
-            fontSize: "1.2rem", // 1.6 * 0.75
+            fontSize: "1.2rem",
             fontWeight: "700",
-            marginBottom: 12, // 16 * 0.75
+            marginBottom: 12,
             color: "#43b581",
-            letterSpacing: "0.022em", // 0.03em * 0.75 approx
+            letterSpacing: "0.022em",
           }}
         >
           What’s next?
@@ -123,18 +164,17 @@ export default function InstalledPage() {
           style={{
             listStyle: "none",
             paddingLeft: 0,
-            textAlign: "left",
             color: "#c0c0c0",
-            fontSize: "0.825rem", // 1.1 * 0.75
+            fontSize: "0.825rem",
             lineHeight: 1.6,
           }}
         >
           <li
             style={{
-              marginBottom: 9, // 12 * 0.75
+              marginBottom: 9,
               display: "flex",
               alignItems: "center",
-              gap: 6, // 8 * 0.75
+              gap: 6,
             }}
           >
             <FaCheckCircle color="#43b581" />
@@ -166,30 +206,32 @@ export default function InstalledPage() {
         </ul>
       </section>
 
+      {/* Action Buttons Grid */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", // 160 * 0.75 = 120
-          gap: 13.5, // 18 * 0.75
+          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+          gap: 13.5,
           width: "100%",
-          maxWidth: 525, // 700 * 0.75
-          marginBottom: 22.5, // 30 * 0.75
+          maxWidth: 525,
+          marginBottom: 22.5,
+          marginTop: 18,
         }}
       >
         {/* Login */}
         <Link
-          href="/login"
+          href="/auth/login"
           style={{
             backgroundColor: "#43b581",
-            padding: "10.5px 16.5px", // 14*0.75=10.5, 22*0.75=16.5
-            borderRadius: 9, // 12 * 0.75
+            padding: "10.5px 16.5px",
+            borderRadius: 9,
             color: "#fff",
             fontWeight: "700",
             textDecoration: "none",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: 6, // 8 * 0.75
+            gap: 6,
             userSelect: "none",
             transition: "background-color 0.3s ease",
           }}
@@ -206,7 +248,7 @@ export default function InstalledPage() {
 
         {/* Sign Up */}
         <Link
-          href="/signup"
+          href="/auth/signup"
           style={{
             backgroundColor: "#ff9f43",
             padding: "10.5px 16.5px",
@@ -264,13 +306,14 @@ export default function InstalledPage() {
         </Link>
       </div>
 
+      {/* Community & Support Info */}
       <div
         style={{
-          fontSize: "0.675rem", // 0.9 * 0.75
-          maxWidth: 315, // 420 * 0.75
+          fontSize: "0.675rem",
+          maxWidth: 315,
           color: "#999",
           userSelect: "none",
-          marginBottom: 18, // 24 * 0.75
+          marginBottom: 18,
           lineHeight: 1.4,
         }}
       >
@@ -280,6 +323,7 @@ export default function InstalledPage() {
         </p>
       </div>
 
+      {/* Social Links */}
       <div style={{ display: "flex", gap: 12 }}>
         <a
           href="https://discord.gg/EwWZUSR9tM"
@@ -287,14 +331,14 @@ export default function InstalledPage() {
           rel="noopener noreferrer"
           style={{
             backgroundColor: "#5865f2",
-            padding: "7.5px 16.5px", // 10*0.75=7.5, 22*0.75=16.5
-            borderRadius: 7.5, // 10 * 0.75
+            padding: "7.5px 16.5px",
+            borderRadius: 7.5,
             color: "#fff",
             fontWeight: "700",
             textDecoration: "none",
             display: "flex",
             alignItems: "center",
-            gap: 6, // 8 * 0.75
+            gap: 6,
             userSelect: "none",
             transition: "background-color 0.3s ease",
           }}

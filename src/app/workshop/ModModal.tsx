@@ -1,9 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
-// Helper: SVG icons for thumbs up/down (clean and modern)
 const ThumbsUpIcon = ({ filled, ...props }) => (
   <svg
-    width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={filled ? "#1DB954" : "#888"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={filled ? "#1DB954" : "#aaa"}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     {...props}
   >
     <path d="M14 9V5a3 3 0 0 0-6 0v4"></path>
@@ -13,7 +19,14 @@ const ThumbsUpIcon = ({ filled, ...props }) => (
 
 const ThumbsDownIcon = ({ filled, ...props }) => (
   <svg
-    width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={filled ? "#ff4d4f" : "#888"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={filled ? "#ff4d4f" : "#aaa"}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     {...props}
   >
     <path d="M10 15v4a3 3 0 0 0 6 0v-4"></path>
@@ -23,7 +36,6 @@ const ThumbsDownIcon = ({ filled, ...props }) => (
 
 const ModModal = ({ mod, onClose }) => {
   const modalRef = useRef(null);
-
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
   const [customCategories, setCustomCategories] = useState([]);
@@ -44,15 +56,15 @@ const ModModal = ({ mod, onClose }) => {
       const savedNotes = localStorage.getItem(`mod-notes-${mod.workshopId}`);
       if (savedNotes) setNotes(savedNotes);
 
-      const savedAssigned = localStorage.getItem(`mod-categories-${mod.workshopId}`);
+      const savedAssigned = localStorage.getItem(
+        `mod-categories-${mod.workshopId}`
+      );
       setAssignedCategories(savedAssigned ? JSON.parse(savedAssigned) : []);
 
       const savedRating = localStorage.getItem(`mod-rating-${mod.workshopId}`);
-      if (savedRating === "up" || savedRating === "down") {
-        setRating(savedRating);
-      } else {
-        setRating(null);
-      }
+      setRating(
+        savedRating === "up" || savedRating === "down" ? savedRating : null
+      );
     }
   }, [mod]);
 
@@ -70,20 +82,19 @@ const ModModal = ({ mod, onClose }) => {
 
   if (!mod) return null;
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateStr) =>
+    !dateStr
+      ? "N/A"
+      : new Date(dateStr).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
 
   const toggleCategory = (cat) => {
-    const updated = assignedCategories.includes(cat)
-      ? assignedCategories.filter((c) => c !== cat)
-      : [...assignedCategories, cat];
-    setAssignedCategories(updated);
+    setAssignedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
   };
 
   const handleSave = () => {
@@ -93,11 +104,9 @@ const ModModal = ({ mod, onClose }) => {
         `mod-categories-${mod.workshopId}`,
         JSON.stringify(assignedCategories)
       );
-      if (rating) {
-        localStorage.setItem(`mod-rating-${mod.workshopId}`, rating);
-      } else {
-        localStorage.removeItem(`mod-rating-${mod.workshopId}`);
-      }
+      rating
+        ? localStorage.setItem(`mod-rating-${mod.workshopId}`, rating)
+        : localStorage.removeItem(`mod-rating-${mod.workshopId}`);
     }
     localStorage.setItem(
       "user-custom-categories",
@@ -114,8 +123,7 @@ const ModModal = ({ mod, onClose }) => {
       !customCategories.includes(trimmed) &&
       !assignedCategories.includes(trimmed)
     ) {
-      const updatedCustom = [...customCategories, trimmed];
-      setCustomCategories(updatedCustom);
+      setCustomCategories([...customCategories, trimmed]);
       setAssignedCategories([...assignedCategories, trimmed]);
       setNewCategory("");
     }
@@ -128,26 +136,21 @@ const ModModal = ({ mod, onClose }) => {
     }
   };
 
-  // Rating button click handlers
-  const onThumbsUp = () => {
-    setRating(rating === "up" ? null : "up");
-  };
-  const onThumbsDown = () => {
-    setRating(rating === "down" ? null : "down");
-  };
+  const onThumbsUp = () => setRating(rating === "up" ? null : "up");
+  const onThumbsDown = () => setRating(rating === "down" ? null : "down");
 
-  // Colors for rating states
   const upColor = "#1DB954";
   const downColor = "#ff4d4f";
-  const neutralColor = "#888";
+  const neutralColor = "#aaa";
 
-  // Download notes & description as text file
   const handleDownload = () => {
-    const content = `Mod Title: ${mod.title || "Untitled Mod"}\n\nDescription:\n${
-      mod.description || "No description"
-    }\n\nYour Notes:\n${notes || "(No notes)"}\n\nCategories: ${
-      assignedCategories.join(", ") || "None"
-    }\nRating: ${rating || "None"}`;
+    const content = `Mod Title: ${
+      mod.title || "Untitled Mod"
+    }\n\nDescription:\n${mod.description || "No description"}\n\nYour Notes:\n${
+      notes || "(No notes)"
+    }\n\nCategories: ${assignedCategories.join(", ") || "None"}\nRating: ${
+      rating || "None"
+    }`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -161,7 +164,6 @@ const ModModal = ({ mod, onClose }) => {
     URL.revokeObjectURL(url);
   };
 
-  // Download via SteamCMD button
   const handleSteamDownload = () => {
     fetch("/api/download-mod", {
       method: "POST",
@@ -181,9 +183,14 @@ const ModModal = ({ mod, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
-        <button onClick={onClose} style={closeButtonStyle} aria-label="Close modal">
+        <button
+          onClick={onClose}
+          style={closeButtonStyle}
+          aria-label="Close modal"
+        >
           &times;
         </button>
+
         <h2 style={titleStyle}>{mod.title || "Untitled Mod"}</h2>
 
         {mod.isActive && <div style={badgeStyle}>🟢 Active in server.ini</div>}
@@ -193,8 +200,7 @@ const ModModal = ({ mod, onClose }) => {
             <img src={mod.image} alt="mod" style={imageStyle} />
           ) : (
             <div style={imagePlaceholderStyle}>
-              🧩
-              <p>No image</p>
+              🧩<p>No image</p>
             </div>
           )}
         </div>
@@ -211,30 +217,33 @@ const ModModal = ({ mod, onClose }) => {
           <div style={infoGridStyle}>
             <InfoItem label="Author" value={mod.author || "Unknown"} />
             <InfoItem label="Version" value={mod.version || "N/A"} />
-            <InfoItem label="Last Updated" value={formatDate(mod.lastUpdated)} />
+            <InfoItem
+              label="Last Updated"
+              value={formatDate(mod.lastUpdated)}
+            />
             <InfoItem label="File Size" value={mod.fileSize || "N/A"} />
             <InfoItem label="ID" value={mod.workshopId || "N/A"} />
           </div>
         </section>
 
-        {/* SteamCMD Download Button */}
-        <div style={{ marginTop: 12, textAlign: "center" }}>
+        <div style={{ marginTop: 9, textAlign: "center" }}>
           <button
             onClick={handleSteamDownload}
-            style={{
-              ...saveButtonStyle,
-              backgroundColor: "#007bff",
-              marginBottom: 12,
-            }}
+            style={{ ...steamButtonStyle, marginBottom: 9 }}
           >
             ⬇️ Download Mod via SteamCMD
           </button>
         </div>
 
-        {/* Rating section */}
         <section style={{ ...section, textAlign: "center" }}>
           <h3 style={sectionTitle}>Your Rating</h3>
-          <div style={{ display: "inline-flex", gap: 48, justifyContent: "center" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 36,
+              justifyContent: "center",
+            }}
+          >
             <button
               onClick={onThumbsUp}
               aria-pressed={rating === "up"}
@@ -242,16 +251,27 @@ const ModModal = ({ mod, onClose }) => {
               style={{
                 ...ratingButtonStyle,
                 borderColor: rating === "up" ? upColor : "transparent",
-                backgroundColor: rating === "up" ? `${upColor}22` : "transparent",
+                backgroundColor:
+                  rating === "up" ? `${upColor}22` : "transparent",
                 color: rating === "up" ? upColor : neutralColor,
+                width: 68,
+                padding: 9,
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = upColor)}
               onMouseLeave={(e) =>
-                (e.currentTarget.style.color = rating === "up" ? upColor : neutralColor)
+                (e.currentTarget.style.color =
+                  rating === "up" ? upColor : neutralColor)
               }
             >
               <ThumbsUpIcon filled={rating === "up"} />
-              <span style={{ fontWeight: "600", marginTop: 6, display: "block", fontSize: 14 }}>
+              <span
+                style={{
+                  fontWeight: "600",
+                  marginTop: 4,
+                  display: "block",
+                  fontSize: 10,
+                }}
+              >
                 Like
               </span>
             </button>
@@ -263,16 +283,27 @@ const ModModal = ({ mod, onClose }) => {
               style={{
                 ...ratingButtonStyle,
                 borderColor: rating === "down" ? downColor : "transparent",
-                backgroundColor: rating === "down" ? `${downColor}22` : "transparent",
+                backgroundColor:
+                  rating === "down" ? `${downColor}22` : "transparent",
                 color: rating === "down" ? downColor : neutralColor,
+                width: 68,
+                padding: 9,
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = downColor)}
               onMouseLeave={(e) =>
-                (e.currentTarget.style.color = rating === "down" ? downColor : neutralColor)
+                (e.currentTarget.style.color =
+                  rating === "down" ? downColor : neutralColor)
               }
             >
               <ThumbsDownIcon filled={rating === "down"} />
-              <span style={{ fontWeight: "600", marginTop: 6, display: "block", fontSize: 14 }}>
+              <span
+                style={{
+                  fontWeight: "600",
+                  marginTop: 4,
+                  display: "block",
+                  fontSize: 10,
+                }}
+              >
                 Dislike
               </span>
             </button>
@@ -282,290 +313,280 @@ const ModModal = ({ mod, onClose }) => {
         <section style={section}>
           <h3 style={sectionTitle}>Custom Categories</h3>
           {customCategories.length === 0 && (
-            <div style={{ color: "#777", fontStyle: "italic" }}>No custom categories yet.</div>
+            <div style={{ color: "#666", fontStyle: "italic" }}>
+              No custom categories yet.
+            </div>
           )}
           <div>
             {customCategories.map((cat, idx) => (
-              <span
-                key={"customcat-" + cat}
-                style={{
-                  backgroundColor: getCustomCategoryColor(idx),
-                  color: "#111",
-                  fontWeight: "bold",
-                  padding: "4px 10px",
-                  borderRadius: "20px",
-                  fontSize: 12,
-                  marginRight: 8,
-                  marginBottom: 6,
-                  display: "inline-block",
-                  opacity: assignedCategories.includes(cat) ? 1 : 0.4,
-                  cursor: "pointer",
-                  userSelect: "none",
-                }}
+              <button
+                key={idx}
                 onClick={() => toggleCategory(cat)}
-                title={assignedCategories.includes(cat) ? "Click to unassign" : "Click to assign"}
+                style={{
+                  ...categoryButtonStyle,
+                  backgroundColor: assignedCategories.includes(cat)
+                    ? "#59a14f"
+                    : "#444",
+                  color: assignedCategories.includes(cat) ? "white" : "#ccc",
+                }}
+                aria-pressed={assignedCategories.includes(cat)}
               >
                 {cat}
-              </span>
+              </button>
             ))}
           </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+          <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
             <input
               type="text"
-              placeholder="Add new category"
+              placeholder="Add category"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               onKeyDown={onNewCategoryKey}
-              style={newCategoryInputStyle}
+              style={inputStyle}
+              aria-label="New custom category"
             />
             <button
               onClick={addNewCategory}
-              style={addCategoryButtonStyle}
-              disabled={!newCategory.trim()}
+              style={{ ...saveButtonStyle, padding: "6px 14px" }}
             >
-              ➕ Add
+              +
             </button>
           </div>
         </section>
 
         <section style={section}>
-          <h3 style={sectionTitle}>My Notes</h3>
+          <h3 style={sectionTitle}>Your Notes</h3>
           <textarea
-            style={notesStyle}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add personal notes about this mod..."
+            style={textareaStyle}
+            rows={5}
+            placeholder="Add your personal notes here..."
+            aria-label="Mod notes"
           />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, gap: 12 }}>
-            <button onClick={handleDownload} style={{ ...saveButtonStyle, backgroundColor: "#4a90e2" }}>
-              📥 Download Notes
-            </button>
-            <button onClick={handleSave} style={saveButtonStyle}>
-              {saved ? "✅ Saved" : "💾 Save Notes, Categories & Rating"}
-            </button>
-          </div>
         </section>
 
-        <a href={mod.link} target="_blank" rel="noreferrer" style={linkStyle}>
-          View on Steam Workshop
-        </a>
+        <div style={{ marginTop: 12, textAlign: "right" }}>
+          <button onClick={handleSave} style={saveButtonStyle}>
+            Save Notes & Categories
+          </button>
+          {saved && (
+            <span
+              style={{ marginLeft: 12, color: "#4caf50", fontWeight: "600" }}
+            >
+              Saved!
+            </span>
+          )}
+        </div>
+
+        <div style={{ marginTop: 20, textAlign: "center" }}>
+          <button
+            onClick={handleDownload}
+            style={downloadButtonStyle}
+            aria-label="Download notes as text file"
+          >
+            💾 Download Notes
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 const InfoItem = ({ label, value }) => (
-  <div style={infoItemStyle}>
-    <span style={{ fontWeight: 600, color: "#1DB954" }}>{label}:</span>
-    <span style={{ marginLeft: 6, color: "#ddd" }}>{value}</span>
+  <div style={{ marginBottom: 4 }}>
+    <strong style={{ fontSize: 11, color: "#aaa" }}>{label}:</strong>{" "}
+    <span style={{ fontSize: 13, color: "white" }}>{value}</span>
   </div>
 );
-
-// === Styles ===
 
 const overlayStyle = {
   position: "fixed",
   inset: 0,
-  backgroundColor: "rgba(0,0,0,0.9)",
+  backgroundColor: "rgba(0,0,0,0.8)",
   display: "flex",
-  justifyContent: "center",
   alignItems: "center",
-  zIndex: 10000,
-  backdropFilter: "blur(8px)",
+  justifyContent: "center",
+  zIndex: 1000,
 };
 
 const modalStyle = {
-  backgroundColor: "#202020",
-  color: "#eee",
-  padding: "32px 28px",
-  borderRadius: 14,
-  maxWidth: 720,
-  width: "90%",
+  backgroundColor: "#121212",
+  borderRadius: 8,
+  width: 480,
   maxHeight: "90vh",
-  boxShadow: "0 14px 48px rgba(0,0,0,0.85)",
   overflowY: "auto",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.9)",
+  padding: 16,
   position: "relative",
   fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  outline: "none",
+  color: "white",
 };
 
 const closeButtonStyle = {
   position: "absolute",
-  top: 20,
-  right: 20,
+  top: 10,
+  right: 14,
   background: "transparent",
   border: "none",
-  fontSize: 30,
-  color: "#888",
+  fontSize: 28,
+  color: "#bbb",
   cursor: "pointer",
+  lineHeight: 1,
 };
 
 const titleStyle = {
-  marginTop: 0,
-  marginBottom: 10,
+  fontSize: 20,
   fontWeight: "700",
-  fontSize: "2.3rem",
-  color: "#1DB954",
-  textAlign: "center",
+  marginBottom: 8,
+  color: "white",
 };
 
 const badgeStyle = {
-  backgroundColor: "#1DB954",
-  color: "#111",
-  fontWeight: "bold",
   display: "inline-block",
-  padding: "4px 10px",
-  borderRadius: "20px",
-  fontSize: "13px",
-  marginTop: 12,
+  backgroundColor: "#59a14f",
+  color: "white",
+  fontSize: 11,
+  fontWeight: "600",
+  padding: "3px 8px",
+  borderRadius: 12,
+  marginBottom: 12,
 };
 
 const imageWrapperStyle = {
-  width: "100%",
-  maxHeight: 280,
+  width: 120,
+  height: 120,
+  borderRadius: 8,
   overflow: "hidden",
-  borderRadius: 10,
-  marginBottom: 28,
-  backgroundColor: "#121212",
+  margin: "0 auto 14px",
+  backgroundColor: "#222",
   display: "flex",
-  justifyContent: "center",
   alignItems: "center",
+  justifyContent: "center",
 };
 
 const imageStyle = {
-  width: "100%",
-  height: "auto",
+  maxWidth: "100%",
+  maxHeight: "100%",
   objectFit: "cover",
-  borderRadius: 10,
+  display: "block",
 };
 
 const imagePlaceholderStyle = {
-  textAlign: "center",
-  color: "#555",
-  padding: 20,
   fontSize: 40,
+  color: "#555",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
-const section = { marginBottom: 28 };
+const section = {
+  marginTop: 14,
+};
 
 const sectionTitle = {
-  fontSize: 20,
-  fontWeight: "600",
-  borderBottom: "3px solid #1DB954",
-  paddingBottom: 8,
-  marginBottom: 14,
-  color: "#1DB954",
+  fontSize: 15,
+  fontWeight: "700",
+  marginBottom: 6,
+  color: "white",
 };
 
 const descriptionStyle = {
-  fontSize: 16,
-  lineHeight: 1.65,
-  color: "#ddd",
-  maxHeight: 140,
-  overflowY: "auto",
+  fontSize: 12,
+  lineHeight: 1.4,
+  color: "#ccc",
+  whiteSpace: "pre-wrap",
 };
 
 const infoGridStyle = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-  gap: 18,
-};
-
-const infoItemStyle = {
-  fontSize: 15,
-  color: "#ccc",
-  backgroundColor: "#2c2c2c",
-  padding: "8px 12px",
-  borderRadius: 8,
-  display: "flex",
-  justifyContent: "space-between",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 10,
 };
 
 const ratingButtonStyle = {
+  border: "2px solid transparent",
+  borderRadius: 8,
+  cursor: "pointer",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  border: "2px solid transparent",
-  borderRadius: 12,
-  padding: 12,
-  backgroundColor: "transparent",
-  cursor: "pointer",
-  transition: "all 0.25s ease",
-  width: 90,
+  justifyContent: "center",
+  transition: "all 0.2s ease",
   userSelect: "none",
+  backgroundColor: "transparent",
 };
 
-const notesStyle = {
+const categoryButtonStyle = {
+  margin: "4px 6px 4px 0",
+  border: "none",
+  borderRadius: 16,
+  padding: "5px 14px",
+  fontSize: 12,
+  cursor: "pointer",
+  userSelect: "none",
+  transition: "background-color 0.25s ease, color 0.25s ease",
+  backgroundColor: "#444",
+  color: "#ccc",
+};
+
+const inputStyle = {
+  flex: 1,
+  borderRadius: 6,
+  border: "1px solid #555",
+  fontSize: 12,
+  padding: "6px 8px",
+  backgroundColor: "#222",
+  color: "white",
+};
+
+const textareaStyle = {
   width: "100%",
-  minHeight: 100,
-  backgroundColor: "#1c1c1c",
-  color: "#eee",
-  border: "1px solid #333",
   borderRadius: 8,
-  padding: 12,
-  fontSize: 14,
+  border: "1px solid #555",
+  fontSize: 12,
+  padding: 8,
   resize: "vertical",
+  fontFamily: "inherit",
+  color: "white",
+  backgroundColor: "#222",
 };
 
 const saveButtonStyle = {
-  backgroundColor: "#1DB954",
+  backgroundColor: "#59a14f",
+  color: "white",
   border: "none",
-  color: "#111",
-  fontWeight: "bold",
+  borderRadius: 6,
+  padding: "8px 20px",
   fontSize: 14,
-  padding: "10px 18px",
-  borderRadius: 8,
+  fontWeight: "600",
   cursor: "pointer",
-  transition: "all 0.3s ease",
+  userSelect: "none",
 };
 
-const linkStyle = {
-  display: "block",
-  textAlign: "center",
-  backgroundColor: "#1DB954",
-  color: "#111",
-  fontWeight: "700",
-  padding: "16px 0",
-  borderRadius: 10,
-  textDecoration: "none",
-  fontSize: 17,
-  marginTop: 10,
-};
-
-const newCategoryInputStyle = {
-  flex: 1,
-  padding: "8px 12px",
-  borderRadius: 8,
-  border: "1px solid #333",
-  backgroundColor: "#1c1c1c",
-  color: "#eee",
-  fontSize: 14,
-};
-
-const addCategoryButtonStyle = {
-  backgroundColor: "#1DB954",
+const downloadButtonStyle = {
+  backgroundColor: "#444",
+  color: "white",
   border: "none",
-  color: "#111",
-  fontWeight: "bold",
-  fontSize: 14,
-  padding: "10px 18px",
-  borderRadius: 8,
+  borderRadius: 6,
+  padding: "8px 18px",
+  fontSize: 13,
   cursor: "pointer",
-  transition: "all 0.3s ease",
+  userSelect: "none",
 };
 
-const getCustomCategoryColor = (index) => {
-  const colors = [
-    "#ff6f91",
-    "#ff9671",
-    "#ffc75f",
-    "#8ac6d1",
-    "#665dff",
-    "#d34b8f",
-    "#8d6e63",
-    "#ffab73",
-    "#a0e7e5",
-  ];
-  return colors[index % colors.length];
+const steamButtonStyle = {
+  backgroundColor: "#2a7a2a",
+  color: "white",
+  border: "none",
+  borderRadius: 6,
+  padding: "8px 18px",
+  fontSize: 14,
+  fontWeight: "600",
+  cursor: "pointer",
+  userSelect: "none",
 };
 
 export default ModModal;

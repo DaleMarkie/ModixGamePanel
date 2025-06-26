@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Dashboard2 from "../dashboard/Dashboard2";
+import MyServers from "./MyServers";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
@@ -30,13 +30,6 @@ const navLinks = [
   {
     label: "🧭 Dashboard",
     href: "/dashboard",
-    submenu: [
-      { label: "🖥️ My Servers", href: "/auth/myservers" },
-      { label: "🧪 Account", href: "/auth/myaccount" },
-      { label: "📄 My Licensing", href: "/auth/mylicensing" },
-      { label: "📍 Support Tickets", href: "/auth/support/tickets" },
-      { label: "⚙️ Settings", href: "/auth/mysettings" },
-    ],
   },
   {
     label: "🖥️ Terminal",
@@ -66,7 +59,7 @@ const navLinks = [
     label: "📁 Files",
     href: "/filemanager",
     submenu: [
-      { label: "📂 My Files", href: "/filemanager" },
+      { label: "📂 My Files", href: "/filemanager/uploads" },
       { label: "⚙️ Config Files", href: "/filemanager/configs" },
       { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
       { label: "📄 Server Logs", href: "/filemanager/logs" },
@@ -76,7 +69,7 @@ const navLinks = [
     label: "👥 Players",
     href: "/players",
     submenu: [
-      { label: "👥 All Players", href: "/modules/steamplayermanager" },
+      { label: "👥 All Players", href: "/players/all" },
       { label: "🟢 Online Players", href: "/players/online" },
       { label: "🚫 Banned Players", href: "/players/banned" },
       { label: "✅ Whitelist", href: "/players/whitelist" },
@@ -220,7 +213,7 @@ export default function Dashboard() {
           justify-content: center;
           align-items: flex-start;
           box-sizing: border-box;
-          background-image: url('https://images7.alphacoders.com/627/627909.jpg');
+          background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEUKqTBBep5ERp6g-xAfOJX709psn-O6HdLw&s');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
@@ -703,7 +696,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <Dashboard2 />
+            <MyServers />
           </main>
         </div>
       </div>
