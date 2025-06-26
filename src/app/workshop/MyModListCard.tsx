@@ -15,7 +15,9 @@ const MyModListCard = ({ folderName }) => {
         cursor: "default",
       }}
     >
-      <h3 style={{ fontSize: "1rem", color: "#1DB954", wordBreak: "break-all" }}>
+      <h3
+        style={{ fontSize: "1rem", color: "#1DB954", wordBreak: "break-all" }}
+      >
         {folderName}
       </h3>
       <p style={{ fontSize: "0.8rem", color: "#aaa" }}>

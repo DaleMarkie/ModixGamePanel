@@ -53,7 +53,9 @@ const ModCard = ({
         const data = await res.json();
         const details = data?.response?.publishedfiledetails?.[0];
         if (details?.time_updated) {
-          setLastUpdated(new Date(details.time_updated * 1000).toLocaleDateString());
+          setLastUpdated(
+            new Date(details.time_updated * 1000).toLocaleDateString()
+          );
         } else {
           setLastUpdated("Unknown");
         }
@@ -165,7 +167,14 @@ const ModCard = ({
         }}
       />
 
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", flexGrow: 1 }}>
+      <div
+        style={{
+          padding: 14,
+          display: "flex",
+          flexDirection: "column",
+          flexGrow: 1,
+        }}
+      >
         <h3
           style={{
             fontSize: "1.05rem",
@@ -239,8 +248,8 @@ const ModCard = ({
         {ratingInfo && (
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 6 }}>
             <div style={{ marginBottom: 4 }}>
-              <strong>Rating:</strong> {getStars(ratingInfo.score)}{" "}
-              ({(ratingInfo.score * 5).toFixed(1)}/5)
+              <strong>Rating:</strong> {getStars(ratingInfo.score)} (
+              {(ratingInfo.score * 5).toFixed(1)}/5)
             </div>
             <div>
               👍 {ratingInfo.up?.toLocaleString?.() || 0} / 👎{" "}
@@ -298,12 +307,17 @@ const ModCard = ({
           }}
         >
           {readMore
-            ? fetchedDescription || mod.description || "No description available."
-            : (fetchedDescription || mod.description || "No description available.").slice(
-                0,
-                90
-              ) +
-              ((fetchedDescription || mod.description || "").length > 90 ? "..." : "")}
+            ? fetchedDescription ||
+              mod.description ||
+              "No description available."
+            : (
+                fetchedDescription ||
+                mod.description ||
+                "No description available."
+              ).slice(0, 90) +
+              ((fetchedDescription || mod.description || "").length > 90
+                ? "..."
+                : "")}
           {(fetchedDescription || mod.description)?.length > 90 && (
             <span style={{ color: "#1DB954", marginLeft: 6 }}>
               [{readMore ? "less" : "more"}]
@@ -326,7 +340,9 @@ const ModCard = ({
           </p>
         )}
 
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+        <div
+          style={{ display: "flex", justifyContent: "space-between", gap: 8 }}
+        >
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -1,21 +1,41 @@
 import React, { forwardRef, useState, useEffect } from "react";
 
-const ContextMenu = forwardRef(({ x, y, mod, onClose, onOpenNotes, color }, ref) => {
+const ContextMenu = forwardRef(({ x, y, mod, onClose, color }, ref) => {
   const [showNotes, setShowNotes] = useState(false);
   const [noteText, setNoteText] = useState("");
   const NOTES_KEY = "pz_modNotes";
 
   const primaryColor = color || "#1DB954";
-  const bg = "#1a1a1a";
-  const border = "#333";
-  const text = "#eee";
+  const bg = "#121212";
+  const border = "#2a2a2a";
+  const text = "#ddd";
 
   useEffect(() => {
-    if (mod?.modId) {
+    if (mod?.modId && showNotes) {
       const storedNotes = JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
       setNoteText(storedNotes[mod.modId] || "");
     }
-  }, [showNotes, mod?.modId]);
+  }, [mod?.modId, showNotes]);
+
+  const shadeColor = (color, percent) => {
+    const f = parseInt(color.slice(1), 16);
+    const t = percent < 0 ? 0 : 255;
+    const p = Math.abs(percent) / 100;
+    const R = f >> 16;
+    const G = (f >> 8) & 0x00ff;
+    const B = f & 0x0000ff;
+    return (
+      "#" +
+      (
+        0x1000000 +
+        (Math.round((t - R) * p) + R) * 0x10000 +
+        (Math.round((t - G) * p) + G) * 0x100 +
+        (Math.round((t - B) * p) + B)
+      )
+        .toString(16)
+        .slice(1)
+    );
+  };
 
   const handleCopyModId = async () => {
     try {
@@ -28,16 +48,12 @@ const ContextMenu = forwardRef(({ x, y, mod, onClose, onOpenNotes, color }, ref)
   };
 
   const handleOpenWorkshop = () => {
-    window.open(`https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.modId}`, "_blank");
+    window.open(
+      `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.modId}`,
+      "_blank"
+    );
     onClose();
   };
-
-  const handleOpenNotes = () => {
-    setTimeout(() => setShowNotes(true), 10);
-    onClose();
-  };
-
-  const handleCloseNotes = () => setShowNotes(false);
 
   const handleSaveNotes = () => {
     const existing = JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
@@ -46,83 +62,61 @@ const ContextMenu = forwardRef(({ x, y, mod, onClose, onOpenNotes, color }, ref)
     setShowNotes(false);
   };
 
+  if (!mod || typeof onClose !== "function" || x == null || y == null)
+    return null;
+
   const menuItems = [
     { label: "📋 Copy Mod ID", action: handleCopyModId },
-    { label: "♻️ Reinstall", action: () => alert(`Reinstalling: ${mod.title}`) },
+    {
+      label: "♻️ Reinstall",
+      action: () => alert(`Reinstalling: ${mod.title}`),
+    },
+    { label: "📝 Notes", action: () => setShowNotes(true) },
     { label: "🌐 Steam Workshop", action: handleOpenWorkshop },
   ];
 
-  function shadeColor(color, percent) {
-    let f = parseInt(color.slice(1), 16),
-      t = percent < 0 ? 0 : 255,
-      p = Math.abs(percent) / 100,
-      R = f >> 16,
-      G = (f >> 8) & 0x00ff,
-      B = f & 0x0000ff;
-    return (
-      "#" +
-      (
-        0x1000000 +
-        (Math.round((t - R) * p) + R) * 0x10000 +
-        (Math.round((t - G) * p) + G) * 0x100 +
-        (Math.round((t - B) * p) + B)
-      )
-        .toString(16)
-        .slice(1)
-    );
-  }
-
-  if (!mod || typeof onClose !== "function" || x == null || y == null) return null;
-
   return (
     <>
-      <div
+      <nav
         ref={ref}
-        onMouseDown={(e) => e.stopPropagation()}
+        aria-label="Mod context menu"
         style={{
-          position: "absolute",
-          top: typeof y === "number" ? y + "px" : y,
-          left: typeof x === "number" ? x + "px" : x,
+          ...styles.menu,
+          top: typeof y === "number" ? `${y}px` : y,
+          left: typeof x === "number" ? `${x}px` : x,
           backgroundColor: bg,
-          border: `1px solid ${border}`,
-          borderRadius: 8,
-          padding: 16,
-          minWidth: 260,
+          borderColor: border,
           color: text,
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          userSelect: "none",
-          zIndex: 10000,
         }}
+        onMouseDown={(e) => e.stopPropagation()}
         onContextMenu={(e) => e.preventDefault()}
-        role="menu"
       >
-        <h3 style={{ color: primaryColor, fontWeight: "700", fontSize: 18, marginBottom: 16 }}>
-          {mod.title}
+        <h3 style={{ ...styles.title, color: primaryColor }} title={mod.title}>
+          {mod.title.length > 25 ? mod.title.slice(0, 22) + "..." : mod.title}
         </h3>
 
         {menuItems.map(({ label, action }) => (
           <button
             key={label}
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               action();
             }}
-            type="button"
             style={{
-              width: "100%",
-              padding: "10px 14px",
-              fontSize: 14,
-              fontWeight: 600,
+              ...styles.menuItem,
               color: primaryColor,
-              backgroundColor: "transparent",
-              border: "1.5px solid transparent",
-              borderRadius: 6,
-              textAlign: "left",
-              cursor: "pointer",
-              marginBottom: 10,
+              borderColor: "transparent",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = primaryColor)}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = shadeColor(
+                primaryColor,
+                90
+              ))
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
             onMouseDown={(e) => e.preventDefault()}
           >
             {label}
@@ -130,22 +124,14 @@ const ContextMenu = forwardRef(({ x, y, mod, onClose, onOpenNotes, color }, ref)
         ))}
 
         <button
-          onClick={onClose}
           type="button"
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            fontSize: 15,
-            fontWeight: "700",
-            color: "#111",
-            backgroundColor: primaryColor,
-            border: "none",
-            borderRadius: 6,
-            cursor: "pointer",
-            marginTop: 10,
-          }}
+          onClick={onClose}
+          style={{ ...styles.closeButton, backgroundColor: primaryColor }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = shadeColor(primaryColor, -15))
+            (e.currentTarget.style.backgroundColor = shadeColor(
+              primaryColor,
+              -15
+            ))
           }
           onMouseLeave={(e) =>
             (e.currentTarget.style.backgroundColor = primaryColor)
@@ -154,85 +140,159 @@ const ContextMenu = forwardRef(({ x, y, mod, onClose, onOpenNotes, color }, ref)
         >
           ❌ Close
         </button>
-      </div>
+      </nav>
 
       {showNotes && (
         <div
-          onMouseDown={handleCloseNotes}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0,0,0,0.7)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10001,
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notes-title"
+          onMouseDown={() => setShowNotes(false)}
+          style={styles.modalOverlay}
         >
-          <div
+          <section
             onMouseDown={(e) => e.stopPropagation()}
-            style={{
-              background: "#1a1a1a",
-              padding: 24,
-              borderRadius: 10,
-              color: "#eee",
-              width: 400,
-              maxWidth: "90vw",
-              boxShadow: "0 0 10px rgba(0,0,0,0.6)",
-            }}
+            style={styles.modalContent}
           >
-            <h2 style={{ marginBottom: 12 }}>📝 Notes for {mod.title}</h2>
+            <h2 id="notes-title" style={{ marginBottom: 12 }}>
+              📝 Notes for {mod.title}
+            </h2>
             <textarea
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              style={{
-                width: "100%",
-                height: 150,
-                background: "#111",
-                color: "#fff",
-                border: "1px solid #444",
-                padding: 8,
-                borderRadius: 6,
-              }}
+              style={styles.textarea}
+              autoFocus
+              spellCheck={false}
             />
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+            <div style={styles.modalButtons}>
               <button
-                onClick={handleCloseNotes}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#444",
-                  border: "none",
-                  borderRadius: 6,
-                  fontWeight: "bold",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
+                onClick={() => setShowNotes(false)}
+                style={styles.cancelButton}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveNotes}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: primaryColor,
-                  border: "none",
-                  borderRadius: 6,
-                  fontWeight: "bold",
-                  color: "#111",
-                  cursor: "pointer",
-                }}
+                style={{ ...styles.saveButton, backgroundColor: primaryColor }}
               >
                 Save
               </button>
             </div>
-          </div>
+          </section>
         </div>
       )}
     </>
   );
 });
+
+const styles = {
+  menu: {
+    position: "absolute",
+    border: "1px solid",
+    borderRadius: 6,
+    padding: "10px 12px",
+    minWidth: 200,
+    maxWidth: 260,
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    userSelect: "none",
+    zIndex: 10000,
+    boxShadow: "0 3px 10px rgba(0,0,0,0.8)",
+  },
+  title: {
+    fontWeight: "700",
+    fontSize: 14,
+    marginBottom: 12,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    userSelect: "text",
+  },
+  menuItem: {
+    width: "100%",
+    padding: "7px 12px",
+    fontSize: 13,
+    fontWeight: 600,
+    backgroundColor: "transparent",
+    border: "none",
+    borderRadius: 4,
+    textAlign: "left",
+    cursor: "pointer",
+    marginBottom: 8,
+    transition: "background-color 0.15s ease",
+    userSelect: "none",
+  },
+  closeButton: {
+    width: "100%",
+    padding: "8px 12px",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111",
+    border: "none",
+    borderRadius: 5,
+    cursor: "pointer",
+    marginTop: 6,
+    transition: "background-color 0.2s ease",
+    userSelect: "none",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "rgba(0,0,0,0.75)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10001,
+  },
+  modalContent: {
+    background: "#121212",
+    padding: 20,
+    borderRadius: 8,
+    color: "#ddd",
+    width: 360,
+    maxWidth: "90vw",
+    boxShadow: "0 0 12px rgba(0,0,0,0.7)",
+  },
+  textarea: {
+    width: "100%",
+    height: 130,
+    background: "#222",
+    color: "#eee",
+    border: "1px solid #444",
+    padding: 8,
+    borderRadius: 5,
+    fontFamily: "inherit",
+    fontSize: 13,
+    resize: "vertical",
+    userSelect: "text",
+  },
+  modalButtons: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: 10,
+    marginTop: 14,
+  },
+  cancelButton: {
+    padding: "8px 18px",
+    backgroundColor: "#444",
+    border: "none",
+    borderRadius: 6,
+    fontWeight: "600",
+    color: "#ddd",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  },
+  saveButton: {
+    padding: "8px 18px",
+    border: "none",
+    borderRadius: 6,
+    fontWeight: "600",
+    color: "#111",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  },
+};
 
 export default ContextMenu;
