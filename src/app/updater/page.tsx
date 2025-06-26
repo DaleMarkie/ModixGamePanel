@@ -19,8 +19,15 @@ import Updater from "../updater/Updater";
 const navLinks = [
   // ... same navLinks array as before ...
   {
-    label: "📊 Dashboard",
+    label: "🧭 Dashboard",
     href: "/dashboard",
+    submenu: [
+      { label: "🖥️ My Servers", href: "/auth/myservers" },
+      { label: "🧪 Account", href: "/auth/myaccount" },
+      { label: "📄 My Licensing", href: "/auth/mylicensing" },
+      { label: "📍 Support Tickets", href: "/auth/support/tickets" },
+      { label: "⚙️ Settings", href: "/auth/mysettings" },
+    ],
   },
   {
     label: "📊 Terminal",
