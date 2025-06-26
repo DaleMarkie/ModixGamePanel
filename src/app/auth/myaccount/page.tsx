@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import MyServers from "./MyServers";
+import MyAccount from "./MyAccount";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
@@ -703,7 +703,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <MyServers />
+            <MyAccount />
           </main>
         </div>
       </div>
