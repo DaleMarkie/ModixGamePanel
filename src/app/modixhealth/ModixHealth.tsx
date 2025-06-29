@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import "./ModixHealth.css";
 
@@ -95,79 +94,71 @@ const modules = [
   },
 ];
 
+const statusInfo = {
+  ok: { label: "OK", icon: "✅", class: "ok", tooltip: "Module is stable" },
+  error: {
+    label: "ERROR",
+    icon: "❌",
+    class: "error",
+    tooltip: "Critical errors",
+  },
+  patched: {
+    label: "PATCHED",
+    icon: "🛠",
+    class: "patched",
+    tooltip: "Patched with updates",
+  },
+  waiting: {
+    label: "WAITING",
+    icon: "⏳",
+    class: "waiting",
+    tooltip: "Fixes pending",
+  },
+};
+
 export default function ModixHealth() {
   const [active, setActive] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
-  const categories = modules.reduce((acc, mod) => {
-    if (!acc[mod.category]) acc[mod.category] = [];
-    acc[mod.category].push(mod);
+  const categorizedModules = modules.reduce((acc, mod) => {
+    (acc[mod.category] = acc[mod.category] || []).push(mod);
     return acc;
-  }, {} as Record<string, typeof modules>);
-
-  // Map for better status display info
-  const statusInfo = {
-    ok: {
-      label: "OK",
-      icon: "✅",
-      colorClass: "ok",
-      description: "Module is stable and running smoothly",
-    },
-    error: {
-      label: "ERROR",
-      icon: "❌",
-      colorClass: "error",
-      description: "Module has critical errors",
-    },
-    patched: {
-      label: "PATCHED",
-      icon: "🛠",
-      colorClass: "patched",
-      description: "Module has recent patches applied",
-    },
-    waiting: {
-      label: "WAITING FIX",
-      icon: "⏳",
-      colorClass: "waiting",
-      description: "Module is waiting for fixes",
-    },
-  };
+  }, {});
 
   return (
     <main className="modix-health">
       <h1 className="modix-title">Modix Health</h1>
       <p className="modix-subtitle">
-        View the current status and diagnostic reports for each core module.
+        Status and diagnostic report for each core module.
       </p>
 
-      <a href="/support" className="report-bug-btn">
-        Report Bug
-      </a>
+      <button className="report-bug-btn" onClick={() => setReportOpen(true)}>
+        🐞 Report Bug
+      </button>
 
-      {Object.entries(categories).map(([category, mods]) => (
+      {Object.entries(categorizedModules).map(([category, mods]) => (
         <section key={category} className="modix-category">
           <h2 className="modix-category-title">{category}</h2>
           <div className="modix-category-scroll">
-            {mods.map((mod, idx) => {
+            {mods.map((mod) => {
               const status = statusInfo[mod.status];
               return (
                 <article
-                  key={idx}
-                  className={`modix-card ${mod.status}`}
+                  key={mod.name}
+                  className={`modix-card ${status.class}`}
                   onClick={() => setActive(mod)}
                   tabIndex={0}
                   role="button"
-                  aria-pressed={active === mod}
                   aria-label={`Details for ${mod.name}`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setActive(mod);
-                  }}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") && setActive(mod)
+                  }
                 >
                   <header className="modix-card-header">
                     <h3>{mod.name}</h3>
                     <span
-                      className={`modix-status ${status.colorClass}`}
-                      title={status.description}
-                      aria-label={`Status: ${status.label}`}
+                      className={`modix-status ${status.class}`}
+                      title={status.tooltip}
                     >
                       {status.icon} {status.label}
                     </span>
@@ -180,6 +171,7 @@ export default function ModixHealth() {
         </section>
       ))}
 
+      {/* Module Details Modal */}
       {active && (
         <div
           className="modix-modal-overlay"
@@ -210,41 +202,12 @@ export default function ModixHealth() {
               </div>
             </div>
 
-            <div className="modix-section">
-              <h4>🪲 Bugs</h4>
-              <ul>
-                {active.bugs.length ? (
-                  active.bugs.map((b, i) => <li key={i}>{b}</li>)
-                ) : (
-                  <li>No known bugs</li>
-                )}
-              </ul>
-            </div>
+            <DetailsSection title="🪲 Bugs" items={active.bugs} />
+            <DetailsSection title="✅ Patched" items={active.patched} />
+            <DetailsSection title="🕐 Awaiting Fix" items={active.waiting} />
 
             <div className="modix-section">
-              <h4>✅ Patched</h4>
-              <ul>
-                {active.patched.length ? (
-                  active.patched.map((p, i) => <li key={i}>{p}</li>)
-                ) : (
-                  <li>None</li>
-                )}
-              </ul>
-            </div>
-
-            <div className="modix-section">
-              <h4>🕐 Awaiting Fix</h4>
-              <ul>
-                {active.waiting.length ? (
-                  active.waiting.map((w, i) => <li key={i}>{w}</li>)
-                ) : (
-                  <li>None</li>
-                )}
-              </ul>
-            </div>
-
-            <div className="modix-section">
-              <h4>📝 Change Log</h4>
+              <h4>📝 Changelog</h4>
               {active.changelog?.length ? (
                 active.changelog.map((log, i) => (
                   <div key={i} style={{ marginBottom: "1rem" }}>
@@ -268,6 +231,98 @@ export default function ModixHealth() {
           </div>
         </div>
       )}
+
+      {/* Bug Report Modal */}
+      {reportOpen && (
+        <div
+          className="modix-modal-overlay"
+          onClick={() => setReportOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="modix-modal"
+            onClick={(e) => e.stopPropagation()}
+            tabIndex={0}
+          >
+            <h2>🐞 Report a Bug</h2>
+            <p>Tell us what went wrong and we’ll look into it.</p>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const textarea = e.currentTarget.querySelector("textarea");
+                const message = textarea?.value.trim();
+
+                if (!message) return;
+
+                const metadata = `🌐 ${navigator.userAgent}
+🕒 ${new Date().toLocaleString()}
+🧩 Modules Loaded: ${modules.length}`;
+
+                try {
+                  await fetch(
+                    "https://discord.com/api/webhooks/your_webhook_here",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        content: `🐞 **Bug Report Submitted**\n${message}\n\n${metadata}`,
+                      }),
+                    }
+                  );
+                  alert("✅ Bug report sent successfully!");
+                  setReportOpen(false);
+                } catch {
+                  alert("❌ Failed to send bug report. Try again later.");
+                }
+              }}
+              className="modix-form"
+            >
+              <label htmlFor="report-message">Description:</label>
+              <textarea
+                id="report-message"
+                required
+                placeholder="Describe what happened, which module, etc..."
+                rows={5}
+                className="modix-textarea"
+              ></textarea>
+
+              <div
+                style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}
+              >
+                <button type="submit" className="modal-submit">
+                  🚀 Submit
+                </button>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={() => setReportOpen(false)}
+                >
+                  ✖ Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
+  );
+}
+
+function DetailsSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="modix-section">
+      <h4>{title}</h4>
+      <ul>
+        {items.length ? (
+          items.map((item, i) => <li key={i}>{item}</li>)
+        ) : (
+          <li>None</li>
+        )}
+      </ul>
+    </div>
   );
 }
