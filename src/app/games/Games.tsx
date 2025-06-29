@@ -517,8 +517,17 @@ const Games = () => {
 
   return (
     <main className="games-hosting-page">
-      <header className="games-header">
-        <h1 className="games-title">🎮 Host a Game Server</h1>
+      <header className="games-header flex flex-col md:flex-row items-center justify-between gap-4 p-6 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-lg shadow-lg">
+        <div className="title-section flex items-center gap-3">
+          <span className="text-4xl">🎮</span>
+          <h1 className="games-title text-3xl font-extrabold tracking-wide">
+            Host Your Game Server
+          </h1>
+        </div>
+        <p className="subtitle max-w-md text-indigo-200 text-sm md:text-base">
+          Choose your game and get your server up and running quickly.
+          Effortless setup, full control.
+        </p>
       </header>
 
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
@@ -537,6 +546,19 @@ const Games = () => {
           </p>
         )}
       </section>
+
+      {/* Add this below */}
+      <div className="add-game-callout" role="note">
+        Want to add your own game?{" "}
+        <a
+          href="https://discord.gg/yourdiscordlink"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="discord-link"
+        >
+          Let us know in our Discord.
+        </a>
+      </div>
 
       {selectedGame && (
         <Modal selectedGame={selectedGame} onClose={closeModal} onSave={save} />

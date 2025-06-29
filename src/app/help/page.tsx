@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Games from "../help/Help";
+import Help from "../help/Help";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },

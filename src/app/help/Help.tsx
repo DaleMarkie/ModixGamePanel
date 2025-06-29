@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Help.css";
 
 const faqItems = [
@@ -23,7 +23,10 @@ const faqItems = [
 
 export default function Help() {
   const [modalContent, setModalContent] = useState(null);
+  const modalRef = useRef(null);
+  const lastFocusedElement = useRef(null);
 
+  // Close modal on ESC
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === "Escape") setModalContent(null);
@@ -32,8 +35,52 @@ export default function Help() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Manage focus trap & restore focus after modal closes
+  useEffect(() => {
+    if (modalContent) {
+      lastFocusedElement.current = document.activeElement;
+      modalRef.current?.focus();
+
+      // Simple focus trap: cycle focus within modal
+      const focusableSelectors =
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+      const focusableElements =
+        modalRef.current.querySelectorAll(focusableSelectors);
+
+      const handleTab = (e) => {
+        if (e.key !== "Tab") return;
+
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      };
+
+      modalRef.current.addEventListener("keydown", handleTab);
+      return () => modalRef.current?.removeEventListener("keydown", handleTab);
+    } else {
+      // Restore focus to last focused element before modal opened
+      lastFocusedElement.current?.focus();
+    }
+  }, [modalContent]);
+
   return (
-    <main className="help-page" aria-labelledby="help-title" role="main">
+    <main
+      className="help-page"
+      aria-labelledby="help-title"
+      role="main"
+      tabIndex={-1}
+    >
       <header className="help-header">
         <h1 id="help-title" className="help-title">
           🛠 Need Help?
@@ -43,10 +90,12 @@ export default function Help() {
         </p>
       </header>
 
-      <section className="help-sections">
+      <section className="help-sections" aria-label="Help Sections">
         {/* Documentation */}
-        <article className="help-card">
-          <div className="card-icon">📖</div>
+        <article className="help-card" tabIndex={0}>
+          <div className="card-icon" aria-hidden="true">
+            📖
+          </div>
           <h2 className="card-title">Documentation</h2>
           <p className="card-desc">
             Step-by-step instructions, configuration help, and best practices
@@ -57,27 +106,40 @@ export default function Help() {
             target="_blank"
             rel="noopener noreferrer"
             className="card-link"
+            aria-label="Open Modix documentation in new tab"
           >
             Open Documentation &rarr;
           </a>
         </article>
 
         {/* Support Tickets */}
-        <article className="help-card">
-          <div className="card-icon">🎫</div>
+        <article className="help-card" tabIndex={0}>
+          <div className="card-icon" aria-hidden="true">
+            🎫
+          </div>
           <h2 className="card-title">Support Tickets</h2>
           <p className="card-desc">
             Submit a support request and our team will help you resolve your
             issue quickly.
           </p>
-          <a href="/help/open-ticket" className="card-link">
+          <a
+            href="/help/open-ticket"
+            className="card-link"
+            aria-label="Submit a support ticket"
+          >
             Submit a Ticket &rarr;
           </a>
         </article>
 
         {/* FAQ */}
-        <article className="help-card faq-card" aria-labelledby="faq-heading">
-          <div className="card-icon">❓</div>
+        <article
+          className="help-card faq-card"
+          aria-labelledby="faq-heading"
+          tabIndex={0}
+        >
+          <div className="card-icon" aria-hidden="true">
+            ❓
+          </div>
           <h2 id="faq-heading" className="card-title">
             Frequently Asked Questions
           </h2>
@@ -89,6 +151,8 @@ export default function Help() {
                   onClick={() => setModalContent(item)}
                   aria-expanded={modalContent === item}
                   aria-controls="faq-modal"
+                  aria-haspopup="dialog"
+                  type="button"
                 >
                   {item.question}
                 </button>
@@ -98,7 +162,7 @@ export default function Help() {
         </article>
       </section>
 
-      <aside className="support-note">
+      <aside className="support-note" aria-live="polite">
         🔧 <strong>Pro Tip:</strong> If something breaks, always check the
         server logs — they usually tell you exactly what went wrong.
       </aside>
@@ -116,6 +180,7 @@ export default function Help() {
           <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
             tabIndex={0}
           >
             <h3 id="faq-modal-title">{modalContent.question}</h3>
@@ -125,6 +190,7 @@ export default function Help() {
               onClick={() => setModalContent(null)}
               aria-label="Close modal"
               autoFocus
+              type="button"
             >
               Close
             </button>
