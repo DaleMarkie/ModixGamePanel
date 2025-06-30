@@ -8,7 +8,7 @@ body,
   color: var(--text-color);
   font-family: var(--font-family);
   margin: 0;
-  padding: 0.5rem;
+  padding: 2.5rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -141,9 +141,9 @@ body,
 }
 
 .controls button {
-  background-color: #2f2f2f;
+  background-color: #258a00;
   border: none;
-  color: #ddd;
+  color: #ffffff;
   font-weight: 600;
   padding: 0.4rem 0.85rem; /* smaller */
   border-radius: 5px;
@@ -155,7 +155,7 @@ body,
 }
 
 .controls button:hover:not(:disabled) {
-  background-color: #444;
+  background-color: #165101;
   color: #fff;
 }
 
@@ -261,7 +261,6 @@ body,
   border-radius: 2px;
   padding: 0 3px;
 }
-
 
 /* Command log */
 .terminal-log.command {
@@ -423,14 +422,14 @@ body,
   border: 2px solid #1a1a1a;
 }
 .server-health-section {
-  background-color: #0b0b0b;
+  background-color: #1e1d1d;
   color: #f0f0f0;
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid #1c1c1c;
   margin-top: 2rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-  font-family: 'Inter', sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  font-family: "Inter", sans-serif;
 }
 
 .server-health-section h2 {
@@ -491,5 +490,3 @@ body,
   color: #ffffff;
   font-weight: 600;
 }
-
-
