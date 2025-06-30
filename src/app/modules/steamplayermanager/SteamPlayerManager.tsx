@@ -171,6 +171,15 @@ const SteamPlayerManager = () => {
           </div>
         </div>
       </header>
+      <header className="spm-header"> 
+  <p className="spm-description">
+    Manage and monitor your Steam players easily. Search, filter by online status, and sort players by name or playtime. 
+    View detailed player info including VAC bans, VPN detection, and notes. You can also ban or unban players directly and keep personal notes for better moderation.
+  </p>
+  <div className="spm-controls">
+    {/* existing controls */}
+  </div>
+</header>
 
       {/* Player list */}
       <main className="player-list" role="list">

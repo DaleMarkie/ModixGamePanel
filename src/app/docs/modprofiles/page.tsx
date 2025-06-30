@@ -14,26 +14,13 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import ThemeManager from "../thememanager/ThemeManager";
-const allPages = [
-  { label: "Dashboard Home", href: "/" },
-  { label: "Mod Updater", href: "/mod-updater" },
-  { label: "Workshop", href: "/workshop" },
-  { label: "Server Status", href: "/server-status" },
-  { label: "Support", href: "/support" },
-  { label: "Documentation", href: "/docs" },
-  { label: "FAQ", href: "/support/faq" },
-  // add more pages here as needed
-];
+import ModProfiles from "./ModProfiles";
+
 const navLinks = [
   // ... same navLinks array as before ...
   {
-    label: "🧭 Dashboard",
-    href: "/dashboard",
-  },
-  {
-    label: "🖥️ Terminal",
-    href: "/terminal",
+    label: "📊 Terminal",
+    href: "/terminal/Terminal",
   },
   {
     label: "⚙️ Configuration",
@@ -47,12 +34,12 @@ const navLinks = [
     ],
   },
   {
-    label: "🧰 Mods",
+    label: "🧩 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager" },
-      { label: "🛒 Browse Workshop", href: "/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modupdater" },
+      { label: "🧩 Installed Mods", href: "/modmanager/installed" },
+      { label: "🛒 Browse Workshop", href: "/modmanager/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modmanager/tags" },
     ],
   },
   {
@@ -99,16 +86,17 @@ const navLinks = [
     href: "/support",
     submenu: [
       { label: "📚 Documentation", href: "/docs" },
-      { label: "🎫 Support Tickets", href: "/support/" },
+      { label: "🎫 Support Tickets", href: "/support/tickets" },
       { label: "❓ FAQ", href: "/support/faq" },
+      { label: "💬 Community", href: "/support/community" },
     ],
   },
   {
     label: "🔐 Account",
     href: "/login",
     submenu: [
-      { label: "🔐 Sign In", href: "/auth/login" },
-      { label: "🆕 Register", href: "/auth/register" },
+      { label: "🔐 Sign In", href: "/login/signin" },
+      { label: "🆕 Register", href: "/login/register" },
     ],
   },
 ];
@@ -469,9 +457,9 @@ export default function Dashboard() {
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 2px;
+          gap: 6px;
           font-size: 0.85rem;
-          padding: 2px 2px;
+          padding: 8px 10px;
           border-radius: 6px;
           width: 100%;
           text-align: left;
@@ -696,7 +684,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <ThemeManager />
+            <ModProfiles />
           </main>
         </div>
       </div>

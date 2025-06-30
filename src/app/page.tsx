@@ -442,7 +442,7 @@ export default function Dashboard() {
           display: block;
           font-weight: 500;
           font-size: 0.8rem;
-          padding: 6px 10px;
+          padding:1px 10px;
           border-radius: 6px;
           color: #ccc;
           text-decoration: none;
