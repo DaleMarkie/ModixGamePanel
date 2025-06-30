@@ -33,7 +33,7 @@
   margin: 0 0 0.75rem 0;
   font-weight: 700;
   font-size: 1.2rem;
-  color: #ffcc00;
+  color: #ffffff;
 }
 
 .file-tree-buttons,
@@ -57,7 +57,7 @@
 }
 
 .file-tree-controls input[type="search"]:focus {
-  border-color: #ffcc00;
+  border-color: #02970e;
   outline: none;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .file-tree-controls button.btn-sort:hover {
-  color: #ffcc00;
+  color: #02970e;
 }
 
 /* -----------------------------------
@@ -97,8 +97,8 @@
 
 .btn:hover:not(:disabled) {
   background: #333;
-  border-color: #ffcc00;
-  color: #ffcc00;
+  border-color: #02970e;
+  color: #02970e;
 }
 
 .btn:disabled {
@@ -152,7 +152,7 @@
 }
 
 .tree-node.selected {
-  background-color: #ffcc00;
+  background-color: #02970e;
   color: #121212;
   font-weight: 700;
 }
@@ -173,7 +173,7 @@
 }
 
 .folder-icon {
-  color: #ffcc00;
+  color: #02970e;
 }
 
 .file-icon {
@@ -233,12 +233,12 @@
 .editor-header h3 {
   margin: 0;
   font-weight: 700;
-  color: #ffcc00;
+  color: #ffffff;
   user-select: none;
 }
 
 .btn-save {
-  background: #ffcc00;
+  background: #02970e;
   border: none;
   color: #121212;
   font-weight: 700;
@@ -319,7 +319,7 @@
 }
 
 .btn-clear-search:hover {
-  color: #ffcc00;
+  color: #02970e;
 }
 
 /* -----------------------------------
