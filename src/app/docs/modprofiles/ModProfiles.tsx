@@ -60,7 +60,7 @@ export default function ModManagerDocs() {
           fontWeight: "700",
         }}
       >
-        🧩 Mod Manager
+        🧩 Mod Manager Profiles
       </h1>
 
       <p
@@ -84,58 +84,55 @@ export default function ModManagerDocs() {
           maxWidth: 700,
         }}
       >
-        Manage your Project Zomboid mods easily with Modix Game Panel’s Mod
-        Manager. Browse, categorize, enable, disable, and uninstall mods right
-        from your dashboard.
+        Mod Profiles allow you to create and switch between different mod
+        collections easily. Each profile maintains its own list of mods,
+        categories, and settings.
       </p>
 
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ color: "#43b581", marginBottom: "0.5rem" }}>Features</h2>
         <ul style={{ lineHeight: 1.6, paddingLeft: "1.5rem" }}>
-          <li>Search mods by name or description.</li>
-          <li>Filter mods by category, or add your own categories.</li>
-          <li>Enable, disable, or uninstall mods with one click.</li>
-          <li>Check for mod updates directly.</li>
-          <li>Organize mods with customizable categories.</li>
+          <li>Create multiple mod profiles to organize different setups.</li>
+          <li>Switch between profiles to quickly load different mod lists.</li>
+          <li>Reset profiles to default mods at any time.</li>
+          <li>
+            Each profile stores mods, categories, and filter settings
+            independently.
+          </li>
+          <li>
+            Supports exporting mod lists per profile for backups or sharing.
+          </li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ color: "#43b581", marginBottom: "0.5rem" }}>
-          Using the Mod Manager
+          Using Mod Profiles
         </h2>
         <ol style={{ lineHeight: 1.6, paddingLeft: "1.5rem" }}>
-          <li>Use the search box to quickly find mods.</li>
-          <li>Filter by category using the category buttons.</li>
           <li>
-            Change a mod's category by selecting a new category from the
-            dropdown.
+            Select a profile from the profile dropdown at the top of the Mod
+            Manager.
           </li>
           <li>
-            Click <strong>Enable</strong> or <strong>Disable</strong> to toggle
-            mod states.
+            Create a new profile by entering a name and clicking "Create
+            Profile".
           </li>
           <li>
-            Uninstall mods with the <strong>Uninstall</strong> button when no
-            longer needed.
+            Each profile loads its own mods list, which you can customize
+            independently.
           </li>
           <li>
-            Click <strong>Check for Updates</strong> to verify if a mod has a
-            newer version.
+            Reset the current profile to default mods using the reset button.
+          </li>
+          <li>
+            Switch between list and grid views to display mods in your preferred
+            style.
+          </li>
+          <li>
+            Export or backup your profile’s mod list to keep your setups safe.
           </li>
         </ol>
-      </section>
-
-      <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ color: "#43b581", marginBottom: "0.5rem" }}>
-          Mod Categories
-        </h2>
-        <p style={{ lineHeight: 1.6, maxWidth: 700 }}>
-          Mods are organized into categories to help you manage and find them
-          quickly. You can filter mods by category using the buttons above the
-          mod list. If you want to add a new category, use the "Add Category"
-          input in the Mod Manager.
-        </p>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
@@ -143,10 +140,18 @@ export default function ModManagerDocs() {
           Tips & Best Practices
         </h2>
         <ul style={{ lineHeight: 1.6, paddingLeft: "1.5rem" }}>
-          <li>Always check for mod updates to avoid compatibility issues.</li>
-          <li>Disable mods you’re not actively using to reduce server load.</li>
-          <li>Organize mods into logical categories for easier maintenance.</li>
-          <li>Back up your mod configurations before uninstalling mods.</li>
+          <li>
+            Create separate profiles for different game modes or playstyles.
+          </li>
+          <li>
+            Keep backups of your mod profiles to avoid losing custom setups.
+          </li>
+          <li>
+            Regularly clean up unused profiles to keep your dashboard organized.
+          </li>
+          <li>
+            Use descriptive profile names to easily identify your mod setups.
+          </li>
         </ul>
       </section>
 

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import "./ModManager.css";
 
-const initialMods = [
+const defaultMods = [
   {
     id: "2937301109",
     name: "🧠 Superb Survivors",
@@ -56,10 +56,25 @@ const defaultCategories = [
 export default function ModManager() {
   const [search, setSearch] = useState("");
   const [checkingId, setCheckingId] = useState(null);
-  const [mods, setMods] = useState(initialMods);
   const [categories, setCategories] = useState(defaultCategories);
   const [newCategory, setNewCategory] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+
+  const [profiles, setProfiles] = useState({
+    Default: [...defaultMods],
+  });
+  const [activeProfile, setActiveProfile] = useState("Default");
+  const [newProfileName, setNewProfileName] = useState("");
+  const [layoutMode, setLayoutMode] = useState("list"); // or "grid"
+
+  const mods = profiles[activeProfile] || [];
+
+  const updateMods = (newMods) => {
+    setProfiles((prev) => ({
+      ...prev,
+      [activeProfile]: newMods,
+    }));
+  };
 
   const filteredMods = mods.filter(
     (mod) =>
@@ -67,6 +82,15 @@ export default function ModManager() {
       (mod.name.toLowerCase().includes(search.toLowerCase()) ||
         mod.description.toLowerCase().includes(search.toLowerCase()))
   );
+
+  // Export filtered mod IDs in order
+  const exportModList = () => {
+    const modIds = filteredMods.map((mod) => mod.id);
+    const exportText = modIds.join("\n");
+    navigator.clipboard.writeText(exportText).then(() => {
+      alert("Mod list exported to clipboard:\n" + exportText);
+    });
+  };
 
   const handleCheckUpdate = (id) => {
     setCheckingId(id);
@@ -77,11 +101,10 @@ export default function ModManager() {
   };
 
   const handleCategoryChange = (modId, newCategory) => {
-    setMods((prevMods) =>
-      prevMods.map((mod) =>
-        mod.id === modId ? { ...mod, category: newCategory } : mod
-      )
+    const updated = mods.map((mod) =>
+      mod.id === modId ? { ...mod, category: newCategory } : mod
     );
+    updateMods(updated);
   };
 
   const handleAddCategory = () => {
@@ -92,10 +115,86 @@ export default function ModManager() {
     }
   };
 
+  const handleCreateProfile = () => {
+    const trimmed = newProfileName.trim();
+    if (trimmed && !profiles[trimmed]) {
+      setProfiles((prev) => ({
+        ...prev,
+        [trimmed]: [...defaultMods],
+      }));
+      setActiveProfile(trimmed);
+      setNewProfileName("");
+    }
+  };
+
+  const handleResetToDefaultMods = () => {
+    updateMods([...defaultMods]);
+  };
+
   return (
     <div className="container">
       <div className="modlist-wrapper">
         <h1 className="modlist-title">🧩 Mod Manager</h1>
+        <p
+          className="modlist-description"
+          style={{ marginBottom: "1rem", color: "#fff", maxWidth: "600px" }}
+        >
+          Manage your game mods effortlessly — create profiles, organize by
+          categories, search and filter mods, enable or disable them, and export
+          your mod lists with ease.
+        </p>
+
+        <p style={{ marginBottom: "1rem", color: "#fff" }}>
+          Showing {filteredMods.length} mod
+          {filteredMods.length !== 1 ? "s" : ""} from {mods.length} total mod
+          {mods.length !== 1 ? "s" : ""} in profile "{activeProfile}"
+        </p>
+
+        <div
+          style={{
+            marginBottom: "1rem",
+            display: "flex",
+            gap: "0.5rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <label>Profile:</label>
+          <select
+            value={activeProfile}
+            onChange={(e) => setActiveProfile(e.target.value)}
+          >
+            {Object.keys(profiles).map((profile) => (
+              <option key={profile} value={profile}>
+                {profile}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="New profile name"
+            value={newProfileName}
+            onChange={(e) => setNewProfileName(e.target.value)}
+          />
+          <button className="mod-btn green" onClick={handleCreateProfile}>
+            Create Profile
+          </button>
+          <button className="mod-btn red" onClick={handleResetToDefaultMods}>
+            Reset Mods
+          </button>
+          <button
+            className="mod-btn gray"
+            onClick={() =>
+              setLayoutMode((prev) => (prev === "list" ? "grid" : "list"))
+            }
+          >
+            Switch to {layoutMode === "list" ? "Grid" : "List"} View
+          </button>
+
+          {/* Export button */}
+          <button className="mod-btn blue" onClick={exportModList}>
+            Export Mod IDs
+          </button>
+        </div>
 
         <div
           className="category-filters"
@@ -144,12 +243,12 @@ export default function ModManager() {
           </button>
         </div>
 
-        <div className="modlist-list">
+        <div className={`modlist-list ${layoutMode}`}>
           {filteredMods.length === 0 && (
             <p className="modlist-empty">🔍 No mods match your filters.</p>
           )}
           {filteredMods.map((mod) => (
-            <div className="modlist-item vertical" key={mod.id}>
+            <div className={`modlist-item ${layoutMode}`} key={mod.id}>
               <img
                 src={mod.thumbnail}
                 alt={mod.name}
@@ -178,6 +277,7 @@ export default function ModManager() {
                   className="modlist-buttons"
                   style={{ marginTop: "0.5rem" }}
                 >
+                  <button className="mod-btn green">Open</button>
                   <button className="mod-btn green">Enable</button>
                   <button className="mod-btn yellow">Disable</button>
                   <button className="mod-btn red">Uninstall</button>

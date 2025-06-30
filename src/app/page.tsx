@@ -123,7 +123,7 @@ export default function Dashboard() {
       <style>{`
         /* ========== Global Animations ========== */
         @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
+          0% { background-position: 0% 2%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
@@ -239,7 +239,7 @@ export default function Dashboard() {
         /* Server Info */
         .server-info-section {
           margin-top: 12px;
-          padding: 9px 12px;
+          padding: px 12px;
           background-color: rgba(255,255,255,0.06);
           border-radius: 8px;
           color: #c0c0c0;
@@ -442,7 +442,7 @@ export default function Dashboard() {
           display: block;
           font-weight: 500;
           font-size: 0.8rem;
-          padding: 6px 10px;
+          padding:1px 10px;
           border-radius: 6px;
           color: #ccc;
           text-decoration: none;
