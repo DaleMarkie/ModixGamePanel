@@ -61,7 +61,7 @@
   object-fit: cover;
   margin-right: 0.75rem; /* 1rem * 0.75 */
   flex-shrink: 0;
-  border: 1px solid #333;
+  border: 1px solid #339303;
 }
 
 .modlist-info {
@@ -264,4 +264,13 @@
 .modlist-item.list {
   display: flex;
   gap: 1rem;
+}
+.modlist-description {
+  margin-bottom: 1rem;
+  color: #ffffff; /* white text */
+  font-size: 1rem;
+  max-width: 600px;
+  line-height: 1.4;
+  font-weight: 400;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }

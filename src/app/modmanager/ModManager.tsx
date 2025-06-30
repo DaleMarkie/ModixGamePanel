@@ -135,6 +135,20 @@ export default function ModManager() {
     <div className="container">
       <div className="modlist-wrapper">
         <h1 className="modlist-title">🧩 Mod Manager</h1>
+        <p
+          className="modlist-description"
+          style={{ marginBottom: "1rem", color: "#fff", maxWidth: "600px" }}
+        >
+          Manage your game mods effortlessly — create profiles, organize by
+          categories, search and filter mods, enable or disable them, and export
+          your mod lists with ease.
+        </p>
+
+        <p style={{ marginBottom: "1rem", color: "#fff" }}>
+          Showing {filteredMods.length} mod
+          {filteredMods.length !== 1 ? "s" : ""} from {mods.length} total mod
+          {mods.length !== 1 ? "s" : ""} in profile "{activeProfile}"
+        </p>
 
         <div
           style={{
@@ -263,6 +277,7 @@ export default function ModManager() {
                   className="modlist-buttons"
                   style={{ marginTop: "0.5rem" }}
                 >
+                  <button className="mod-btn green">Open</button>
                   <button className="mod-btn green">Enable</button>
                   <button className="mod-btn yellow">Disable</button>
                   <button className="mod-btn red">Uninstall</button>
