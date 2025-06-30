@@ -274,8 +274,9 @@ export default function WorkshopPage() {
       <div className="workshop-header-container">
         <h1 className="workshop-title">Project Zomboid Workshop</h1>
         <p className="workshop-subtitle">
-          Discover and manage your favorite mods — create modlists, assign
-          colors, export IDs, and streamline your server setup.
+          Easily discover and organize your favorite mods by creating custom
+          modlists, assigning color codes, exporting mod IDs, and streamlining
+          your entire server setup process.
         </p>
       </div>
 
