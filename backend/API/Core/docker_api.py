@@ -93,3 +93,38 @@ def list_processes(container_id: str, db: Session = Depends(get_db)):
     # logger.warning(f"Could not list processes in container {container_id}")
     # return {"error": "Could not list processes. No supported command found."}
 
+# --- Start Container API ---
+@router.post("/docker/{container_id}/start", dependencies=[Depends(require_permission("container_start"))])
+def start_container(container_id: str, db: Session = Depends(get_db)):
+    dockerClient = docker.from_env()
+    try:
+        container = dockerClient.containers.get(container_id)
+    except docker.errors.NotFound:
+        raise HTTPException(status_code=404, detail="Container not found")
+    if container.status == "running":
+        return {"status": "already running"}
+    container.start()
+    return {"status": "started"}
+
+@router.post("/docker/{container_id}/stop", dependencies=[Depends(require_permission("container_stop"))])
+def stop_container(container_id: str, db: Session = Depends(get_db)):
+    dockerClient = docker.from_env()
+    try:
+        container = dockerClient.containers.get(container_id)
+    except docker.errors.NotFound:
+        raise HTTPException(status_code=404, detail="Container not found")
+    if container.status != "running":
+        return {"status": "already stopped"}
+    container.stop()
+    return {"status": "stopped"}
+
+@router.post("/docker/{container_id}/restart", dependencies=[Depends(require_permission("container_restart"))])
+def restart_container(container_id: str, db: Session = Depends(get_db)):
+    dockerClient = docker.from_env()
+    try:
+        container = dockerClient.containers.get(container_id)
+    except docker.errors.NotFound:
+        raise HTTPException(status_code=404, detail="Container not found")
+    container.restart()
+    return {"status": "restarted"}
+

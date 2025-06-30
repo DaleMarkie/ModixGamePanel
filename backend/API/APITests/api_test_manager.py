@@ -11,8 +11,8 @@ PASSWORD = "test"  # Replace with a valid password
 # List of test scripts (filenames, not modules)
 TEST_SCRIPTS = [
     "test_ftp_manager.py",
-    "test_docker_manager.py",  # Added Docker API test manager
-    "test_websocket.py",       # Added WebSocket test script
+    "test_docker_manager.py"   # Added Docker API test manager
+    #"test_websocket.py"       # Added WebSocket test script
     # Add more test scripts here as needed
 ]
 

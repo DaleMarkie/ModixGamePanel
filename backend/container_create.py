@@ -133,6 +133,9 @@ def create_generic_container_from_config(client, config, template_path=None):
         instance_folder_name = f"{deploy_id}"
         instance_folder_path = os.path.join(server_instances_dir, instance_folder_name)
         os.makedirs(instance_folder_path, exist_ok=True)
+        # Create terminal_logs directory for persistent terminal output
+        terminal_logs_path = os.path.join(instance_folder_path, 'terminal_logs')
+        os.makedirs(terminal_logs_path, exist_ok=True)
         placeholder_file = os.path.join(instance_folder_path, 'placeholder.txt')
         with open(placeholder_file, 'w') as f:
             f.write(f"This is a placeholder for {container_name} (Deploy ID: {deploy_id})\n")
@@ -195,6 +198,9 @@ def create_container_from_config(client, config, template_path=None):
         instance_folder_name = f"{deploy_id}"
         instance_folder_path = os.path.join(server_instances_dir, instance_folder_name)
         os.makedirs(instance_folder_path, exist_ok=True)
+        # Create terminal_logs directory for persistent terminal output
+        terminal_logs_path = os.path.join(instance_folder_path, 'terminal_logs')
+        os.makedirs(terminal_logs_path, exist_ok=True)
         placeholder_file = os.path.join(instance_folder_path, 'placeholder.txt')
         with open(placeholder_file, 'w') as f:
             f.write(f"This is a placeholder for {container_name} (Deploy ID: {deploy_id})\n")
