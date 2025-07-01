@@ -11,15 +11,20 @@ PASSWORD = "test"  # Replace with a valid password
 # List of test scripts (filenames, not modules)
 TEST_SCRIPTS = [
     "test_ftp_manager.py",
-    "test_docker_manager.py",  # Added Docker API test manager
+    "test_docker_manager.py"   # Added Docker API test manager
+    #"test_websocket.py"       # Added WebSocket test script
     # Add more test scripts here as needed
 ]
+
+def strip_trailing_slash(url):
+    return url[:-1] if url.endswith('/') else url
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Authenticate and get token
 def get_auth_token():
     data = {"username": USERNAME, "password": PASSWORD}
+    # Sends credentials as form data (not JSON)
     resp = requests.post(AUTH_URL, data=data)
     print(f"[DEBUG] Login response: {resp.status_code} {resp.text}")
     resp.raise_for_status()
@@ -37,6 +42,8 @@ def run_tests():
     for script in TEST_SCRIPTS:
         script_path = os.path.join(BASE_DIR, script)
         print(f"\n=== Running {script} ===")
+        # Ensure API_URL is passed to subprocesses without trailing slash
+        env["API_URL"] = strip_trailing_slash(API_URL)
         result = subprocess.run(["python3", script_path], env=env, capture_output=True, text=True)
         print(f"[DEBUG] {script} stdout:\n{result.stdout}")
         print(f"[DEBUG] {script} stderr:\n{result.stderr}")
