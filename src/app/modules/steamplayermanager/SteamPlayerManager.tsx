@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FaSearch,
   FaCheckCircle,
@@ -17,49 +17,32 @@ import "./SteamPlayerManager.css";
 const SPECIAL_STEAM_ID = "76561198347512345";
 
 const SteamPlayerManager = () => {
-  const [players, setPlayers] = useState([
-    {
-      steamId: "76561198000000001",
-      name: "PlayerOne",
-      online: true,
-      playtime: 123,
-      vacBanned: false,
-      vpn: true,
-      countryCode: "us",
-      countryName: "United States",
-      banned: false,
-      notes: "",
-    },
-    {
-      steamId: "76561198000000002",
-      name: "PlayerTwo",
-      online: false,
-      playtime: 45,
-      vacBanned: true,
-      vpn: false,
-      countryCode: "de",
-      countryName: "Germany",
-      banned: true,
-      notes: "Repeated cheating",
-    },
-    {
-      steamId: "76561198000000003",
-      name: "PlayerThree",
-      online: true,
-      playtime: 300,
-      vacBanned: false,
-      vpn: false,
-      countryCode: "fr",
-      countryName: "France",
-      banned: false,
-      notes: "",
-    },
-  ]);
+  const [players, setPlayers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewOnline, setViewOnline] = useState("all");
   const [sortType, setSortType] = useState("name");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
+
+  // Fetch players from backend API
+  const fetchPlayers = async () => {
+    setLoadingPlayers(true);
+    try {
+      const res = await fetch("/api/players");
+      if (!res.ok) throw new Error("Failed to fetch players");
+      const data = await res.json();
+      setPlayers(data);
+    } catch (error) {
+      alert("Error loading players: " + error.message);
+    } finally {
+      setLoadingPlayers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlayers();
+  }, []);
 
   const filteredPlayers = useMemo(() => {
     let filtered = players;
@@ -71,24 +54,54 @@ const SteamPlayerManager = () => {
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     if (sortType === "name")
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
+      filtered = filtered.slice().sort((a, b) => a.name.localeCompare(b.name));
     else if (sortType === "playtime")
-      filtered.sort((a, b) => b.playtime - a.playtime);
+      filtered = filtered.slice().sort((a, b) => b.playtime - a.playtime);
     return filtered;
   }, [players, searchTerm, viewOnline, sortType]);
 
-  // Ban toggle
-  const toggleBan = (steamId) => {
+  // Ban toggle with backend update
+  const toggleBan = async (steamId) => {
+    const player = players.find((p) => p.steamId === steamId);
+    if (!player) return;
+
+    // Optimistic UI update:
     setPlayers((prev) =>
       prev.map((p) => (p.steamId === steamId ? { ...p, banned: !p.banned } : p))
     );
+
+    try {
+      const res = await fetch("/api/playerNotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          steamId,
+          banned: !player.banned,
+          notes: player.notes,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update ban status");
+      // Refresh full list to sync server state
+      await fetchPlayers();
+    } catch (error) {
+      alert("Error updating ban: " + error.message);
+      // revert UI if error
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.steamId === steamId ? { ...p, banned: player.banned } : p
+        )
+      );
+    }
   };
 
-  // Notes change locally
+  // Notes change locally in modal
   const changeNotes = (steamId, notes) => {
     setPlayers((prev) =>
       prev.map((p) => (p.steamId === steamId ? { ...p, notes } : p))
     );
+    if (selectedPlayer?.steamId === steamId) {
+      setSelectedPlayer({ ...selectedPlayer, notes });
+    }
   };
 
   // Save notes to backend
@@ -102,10 +115,12 @@ const SteamPlayerManager = () => {
         body: JSON.stringify({
           steamId: selectedPlayer.steamId,
           notes: selectedPlayer.notes,
+          banned: selectedPlayer.banned,
         }),
       });
       if (!response.ok) throw new Error("Failed to save notes");
       alert("Notes saved successfully!");
+      await fetchPlayers(); // refresh list after save
     } catch (error) {
       alert(`Error: ${error.message}`);
     } finally {
@@ -171,19 +186,13 @@ const SteamPlayerManager = () => {
           </div>
         </div>
       </header>
-      <header className="spm-header"> 
-  <p className="spm-description">
-    Manage and monitor your Steam players easily. Search, filter by online status, and sort players by name or playtime. 
-    View detailed player info including VAC bans, VPN detection, and notes. You can also ban or unban players directly and keep personal notes for better moderation.
-  </p>
-  <div className="spm-controls">
-    {/* existing controls */}
-  </div>
-</header>
 
       {/* Player list */}
       <main className="player-list" role="list">
-        {filteredPlayers.length === 0 && <p>No players found.</p>}
+        {loadingPlayers && <p>Loading players...</p>}
+        {!loadingPlayers && filteredPlayers.length === 0 && (
+          <p>No players found.</p>
+        )}
         {filteredPlayers.map((player) => (
           <article
             key={player.steamId}
@@ -243,75 +252,56 @@ const SteamPlayerManager = () => {
 
       {/* Modal */}
       {selectedPlayer && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setSelectedPlayer(null)}
-          aria-modal="true"
+        <aside
+          className="modal"
           role="dialog"
-          aria-labelledby="modal-title"
-          tabIndex={-1}
+          aria-modal="true"
+          aria-labelledby="modalTitle"
+          onClick={() => setSelectedPlayer(null)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="modal-close"
-              aria-label="Close modal"
-              onClick={() => setSelectedPlayer(null)}
-            >
-              <FaTimes />
-            </button>
-            <h2 id="modal-title">{selectedPlayer.name} Info</h2>
-            <p>
-              <strong>Steam ID:</strong> {selectedPlayer.steamId}
-            </p>
-            <p>
-              <strong>Online:</strong> {selectedPlayer.online ? "Yes" : "No"}
-            </p>
-            <p>
-              <strong>Playtime:</strong> {selectedPlayer.playtime} hours
-            </p>
-            <p>
-              <strong>Country:</strong> {selectedPlayer.countryName} (
-              {selectedPlayer.countryCode?.toUpperCase()})
-            </p>
-            <p>
-              <strong>VAC Banned:</strong>{" "}
-              {selectedPlayer.vacBanned ? "Yes" : "No"}
-            </p>
-            <p>
-              <strong>VPN Detected:</strong> {selectedPlayer.vpn ? "Yes" : "No"}
-            </p>
-
-            <div className="modal-actions">
+          <section
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header>
+              <h2 id="modalTitle">{selectedPlayer.name}</h2>
               <button
-                onClick={() => toggleBan(selectedPlayer.steamId)}
-                className={selectedPlayer.banned ? "btn-unban" : "btn-ban"}
+                aria-label="Close"
+                onClick={() => setSelectedPlayer(null)}
+                className="close-button"
               >
-                {selectedPlayer.banned ? "Unban" : "Ban"}
+                <FaTimes />
               </button>
-            </div>
-
-            <div className="modal-notes">
-              <label htmlFor="notes-textarea">Notes:</label>
+            </header>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveNotes();
+              }}
+            >
+              <label htmlFor="notesTextarea">Notes</label>
               <textarea
-                id="notes-textarea"
+                id="notesTextarea"
                 value={selectedPlayer.notes}
                 onChange={(e) =>
                   changeNotes(selectedPlayer.steamId, e.target.value)
                 }
-                rows={5}
-                placeholder="Add notes about this player..."
-                disabled={savingNotes}
+                rows={6}
               />
-              <button
-                onClick={saveNotes}
-                className="btn-save-notes"
-                disabled={savingNotes}
-              >
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedPlayer.banned}
+                  onChange={() => toggleBan(selectedPlayer.steamId)}
+                />
+                Ban Player
+              </label>
+              <button type="submit" disabled={savingNotes}>
                 {savingNotes ? "Saving..." : "Save Notes"}
               </button>
-            </div>
-          </div>
-        </div>
+            </form>
+          </section>
+        </aside>
       )}
     </div>
   );
