@@ -20,28 +20,17 @@ export default function InstalledPage() {
       </h1>
 
       <p className="text-sm md:text-base max-w-xl text-gray-300 font-medium leading-relaxed select-none">
-        Your Modix Game Panel has been installed successfully and is now ready
-        to power your Project Zomboid experience.
+      Modix Game Panel is a feature-rich server manager designed specifically for Project Zomboid. Built from scratch with modding, performance, and ease of use in mind, Modix is a serious alternative to outdated tools like TCAdmin, AMP, or GameCP optimized for Linux VPS and dedicated servers. Developed By OV3RLORD & GameSmithOnline.
       </p>
 
       <section className="max-w-md mx-auto text-sm text-gray-400 italic mt-4">
         <p className="mb-3 font-semibold text-gray-300">
-          Please <strong className="text-white">log in</strong> to access the
-          panel — it’s free for personal use and quick to sign up.
+        Manage your mods, customize settings, and monitor gameplay all within one sleek, modern interface.
         </p>
         <p className="font-normal">
-          Manage your mods, customize settings, and monitor gameplay — all
-          within one sleek, modern interface.
+        Download exclusively from the official GitHub repository to ensure security and authenticity or from our website https://modix.store
         </p>
 
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            onClick={() => alert("Starting tutorial...")}
-            className="bg-orange-400 hover:bg-orange-500 text-white font-bold py-2.5 px-5 rounded-lg transition-all duration-200"
-          >
-            Start Tutorial
-          </button>
-        </div>
       </section>
 
       <section className="bg-[#1e1e1e] rounded-xl p-6 w-full max-w-lg text-left">
