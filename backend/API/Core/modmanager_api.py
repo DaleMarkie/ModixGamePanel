@@ -1,96 +1,71 @@
-import subprocess
+import os
+import json
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+PROFILES_FILE = "pz_profiles.json"
 
-class Player(BaseModel):
-    steamId: str
-    name: str
-    online: bool
-    playtime: int
-    vacBanned: bool
-    vpn: bool
-    countryCode: str
-    countryName: str
-    banned: bool
-    notes: str
+def load_profiles():
+    if os.path.exists(PROFILES_FILE):
+        with open(PROFILES_FILE, "r") as f:
+            return json.load(f)
+    return {"profiles": {}, "categories": {}}
 
-class PlayerUpdate(BaseModel):
-    steamId: str
-    notes: Optional[str] = None
-    banned: Optional[bool] = None
+def save_profiles(data):
+    with open(PROFILES_FILE, "w") as f:
+        json.dump(data, f, indent=2)
 
-players_notes_db = {}  # store notes & bans keyed by steamId
+class ProfileSaveRequest(BaseModel):
+    profile_name: str
+    mods: List[str]
 
-def get_live_players_from_docker():
-    try:
-        # Replace with actual docker exec call to get live player data
-        output = subprocess.check_output(
-            ["docker", "exec", "devcontainer", "your_player_list_command"],
-            text=True,
-        )
-        # TODO: parse real output here; currently dummy players:
-        dummy_players = [
-            Player(
-                steamId="76561198000000001",
-                name="PlayerOne",
-                online=True,
-                playtime=123,
-                vacBanned=False,
-                vpn=True,
-                countryCode="us",
-                countryName="United States",
-                banned=False,
-                notes="",
-            ),
-            Player(
-                steamId="76561198000000002",
-                name="PlayerTwo",
-                online=False,
-                playtime=45,
-                vacBanned=True,
-                vpn=False,
-                countryCode="de",
-                countryName="Germany",
-                banned=False,
-                notes="",
-            ),
-        ]
-        return dummy_players
-    except subprocess.CalledProcessError as e:
-        print(f"Error querying docker container: {e}")
-        return []
+class CategorySaveRequest(BaseModel):
+    category_name: str
+    mods: List[str]
 
-@app.get("/api/players", response_model=List[Player])
-def get_players():
-    live_players = get_live_players_from_docker()
-    if not live_players:
-        raise HTTPException(status_code=503, detail="No players found or server not running")
+class ProfileDeleteRequest(BaseModel):
+    profile_name: str
 
-    # Merge notes and banned status from players_notes_db
-    for p in live_players:
-        if p.steamId in players_notes_db:
-            p.notes = players_notes_db[p.steamId].get("notes", "")
-            p.banned = players_notes_db[p.steamId].get("banned", False)
-    return live_players
+class CategoryDeleteRequest(BaseModel):
+    category_name: str
 
-@app.post("/api/playerNotes")
-def update_player(update: PlayerUpdate):
-    if update.steamId not in players_notes_db:
-        players_notes_db[update.steamId] = {"notes": "", "banned": False}
-    if update.notes is not None:
-        players_notes_db[update.steamId]["notes"] = update.notes
-    if update.banned is not None:
-        players_notes_db[update.steamId]["banned"] = update.banned
-    return {"message": "Player notes updated"}
+@app.get("/profiles")
+def get_profiles():
+    return load_profiles()
+
+@app.post("/profiles/save")
+def save_profile(request: ProfileSaveRequest):
+    data = load_profiles()
+    data["profiles"][request.profile_name] = request.mods
+    save_profiles(data)
+    return {"message": f"Profile '{request.profile_name}' saved."}
+
+@app.post("/categories/save")
+def save_category(request: CategorySaveRequest):
+    data = load_profiles()
+    data["categories"][request.category_name] = request.mods
+    save_profiles(data)
+    return {"message": f"Category '{request.category_name}' saved."}
+
+@app.post("/profiles/delete")
+def delete_profile(request: ProfileDeleteRequest):
+    data = load_profiles()
+    if request.profile_name in data["profiles"]:
+        del data["profiles"][request.profile_name]
+        save_profiles(data)
+        return {"message": f"Profile '{request.profile_name}' deleted."}
+    else:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+@app.post("/categories/delete")
+def delete_category(request: CategoryDeleteRequest):
+    data = load_profiles()
+    if request.category_name in data["categories"]:
+        del data["categories"][request.category_name]
+        save_profiles(data)
+        return {"message": f"Category '{request.category_name}' deleted."}
+    else:
+        raise HTTPException(status_code=404, detail="Category not found")

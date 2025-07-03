@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ModManager.css";
 
 const defaultMods = [
@@ -54,20 +54,49 @@ const defaultCategories = [
 ];
 
 export default function ModManager() {
+  // Load from localStorage or fallback to default
+  const [profiles, setProfiles] = useState(() => {
+    const saved = localStorage.getItem("modmanager_profiles");
+    return saved ? JSON.parse(saved) : { Default: [...defaultMods] };
+  });
+
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem("modmanager_categories");
+    return saved ? JSON.parse(saved) : defaultCategories;
+  });
+
   const [search, setSearch] = useState("");
   const [checkingId, setCheckingId] = useState(null);
-  const [categories, setCategories] = useState(defaultCategories);
   const [newCategory, setNewCategory] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const [profiles, setProfiles] = useState({
-    Default: [...defaultMods],
+  const [activeProfile, setActiveProfile] = useState(() => {
+    const saved = localStorage.getItem("modmanager_activeProfile");
+    return saved || "Default";
   });
-  const [activeProfile, setActiveProfile] = useState("Default");
+
   const [newProfileName, setNewProfileName] = useState("");
-  const [layoutMode, setLayoutMode] = useState("list"); // or "grid"
+  const [layoutMode, setLayoutMode] = useState("list");
+
+  const [containerId, setContainerId] = useState("");
+  const [loadingContainerMods, setLoadingContainerMods] = useState(false);
 
   const mods = profiles[activeProfile] || [];
+
+  // Save profiles to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("modmanager_profiles", JSON.stringify(profiles));
+  }, [profiles]);
+
+  // Save categories to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("modmanager_categories", JSON.stringify(categories));
+  }, [categories]);
+
+  // Save activeProfile to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("modmanager_activeProfile", activeProfile);
+  }, [activeProfile]);
 
   const updateMods = (newMods) => {
     setProfiles((prev) => ({
@@ -83,7 +112,6 @@ export default function ModManager() {
         mod.description.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Export filtered mod IDs in order
   const exportModList = () => {
     const modIds = filteredMods.map((mod) => mod.id);
     const exportText = modIds.join("\n");
@@ -131,6 +159,82 @@ export default function ModManager() {
     updateMods([...defaultMods]);
   };
 
+  const loadModsFromContainer = async () => {
+    if (!containerId.trim()) {
+      alert("Please enter a valid Docker container ID.");
+      return;
+    }
+    setLoadingContainerMods(true);
+    try {
+      const res = await fetch(`/pzmods/${containerId.trim()}`);
+      if (!res.ok) {
+        throw new Error(`Error fetching mods: ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (!data.mods || !Array.isArray(data.mods)) {
+        throw new Error("Invalid data format from backend");
+      }
+
+      const newMods = data.mods.map((modId) => {
+        const found = defaultMods.find((m) => m.id === modId);
+        if (found) return found;
+        return {
+          id: modId,
+          name: "Unknown Mod",
+          mod_id: modId,
+          description: "No info available for this mod.",
+          thumbnail: "https://via.placeholder.com/64?text=Unknown",
+          category: "Miscellaneous",
+        };
+      });
+
+      updateMods(newMods);
+      setActiveCategory("All");
+      setSearch("");
+      alert(`Loaded ${newMods.length} mods from container ${containerId}`);
+    } catch (err) {
+      alert(err.message || "Failed to load mods from container.");
+    } finally {
+      setLoadingContainerMods(false);
+    }
+  };
+
+  // New: Delete a mod from current profile
+  const handleDeleteMod = (modId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this mod from the current profile?"
+      )
+    ) {
+      const updatedMods = mods.filter((mod) => mod.id !== modId);
+      updateMods(updatedMods);
+    }
+  };
+
+  // New: Delete category and move mods to "Miscellaneous"
+  const handleDeleteCategory = (categoryToDelete) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete category "${categoryToDelete}"? Mods in this category will be moved to "Miscellaneous".`
+      )
+    ) {
+      const updatedCategories = categories.filter(
+        (cat) => cat !== categoryToDelete
+      );
+      const updatedMods = mods.map((mod) =>
+        mod.category === categoryToDelete
+          ? { ...mod, category: "Miscellaneous" }
+          : mod
+      );
+      setCategories(updatedCategories);
+      updateMods(updatedMods);
+      // If activeCategory was deleted, reset to "All"
+      if (activeCategory === categoryToDelete) {
+        setActiveCategory("All");
+      }
+    }
+  };
+
   return (
     <div className="container">
       <div className="modlist-wrapper">
@@ -149,6 +253,25 @@ export default function ModManager() {
           {filteredMods.length !== 1 ? "s" : ""} from {mods.length} total mod
           {mods.length !== 1 ? "s" : ""} in profile "{activeProfile}"
         </p>
+
+        <div style={{ marginBottom: "1rem", display: "flex", gap: "0.5rem" }}>
+          <input
+            type="text"
+            placeholder="Enter Docker container ID"
+            value={containerId}
+            onChange={(e) => setContainerId(e.target.value)}
+            style={{ flexGrow: 1, padding: "0.5rem" }}
+          />
+          <button
+            className="mod-btn blue"
+            onClick={loadModsFromContainer}
+            disabled={loadingContainerMods}
+          >
+            {loadingContainerMods
+              ? "Loading Mods..."
+              : "Load Mods from Container"}
+          </button>
+        </div>
 
         <div
           style={{
@@ -189,76 +312,104 @@ export default function ModManager() {
           >
             Switch to {layoutMode === "list" ? "Grid" : "List"} View
           </button>
-
-          {/* Export button */}
-          <button className="mod-btn blue" onClick={exportModList}>
-            Export Mod IDs
-          </button>
         </div>
 
         <div
-          className="category-filters"
           style={{
             marginBottom: "1rem",
-            flexWrap: "wrap",
             display: "flex",
             gap: "0.5rem",
+            flexWrap: "wrap",
+            alignItems: "center",
           }}
         >
+          <label>Filter by category:</label>
           <button
-            className={`mod-btn ${activeCategory === "All" ? "blue" : "gray"}`}
+            className={`mod-btn category-btn ${
+              activeCategory === "All" ? "active" : ""
+            }`}
             onClick={() => setActiveCategory("All")}
           >
             All
           </button>
           {categories.map((cat) => (
-            <button
+            <div
               key={cat}
-              className={`mod-btn ${activeCategory === cat ? "blue" : "gray"}`}
-              onClick={() => setActiveCategory(cat)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
             >
-              {cat}
-            </button>
+              <button
+                className={`mod-btn category-btn ${
+                  activeCategory === cat ? "active" : ""
+                }`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat}
+              </button>
+              {/* Show delete button for category if not "All" */}
+              {cat !== "All" && cat !== "Miscellaneous" && (
+                <button
+                  className="mod-btn red small"
+                  title={`Delete category ${cat}`}
+                  onClick={() => handleDeleteCategory(cat)}
+                  style={{
+                    padding: "0 5px",
+                    height: "24px",
+                    fontWeight: "bold",
+                    lineHeight: "1",
+                    marginLeft: 2,
+                    userSelect: "none",
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           ))}
-        </div>
-
-        <input
-          type="text"
-          placeholder="Search mods..."
-          className="modlist-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <div style={{ margin: "1rem 0" }}>
           <input
             type="text"
             placeholder="Add new category"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            style={{ marginRight: "0.5rem" }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAddCategory();
+            }}
+            style={{ marginLeft: "auto", padding: "0.2rem 0.5rem" }}
           />
-          <button onClick={handleAddCategory} className="mod-btn green">
+          <button className="mod-btn green small" onClick={handleAddCategory}>
             Add Category
           </button>
         </div>
 
-        <div className={`modlist-list ${layoutMode}`}>
-          {filteredMods.length === 0 && (
-            <p className="modlist-empty">🔍 No mods match your filters.</p>
-          )}
+        <input
+          className="modlist-search"
+          type="text"
+          placeholder="Search mods..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <button
+          className="mod-btn blue"
+          onClick={exportModList}
+          style={{ marginBottom: "1rem" }}
+        >
+          Export Mod List
+        </button>
+
+        <ul className={`modlist ${layoutMode}`}>
           {filteredMods.map((mod) => (
-            <div className={`modlist-item ${layoutMode}`} key={mod.id}>
+            <li key={mod.id} className="modlist-item">
               <img
+                className="modlist-item-thumb"
                 src={mod.thumbnail}
                 alt={mod.name}
-                className="modlist-thumb"
+                width={64}
+                height={64}
               />
-              <div className="modlist-info">
-                <h3>{mod.name}</h3>
-                <span className="mod-id">{mod.mod_id}</span>
-                <p>{mod.description}</p>
-                <label>
+              <div className="modlist-item-info">
+                <h3 className="modlist-item-title">{mod.name}</h3>
+                <p className="modlist-item-desc">{mod.description}</p>
+                <p className="modlist-item-category">
                   Category:{" "}
                   <select
                     value={mod.category}
@@ -272,29 +423,37 @@ export default function ModManager() {
                       </option>
                     ))}
                   </select>
-                </label>
+                </p>
                 <div
-                  className="modlist-buttons"
-                  style={{ marginTop: "0.5rem" }}
+                  style={{
+                    marginTop: "0.25rem",
+                    display: "flex",
+                    gap: "0.5rem",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
                 >
-                  <button className="mod-btn green">Open</button>
-                  <button className="mod-btn green">Enable</button>
-                  <button className="mod-btn yellow">Disable</button>
-                  <button className="mod-btn red">Uninstall</button>
                   <button
-                    className="mod-btn blue"
+                    className="mod-btn gray"
                     onClick={() => handleCheckUpdate(mod.id)}
                     disabled={checkingId === mod.id}
                   >
-                    {checkingId === mod.id
-                      ? "Checking..."
-                      : "Check for Updates"}
+                    {checkingId === mod.id ? "Checking..." : "Check Update"}
+                  </button>
+
+                  {/* New: Delete mod button */}
+                  <button
+                    className="mod-btn red"
+                    onClick={() => handleDeleteMod(mod.id)}
+                    title="Delete this mod"
+                  >
+                    Delete
                   </button>
                 </div>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   );
