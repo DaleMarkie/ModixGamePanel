@@ -33,14 +33,34 @@ class PlayerUpdate(BaseModel):
 
 players_notes_db = {}  # store notes & bans keyed by steamId
 
-def get_live_players_from_docker():
+def find_pz_container():
     try:
-        # Replace with actual docker exec call to get live player data
+        # Change "projectzomboid" to your actual container name or filter string
+        container_ids = subprocess.check_output(
+            ['docker', 'ps', '--filter', 'name=projectzomboid', '--format', '{{.ID}}'],
+            text=True,
+        ).strip().split('\n')
+        if container_ids and container_ids[0]:
+            return container_ids[0]
+        return None
+    except subprocess.CalledProcessError as e:
+        print(f"Error finding Project Zomboid container: {e}")
+        return None
+
+def get_live_players_from_docker():
+    container_id = find_pz_container()
+    if not container_id:
+        print("No Project Zomboid container running")
+        return []
+
+    try:
+        # Replace 'your_player_list_command' with actual command inside container to get player data
         output = subprocess.check_output(
-            ["docker", "exec", "devcontainer", "your_player_list_command"],
+            ["docker", "exec", container_id, "your_player_list_command"],
             text=True,
         )
-        # TODO: parse real output here; currently dummy players:
+        # TODO: parse output string into Player instances properly
+        # For now, return dummy data
         dummy_players = [
             Player(
                 steamId="76561198000000001",
