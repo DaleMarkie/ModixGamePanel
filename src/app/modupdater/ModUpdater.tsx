@@ -1,36 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaClock, FaFolderOpen, FaDownload } from "react-icons/fa";
 import "./ModUpdater.css";
 
-const updatedMods = [
-  {
-    id: "2346789012",
-    name: "Better Sorting",
-    lastUpdated: "June 23, 2025 14:12",
-    path: "C:/Steam/steamapps/workshop/content/108600/2346789012",
-  },
-  {
-    id: "1987654321",
-    name: "True Actions: Sit, Sleep, and Lay Down",
-    lastUpdated: "June 24, 2025 10:05",
-    path: "C:/Steam/steamapps/workshop/content/108600/1987654321",
-  },
-  {
-    id: "2098765432",
-    name: "Hydrocraft",
-    lastUpdated: "June 22, 2025 19:47",
-    path: "C:/Steam/steamapps/workshop/content/108600/2098765432",
-  },
-];
-
-// Simulated backup + update handler
-const backupAndUpdateMod = (mod) => {
-  alert(`Backing up and updating mod:\n${mod.name} (ID: ${mod.id})`);
-};
-
 const ModUpdater = () => {
+  const [updatedMods, setUpdatedMods] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUpdatedMods = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/mods/updated"); // Replace with your API host if needed
+        const data = await response.json();
+        setUpdatedMods(data);
+      } catch (err) {
+        console.error("Failed to fetch updated mods:", err);
+        setUpdatedMods([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUpdatedMods();
+  }, []);
+
+  const backupAndUpdateMod = (mod) => {
+    alert(`Backing up and updating mod:\n${mod.name} (ID: ${mod.id})`);
+  };
+
   return (
     <section className="mod-updater">
       <header className="mod-updater-header">
@@ -41,7 +39,9 @@ const ModUpdater = () => {
         </p>
       </header>
 
-      {updatedMods.length === 0 ? (
+      {loading ? (
+        <div className="loading">Checking for mod updates...</div>
+      ) : updatedMods.length === 0 ? (
         <div className="no-updates">
           <p>
             <strong>No mods to update!</strong>
