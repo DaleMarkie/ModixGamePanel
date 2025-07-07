@@ -107,8 +107,7 @@ const DdosManager = () => {
         DDoS Protection Control Hub
       </h1>
       <p className="mb-6 text-gray-400 max-w-xl leading-relaxed">
-        Welcome to the DDoS Protection Control Hub — your centralized dashboard
-        for proactive defense and real-time monitoring of distributed
+        Your centralized defense and real-time monitoring of distributed
         denial-of-service attacks targeting your Dockerized game servers. Here,
         you can visualize network traffic patterns, identify Docker containers
         currently under threat, review suspicious IP addresses attempting to
