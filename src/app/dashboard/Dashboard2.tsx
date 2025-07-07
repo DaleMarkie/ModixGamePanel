@@ -82,6 +82,18 @@ const allModules = [
     category: "Game Configuration",
   },
   {
+    name: "Player Manager",
+    status: "Active",
+    tooltip: "Edit server files directly",
+    preinstalled: true,
+    version: "1.0.3",
+    author: "Modix Dev Team",
+    lastUpdated: "April 26, 2025",
+    description:
+      "Navigate, edit, and manage server files securely from your browser with advanced file control.",
+    category: "Game Configuration",
+  },
+  {
     name: "Mod Manager",
     status: "Active",
     tooltip: "Enable, disable, and organize mods",
