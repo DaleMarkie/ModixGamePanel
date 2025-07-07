@@ -115,7 +115,7 @@ const DdosManager = () => {
         breach your servers, and execute swift mitigation actions such as
         blocking malicious IPs or toggling attack states on individual
         containers. Stay ahead of threats and maintain optimal server
-        performance with this comprehensive security control center.
+        performance with this comprehensive security control center
       </p>
 
       <section className="attack-status mb-8">
