@@ -1,0 +1,264 @@
+.ddos-page {
+  padding: 1.5rem; /* p-6 */
+  background-color: #1a202c; /* bg-gray-900 */
+  color: white;
+  min-height: 100vh;
+  max-width: 48rem; /* max-w-4xl ~ 768px */
+  margin-left: auto;
+  margin-right: auto;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.ddos-page h1 {
+  font-weight: 800; /* extrabold */
+  font-size: 1.875rem; /* text-3xl */
+  margin-bottom: 1.5rem; /* mb-6 */
+  letter-spacing: 0.05em; /* tracking-wide */
+}
+
+.ddos-page p {
+  margin-bottom: 1.5rem;
+  color: #a0aec0; /* text-gray-400 */
+  max-width: 40rem; /* max-w-xl */
+  line-height: 1.625; /* leading-relaxed */
+}
+
+.attack-status h2,
+.traffic-chart h2,
+.docker-status h2,
+.suspicious-ips h2 {
+  font-weight: 600; /* font-semibold */
+  font-size: 1.25rem; /* text-xl */
+  margin-bottom: 0.5rem; /* mb-2 or mb-3 */
+}
+
+.attack-status p {
+  font-size: 1.125rem; /* text-lg */
+  color: #d1d5db; /* text-gray-300 */
+}
+
+.traffic-chart {
+  background-color: #2d3748; /* bg-gray-800 */
+  border-radius: 0.5rem; /* rounded-lg */
+  padding: 1rem; /* p-4 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-lg */
+}
+
+.docker-status ul,
+.suspicious-ips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.docker-status li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem; /* p-3 */
+  margin-bottom: 0.75rem; /* mb-3 */
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.docker-status li.bg-green {
+  background-color: #2f855a; /* bg-green-700 */
+  box-shadow: 0 0 8px #276749; /* shadow-green-800 */
+}
+
+.docker-status li.bg-red {
+  background-color: #9b2c2c; /* bg-red-700 */
+  box-shadow: 0 0 8px #822727; /* shadow-red-800 */
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px #822727;
+  }
+  50% {
+    box-shadow: 0 0 20px #f56565;
+  }
+}
+
+.docker-status strong {
+  font-size: 1.125rem; /* text-lg */
+}
+
+.docker-status span.text-sm {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: #d1d5db;
+}
+
+.docker-status .under-attack-badge {
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  background-color: #742a2a; /* bg-red-900 */
+  color: #feb2b2; /* text-red-300 */
+  display: inline-block;
+}
+
+.docker-status button {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: white;
+  transition: background-color 0.3s;
+  cursor: pointer;
+  border: none;
+}
+
+.docker-status button.green {
+  background-color: #2f855a; /* bg-green-600 */
+}
+
+.docker-status button.green:hover {
+  background-color: #276749; /* hover:bg-green-800 */
+}
+
+.docker-status button.yellow {
+  background-color: #d69e2e; /* bg-yellow-600 */
+}
+
+.docker-status button.yellow:hover {
+  background-color: #b7791f; /* hover:bg-yellow-800 */
+}
+
+.suspicious-ips p {
+  color: #a0aec0;
+  font-style: italic;
+}
+
+.suspicious-ips ul {
+  max-height: 14rem; /* max-h-56 */
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.suspicious-ips li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem; /* p-2 */
+  background-color: #2d3748; /* bg-gray-800 */
+  border-radius: 0.375rem; /* rounded */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.suspicious-ips .font-mono {
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.suspicious-ips .threat-level {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.threat-level.high {
+  background-color: #9b2c2c;
+  color: #feb2b2;
+}
+
+.threat-level.medium {
+  background-color: #d69e2e;
+  color: #faf089;
+}
+
+.threat-level.low {
+  background-color: #2f855a;
+  color: #c6f6d5;
+}
+
+.suspicious-ips button {
+  margin-left: 0.75rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #9b2c2c; /* bg-red-700 */
+  color: white;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.suspicious-ips button:hover {
+  background-color: #822727; /* hover:bg-red-800 */
+}
+
+/* SVG text styling */
+svg text {
+  user-select: none;
+}
+
+/* Utility classes for colors based on your JS dynamic classes */
+
+.bg-green-700 {
+  background-color: #2f855a;
+}
+
+.bg-red-700 {
+  background-color: #9b2c2c;
+}
+
+.bg-red-900 {
+  background-color: #742a2a;
+}
+
+.bg-green-600 {
+  background-color: #38a169;
+}
+
+.bg-yellow-600 {
+  background-color: #d69e2e;
+}
+
+.bg-yellow-800 {
+  background-color: #b7791f;
+}
+
+.text-green-200 {
+  color: #c6f6d5;
+}
+
+.text-yellow-200 {
+  color: #faf089;
+}
+
+.text-red-200 {
+  color: #feb2b2;
+}
+
+.text-gray-300 {
+  color: #d1d5db;
+}
+
+.text-gray-400 {
+  color: #a0aec0;
+}
+
+.shadow-green-800 {
+  box-shadow: 0 0 8px #276749;
+}
+
+.shadow-red-800 {
+  box-shadow: 0 0 8px #822727;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
