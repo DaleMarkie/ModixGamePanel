@@ -1,0 +1,58 @@
+{
+  "PZPlayerManager": {
+    "description": "Manages players for Project Zomboid servers.",
+    "settings": {
+      "max_players": 32,
+      "player_data_directory": "/pzserver/player_data"
+    },
+    "dependencies": []
+  },
+  "PZBanManager": {
+    "description": "Handles bans for Project Zomboid servers.",
+    "settings": {
+      "ban_list": "/pzserver/banlist.txt",
+      "auto_sync": true
+    },
+    "dependencies": []
+  },
+  "PZAdminManager": {
+    "description": "Manages admin permissions for Project Zomboid servers.",
+    "settings": {
+      "admin_list": "/pzserver/adminlist.txt",
+      "permissions": ["kick", "ban", "teleport"]
+    },
+    "dependencies": []
+  },
+  "PZCrashAnalyser": {
+    "description": "Analyzes server crashes for Project Zomboid.",
+    "settings": {
+      "crash_logs_directory": "/pzserver/crash_logs",
+      "auto_report": true
+    },
+    "dependencies": []
+  },
+  "PZModpackBuilder": {
+    "description": "Builds modpacks for Project Zomboid servers.",
+    "settings": {
+      "modpack_directory": "/pzserver/modpacks",
+      "auto_update_mods": true
+    },
+    "dependencies": []
+  },
+  "PZLogViewer": {
+    "description": "Provides a log viewer for Project Zomboid servers.",
+    "settings": {
+      "log_file": "/pzserver/server.log",
+      "filter_options": ["error", "warning", "info"]
+    },
+    "dependencies": []
+  },
+  "PZWipeModuleAddon": {
+    "description": "Handles server wipes for Project Zomboid.",
+    "settings": {
+      "wipe_interval": 30,
+      "backup_before_wipe": true
+    },
+    "dependencies": []
+  }
+}

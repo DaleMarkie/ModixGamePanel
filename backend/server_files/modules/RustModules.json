@@ -1,0 +1,26 @@
+{
+  "CarbonRustModule": {
+    "description": "Manages Carbon plugins for Rust servers.",
+    "settings": {
+      "plugin_directory": "/rustserver/carbon_plugins",
+      "auto_update_plugins": true
+    },
+    "dependencies": []
+  },
+  "OxideRustModule": {
+    "description": "Manages Oxide plugins for Rust servers.",
+    "settings": {
+      "plugin_directory": "/rustserver/oxide_plugins",
+      "auto_update_plugins": true
+    },
+    "dependencies": []
+  },
+  "RustWipeModule": {
+    "description": "Handles server wipes for Rust.",
+    "settings": {
+      "wipe_interval": 14,
+      "backup_before_wipe": true
+    },
+    "dependencies": []
+  }
+}

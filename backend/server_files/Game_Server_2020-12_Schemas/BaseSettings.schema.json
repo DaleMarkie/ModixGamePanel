@@ -89,6 +89,12 @@
       "description": "List of selectable configuration files for this server.",
       "items": { "$ref": "ConfigFile.schema.json" },
       "default": []
+    },
+    "Modules": {
+      "type": "array",
+      "description": "List of modules to load for this server.",
+      "items": { "$ref": "Module.schema.json" },
+      "default": []
     }
   },
   "required": [

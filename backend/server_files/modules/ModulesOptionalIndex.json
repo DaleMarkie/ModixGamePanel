@@ -1,0 +1,98 @@
+{
+  "CloudflareTunnels": {
+    "description": "Manages Cloudflare tunnels for secure server access.",
+    "settings": {
+      "tunnel_name": "default_tunnel",
+      "auto_restart": true
+    },
+    "dependencies": []
+  },
+  "JavaProfiler": {
+    "description": "Provides Java profiling tools for performance analysis.",
+    "settings": {
+      "profiling_interval": 60,
+      "output_directory": "/server_files/profiler"
+    },
+    "dependencies": []
+  },
+  "AutoServerBuilder": {
+    "description": "Automates the process of building server configurations.",
+    "settings": {
+      "template_directory": "/server_files/templates",
+      "auto_apply": true
+    },
+    "dependencies": []
+  },
+  "HarmonyModManager": {
+    "description": "Manages Harmony mods for server customization.",
+    "settings": {
+      "mod_directory": "/server_files/harmony_mods",
+      "auto_update": true
+    },
+    "dependencies": []
+  },
+  "CurseForgeModManager": {
+    "description": "Manages CurseForge mods for server customization.",
+    "settings": {
+      "mod_directory": "/server_files/curseforge_mods",
+      "auto_update": true
+    },
+    "dependencies": []
+  },
+  "ActionsGUI": {
+    "description": "Provides a graphical interface for server actions.",
+    "settings": {
+      "available_actions": ["start", "stop", "restart"],
+      "customizable": true
+    },
+    "dependencies": []
+  },
+  "BackupModule": {
+    "description": "Handles server backups and restoration.",
+    "settings": {
+      "backup_interval": 24,
+      "backup_location": "/server_files/backups"
+    },
+    "dependencies": []
+  },
+  "MonolithModManager": {
+    "description": "Manages Monolith mods for server customization.",
+    "settings": {
+      "mod_directory": "/server_files/monolith_mods",
+      "auto_update": true
+    },
+    "dependencies": []
+  },
+  "UmodManager": {
+    "description": "Manages Umod plugins for server customization.",
+    "settings": {
+      "plugin_directory": "/server_files/umod_plugins",
+      "auto_update": true
+    },
+    "dependencies": []
+  },
+  "APIManager": {
+    "description": "Manages API integrations for server functionality.",
+    "settings": {
+      "api_keys": {},
+      "rate_limit": 1000
+    },
+    "dependencies": []
+  },
+  "ClusterModule": {
+    "description": "Manages server clusters for distributed systems.",
+    "settings": {
+      "cluster_nodes": [],
+      "auto_balance": true
+    },
+    "dependencies": []
+  },
+  "WipeModule": {
+    "description": "Handles server wipes for various games.",
+    "settings": {
+      "wipe_interval": 30,
+      "backup_before_wipe": true
+    },
+    "dependencies": []
+  }
+}
