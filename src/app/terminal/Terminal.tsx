@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 import "./terminal.css";
 
@@ -22,7 +27,6 @@ const Terminal = () => {
   const [serverStats, setServerStats] = useState(null);
   const [isServerRunning, setIsServerRunning] = useState(false);
   const eventSourceRef = useRef(null);
-  
 
   const addLog = (text, includeTimestamp = true) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -50,10 +54,7 @@ const Terminal = () => {
           data.status === "running" ? "Server is running" : "Server stopped"
         );
       } catch {
-        addLog(
-          "ERROR",
-          false
-        );
+        addLog("ERROR", false);
       }
     };
 
@@ -305,15 +306,14 @@ const Terminal = () => {
             <button onClick={handleClear}>Clear</button>
             <button onClick={handleCopyLogs}>Copy Logs</button>
           </form>
-          
         </div>
-         
+
         <div className="side-boxes right">
           <div className="info-box">
             <h3>📢 Alerts</h3>
             <p>{serverStats?.serverAlerts || "..."}</p>
           </div>
-          
+
           <div className="info-box">
             <h3>🔧 Version</h3>
             <p>{serverStats?.version || "..."}</p>
@@ -322,151 +322,240 @@ const Terminal = () => {
       </div>
 
       {/* NEW SEPARATE SECTION BELOW terminal-layout */}
-<section className="server-health-section">
-  <h2>
-    <span>🩺</span> System Overview
-  </h2>
+      <section className="server-health-section">
+        <h2>
+          <span>🩺</span> System Overview
+        </h2>
 
-  <div className="server-health-grid">
+        <div className="server-health-grid">
+          {/* System Metrics */}
+          <div className="health-category system-metrics">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.75 17L15 12m0 0l-5.25-5m5.25 5H3"
+                />
+              </svg>
+              System Metrics
+            </h3>
+            <div>
+              <strong>Uptime:</strong> {serverStats?.uptime || "N/A"}
+            </div>
+            <div>
+              <strong>Downtime:</strong> {serverStats?.downtime || "N/A"}
+            </div>
+            <div>
+              <strong>Status:</strong>{" "}
+              <span
+                className={`font-bold ${
+                  serverStats?.healthStatus === "Healthy"
+                    ? "text-green-400"
+                    : "text-red-500"
+                }`}
+              >
+                {serverStats?.healthStatus || "Unknown"}
+              </span>
+            </div>
+            <div>
+              <strong>CPU Load:</strong>{" "}
+              {serverStats?.cpu ? `${serverStats.cpu.toFixed(1)}%` : "N/A"}
+            </div>
+            <div>
+              <strong>Memory Usage:</strong>{" "}
+              {serverStats
+                ? `${serverStats.ramUsed.toFixed(
+                    2
+                  )} / ${serverStats.ramTotal.toFixed(2)} GB`
+                : "N/A"}
+            </div>
+            <div>
+              <strong>Swap Usage:</strong>{" "}
+              {serverStats?.swapUsed ? `${serverStats.swapUsed} MB` : "N/A"}
+            </div>
+          </div>
 
-    {/* System Metrics */}
-    <div className="health-category system-metrics">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L15 12m0 0l-5.25-5m5.25 5H3" />
-        </svg>
-        System Metrics
-      </h3>
-      <div>
-        <strong>Uptime:</strong> {serverStats?.uptime || "N/A"}
-      </div>
-      <div>
-        <strong>Downtime:</strong> {serverStats?.downtime || "N/A"}
-      </div>
-      <div>
-        <strong>Status:</strong> <span className={`font-bold ${serverStats?.healthStatus === 'Healthy' ? 'text-green-400' : 'text-red-500'}`}>{serverStats?.healthStatus || "Unknown"}</span>
-      </div>
-      <div>
-        <strong>CPU Load:</strong> {serverStats?.cpu ? `${serverStats.cpu.toFixed(1)}%` : "N/A"}
-      </div>
-      <div>
-        <strong>Memory Usage:</strong> {serverStats ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB` : "N/A"}
-      </div>
-      <div>
-        <strong>Swap Usage:</strong> {serverStats?.swapUsed ? `${serverStats.swapUsed} MB` : "N/A"}
-      </div>
-    </div>
+          {/* Storage & Disk */}
+          <div className="health-category">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v4a4 4 0 004 4h10a4 4 0 004-4V7M5 3v2m14-2v2m-7 10v2m-4-2v2m12-2v2"
+                />
+              </svg>
+              Storage & Disk
+            </h3>
+            <div>
+              <strong>Storage Usage:</strong>{" "}
+              {serverStats
+                ? `${serverStats.storageUsed.toFixed(
+                    2
+                  )} / ${serverStats.storageTotal.toFixed(2)} GB`
+                : "N/A"}
+            </div>
+            <div>
+              <strong>Disk I/O Read:</strong> {serverStats?.diskRead || "N/A"}
+            </div>
+            <div>
+              <strong>Disk I/O Write:</strong> {serverStats?.diskWrite || "N/A"}
+            </div>
+            <div>
+              <strong>Filesystem Health:</strong>{" "}
+              {serverStats?.fsHealth || "OK"}
+            </div>
+          </div>
 
-    {/* Storage & Disk */}
-    <div className="health-category">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v4a4 4 0 004 4h10a4 4 0 004-4V7M5 3v2m14-2v2m-7 10v2m-4-2v2m12-2v2" />
-        </svg>
-        Storage & Disk
-      </h3>
-      <div>
-        <strong>Storage Usage:</strong> {serverStats ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB` : "N/A"}
-      </div>
-      <div>
-        <strong>Disk I/O Read:</strong> {serverStats?.diskRead || "N/A"}
-      </div>
-      <div>
-        <strong>Disk I/O Write:</strong> {serverStats?.diskWrite || "N/A"}
-      </div>
-      <div>
-        <strong>Filesystem Health:</strong> {serverStats?.fsHealth || "OK"}
-      </div>
-    </div>
+          {/* Network */}
+          <div className="health-category">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Network
+            </h3>
+            <div>
+              <strong>Inbound Traffic:</strong> {serverStats?.netIn || "N/A"}
+            </div>
+            <div>
+              <strong>Outbound Traffic:</strong> {serverStats?.netOut || "N/A"}
+            </div>
+            <div>
+              <strong>Ping (ms):</strong> {serverStats?.ping || "N/A"}
+            </div>
+            <div>
+              <strong>Firewall Status:</strong>{" "}
+              {serverStats?.firewallStatus || "Unknown"}
+            </div>
+          </div>
 
-    {/* Network */}
-    <div className="health-category">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Network
-      </h3>
-      <div>
-        <strong>Inbound Traffic:</strong> {serverStats?.netIn || "N/A"}
-      </div>
-      <div>
-        <strong>Outbound Traffic:</strong> {serverStats?.netOut || "N/A"}
-      </div>
-      <div>
-        <strong>Ping (ms):</strong> {serverStats?.ping || "N/A"}
-      </div>
-      <div>
-        <strong>Firewall Status:</strong> {serverStats?.firewallStatus || "Unknown"}
-      </div>
-    </div>
+          {/* Processes */}
+          <div className="health-category">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 01-8 0m0 0v1a4 4 0 008 0V7zM12 14a4 4 0 01-4 4m0 0a4 4 0 008 0m-8 0v-1a4 4 0 008 0v1"
+                />
+              </svg>
+              Processes
+            </h3>
+            <div>
+              <strong>Active Processes:</strong>{" "}
+              {serverStats?.processCount || "N/A"}
+            </div>
+            <div>
+              <strong>Top Process:</strong> {serverStats?.topProcess || "N/A"}
+            </div>
+            <div>
+              <strong>Load Average:</strong> {serverStats?.loadAvg || "N/A"}
+            </div>
+          </div>
 
-    {/* Processes */}
-    <div className="health-category">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 01-8 0m0 0v1a4 4 0 008 0V7zM12 14a4 4 0 01-4 4m0 0a4 4 0 008 0m-8 0v-1a4 4 0 008 0v1" />
-        </svg>
-        Processes
-      </h3>
-      <div>
-        <strong>Active Processes:</strong> {serverStats?.processCount || "N/A"}
-      </div>
-      <div>
-        <strong>Top Process:</strong> {serverStats?.topProcess || "N/A"}
-      </div>
-      <div>
-        <strong>Load Average:</strong> {serverStats?.loadAvg || "N/A"}
-      </div>
-    </div>
+          {/* Services & Platform */}
+          <div className="health-category">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.75 17L15 12m0 0l-5.25-5m5.25 5H3"
+                />
+              </svg>
+              Services & Platform
+            </h3>
+            <div>
+              <strong>Docker Running:</strong>{" "}
+              {serverStats?.dockerRunning ? (
+                <span className="text-green-400 font-semibold">Yes</span>
+              ) : (
+                <span className="text-red-500 font-semibold">No</span>
+              )}
+            </div>
+            <div>
+              <strong>Service Status:</strong>{" "}
+              {serverStats?.serviceStatus || "N/A"}
+            </div>
+            <div>
+              <strong>Game Server PID:</strong>{" "}
+              {serverStats?.serverPid || "N/A"}
+            </div>
+          </div>
 
-    {/* Services & Platform */}
-    <div className="health-category">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L15 12m0 0l-5.25-5m5.25 5H3" />
-        </svg>
-        Services & Platform
-      </h3>
-      <div>
-        <strong>Docker Running:</strong> {serverStats?.dockerRunning ? <span className="text-green-400 font-semibold">Yes</span> : <span className="text-red-500 font-semibold">No</span>}
-      </div>
-      <div>
-        <strong>Service Status:</strong> {serverStats?.serviceStatus || "N/A"}
-      </div>
-      <div>
-        <strong>Game Server PID:</strong> {serverStats?.serverPid || "N/A"}
-      </div>
-    </div>
-
-    {/* Miscellaneous */}
-    <div className="health-category">
-      <h3 className="flex items-center gap-2 text-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Miscellaneous
-      </h3>
-      <div>
-        <strong>Timezone:</strong> {serverStats?.timezone || "N/A"}
-      </div>
-      <div>
-        <strong>Server Location:</strong> {serverStats?.location || "Unknown"}
-      </div>
-      <div>
-        <strong>Last Checked:</strong> {serverStats?.lastCheck || "N/A"}
-      </div>
-    </div>
-
-
-   
-
-
-  </div>
-</section>
-
-
-
+          {/* Miscellaneous */}
+          <div className="health-category">
+            <h3 className="flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Miscellaneous
+            </h3>
+            <div>
+              <strong>Timezone:</strong> {serverStats?.timezone || "N/A"}
+            </div>
+            <div>
+              <strong>Server Location:</strong>{" "}
+              {serverStats?.location || "Unknown"}
+            </div>
+            <div>
+              <strong>Last Checked:</strong> {serverStats?.lastCheck || "N/A"}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

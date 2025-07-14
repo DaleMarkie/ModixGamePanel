@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./PortCheck.css";
 import {
   FaSyncAlt,
   FaStopCircle,
@@ -18,13 +19,13 @@ interface Container {
 }
 
 const statusColors: Record<Status, string> = {
-  open: "text-green-600",
-  closed: "text-red-600",
-  checking: "text-blue-600",
-  error: "text-yellow-600",
+  open: "status-open",
+  closed: "status-closed",
+  checking: "status-checking",
+  error: "status-error",
 };
 
-export default function PortChecker() {
+export default function PortCheck() {
   const [containers, setContainers] = useState<Container[]>([]);
   const [loadingContainers, setLoadingContainers] = useState(false);
   const [manualHost, setManualHost] = useState("");
@@ -71,92 +72,71 @@ export default function PortChecker() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-8 font-sans space-y-12 bg-white rounded-lg shadow-md">
-      <h1 className="text-4xl font-extrabold text-gray-900 border-b pb-4 mb-8">
-        Port Checker & Docker Manager
-      </h1>
+    <div className="port-check-container">
+      <h1 className="title">Port Checker & Docker Manager</h1>
 
       {/* Docker Containers */}
       <section>
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Docker Containers
-          </h2>
+        <div className="section-header">
+          <h2>Docker Containers</h2>
           <button
             onClick={loadContainers}
             disabled={loadingContainers}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             aria-label="Refresh containers"
+            className="btn btn-refresh"
           >
             {loadingContainers ? (
-              <FaSpinner className="animate-spin mr-2" />
+              <FaSpinner className="icon-spin" />
             ) : (
-              <FaSyncAlt className="mr-2" />
-            )}
+              <FaSyncAlt />
+            )}{" "}
             Refresh
           </button>
         </div>
 
         {loadingContainers ? (
-          <p className="text-gray-600 italic">Loading containers...</p>
+          <p className="text-muted">Loading containers...</p>
         ) : containers.length === 0 ? (
-          <p className="text-gray-600 italic">No containers found.</p>
+          <p className="text-muted">No containers found.</p>
         ) : (
-          <table className="w-full border border-gray-300 rounded-md overflow-hidden">
-            <thead className="bg-gray-50 border-b border-gray-300">
+          <table className="containers-table">
+            <thead>
               <tr>
-                <th className="py-3 px-4 text-left text-gray-700 font-semibold">
-                  Name
-                </th>
-                <th className="py-3 px-4 text-left text-gray-700 font-semibold">
-                  Image
-                </th>
-                <th className="py-3 px-4 text-left text-gray-700 font-semibold">
-                  Port
-                </th>
-                <th className="py-3 px-4 text-left text-gray-700 font-semibold">
-                  Status
-                </th>
-                <th className="py-3 px-4 text-center text-gray-700 font-semibold">
-                  Actions
-                </th>
+                <th>Name</th>
+                <th>Image</th>
+                <th>Port</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {containers.map(({ name, image, port, status }) => (
-                <tr
-                  key={name}
-                  className="even:bg-gray-100 hover:bg-gray-200 transition-colors"
-                >
-                  <td className="py-3 px-4 font-semibold text-gray-900">
-                    {name}
-                  </td>
-                  <td className="py-3 px-4 text-gray-800">{image}</td>
-                  <td className="py-3 px-4 font-mono text-gray-900">{port}</td>
-                  <td
-                    className={`py-3 px-4 font-semibold ${statusColors[status]} flex items-center`}
-                  >
+                <tr key={name} className="table-row">
+                  <td className="name">{name}</td>
+                  <td>{image}</td>
+                  <td className="port">{port}</td>
+                  <td className={`status ${statusColors[status]}`}>
                     {status === "open" ? (
-                      <FaCheckCircle className="inline mr-2" />
+                      <FaCheckCircle className="icon-inline" />
                     ) : (
-                      <FaTimesCircle className="inline mr-2" />
+                      <FaTimesCircle className="icon-inline" />
                     )}
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </td>
-                  <td className="py-3 px-4 text-center space-x-4">
+                  <td className="actions">
                     <button
                       onClick={() => handleAction(name, "restart")}
-                      className="text-blue-600 hover:text-blue-800 focus:outline-none"
                       aria-label={`Restart container ${name}`}
                       title="Restart"
+                      className="btn-icon btn-blue"
                     >
                       <FaSyncAlt size={20} />
                     </button>
                     <button
                       onClick={() => handleAction(name, "stop")}
-                      className="text-red-600 hover:text-red-800 focus:outline-none"
                       aria-label={`Stop container ${name}`}
                       title="Stop"
+                      className="btn-icon btn-red"
                     >
                       <FaStopCircle size={20} />
                     </button>
@@ -170,16 +150,14 @@ export default function PortChecker() {
 
       {/* Manual Port Check */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Manual Port Check
-        </h2>
-        <div className="flex gap-4 max-w-md">
+        <h2 className="section-title">Manual Port Check</h2>
+        <div className="manual-check-form">
           <input
             type="text"
             placeholder="Host or IP"
             value={manualHost}
             onChange={(e) => setManualHost(e.target.value)}
-            className="flex-grow border border-gray-300 rounded-md px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input-text"
           />
           <input
             type="number"
@@ -188,26 +166,26 @@ export default function PortChecker() {
             onChange={(e) => setManualPort(e.target.value)}
             min={1}
             max={65535}
-            className="w-24 border border-gray-300 rounded-md px-4 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input-number"
           />
           <button
             onClick={checkPort}
             disabled={manualChecking || !manualHost || !manualPort}
-            className="inline-flex items-center px-5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="btn btn-check"
           >
             {manualChecking ? (
-              <FaSpinner className="animate-spin mr-2" />
+              <FaSpinner className="icon-spin" />
             ) : (
-              <FaSearch className="mr-2" />
-            )}
+              <FaSearch />
+            )}{" "}
             Check
           </button>
         </div>
 
         {manualStatus && manualStatus !== "checking" && (
           <p
-            className={`mt-5 font-semibold ${
-              manualStatus === "open" ? "text-green-600" : "text-red-600"
+            className={`manual-status ${
+              manualStatus === "open" ? "status-open" : "status-closed"
             }`}
             aria-live="polite"
           >

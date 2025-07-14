@@ -1,195 +1,284 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import "./ThemeManager.css"; // ✅ External CSS
 
-const themeVariablesMap = {
-  default: {
-    "--bg-color": "#0e0e0e",
-    "--card-bg": "#1b1b1b",
-    "--card-border": "#2a2a2a",
-    "--highlight": "#4caf50",
-    "--disabled": "#444",
-    "--main-text": "#f0f0f0",
-    "--muted-text": "#999",
-    "--badge-bg": "#e53935",
-    "--text-color": "#f0f0f0",
-  },
-  dark: {
-    "--bg-color": "#121212",
-    "--card-bg": "#1e1e1e",
-    "--card-border": "#333",
-    "--highlight": "#81c784",
-    "--disabled": "#555",
-    "--main-text": "#e0e0e0",
-    "--muted-text": "#bbb",
-    "--badge-bg": "#d32f2f",
-    "--text-color": "#e0e0e0",
-  },
-  light: {
-    "--bg-color": "#fafafa",
-    "--card-bg": "#fff",
-    "--card-border": "#ddd",
-    "--highlight": "#4caf50",
-    "--disabled": "#ccc",
-    "--main-text": "#222",
-    "--muted-text": "#666",
-    "--badge-bg": "#e53935",
-    "--text-color": "#222",
-  },
-  neon: {
-    "--bg-color": "#000",
-    "--card-bg": "#111",
-    "--card-border": "#0ff",
-    "--highlight": "#0ff",
-    "--disabled": "#088",
-    "--main-text": "#0ff",
-    "--muted-text": "#044",
-    "--badge-bg": "#f0f",
-    "--text-color": "#0ff",
-  },
-};
-
-const defaultCustomTheme = {
-  "--bg-color": "#222222",
-  "--card-bg": "#333333",
-  "--card-border": "#444444",
+const defaultVars = {
+  "--bg-color": "#121212",
+  "--card-bg": "#1f1f1f",
+  "--card-border": "#333",
   "--highlight": "#4caf50",
-  "--disabled": "#555555",
-  "--main-text": "#e0e0e0",
-  "--muted-text": "#999999",
+  "--disabled": "#555",
+  "--main-text": "#eee",
+  "--muted-text": "#888",
   "--badge-bg": "#e53935",
-  "--text-color": "#e0e0e0",
+  "--text-color": "#eee",
+  "--font-family": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  "--font-size": "16px",
 };
 
-const themes = [
-  { id: "default", name: "Default Theme", description: "Classic look" },
-  { id: "dark", name: "Dark Theme", description: "Easy on the eyes" },
-  { id: "light", name: "Light Theme", description: "Clean & bright" },
-  { id: "neon", name: "Neon Glow", description: "Bold & vibrant" },
+const pages = [
+  { id: "home", name: "Home Page" },
+  { id: "dashboard", name: "Dashboard" },
+  { id: "profile", name: "Profile" },
 ];
-
-const randomColor = () =>
-  "#" +
-  Math.floor(Math.random() * 0xffffff)
-    .toString(16)
-    .padStart(6, "0");
 
 export default function ThemeManager() {
   const router = useRouter();
-  const [selectedThemeId, setSelectedThemeId] = useState("default");
-  const [customThemeVars, setCustomThemeVars] = useState(defaultCustomTheme);
-  const isCustom = selectedThemeId === "custom";
 
-  useEffect(() => {
-    const stored = localStorage.getItem("selectedTheme");
-    const custom = localStorage.getItem("customThemeVars");
-    if (stored) setSelectedThemeId(stored);
-    if (custom) setCustomThemeVars(JSON.parse(custom));
-  }, []);
+  const [selectedPage, setSelectedPage] = useState(pages[0].id);
+  const [vars, setVars] = useState<Record<string, string>>(defaultVars);
+  const [saved, setSaved] = useState(false);
 
+  // Load saved vars for selected page
   useEffect(() => {
-    const vars = isCustom
-      ? customThemeVars
-      : themeVariablesMap[selectedThemeId];
-    Object.entries(vars).forEach(([key, val]) => {
-      document.documentElement.style.setProperty(key, val);
-    });
-    localStorage.setItem("selectedTheme", selectedThemeId);
-    if (isCustom) {
-      localStorage.setItem("customThemeVars", JSON.stringify(customThemeVars));
+    const savedVars = localStorage.getItem(`themeVars_${selectedPage}`);
+    if (savedVars) {
+      setVars(JSON.parse(savedVars));
+    } else {
+      setVars(defaultVars);
     }
-  }, [selectedThemeId, customThemeVars, isCustom]);
+    setSaved(false);
+  }, [selectedPage]);
 
-  const handleColorChange = (key: string, value: string) => {
-    setCustomThemeVars((prev) => ({ ...prev, [key]: value }));
-  };
+  // Apply CSS variables to document (but do NOT save automatically)
+  useEffect(() => {
+    for (const [key, value] of Object.entries(vars)) {
+      document.documentElement.style.setProperty(key, value);
+    }
+  }, [vars]);
 
-  const randomize = () => {
-    const randomized = Object.keys(defaultCustomTheme).reduce((acc, key) => {
-      acc[key] = randomColor();
-      return acc;
-    }, {} as Record<string, string>);
-    setCustomThemeVars(randomized);
-  };
+  function handleVarChange(key: string, value: string) {
+    setVars((prev) => ({ ...prev, [key]: value }));
+    setSaved(false);
+  }
+
+  function resetToDefault() {
+    setVars(defaultVars);
+    setSaved(false);
+  }
+
+  function saveSettings() {
+    localStorage.setItem(`themeVars_${selectedPage}`, JSON.stringify(vars));
+    setSaved(true);
+    router.refresh(); // Refresh page after saving, optional
+    setTimeout(() => setSaved(false), 2000);
+  }
 
   return (
-    <div className="theme-wrapper">
-      <div className="theme-header">
-        <h1>Pick your theme</h1>
-        <button onClick={() => router.back()} className="btn back-btn">
+    <main
+      className="theme-manager"
+      role="main"
+      style={{
+        maxWidth: 700,
+        margin: "2rem auto",
+        fontFamily: vars["--font-family"],
+        fontSize: vars["--font-size"],
+        color: vars["--text-color"],
+      }}
+    >
+      <header
+        style={{
+          marginBottom: 24,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h1>Theme Manager</h1>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          aria-label="Go back"
+          style={{
+            background: "none",
+            border: "1px solid",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            color: vars["--highlight"],
+          }}
+        >
           ← Back
         </button>
-      </div>
+      </header>
 
-      <div className="theme-grid">
-        {[
-          ...themes,
-          { id: "custom", name: "Custom Theme", description: "Make it yours" },
-        ].map((theme) => {
-          const isSelected = theme.id === selectedThemeId;
-          const vars =
-            theme.id === "custom"
-              ? customThemeVars
-              : themeVariablesMap[theme.id];
+      <label
+        htmlFor="page-select"
+        style={{ fontWeight: "600", display: "block", marginBottom: 8 }}
+      >
+        Select Page to Customize
+      </label>
+      <select
+        id="page-select"
+        value={selectedPage}
+        onChange={(e) => setSelectedPage(e.target.value)}
+        style={{
+          padding: 10,
+          fontSize: "1rem",
+          borderRadius: 6,
+          border: `1px solid ${vars["--card-border"]}`,
+          marginBottom: 24,
+          width: "100%",
+          backgroundColor: vars["--card-bg"],
+          color: vars["--main-text"],
+        }}
+      >
+        {pages.map(({ id, name }) => (
+          <option key={id} value={id}>
+            {name}
+          </option>
+        ))}
+      </select>
+
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        aria-label={`Customize colors for ${
+          pages.find((p) => p.id === selectedPage)?.name
+        }`}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 24,
+          marginBottom: 32,
+        }}
+      >
+        {Object.entries(vars).map(([key, value]) => {
+          const isColor = value.startsWith("#");
           return (
-            <div
-              key={theme.id}
-              className={`theme-card ${isSelected ? "selected" : ""}`}
-              onClick={() => setSelectedThemeId(theme.id)}
-            >
-              <div className="theme-preview">
-                {Object.values(vars)
-                  .slice(0, 5)
-                  .map((color, i) => (
-                    <div
-                      key={i}
-                      className="color-dot"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-              </div>
-              <h3>{theme.name}</h3>
-              <p>{theme.description}</p>
+            <div key={key} style={{ display: "flex", flexDirection: "column" }}>
+              <label
+                htmlFor={key}
+                style={{
+                  fontWeight: "600",
+                  marginBottom: 6,
+                  textTransform: "capitalize",
+                  color: vars["--highlight"],
+                }}
+              >
+                {key.replace("--", "").replace(/-/g, " ")}
+              </label>
+              {isColor ? (
+                <input
+                  type="color"
+                  id={key}
+                  value={value}
+                  onChange={(e) => handleVarChange(key, e.target.value)}
+                  style={{
+                    width: "100%",
+                    height: 40,
+                    borderRadius: 6,
+                    border: `1px solid ${vars["--card-border"]}`,
+                    cursor: "pointer",
+                    backgroundColor: vars["--card-bg"],
+                  }}
+                />
+              ) : (
+                <input
+                  type="text"
+                  id={key}
+                  value={value}
+                  onChange={(e) => handleVarChange(key, e.target.value)}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 6,
+                    border: `1px solid ${vars["--card-border"]}`,
+                    backgroundColor: vars["--card-bg"],
+                    color: vars["--main-text"],
+                    fontFamily: vars["--font-family"],
+                    fontSize: vars["--font-size"],
+                  }}
+                />
+              )}
             </div>
           );
         })}
+      </form>
+
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        <button
+          type="button"
+          onClick={saveSettings}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "none",
+            backgroundColor: vars["--highlight"],
+            color: vars["--card-bg"],
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Save Settings
+        </button>
+
+        <button
+          type="button"
+          onClick={resetToDefault}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "1px solid",
+            backgroundColor: "transparent",
+            color: vars["--highlight"],
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Reset to Default
+        </button>
       </div>
 
-      {isCustom && (
-        <div className="custom-panel">
-          <div className="custom-header">
-            <h2>Customize Theme</h2>
-            <div className="custom-actions">
-              <button className="btn random-btn" onClick={randomize}>
-                🎲 Randomize
-              </button>
-              <button
-                className="btn reset-btn"
-                onClick={() => setCustomThemeVars(defaultCustomTheme)}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
+      <section
+        aria-label="Live Preview"
+        style={{
+          padding: 24,
+          borderRadius: 12,
+          backgroundColor: vars["--card-bg"],
+          border: `1px solid ${vars["--card-border"]}`,
+          color: vars["--main-text"],
+          boxShadow: `0 0 10px ${vars["--highlight"]}55`,
+        }}
+      >
+        <h2 style={{ color: vars["--highlight"], marginBottom: 12 }}>
+          Live Preview
+        </h2>
+        <p>
+          This is a live preview of your theme settings for the{" "}
+          <strong>{pages.find((p) => p.id === selectedPage)?.name}</strong>.
+        </p>
+        <button
+          style={{
+            backgroundColor: vars["--highlight"],
+            color: vars["--card-bg"],
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: 6,
+            cursor: "pointer",
+            marginTop: 16,
+            fontWeight: "600",
+          }}
+        >
+          Sample Button
+        </button>
+      </section>
 
-          <div className="custom-grid">
-            {Object.entries(customThemeVars).map(([key, value]) => (
-              <label key={key} className="color-input">
-                <span>
-                  {key.replace("--", "").replace(/-/g, " ").toUpperCase()}
-                </span>
-                <input
-                  type="color"
-                  value={value}
-                  onChange={(e) => handleColorChange(key, e.target.value)}
-                />
-              </label>
-            ))}
-          </div>
+      {saved && (
+        <div
+          aria-live="polite"
+          style={{
+            marginTop: 16,
+            padding: 12,
+            backgroundColor: "#4caf50",
+            color: "#fff",
+            borderRadius: 8,
+            fontWeight: "600",
+            textAlign: "center",
+          }}
+        >
+          Settings saved!
         </div>
       )}
-    </div>
+    </main>
   );
 }

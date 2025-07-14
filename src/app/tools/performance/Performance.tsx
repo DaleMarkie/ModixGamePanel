@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import "./PerformanceManager.css";
+import "./Performance.css";
 
 const UsageBar = ({ percent, color }: { percent: number; color: string }) => (
   <div className="usageBarContainer">
@@ -14,7 +14,7 @@ const UsageBar = ({ percent, color }: { percent: number; color: string }) => (
   </div>
 );
 
-const PerformanceManager = () => {
+const Performance = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -228,4 +228,4 @@ const PerformanceManager = () => {
   );
 };
 
-export default PerformanceManager;
+export default Performance;
