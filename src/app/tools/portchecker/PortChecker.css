@@ -1,285 +1,254 @@
-/* PortChecker.module.css */
-
-.port-checker-container {
-  max-width: 1200px; /* 75% of 1200 */
-  margin: 0 auto;
-  padding: 0.75rem; /* 1rem * 0.75 */
+/* Root container */
+.portchecker-container {
+  max-width: 10px;
+  margin: 1.5rem auto;
+  padding: 1.5rem 2rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #121212;
+  background: #121212;
   color: #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
 }
 
-.port-checker-title {
-  font-size: 1.3125rem; /* 1.75rem * 0.75 */
-  margin-bottom: 0.75rem;
+/* Titles */
+.portchecker-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 1.2rem;
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.5rem;
+  color: #fff;
+}
+
+.portchecker-subtitle {
+  font-size: 1.4rem;
   font-weight: 700;
-  color: #f0f0f0;
-}
-
-.port-checker-description {
-  font-size: 0.75rem;
   color: #bbb;
-  margin-bottom: 1rem;
-  line-height: 1.3;
+  margin-bottom: 0.8rem;
 }
 
-.tab-nav {
+/* Sections */
+.portchecker-section {
+  margin-bottom: 2rem;
+}
+
+/* Header flex */
+.portchecker-header {
   display: flex;
-  gap: 0.375rem; /* 0.5rem * 0.75 */
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
 }
 
-.tab-button {
-  padding: 0.375rem 0.75rem; /* 0.5rem 1rem * 0.75 */
-  background: #1e1e1e;
-  border: 1px solid #333;
-  cursor: pointer;
-  border-radius: 4.5px; /* 6px * 0.75 */
-  font-weight: 600;
-  color: #bbb;
-  transition: background-color 0.2s ease;
-  font-size: 0.75rem;
-}
-
-.tab-button.active,
-.tab-button:hover {
-  background: #2a71d0;
-  color: #f0f0f0;
-  border-color: #235a9e;
-}
-
-.loading-text {
-  font-style: italic;
-  color: #888;
-  font-size: 0.75rem;
-}
-
-.error-text {
-  color: #e06c75;
-  font-weight: 700;
-  font-size: 0.75rem;
-}
-
-.container-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem; /* 1rem * 0.75 */
-}
-
-.port-checker-result {
-  border: 1px solid #333;
-  padding: 0.75rem; /* 1rem * 0.75 */
-  border-radius: 7.5px; /* 10px * 0.75 */
-  background: #1e1e1e;
-  box-shadow: none;
-  outline-offset: 0;
-  color: #ddd;
-  font-size: 0.75rem;
-}
-
-.port-checker-result.open {
-  border-color: #28a745;
-  background: #223322;
-  color: #a8d5a8;
-}
-
-.port-checker-result.closed {
-  border-color: #b34747;
-  background: #3a1e1e;
-  color: #d19a9a;
-}
-
-.port-checker-result.error {
-  border-color: #d6a600;
-  background: #3a351a;
-  color: #e3cd6a;
-}
-
-.warning-message {
-  color: #ad8b00;
-  background: #4a430a;
-  padding: 0.375rem; /* 0.5rem * 0.75 */
-  border-radius: 4.5px;
-  margin-top: 0.375rem;
-  font-size: 0.75rem;
-}
-
-.container-actions {
-  margin-top: 0.375rem;
-  display: flex;
-  gap: 0.375rem;
-}
-
-.btn-restart,
-.btn-stop {
-  cursor: pointer;
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
   border: none;
-  padding: 0.3rem 0.6rem; /* 0.4rem 0.8rem * 0.75 */
-  border-radius: 4.5px;
   font-weight: 600;
-  color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
   user-select: none;
-  transition: background-color 0.2s ease;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
 }
 
-.btn-restart {
-  background-color: #235a9e;
+.btn-refresh {
+  background: #1f2937;
+  color: #60a5fa;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Action buttons in table */
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  margin: 0 0.1rem;
+  transition: color 0.2s ease;
+  font-size: 1.1rem;
+  color: #a1a1aa;
+}
+
+.btn-action:hover {
+  color: #60a5fa;
 }
 
 .btn-restart:hover {
-  background-color: #2a71d0;
-}
-
-.btn-stop {
-  background-color: #b34747;
+  color: #3b82f6;
 }
 
 .btn-stop:hover {
-  background-color: #d05858;
+  color: #ef4444;
 }
 
-section label {
-  display: block;
-  margin-top: 0.75rem;
-  font-weight: 600;
-  color: #ccc;
-  font-size: 0.75rem;
-}
-
-section input[type="text"],
-section input[type="number"] {
-  width: 100%;
-  padding: 0.3rem;
-  margin-top: 0.1875rem;
-  border: 1px solid #333;
-  border-radius: 4.5px;
-  font-size: 0.75rem;
-  background-color: #222;
-  color: #ddd;
-}
-
-section input[type="text"]::placeholder,
-section input[type="number"]::placeholder {
-  color: #666;
-}
-
-section button {
-  margin-top: 0.75rem;
-  padding: 0.375rem 0.75rem;
-  font-weight: 700;
-  border: none;
-  border-radius: 4.5px;
-  cursor: pointer;
-  background-color: #2a71d0;
-  color: #f0f0f0;
-  font-size: 0.75rem;
-  transition: background-color 0.3s ease;
-}
-
-section button:disabled {
-  background-color: #555;
-  cursor: not-allowed;
-  color: #999;
-}
-
-.manual-result.open,
-.manual-result.closed,
-.manual-result.error {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 7.5px;
-  border: 1px solid;
-  font-size: 0.75rem;
-}
-
-.manual-result.open {
-  border-color: #28a745;
-  background: #223322;
-  color: #a8d5a8;
-}
-
-.manual-result.closed {
-  border-color: #b34747;
-  background: #3a1e1e;
-  color: #d19a9a;
-}
-
-.manual-result.error {
-  border-color: #d6a600;
-  background: #3a351a;
-  color: #e3cd6a;
-}
-
-.range-results-table {
+/* Table styles */
+.portchecker-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 0.75rem;
-  color: #ddd;
-  font-size: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 8px #000000cc;
 }
 
-.range-results-table th,
-.range-results-table td {
-  border: 1px solid #333;
-  padding: 0.375rem;
-  text-align: center;
-}
-
-.range-results-table tr.open {
-  background-color: #223322;
-  color: #a8d5a8;
-}
-
-.range-results-table tr.closed {
-  background-color: #3a1e1e;
-  color: #d19a9a;
-}
-
-.range-results-table tr.error {
-  background-color: #3a351a;
-  color: #e3cd6a;
-}
-
-.geoip-result {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: #1b2838;
-  border-radius: 7.5px;
-  border: 1px solid #365a8c;
-  color: #c9d1d9;
-  font-size: 0.75rem;
-}
-
-.geoip-result ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-.geoip-result li {
-  margin-bottom: 0.225rem;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.1125rem 0.375rem; /* 0.15rem 0.5rem * 0.75 */
-  border-radius: 4.5px;
+.portchecker-table thead {
+  background: #1f2937;
+  color: #94a3b8;
   font-weight: 700;
-  font-size: 0.675rem; /* 0.9rem * 0.75 */
+}
+
+.portchecker-table th,
+.portchecker-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #2d3748;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.portchecker-table tbody tr:nth-child(even) {
+  background: #181a1f;
+}
+
+.portchecker-table tbody tr:hover,
+.portchecker-table tbody tr:focus {
+  background: #2c3e50;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Utility fonts */
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-mono {
+  font-family: monospace, monospace;
+}
+
+/* Status colors */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
   user-select: none;
+  font-size: 0.9rem;
 }
 
-.badge.open {
-  background-color: #28a745;
-  color: #e6f4ea;
+.status-open {
+  color: #22c55e;
 }
 
-.badge.closed {
-  background-color: #b34747;
-  color: #f4dede;
+.status-closed {
+  color: #ef4444;
 }
 
-.badge.error {
-  background-color: #d6a600;
-  color: #fff9c4;
+.status-checking {
+  color: #3b82f6;
+}
+
+.status-error {
+  color: #facc15;
+}
+
+/* Icons */
+.icon {
+  vertical-align: middle;
+  margin-right: 0.2rem;
+}
+
+.spin {
+  animation: spin 1.3s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Manual check form */
+.manual-check-form {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 400px;
+  align-items: center;
+}
+
+.input {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #e0e0e0;
+  outline-offset: 2px;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.port-input {
+  width: 80px;
+}
+
+.btn-check {
+  background: #2563eb;
+  color: white;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.25s ease;
+  user-select: none;
+  font-size: 0.9rem;
+}
+
+.btn-check:hover:not(:disabled) {
+  background: #1e40af;
+}
+
+.btn-check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Text muted */
+.text-muted {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Manual check result */
+.manual-result {
+  margin-top: 0.7rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.manual-result-open {
+  color: #22c55e;
+}
+
+.manual-result-closed {
+  color: #ef4444;
 }
