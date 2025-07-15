@@ -1,0 +1,22 @@
+name: "MonulithModManager"
+version: "1.0.0"
+description: "Manages Monulith mods for supported games."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - monulith:view
+  - monulith:install
+  - monulith:remove
+frontend:
+  routes:
+    - path: "/monulith"
+      component: "MonulithModManagerPage"
+      permission: "monulith:view"
+  nav_items:
+    - label: "Monulith Mods"
+      path: "/monulith"
+      icon: "Extension"
+      permission: "monulith:view"
+backend:
+  router: "module system.Optional.MonulithModManager.backend.routes:router"

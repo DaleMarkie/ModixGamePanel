@@ -1,0 +1,22 @@
+name: "BanManager"
+version: "1.0.0"
+description: "Manages bans for Project Zomboid servers."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - pzban:view
+  - pzban:add
+  - pzban:remove
+frontend:
+  routes:
+    - path: "/pz/bans"
+      component: "PZBanManagerPage"
+      permission: "pzban:view"
+  nav_items:
+    - label: "PZ Bans"
+      path: "/pz/bans"
+      icon: "Block"
+      permission: "pzban:view"
+backend:
+  router: "module system.Game Modules.ProjectZomboid.BanManager.backend.routes:router"

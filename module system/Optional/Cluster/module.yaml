@@ -1,0 +1,21 @@
+name: "Cluster"
+version: "1.0.0"
+description: "Manages server clusters for scaling and redundancy."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - cluster:view
+  - cluster:manage
+frontend:
+  routes:
+    - path: "/clusters"
+      component: "ClusterManagerPage"
+      permission: "cluster:view"
+  nav_items:
+    - label: "Clusters"
+      path: "/clusters"
+      icon: "Cluster"
+      permission: "cluster:view"
+backend:
+  router: "module system.Optional.Cluster.backend.routes:router"

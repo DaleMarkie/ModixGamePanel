@@ -1,0 +1,22 @@
+name: "Plugins"
+version: "1.0.0"
+description: "Handles third-party plugin integration and management."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - plugin:view
+  - plugin:install
+  - plugin:remove
+frontend:
+  routes:
+    - path: "/plugins"
+      component: "PluginManagerPage"
+      permission: "plugin:view"
+  nav_items:
+    - label: "Plugins"
+      path: "/plugins"
+      icon: "Extension"
+      permission: "plugin:view"
+backend:
+  router: "module system.Core.Plugins.backend.routes:router"

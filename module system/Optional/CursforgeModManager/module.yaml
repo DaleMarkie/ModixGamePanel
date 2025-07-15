@@ -1,0 +1,22 @@
+name: "CursforgeModManager"
+version: "1.0.0"
+description: "Manages mods from CurseForge for supported games."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - curseforge:view
+  - curseforge:install
+  - curseforge:remove
+frontend:
+  routes:
+    - path: "/curseforge"
+      component: "CurseForgeModManagerPage"
+      permission: "curseforge:view"
+  nav_items:
+    - label: "CurseForge Mods"
+      path: "/curseforge"
+      icon: "Extension"
+      permission: "curseforge:view"
+backend:
+  router: "module system.Optional.CursforgeModManager.backend.routes:router"

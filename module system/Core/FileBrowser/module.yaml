@@ -1,0 +1,22 @@
+name: "FileBrowser"
+version: "1.0.0"
+description: "Provides file browsing and management capabilities for server files."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - file:view
+  - file:edit
+  - file:delete
+frontend:
+  routes:
+    - path: "/files"
+      component: "FileBrowserPage"
+      permission: "file:view"
+  nav_items:
+    - label: "Files"
+      path: "/files"
+      icon: "Folder"
+      permission: "file:view"
+backend:
+  router: "module system.Core.FileBrowser.backend.routes:router"

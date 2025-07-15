@@ -1,0 +1,22 @@
+name: "CloudflareTunneling"
+version: "1.0.0"
+description: "Provides Cloudflare tunnel management for secure remote access."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - tunnel:view
+  - tunnel:create
+  - tunnel:delete
+frontend:
+  routes:
+    - path: "/tunnels"
+      component: "TunnelManagerPage"
+      permission: "tunnel:view"
+  nav_items:
+    - label: "Tunnels"
+      path: "/tunnels"
+      icon: "Cloud"
+      permission: "tunnel:view"
+backend:
+  router: "module system.Optional.CloudflareTunneling.backend.routes:router"

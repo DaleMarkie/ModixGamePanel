@@ -1,0 +1,22 @@
+name: "Backup"
+version: "1.0.0"
+description: "Handles server and file backup operations."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - backup:view
+  - backup:create
+  - backup:restore
+frontend:
+  routes:
+    - path: "/backup"
+      component: "BackupPage"
+      permission: "backup:view"
+  nav_items:
+    - label: "Backup"
+      path: "/backup"
+      icon: "Backup"
+      permission: "backup:view"
+backend:
+  router: "module system.Optional.Backup.backend.routes:router"

@@ -1,0 +1,21 @@
+name: "ServerBuilder"
+version: "1.0.0"
+description: "Automates server setup and configuration."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - serverbuilder:view
+  - serverbuilder:create
+frontend:
+  routes:
+    - path: "/serverbuilder"
+      component: "ServerBuilderPage"
+      permission: "serverbuilder:view"
+  nav_items:
+    - label: "Server Builder"
+      path: "/serverbuilder"
+      icon: "Build"
+      permission: "serverbuilder:view"
+backend:
+  router: "module system.Optional.ServerBuilder.backend.routes:router"

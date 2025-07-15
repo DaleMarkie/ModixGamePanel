@@ -1,0 +1,21 @@
+name: "CrashAnalyzer"
+version: "1.0.0"
+description: "Analyzes server crash logs for Project Zomboid."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - pzcrash:view
+  - pzcrash:analyze
+frontend:
+  routes:
+    - path: "/pz/crash"
+      component: "PZCrashAnalyzerPage"
+      permission: "pzcrash:view"
+  nav_items:
+    - label: "Crash Analyzer"
+      path: "/pz/crash"
+      icon: "BugReport"
+      permission: "pzcrash:view"
+backend:
+  router: "module system.Game Modules.ProjectZomboid.CrashAnalyzer.backend.routes:router"

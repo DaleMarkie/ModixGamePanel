@@ -1,0 +1,22 @@
+name: "RBAC"
+version: "1.0.0"
+description: "Role-based access control for users and groups."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - rbac:view
+  - rbac:edit
+  - rbac:assign
+frontend:
+  routes:
+    - path: "/rbac"
+      component: "RBACPage"
+      permission: "rbac:view"
+  nav_items:
+    - label: "RBAC"
+      path: "/rbac"
+      icon: "Security"
+      permission: "rbac:view"
+backend:
+  router: "module system.Core.RBAC.backend.routes:router"

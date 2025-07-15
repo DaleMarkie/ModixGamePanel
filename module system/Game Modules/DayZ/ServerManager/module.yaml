@@ -1,0 +1,23 @@
+name: "ServerManager"
+version: "1.0.0"
+description: "Manages DayZ server lifecycle, settings, and status."
+author: "Modix Team"
+website: "https://modix.example.com"
+enabled: true
+permissions:
+  - dayzserver:view
+  - dayzserver:start
+  - dayzserver:stop
+  - dayzserver:restart
+frontend:
+  routes:
+    - path: "/dayz/servers"
+      component: "DayZServerManagerPage"
+      permission: "dayzserver:view"
+  nav_items:
+    - label: "DayZ Servers"
+      path: "/dayz/servers"
+      icon: "Server"
+      permission: "dayzserver:view"
+backend:
+  router: "module system.Game Modules.DayZ.ServerManager.backend.routes:router"
