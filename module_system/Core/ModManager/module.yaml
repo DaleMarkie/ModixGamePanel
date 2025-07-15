@@ -1,0 +1,21 @@
+name: Mod Manager
+version: 1.0.0
+description: Manages installed modules and their configurations.
+author: Modix Team
+website: https://modix.store
+permissions:
+- mod_manager_access
+- mod_manager_install
+- mod_manager_remove
+frontend:
+  routes:
+  - path: /modules
+    component: ModuleManagerPage
+    permission: mod_manager_access
+  nav_items:
+  - label: Modules
+    path: /modules
+    icon: Puzzle
+    permission: mod_manager_access
+backend:
+  router: module_system.Core.ModManager.backend.modmanager_api:router

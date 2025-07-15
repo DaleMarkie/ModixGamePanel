@@ -1,0 +1,21 @@
+name: ModpackManager
+version: 1.0.0
+description: Manages modpacks for Project Zomboid servers.
+author: Modix Team
+website: https://modix.store
+permissions:
+- pzmodpack:view
+- pzmodpack:create
+- pzmodpack:delete
+frontend:
+  routes:
+  - path: /pz/modpacks
+    component: PZModpackManagerPage
+    permission: pzmodpack:view
+  nav_items:
+  - label: Modpack Manager
+    path: /pz/modpacks
+    icon: Extension
+    permission: pzmodpack:view
+backend:
+  router: module_system.Game_Modules.ProjectZomboid.ModpackManager.backend.routes:router

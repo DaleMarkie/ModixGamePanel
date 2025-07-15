@@ -1,0 +1,20 @@
+name: JavaProfiler
+version: 1.0.0
+description: Java application profiling and performance analysis.
+author: Modix Team
+website: https://modix.store
+permissions:
+- profiler:view
+- profiler:run
+frontend:
+  routes:
+  - path: /profiler
+    component: JavaProfilerPage
+    permission: profiler:view
+  nav_items:
+  - label: Profiler
+    path: /profiler
+    icon: Speed
+    permission: profiler:view
+backend:
+  router: module_system.Optional.JavaProfiler.backend.routes:router

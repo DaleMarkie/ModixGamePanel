@@ -1,0 +1,20 @@
+name: WipeManager
+version: 1.0.0
+description: Manages server wipes for Project Zomboid.
+author: Modix Team
+website: https://modix.store
+permissions:
+- pzwipe:view
+- pzwipe:execute
+frontend:
+  routes:
+  - path: /pz/wipes
+    component: PZWipeManagerPage
+    permission: pzwipe:view
+  nav_items:
+  - label: Wipe Manager
+    path: /pz/wipes
+    icon: Delete
+    permission: pzwipe:view
+backend:
+  router: module_system.Game_Modules.ProjectZomboid.WipeManager.backend.routes:router

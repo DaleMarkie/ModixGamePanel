@@ -1,0 +1,19 @@
+name: Mod Updater
+version: 1.0.0
+description: updates installed modules to their latest versions.
+author: Modix Team
+website: https://modix.store
+permissions:
+- ModUpdater:update
+frontend:
+  routes:
+  - path: /modules
+    component: ModuleManagerPage
+    permission: ModUpdater:update
+  nav_items:
+  - label: Modules
+    path: /modules
+    icon: Puzzle
+    permission: ModUpdater:update
+backend:
+  router: module_system.Core.ModUpdater.backend.modupdater_api:router

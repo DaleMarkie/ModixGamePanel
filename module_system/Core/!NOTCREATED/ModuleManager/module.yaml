@@ -1,0 +1,22 @@
+name: ModuleManager
+version: 1.0.0
+description: Manages loading, enabling, disabling, and updating modules.
+author: Modix Team
+website: https://modix.store
+permissions:
+- module:view
+- module:enable
+- module:disable
+- module:update
+frontend:
+  routes:
+  - path: /modules
+    component: ModuleManagerPage
+    permission: module:view
+  nav_items:
+  - label: Modules
+    path: /modules
+    icon: Puzzle
+    permission: module:view
+backend:
+  router: module_system.Core.ModuleManager.backend.routes:router

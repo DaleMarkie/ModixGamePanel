@@ -1,0 +1,22 @@
+name: Terminal
+version: 1.0.0
+description: Terminal interface for server command execution and monitoring.
+author: Modix Team
+website: https://modix.store
+permissions:
+- terminal_access
+- terminal_execute
+- terminal_exec_whitelist
+- terminal_exec_blacklist
+frontend:
+  routes:
+  - path: /plugins
+    component: TerminalPage
+    permission: plugin:view
+  nav_items:
+  - label: Plugins
+    path: /plugins
+    icon: Extension
+    permission: plugin:view
+backend:
+  router: module_system.Core.Terminal.backend.terminal_api:router
