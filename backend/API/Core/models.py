@@ -70,14 +70,6 @@ class UserPermission(Base):
 PERMISSIONS = [
 # MODIX-WIDE permissions
     "modix_dashboard_access",         # Can view the Modix dashboard
-    # MODIX RBAK permissions
-    "modix_manage_permissions",       # Can manage permissions for users and roles
-    "modix_user_create",              # Can create new users (RBAC control)
-    "modix_user_edit",                # Can edit users
-    "modix_user_delete",              # Can delete users
-    "modix_role_create",              # Can create new roles
-    "modix_role_edit",                # Can edit roles
-    "modix_role_delete",              # Can delete roles
     # MODIX Server Permissions
     "modix_server_create",            # Can create new servers/containers
     "modix_server_edit",              # Can edit server/container settings
@@ -87,19 +79,11 @@ PERMISSIONS = [
     "modix_settings_edit",            # Can edit Modix settings
     "modix_api_key_manage",           # Can create/revoke API keys
     "modix_notification_manage",
-    "modix_schemas"                   # Can manage global notifications
-    "modix_get_containers",          # Can get a list of all containers
+    "modix_schemas",                   # Can manage global notifications
+    "modix_get_containers",            # Can get a list of all containers
 # CONTAINER-LEVEL permissions
     "container_discord_webhook_manage",   # Can manage Discord webhooks for a container
     "container_workshop_manage",          # Can manage workshop items for a container
-    "container_terminal_access",          # Can open the terminal for a container
-    "container_terminal_exec",            # Can execute commands in the terminal
-    "container_terminal_exec_whitelist",  # List of allowed commands (special)
-    "container_terminal_exec_blacklist",  # List of denied commands (special)
-    "container_filemanager_access",       # Can use the file manager for a container
-    "container_file_read",                # Can read files in the container
-    "container_file_write",               # Can write/edit files in the container
-    "container_file_delete",              # Can delete files in the container
     "container_logs_view",                # Can view logs for a container
     "container_logs_download",            # Can download logs for a container
     "container_manage",                   # Can start/stop/restart the container
@@ -107,12 +91,7 @@ PERMISSIONS = [
     "container_update",                   # Can update the container image
     "container_config_view",              # Can view container configuration
     "container_config_edit",              # Can edit container configuration
-    "container_player_manage",            # Can manage players (kick/ban/whitelist)
-    "container_mod_manager_access",       # Can access the mod manager
-    "container_mod_install",              # Can install mods
-    "container_mod_remove",               # Can remove mods
-    "container_mod_update",               # Can update mods
-    "container_processes_view",            # Can view running processes in the container
+    "container_processes_view",           # Can view running processes in the container
     "container_metrics_view",             # Can view container metrics (CPU, RAM, etc.)
     "container_webhook_trigger",          # Can trigger webhooks manually
     # Add more as needed for future features
