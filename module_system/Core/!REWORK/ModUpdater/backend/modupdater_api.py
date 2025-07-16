@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -6,6 +7,8 @@ from typing import List
 import os
 
 router = APIRouter()
+router = APIRouter(tags=["ModUpdater"], prefix="/modupdater")
+logger = logging.getLogger("terminal_api")
 
 STEAM_WORKSHOP_PATH = Path("/home/steam/Steam/steamapps/workshop/content/108600")
 MOD_UPDATE_CUTOFF_DAYS = 7

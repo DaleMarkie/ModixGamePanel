@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
+import { loadEnabledModules } from "./module_system/frontend_module_loader";
 
 import Dashboard from './components/core/dashboard/Dashboard';
 import MyServers from "./components/core/games/myservers/MyServers";
@@ -9,7 +10,6 @@ import Workshop from "./components/core/workshopmanager/Workshop";
 import ModManager from "./components/core/workshopmanager/ModManager";
 import PlayerManager from "./components/core/playermanager/PlayerManager";
 import Settings from "./components/core/workshopmanager/Settings";
-import TerminalLayout from "./components/core/terminal/TerminalLayout";
 import Webhook from "./components/core/webhook/Webhook";
 import Help from "./components/core/help/Help";
 import Login from "./components/core/auth/login";
@@ -27,12 +27,17 @@ function App() {
     'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
   );
   const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
+  const [dynamicModules, setDynamicModules] = useState([]);
 
   useEffect(() => {
     const storedBg = localStorage.getItem("headerBgColor");
     const storedText = localStorage.getItem("headerTextColor");
     if (storedBg) setHeaderBgColor(storedBg);
     if (storedText) setHeaderTextColor(storedText);
+    // Load dynamic modules from backend
+    loadEnabledModules("/api")
+      .then(setDynamicModules)
+      .catch((e) => console.error("Failed to load modules:", e));
   }, []);
 
   const appWrapperStyle = {
@@ -139,7 +144,6 @@ function App() {
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
-    { to: "/terminallayout", label: "Terminal" },
     { to: "/filemanager", label: "File Manager" },
     { to: "/modmanager", label: "Mod Manager" },
     { to: "/workshop", label: "Workshop" },
@@ -183,6 +187,14 @@ function App() {
                     {label}
                   </Link>
                 ))}
+                {/* Dynamic module menu items */}
+                {dynamicModules.flatMap((mod) =>
+                  (mod.frontend?.nav_items || []).map((item) => (
+                    <Link key={mod.name + item.path} to={item.path} style={headerButtonStyle}>
+                      {item.label}
+                    </Link>
+                  ))
+                )}
 
                 <div
                   style={{ ...headerButtonStyle, userSelect: "none", position: "relative" }}
@@ -248,7 +260,6 @@ function App() {
                 <Route path="/modmanager" element={<ModManager />} />
                 <Route path="/playermanager" element={<PlayerManager />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/terminallayout" element={<TerminalLayout />} />
                 <Route path="/webhook" element={<Webhook />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/login" element={<Login />} />
@@ -257,6 +268,18 @@ function App() {
                 <Route path="/thememanager" element={<ThemeManager />} />
                 <Route path="/gamemanager" element={<GameManager />} />
                 <Route path="/myaccount" element={<MyAccount />} />
+                {/* Dynamic module routes */}
+                {dynamicModules.flatMap((mod) =>
+                  (mod.frontend?.routes || []).map((route) =>
+                    route.path && route.component ? (
+                      <Route
+                        key={mod.name + route.path}
+                        path={route.path}
+                        element={React.createElement(route.component)}
+                      />
+                    ) : null
+                  )
+                )}
               </Routes>
             </main>
 

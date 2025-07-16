@@ -34,7 +34,19 @@
   "MODIX_WHITELISTED_IMAGES": null,
   "MODIX_RESUSE_PORTS": true,
   "MODIX_PORT_ALLOCATION": {
-  "start": 20000,
-  "end": 20100
-  }
+    "start": 20000,
+    "end": 20100
+  },
+  "CORE_MODULES": [
+    "Dashboard",
+    "Terminal",
+    "RBAC",
+    "RconPlayerManager",
+    "ModUpdater",
+    "ModManager",
+    "FileBrowser",
+    "Dashboard"
+  ],
+  "OPTIONAL_MODULES": [
+  ]
 }

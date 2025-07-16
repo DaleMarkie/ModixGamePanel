@@ -4,19 +4,20 @@ description: Terminal interface for server command execution and monitoring.
 author: Modix Team
 website: https://modix.store
 permissions:
-- terminal_access
-- terminal_execute
-- terminal_exec_whitelist
-- terminal_exec_blacklist
+  - terminal_access
+  - terminal_execute
+  - terminal_exec_whitelist
+  - terminal_exec_blacklist
 frontend:
   routes:
-  - path: /plugins
-    component: TerminalPage
-    permission: plugin:view
+    - path: /terminal
+      component: Terminal
+      entry: Core/Terminal/frontend/page.tsx
+      permission: terminal_access
   nav_items:
-  - label: Plugins
-    path: /plugins
-    icon: Extension
-    permission: plugin:view
+    - label: Terminal
+      path: /terminal
+      icon: Terminal
+      permission: terminal_access
 backend:
   router: module_system.Core.Terminal.backend.terminal_api:router

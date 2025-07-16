@@ -1,3 +1,4 @@
+import logging
 import subprocess
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,8 @@ from typing import List, Optional
 from fastapi import APIRouter
 
 router = APIRouter()
+router = APIRouter(tags=["RconPlayerManager"], prefix="/rcon/PlayerManager")
+logger = logging.getLogger("rcon_api")
 
 # Middleware should be added in the main FastAPI app, not in the router.
 # Remove or move this to your main application entrypoint.

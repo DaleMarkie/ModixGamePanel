@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Module Manifest",
   "type": "object",
-  "required": ["name", "version", "description", "author", "website", "enabled", "permissions", "frontend", "backend"],
+  "required": ["name", "version", "description", "author", "website", "permissions", "frontend", "backend"],
   "properties": {
     "name": { "type": "string" },
     "version": { "type": "string" },
