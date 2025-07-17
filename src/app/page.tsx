@@ -15,25 +15,29 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Welcome from "./welcome/Welcome";
-const allPages = [
+import { useModules } from "./ModuleContext";
+
+// Static nav links (core pages)
+type SubmenuItem = { label: string; href: string };
+type NavLink = {
+  label: string;
+  href: string;
+  submenu?: SubmenuItem[];
+  icon?: string;
+  permission?: string;
+  module?: string;
+};
+
+const staticNavLinks: NavLink[] = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
   { label: "Workshop", href: "/workshop" },
   { label: "Server Status", href: "/server-status" },
-  { label: "Support", href: "/support" },
-  { label: "Documentation", href: "/docs" },
-  { label: "FAQ", href: "/support/faq" },
-  // add more pages here as needed
-];
-const navLinks = [
-  // ... same navLinks array as before ...
-
   {
     label: "🆘 Support",
     href: "/support",
     submenu: [
       { label: "📚 Documentation", href: "/docs" },
-
       { label: "❓ FAQ", href: "/support/faq" },
       { label: "🩺 Modix Health", href: "/modixhealth" },
       { label: "💬 Join Discord", href: "https://discord.gg/EwWZUSR9tM" },
@@ -42,11 +46,16 @@ const navLinks = [
 ];
 
 // SidebarUserInfo refactored to use classNames
-function SidebarUserInfo({ hostname, container, loggedInUser }) {
+type SidebarUserInfoProps = {
+  hostname: string;
+  container: string;
+  loggedInUser: string;
+};
+function SidebarUserInfo({ hostname, container, loggedInUser }: SidebarUserInfoProps) {
   if (!hostname || !container || !loggedInUser) return null;
   return (
     <section aria-label="Server Information" className="server-info-section">
-      {[
+      {[ 
         { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
         { icon: <FaServer size={12} />, label: "Container", value: container },
         { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
@@ -67,13 +76,21 @@ function SidebarUserInfo({ hostname, container, loggedInUser }) {
 }
 
 export default function Dashboard() {
-  const [serverInfo, setServerInfo] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [openMenus, setOpenMenus] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
+  type ServerInfo = { hostname: string; container: string; loggedInUser: string };
+  const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const { modules, loading, error } = useModules();
+  // Ensure modules is always an array
+  const safeModules = Array.isArray(modules) ? modules : [];
 
   useEffect(() => {
     async function fetchServerInfo() {
+      // Example: Replace with actual API call if needed
+      // const res = await fetch("http://localhost:8000/api/serverinfo");
+      // const data = await res.json();
+      // setServerInfo(data);
       await new Promise((r) => setTimeout(r, 400));
       setServerInfo({
         hostname: "modix-prod-server-01.longname.example.com",
@@ -84,39 +101,49 @@ export default function Dashboard() {
     fetchServerInfo();
   }, []);
 
-  const toggleSubMenu = (href) => {
+  const toggleSubMenu = (href: string) => {
     setOpenMenus((prev) => ({
       ...prev,
       [href]: !prev[href],
     }));
   };
 
-  // Filter navLinks by search term (checks label and submenu labels)
-  const filteredNavLinks = navLinks
-    .map(({ label, href, submenu }) => {
-      if (!searchTerm) return { label, href, submenu };
+  // Build dynamic nav links from enabled modules
+  const moduleNavLinks: NavLink[] = safeModules
+    .flatMap((mod) =>
+      (mod.frontend?.nav_items || []).map((item) => ({
+        label: item.label,
+        href: item.path,
+        icon: item.icon,
+        permission: item.permission,
+        module: mod.name,
+      }))
+    );
 
+  // Combine static and dynamic nav links
+  const allNavLinks: NavLink[] = [...staticNavLinks, ...moduleNavLinks];
+
+  // Filter nav links by search term
+  const filteredNavLinks: NavLink[] = allNavLinks
+    .map((nav) => {
+      if (!searchTerm) return nav;
       const lowerSearch = searchTerm.toLowerCase();
-
-      const mainMatch = label.toLowerCase().includes(lowerSearch);
-
-      let filteredSubmenu = null;
-      if (submenu) {
-        filteredSubmenu = submenu.filter((item) =>
+      const mainMatch = nav.label.toLowerCase().includes(lowerSearch);
+      let filteredSubmenu: SubmenuItem[] | undefined = undefined;
+      if (nav.submenu) {
+        filteredSubmenu = nav.submenu.filter((item) =>
           item.label.toLowerCase().includes(lowerSearch)
         );
       }
-
       if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
         return {
-          label,
-          href,
+          ...nav,
           submenu: filteredSubmenu,
         };
       }
       return null;
     })
-    .filter(Boolean);
+    .filter((nav): nav is NavLink => !!nav);
 
   return (
     <>
@@ -515,11 +542,16 @@ export default function Dashboard() {
 
               {sidebarOpen && (
                 <>
-                  <SidebarUserInfo
-                    hostname={serverInfo?.hostname}
-                    container={serverInfo?.container}
-                    loggedInUser={serverInfo?.loggedInUser}
-                  />
+                  {serverInfo &&
+                    typeof serverInfo.hostname === "string" &&
+                    typeof serverInfo.container === "string" &&
+                    typeof serverInfo.loggedInUser === "string" && (
+                      <SidebarUserInfo
+                        hostname={serverInfo.hostname}
+                        container={serverInfo.container}
+                        loggedInUser={serverInfo.loggedInUser}
+                      />
+                    )}
 
                   <div className="sidebar-search-wrapper">
                     <FaSearch

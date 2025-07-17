@@ -1,7 +1,7 @@
+console.log("[Modix] App.js loaded and running!");
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import { loadEnabledModules } from "./module_system/frontend_module_loader";
 
 import Dashboard from './components/core/dashboard/Dashboard';
 import MyServers from "./components/core/games/myservers/MyServers";
@@ -28,16 +28,31 @@ function App() {
   );
   const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
   const [dynamicModules, setDynamicModules] = useState([]);
+  const [moduleError, setModuleError] = useState(null);
+  const [pageError, setPageError] = useState(null);
 
   useEffect(() => {
+    console.log("[Modix] App.js useEffect running: loading dynamic modules...");
     const storedBg = localStorage.getItem("headerBgColor");
     const storedText = localStorage.getItem("headerTextColor");
     if (storedBg) setHeaderBgColor(storedBg);
     if (storedText) setHeaderTextColor(storedText);
     // Load dynamic modules from backend
-    loadEnabledModules("/api")
-      .then(setDynamicModules)
-      .catch((e) => console.error("Failed to load modules:", e));
+    try {
+      loadEnabledModules("/api")
+        .then((modules) => {
+          console.log("[Modix] Dynamic modules loaded in App.js:", modules);
+          setDynamicModules(modules);
+          setModuleError(null);
+        })
+        .catch((e) => {
+          console.error("Failed to load modules:", e);
+          setModuleError(e.message || "Failed to load modules");
+          setDynamicModules([]);
+        });
+    } catch (err) {
+      setPageError(err.message || "Failed to load page");
+    }
   }, []);
 
   const appWrapperStyle = {
@@ -169,6 +184,7 @@ function App() {
               zIndex: 2,
             }}
           >
+            // ...existing code...
             {/* Header */}
             <header style={headerStyle}>
               <div
@@ -187,13 +203,23 @@ function App() {
                     {label}
                   </Link>
                 ))}
-                {/* Dynamic module menu items */}
-                {dynamicModules.flatMap((mod) =>
-                  (mod.frontend?.nav_items || []).map((item) => (
-                    <Link key={mod.name + item.path} to={item.path} style={headerButtonStyle}>
-                      {item.label}
-                    </Link>
-                  ))
+                {/* Dynamic module menu items and error handling for all pages/routes */}
+                {pageError ? (
+                  <span style={{ color: "#ff4d4f", fontWeight: "bold" }}>
+                    Error loading page: {pageError}
+                  </span>
+                ) : moduleError ? (
+                  <span style={{ color: "#ff4d4f", fontWeight: "bold" }}>
+                    Error loading modules: {moduleError}
+                  </span>
+                ) : (
+                  dynamicModules.flatMap((mod) =>
+                    (mod.frontend?.nav_items || []).map((item) => (
+                      <Link key={mod.name + item.path} to={item.path} style={headerButtonStyle}>
+                        {item.label}
+                      </Link>
+                    ))
+                  )
                 )}
 
                 <div
@@ -268,18 +294,20 @@ function App() {
                 <Route path="/thememanager" element={<ThemeManager />} />
                 <Route path="/gamemanager" element={<GameManager />} />
                 <Route path="/myaccount" element={<MyAccount />} />
-                {/* Dynamic module routes */}
-                {dynamicModules.flatMap((mod) =>
-                  (mod.frontend?.routes || []).map((route) =>
-                    route.path && route.component ? (
-                      <Route
-                        key={mod.name + route.path}
-                        path={route.path}
-                        element={React.createElement(route.component)}
-                      />
-                    ) : null
-                  )
-                )}
+                {/* Dynamic module routes and error handling for all roots/pages */}
+                {pageError || moduleError
+                  ? null
+                  : dynamicModules.flatMap((mod) =>
+                      (mod.frontend?.routes || []).map((route) =>
+                        route.path && route.component ? (
+                          <Route
+                            key={mod.name + route.path}
+                            path={route.path}
+                            element={React.createElement(route.component)}
+                          />
+                        ) : null
+                      )
+                    )}
               </Routes>
             </main>
 

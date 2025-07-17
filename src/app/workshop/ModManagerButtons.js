@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import DownloadMod from "./DownloadMod";
-import DeleteMod from "./DeleteMod";
-import EditMod from "./EditMod";
+//import DownloadMod from "./DownloadMod";
+//import DeleteMod from "./DeleteMod";
+//import EditMod from "./EditMod";
 // Import other submenu components...
 
 const submenuItems = [

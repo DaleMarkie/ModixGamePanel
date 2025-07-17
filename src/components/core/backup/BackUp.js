@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./Backup.css"; // Make sure you style this accordingly
+import "./BackUp.css"; // Make sure you style this accordingly
 
 const Backup = () => {
   const [backups, setBackups] = useState([]);

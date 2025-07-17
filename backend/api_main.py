@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.API.Core.database import init_db, create_base_users_from_config
 from backend.API.Core.container_manager_api import router as container_manager_router
 from backend.backend_module_loader import register_modules
@@ -13,6 +14,14 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
 register_modules(app)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or ["http://localhost:3000"] for more security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize the SQLite database and base users on startup
 @app.on_event("startup")

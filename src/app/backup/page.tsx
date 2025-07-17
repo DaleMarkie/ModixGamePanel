@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
-import backup from "../backup/Backup";
+//import backup from "../backup/Backup";
 
 // Visible in top nav
 const navLinks = [
