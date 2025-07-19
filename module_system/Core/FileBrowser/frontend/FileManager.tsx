@@ -18,7 +18,7 @@ import {
   FaChevronRight as FaChevronRightIcon,
   FaTimes,
 } from "react-icons/fa";
-import "./filemanager.css";
+import "./filebrowser.css";
 
 function FileNode({ node, level = 0, onFileSelect, selectedFile }) {
   const [open, setOpen] = useState(false);
