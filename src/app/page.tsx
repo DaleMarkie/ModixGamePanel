@@ -29,18 +29,21 @@ type NavLink = {
 };
 
 const staticNavLinks: NavLink[] = [
-  { label: "Dashboard Home", href: "/" },
-  { label: "Mod Updater", href: "/mod-updater" },
-  { label: "Workshop", href: "/workshop" },
-  { label: "Server Status", href: "/server-status" },
+  { label: "🧭 Dashboard Home", href: "/" },
+  { label: "🧩 Mod Updater", href: "/mod-updater" },
+  { label: "🛠️ Workshop", href: "/workshop" },
+  { label: "🖥️ Server Status", href: "/server-status" },
   {
-    label: "🆘 Support",
+    label: "🆘 Support Center",
     href: "/support",
     submenu: [
-      { label: "📚 Documentation", href: "/docs" },
-      { label: "❓ FAQ", href: "/support/faq" },
-      { label: "🩺 Modix Health", href: "/modixhealth" },
-      { label: "💬 Join Discord", href: "https://discord.gg/EwWZUSR9tM" },
+      { label: "📖 Full Documentation", href: "/docs" },
+      { label: "❔ Frequently Asked Questions", href: "/support/faq" },
+      { label: "🩺 Modix Health Monitor", href: "/modixhealth" },
+      {
+        label: "💬 Join Our Discord Community",
+        href: "https://discord.gg/EwWZUSR9tM",
+      },
     ],
   },
 ];
@@ -51,11 +54,15 @@ type SidebarUserInfoProps = {
   container: string;
   loggedInUser: string;
 };
-function SidebarUserInfo({ hostname, container, loggedInUser }: SidebarUserInfoProps) {
+function SidebarUserInfo({
+  hostname,
+  container,
+  loggedInUser,
+}: SidebarUserInfoProps) {
   if (!hostname || !container || !loggedInUser) return null;
   return (
     <section aria-label="Server Information" className="server-info-section">
-      {[ 
+      {[
         { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
         { icon: <FaServer size={12} />, label: "Container", value: container },
         { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
@@ -76,7 +83,11 @@ function SidebarUserInfo({ hostname, container, loggedInUser }: SidebarUserInfoP
 }
 
 export default function Dashboard() {
-  type ServerInfo = { hostname: string; container: string; loggedInUser: string };
+  type ServerInfo = {
+    hostname: string;
+    container: string;
+    loggedInUser: string;
+  };
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
@@ -109,16 +120,15 @@ export default function Dashboard() {
   };
 
   // Build dynamic nav links from enabled modules
-  const moduleNavLinks: NavLink[] = safeModules
-    .flatMap((mod) =>
-      (mod.frontend?.nav_items || []).map((item) => ({
-        label: item.label,
-        href: item.path,
-        icon: item.icon,
-        permission: item.permission,
-        module: mod.name,
-      }))
-    );
+  const moduleNavLinks: NavLink[] = safeModules.flatMap((mod) =>
+    (mod.frontend?.nav_items || []).map((item) => ({
+      label: item.label,
+      href: item.path,
+      icon: item.icon,
+      permission: item.permission,
+      module: mod.name,
+    }))
+  );
 
   // Combine static and dynamic nav links
   const allNavLinks: NavLink[] = [...staticNavLinks, ...moduleNavLinks];

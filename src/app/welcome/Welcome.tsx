@@ -33,13 +33,17 @@ export default function InstalledPage() {
         {/* Header */}
         <section className="space-y-3">
           <FaCheckCircle size={54} className="text-green-500 mx-auto" />
-          <h1 className="text-4xl font-bold text-green-500 select-none">
-            Welcome to Modix
+          <h1 className="text-4xl font-bold text-green-500 select-none flex items-center justify-center gap-3">
+            Modix: Game Panel
+            <span className="text-xs bg-green-600 text-white font-semibold px-2 py-0.5 rounded-md shadow-sm border border-green-400">
+              v1.1.2
+            </span>
           </h1>
           <p className="text-base md:text-lg max-w-2xl text-gray-300 leading-relaxed mx-auto">
-            Modix is a modern game panel built for Docker — optimized for
-            modding, performance, and ease of use. A serious alternative to
-            legacy tools like TCAdmin or AMP.
+            Built from the ground up to empower both casual gamers and dedicated
+            server owners, Modix is a web-based, browser-hosted game panel
+            running on Linux and Docker. Launched in 2024 and actively developed
+            with long-term support, innovation, and ease of use at its core.
           </p>
           <p className="text-sm text-gray-400 italic">
             Developed by{" "}
