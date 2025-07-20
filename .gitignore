@@ -38,5 +38,33 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+.eggs/
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Build
+build/
+dist/
+
+# Database and backend files
+backend/modix.db
+backend/server_files/
+
+# Logs
+*.log
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
 next-env.d.ts
 .vscode/launch.json
