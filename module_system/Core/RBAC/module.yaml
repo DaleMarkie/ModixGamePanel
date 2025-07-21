@@ -16,6 +16,7 @@ frontend:
   - path: /rbac
     component: RBACPage
     permission: rbac:view
+    entry: Core/RBAC/frontend/page.tsx
   nav_items:
   - label: RBAC
     path: /rbac

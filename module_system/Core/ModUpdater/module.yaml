@@ -10,6 +10,7 @@ frontend:
   - path: /modulesupdater
     component: ModuleManagerPage
     permission: ModUpdater:update
+    entry: Core/ModUpdater/frontend/page.tsx
   nav_items:
   - label: Modules Updater
     path: /modulesupdater

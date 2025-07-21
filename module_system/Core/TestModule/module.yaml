@@ -7,6 +7,7 @@ frontend:
   routes:
     - path: /testmodule
       component: TestModulePage
+      entry: Core/TestModule/frontend/page.tsx
   nav_items:
     - label: Test Module
       path: /testmodule

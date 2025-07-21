@@ -12,6 +12,7 @@ frontend:
   - path: /modules
     component: ModuleManagerPage
     permission: mod_manager_access
+    entry: Core/ModManager/frontend/page.tsx
   nav_items:
   - label: Modules
     path: /modules

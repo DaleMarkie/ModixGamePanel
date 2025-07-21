@@ -9,12 +9,13 @@ permissions:
 - file_delete
 frontend:
   routes:
-  - path: /files
+  - path: /FileBrowser
     component: FileBrowserPage
     permission: file:view
+    entry: Core/FileBrowser/frontend/page.tsx
   nav_items:
-  - label: Files
-    path: /files
+  - label: File Browser
+    path: /FileBrowser
     icon: Folder
     permission: file:view
 backend:
