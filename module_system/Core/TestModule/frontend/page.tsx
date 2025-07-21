@@ -1,8 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import SidebarUserInfo from "@components/sidebar/SidebarUserInfo";
 
-export default function TestModulePage() {
+function DockerInspector() {
   const searchParams = useSearchParams();
   const queryContainerId = searchParams.get("container_id") || "";
   const [containerId, setContainerId] = useState(queryContainerId);
@@ -10,7 +12,7 @@ export default function TestModulePage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchContainerInfo = (id: string) => {
+  const fetchContainerInfo = (id) => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -31,10 +33,10 @@ export default function TestModulePage() {
     }
   }, [containerId]);
 
-  const handleQuery = (e: React.FormEvent) => {
+  const handleQuery = (e) => {
     e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const input = form.elements.namedItem("queryId") as HTMLInputElement;
+    const form = e.target;
+    const input = form.elements.namedItem("queryId");
     setContainerId(input.value.trim());
   };
 
@@ -64,5 +66,14 @@ export default function TestModulePage() {
         </pre>
       )}
     </div>
+  );
+}
+
+export default function TestModulePage() {
+  return (
+    <DashboardLayout panelName="MODIX">
+      <SidebarUserInfo />
+      <DockerInspector />
+    </DashboardLayout>
   );
 }

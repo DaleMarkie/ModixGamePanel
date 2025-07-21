@@ -44,13 +44,29 @@ export default function DynamicModulePage() {
   } else {
     console.debug("DynamicModulePage: entry path", entry);
   }
-  if (!entry) return <div>No frontend entry defined for this module. Make sure entry value exists and is under Core, Optional, or GameMoudles</div>;
 
+  if (!entry) {
+    return (
+      <div style={{ color: 'orange', padding: 16, background: '#222', borderRadius: 8 }}>
+        <b>No frontend entry defined for this module.</b>
+        <br />
+        Make sure the entry value exists and is under Core, Optional, or GameModules.
+      </div>
+    );
+  }
 
   const importFn = importMap[entry];
   if (!importFn) {
     console.error("DynamicModulePage: No import function for entry", entry);
-    return <div>No Module Front end: {entry}</div>;
+    return (
+      <div style={{ color: 'red', padding: 16, background: '#222', borderRadius: 8 }}>
+        <b>Module frontend file not found:</b> <code>{entry}</code>
+        <br />
+        This module does not have a frontend file at the expected path.<br />
+        Please check that <code>{entry}</code> exists and is included in the import map.<br />
+        If you just added the file, try regenerating the import map and restarting the dev server.
+      </div>
+    );
   }
 
   const ModuleComponent = dynamic(
