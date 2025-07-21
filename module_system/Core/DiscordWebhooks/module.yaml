@@ -4,17 +4,18 @@ description: Handles Discord webhook integration for notifications and alerts.
 author: Modix Team
 website: https://modix.store
 permissions:
-- discord:webhook:send
-- discord:webhook:manage
+- discord_webhook_send
+- discord_webhook_manage
 frontend:
   routes:
-  - path: /discord/webhooks
+  - path: /discordwebhooks
     component: DiscordWebhooksPage
-    permission: discord:webhook:manage
+    permission: discord_webhook_manage
+    entry: Core/DiscordWebhooks/frontend/page.tsx
   nav_items:
   - label: Discord Webhooks
-    path: /discord/webhooks
+    path: /discordwebhooks
     icon: Discord
-    permission: discord:webhook:manage
+    permission: discord_webhook_manage
 backend:
   router: module_system.Core.DiscordWebhooks.backend.routes:router

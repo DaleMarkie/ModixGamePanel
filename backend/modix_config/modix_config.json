@@ -38,14 +38,16 @@
     "end": 20100
   },
   "CORE_MODULES": [
-    "Dashboard",
     "Terminal",
     "RBAC",
     "RconPlayerManager",
     "ModUpdater",
     "ModManager",
     "FileBrowser",
-    "TestModule"
+    "TestModule",
+    "DiscordWebhooks",
+    "Workshop",
+    "Backup"
   ],
   "OPTIONAL_MODULES": [
   ]

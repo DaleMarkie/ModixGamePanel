@@ -4,18 +4,19 @@ description: Handles server and file backup operations.
 author: Modix Team
 website: https://modix.store
 permissions:
-- backup:view
-- backup:create
-- backup:restore
+- backup_view
+- backup_create
+- backup_restore
 frontend:
   routes:
   - path: /backup
     component: BackupPage
-    permission: backup:view
+    permission: backup_view
+    entry: Optional/Backup/frontend/page.tsx
   nav_items:
   - label: Backup
     path: /backup
     icon: Backup
-    permission: backup:view
+    permission: backup_view
 backend:
   router: module_system.Optional.Backup.backend.routes:router

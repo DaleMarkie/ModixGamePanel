@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Updater from "../updater/Updater";
+import Updater from "./Updater";
 
 const navLinks = [
   // ... same navLinks array as before ...

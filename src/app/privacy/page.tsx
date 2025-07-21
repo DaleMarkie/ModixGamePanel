@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Privacy from "../privacy/Privacy";
+import Privacy from "./Privacy";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },

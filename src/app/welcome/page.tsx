@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import Welcome from "../welcome/Welcome";
+import Welcome from "./Welcome";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },

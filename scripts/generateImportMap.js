@@ -13,6 +13,7 @@ function findFrontendEntries(dir) {
     const files = fs.readdirSync(current, { withFileTypes: true });
     for (const file of files) {
       if (file.isDirectory()) {
+        if (file.name === '!REWORK') continue; // Skip !REWORK directories
         scan(path.join(current, file.name), path.join(relPath, file.name));
       } else if (file.name === 'page.js' || file.name === 'page.tsx') {
         // e.g. Core/Terminal/frontend/page.js

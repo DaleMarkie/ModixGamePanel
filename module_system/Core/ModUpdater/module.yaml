@@ -4,12 +4,12 @@ description: updates installed modules to their latest versions.
 author: Modix Team
 website: https://modix.store
 permissions:
-- ModUpdater:update
+- ModUpdater_update
 frontend:
   routes:
-  - path: /modulesupdater
+  - path: /mod-Updater
     component: ModuleManagerPage
-    permission: ModUpdater:update
+    permission: ModUpdater_update
     entry: Core/ModUpdater/frontend/page.tsx
   nav_items:
   - label: Modules Updater

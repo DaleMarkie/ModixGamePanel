@@ -82,8 +82,6 @@ PERMISSIONS = [
     "modix_schemas",                   # Can manage global notifications
     "modix_get_containers",            # Can get a list of all containers
 # CONTAINER-LEVEL permissions
-    "container_discord_webhook_manage",   # Can manage Discord webhooks for a container
-    "container_workshop_manage",          # Can manage workshop items for a container
     "container_logs_view",                # Can view logs for a container
     "container_logs_download",            # Can download logs for a container
     "container_manage",                   # Can start/stop/restart the container

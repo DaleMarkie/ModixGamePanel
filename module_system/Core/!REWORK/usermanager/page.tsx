@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import UserManager from "../usermanager/UserManager";
+import UserManager from "./UserManager";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
