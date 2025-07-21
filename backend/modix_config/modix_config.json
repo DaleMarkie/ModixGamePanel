@@ -45,7 +45,7 @@
     "ModUpdater",
     "ModManager",
     "FileBrowser",
-    "Dashboard"
+    "TestModule"
   ],
   "OPTIONAL_MODULES": [
   ]

@@ -52,7 +52,7 @@ export const ModuleProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8000/api/modules/enabled");
+      const res = await fetch("http://localhost:2010/api/modules/enabled");
       console.debug("ModuleProvider: fetch status", res.status);
       if (!res.ok) throw new Error("Failed to fetch modules");
       const data = await res.json();

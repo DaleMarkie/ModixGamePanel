@@ -7,12 +7,12 @@ permissions:
 - ModUpdater:update
 frontend:
   routes:
-  - path: /modules
+  - path: /modulesupdater
     component: ModuleManagerPage
     permission: ModUpdater:update
   nav_items:
-  - label: Modules
-    path: /modules
+  - label: Modules Updater
+    path: /modulesupdater
     icon: Puzzle
     permission: ModUpdater:update
 backend:

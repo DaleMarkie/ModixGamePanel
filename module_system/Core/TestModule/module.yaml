@@ -1,0 +1,13 @@
+name: TestModule
+version: 1.0.0
+description: Test module for validating dynamic module loader and Docker API integration.
+author: Modix Team
+website: https://modix.store
+frontend:
+  routes:
+    - path: /testmodule
+      component: TestModulePage
+  nav_items:
+    - label: Test Module
+      path: /testmodule
+      icon: Flask

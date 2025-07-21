@@ -4,4 +4,5 @@ export const importMap = {
   "Core/ModManager/frontend/page.tsx": () => import("../../module_system/Core/ModManager/frontend/page.tsx"),
   "Core/ModUpdater/frontend/page.tsx": () => import("../../module_system/Core/ModUpdater/frontend/page.tsx"),
   "Core/Terminal/frontend/page.tsx": () => import("../../module_system/Core/Terminal/frontend/page.tsx"),
+  "Core/TestModule/frontend/page.tsx": () => import("../../module_system/Core/TestModule/frontend/page.tsx"),
 };
