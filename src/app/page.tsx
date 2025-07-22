@@ -100,7 +100,6 @@ export default function Dashboard() {
     }));
   };
 
-
   // Recursively process nav items (static or dynamic) to normalize structure (no sorting)
   function processNavItems(navItems: any[]): NavLink[] {
     if (!Array.isArray(navItems)) return [];
@@ -120,16 +119,25 @@ export default function Dashboard() {
 
   // Build dynamic nav links from enabled modules (with recursion)
   const moduleNavLinks: NavLink[] = safeModules.flatMap((mod) =>
-    processNavItems(mod.frontend?.nav_items || []).map((item) => ({ ...item, module: mod.name }))
+    processNavItems(mod.frontend?.nav_items || []).map((item) => ({
+      ...item,
+      module: mod.name,
+    }))
   );
 
   // Recursively merge dynamic links into static links at any level by href/priority (priority as array index)
-  function mergeNavLinks(staticLinks: NavLink[], dynamicLinks: NavLink[]): NavLink[] {
+  function mergeNavLinks(
+    staticLinks: NavLink[],
+    dynamicLinks: NavLink[]
+  ): NavLink[] {
     // Helper to merge submenu recursively, using priority as array index
-    function mergeByIndex(staticSubs: NavLink[] = [], dynamicSubs: NavLink[] = []): NavLink[] {
+    function mergeByIndex(
+      staticSubs: NavLink[] = [],
+      dynamicSubs: NavLink[] = []
+    ): NavLink[] {
       const merged = [...staticSubs];
       for (const link of dynamicSubs) {
-        if (typeof link.priority === 'number' && link.priority >= 0) {
+        if (typeof link.priority === "number" && link.priority >= 0) {
           let idx = link.priority;
           // Shift down if slot is taken
           while (merged[idx]) idx++;
@@ -142,10 +150,16 @@ export default function Dashboard() {
     }
 
     // Helper to find parent by label (with emoji removed) recursively
-    function findParentByLabel(links: NavLink[], parent: string): NavLink | undefined {
+    function findParentByLabel(
+      links: NavLink[],
+      parent: string
+    ): NavLink | undefined {
       for (const link of links) {
         // Compare by label with emoji removed (first 2 chars)
-        const labelNoEmoji = typeof link.label === 'string' ? link.label.slice(2).trim() : link.label;
+        const labelNoEmoji =
+          typeof link.label === "string"
+            ? link.label.slice(2).trim()
+            : link.label;
         if (labelNoEmoji === parent) return link;
         if (link.submenu) {
           const found = findParentByLabel(link.submenu, parent);
@@ -168,12 +182,17 @@ export default function Dashboard() {
       }
     }
     // Add top-level dynamic links that aren't merged as submenu
-    const topLevelDyn = dynamicLinks.filter(d => !used.has(d.href) && !d.parent);
+    const topLevelDyn = dynamicLinks.filter(
+      (d) => !used.has(d.href) && !d.parent
+    );
     return mergeByIndex(staticLinks, topLevelDyn);
   }
 
   // Start with all static nav links (including all submenu)
-  const allNavLinks: NavLink[] = mergeNavLinks(processNavItems(staticNavLinks), moduleNavLinks);
+  const allNavLinks: NavLink[] = mergeNavLinks(
+    processNavItems(staticNavLinks),
+    moduleNavLinks
+  );
 
   // Filter nav links by search term and deduplicate by href
   let filteredNavLinks: NavLink[] = allNavLinks
@@ -635,7 +654,7 @@ export default function Dashboard() {
 
             <nav role="navigation" aria-label="Sidebar navigation menu">
               <ul className="sidebar-nav">
-                {filteredNavLinks.map(({ label, href, submenu, icon }) => (
+                {filteredNavLinks.map(({ label, href, submenu, icon }) =>
                   href ? (
                     <li key={href} className="sidebar-nav-item">
                       {submenu && submenu.length > 0 ? (
@@ -654,7 +673,8 @@ export default function Dashboard() {
                             }}
                           >
                             <span className="sidebar-link submenu-label">
-                              {icon ? `${icon} ` : ""}{label}
+                              {icon ? `${icon} ` : ""}
+                              {label}
                             </span>
                             <FaChevronRight
                               aria-hidden="true"
@@ -671,7 +691,7 @@ export default function Dashboard() {
                               openMenus[href] ? "open" : "closed"
                             }`}
                           >
-                            {submenu.map((subItem: NavLink) => (
+                            {submenu.map((subItem: NavLink) =>
                               subItem.href ? (
                                 <li
                                   key={`${href}__${subItem.href}`}
@@ -684,21 +704,23 @@ export default function Dashboard() {
                                     tabIndex={openMenus[href] ? 0 : -1}
                                     className="submenu-link"
                                   >
-                                    {subItem.icon ? `${subItem.icon} ` : ""}{subItem.label}
+                                    {subItem.icon ? `${subItem.icon} ` : ""}
+                                    {subItem.label}
                                   </Link>
                                 </li>
                               ) : null
-                            ))}
+                            )}
                           </ul>
                         </>
                       ) : (
                         <Link href={href} className="sidebar-link">
-                          {icon ? `${icon} ` : ""}{label}
+                          {icon ? `${icon} ` : ""}
+                          {label}
                         </Link>
                       )}
                     </li>
                   ) : null
-                ))}
+                )}
               </ul>
             </nav>
 
