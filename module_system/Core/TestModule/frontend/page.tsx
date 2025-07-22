@@ -12,7 +12,7 @@ function DockerInspector() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchContainerInfo = (id) => {
+  const fetchContainerInfo = (id: string) => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -33,10 +33,10 @@ function DockerInspector() {
     }
   }, [containerId]);
 
-  const handleQuery = (e) => {
+  const handleQuery = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
-    const input = form.elements.namedItem("queryId");
+    const form = e.target as HTMLFormElement;
+    const input = form.elements.namedItem("queryId") as HTMLInputElement;
     setContainerId(input.value.trim());
   };
 

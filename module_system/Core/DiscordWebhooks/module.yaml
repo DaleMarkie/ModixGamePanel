@@ -6,6 +6,7 @@ website: https://modix.store
 permissions:
 - discord_webhook_send
 - discord_webhook_manage
+- discord_webhook_logs
 frontend:
   routes:
   - path: /discordwebhooks
@@ -15,7 +16,21 @@ frontend:
   nav_items:
   - label: Discord Webhooks
     path: /discordwebhooks
-    icon: Discord
+    icon: 📡
     permission: discord_webhook_manage
+    priority: 6
+    submenu:
+    - label: " Send Embed"
+      icon: 📤
+      path: /webhook
+    - permission: discord_webhook_send
+    - label: " Saved Webhooks"
+      icon: 💾
+      path: /webhooks/saved
+    - permission: discord_webhook_manage
+    - label: " Webhook Logs"
+      icon: 📝
+      path: /webhooks/logs
+      permission: discord_webhook_logs
 backend:
   router: module_system.Core.DiscordWebhooks.backend.routes:router

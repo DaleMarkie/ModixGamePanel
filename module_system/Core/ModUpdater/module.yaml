@@ -12,9 +12,11 @@ frontend:
     permission: ModUpdater_update
     entry: Core/ModUpdater/frontend/page.tsx
   nav_items:
-  - label: Modules Updater
-    path: /modulesupdater
-    icon: Puzzle
-    permission: ModUpdater:update
+  - label: Mod Update Checker
+    path: /mod-updater
+    icon: 🔄
+    permission: ModUpdater_update
+    priority: 3
+    parent: Mods
 backend:
   router: module_system.Core.ModUpdater.backend.modupdater_api:router

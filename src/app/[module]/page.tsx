@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useModules } from "../ModuleContext";
+import { Module, useModules } from "../ModuleContext";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 
@@ -72,11 +72,11 @@ export default function DynamicModulePage() {
   const ModuleComponent = dynamic(
     () =>
       importFn()
-        .then((mod) => {
+        .then((mod: any) => {
           console.debug("DynamicModulePage: successfully imported", entry, mod);
           return mod;
         })
-        .catch((err) => {
+        .catch((err: any) => {
           console.error("DynamicModulePage: import failed", entry, err);
           return () => <div>Failed to load module frontend: {entry}</div>;
         }),

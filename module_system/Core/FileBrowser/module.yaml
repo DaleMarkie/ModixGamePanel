@@ -4,6 +4,7 @@ description: Provides file browsing and management capabilities for server files
 author: Modix Team
 website: https://modix.store
 permissions:
+- file_view
 - file_write
 - file_read
 - file_delete
@@ -11,12 +12,22 @@ frontend:
   routes:
   - path: /FileBrowser
     component: FileBrowserPage
-    permission: file:view
+    permission: file_view
     entry: Core/FileBrowser/frontend/page.tsx
   nav_items:
-  - label: File Browser
+  - label: My Files
     path: /FileBrowser
-    icon: Folder
-    permission: file:view
-backend:
+    icon: 📂
+    permission: file_view
+    priority: 3
+    submenu:
+    - label: "Config Files"
+      icon: ⚙️
+      path: /filemanager/configs
+    - label: "SandboxVars.lua"
+      icon: 🧾
+      path: /filemanager/sandboxvars
+    - label: "Server Logs"
+      icon: 📄
+      path: /filemanager/logs
   router: module_system.Core.FileBrowser.backend.ftp_api:router

@@ -26,20 +26,24 @@
             "properties": {
               "path": { "type": "string" },
               "component": { "type": "string" },
-              "permission": { "type": "string" }
-            }
+              "permission": { "type": "string" },
+              "entry": { "type": "string" }
           }
         },
         "nav_items": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["label", "path", "icon", "permission"],
+            "required": ["label", "path", "icon"],
             "properties": {
               "label": { "type": "string" },
               "path": { "type": "string" },
               "icon": { "type": "string" },
-              "permission": { "type": "string" }
+              "permission": { "type": "string" },
+              "priority": { "type": "integer", "default": 0 },
+              "parent": {"type": "string","description": "Optional parent path for nested navigation items"},
+                "submenu": { "$ref": "#/properties/frontend/properties/nav_items" }
+              }
             }
           }
         }

@@ -15,12 +15,15 @@ frontend:
   routes:
   - path: /rbac
     component: RBACPage
-    permission: rbac:view
+    permission: rbac_view
     entry: Core/RBAC/frontend/page.tsx
   nav_items:
   - label: RBAC
     path: /rbac
-    icon: Security
-    permission: rbac:view
+    icon: 🛂
+    permission: rbac_view
+    priority: 3
+    parent: 🧭 Dashboard
+
 backend:
   router: module_system.Core.RBAC.backend.permissions_api:router

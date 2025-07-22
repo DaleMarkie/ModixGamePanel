@@ -16,37 +16,18 @@ import {
 } from "react-icons/fa";
 import Welcome from "./welcome/Welcome";
 import { useModules } from "./ModuleContext";
+import { navLinks as staticNavLinks } from "@components/sidebar/navConfig";
 
-// Static nav links (core pages)
-type SubmenuItem = { label: string; href: string };
+// Type definitions for nav links
 type NavLink = {
   label: string;
   href: string;
-  submenu?: SubmenuItem[];
   icon?: string;
   permission?: string;
-  module?: string;
+  priority?: number;
+  parent?: string;
+  submenu?: NavLink[];
 };
-
-const staticNavLinks: NavLink[] = [
-  { label: "🧭 Dashboard Home", href: "/" },
-  { label: "🧩 Mod Updater", href: "/mod-updater" },
-  { label: "🛠️ Workshop", href: "/workshop" },
-  { label: "🖥️ Server Status", href: "/server-status" },
-  {
-    label: "🆘 Support Center",
-    href: "/support",
-    submenu: [
-      { label: "📖 Full Documentation", href: "/docs" },
-      { label: "❔ Frequently Asked Questions", href: "/support/faq" },
-      { label: "🩺 Modix Health Monitor", href: "/modixhealth" },
-      {
-        label: "💬 Join Our Discord Community",
-        href: "https://discord.gg/EwWZUSR9tM",
-      },
-    ],
-  },
-];
 
 // SidebarUserInfo refactored to use classNames
 type SidebarUserInfoProps = {
@@ -119,27 +100,88 @@ export default function Dashboard() {
     }));
   };
 
-  // Build dynamic nav links from enabled modules
+
+  // Recursively process nav items (static or dynamic) to normalize structure (no sorting)
+  function processNavItems(navItems: any[]): NavLink[] {
+    if (!Array.isArray(navItems)) return [];
+    return navItems.map((item) => {
+      const nav: NavLink = {
+        label: item.label,
+        href: item.href || item.path,
+        icon: item.icon,
+        permission: item.permission,
+        priority: item.priority,
+        parent: item.parent,
+        submenu: item.submenu ? processNavItems(item.submenu) : undefined,
+      };
+      return nav;
+    });
+  }
+
+  // Build dynamic nav links from enabled modules (with recursion)
   const moduleNavLinks: NavLink[] = safeModules.flatMap((mod) =>
-    (mod.frontend?.nav_items || []).map((item) => ({
-      label: item.label,
-      href: item.path,
-      icon: item.icon,
-      permission: item.permission,
-      module: mod.name,
-    }))
+    processNavItems(mod.frontend?.nav_items || []).map((item) => ({ ...item, module: mod.name }))
   );
 
-  // Combine static and dynamic nav links
-  const allNavLinks: NavLink[] = [...staticNavLinks, ...moduleNavLinks];
+  // Recursively merge dynamic links into static links at any level by href/priority (priority as array index)
+  function mergeNavLinks(staticLinks: NavLink[], dynamicLinks: NavLink[]): NavLink[] {
+    // Helper to merge submenu recursively, using priority as array index
+    function mergeByIndex(staticSubs: NavLink[] = [], dynamicSubs: NavLink[] = []): NavLink[] {
+      const merged = [...staticSubs];
+      for (const link of dynamicSubs) {
+        if (typeof link.priority === 'number' && link.priority >= 0) {
+          let idx = link.priority;
+          // Shift down if slot is taken
+          while (merged[idx]) idx++;
+          merged.splice(idx, 0, link);
+        } else {
+          merged.push(link);
+        }
+      }
+      return merged;
+    }
 
-  // Filter nav links by search term
-  const filteredNavLinks: NavLink[] = allNavLinks
+    // Helper to find parent by label (with emoji removed) recursively
+    function findParentByLabel(links: NavLink[], parent: string): NavLink | undefined {
+      for (const link of links) {
+        // Compare by label with emoji removed (first 2 chars)
+        const labelNoEmoji = typeof link.label === 'string' ? link.label.slice(2).trim() : link.label;
+        if (labelNoEmoji === parent) return link;
+        if (link.submenu) {
+          const found = findParentByLabel(link.submenu, parent);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    }
+
+    // Track which dynamic links have been merged as submenus
+    const used = new Set<string>();
+    // For each dynamic link with a parent, insert as submenu at requested index
+    for (const dyn of dynamicLinks) {
+      if (dyn.parent) {
+        const parent = findParentByLabel(staticLinks, dyn.parent);
+        if (parent) {
+          parent.submenu = mergeByIndex(parent.submenu || [], [dyn]);
+          used.add(dyn.href);
+        }
+      }
+    }
+    // Add top-level dynamic links that aren't merged as submenu
+    const topLevelDyn = dynamicLinks.filter(d => !used.has(d.href) && !d.parent);
+    return mergeByIndex(staticLinks, topLevelDyn);
+  }
+
+  // Start with all static nav links (including all submenu)
+  const allNavLinks: NavLink[] = mergeNavLinks(processNavItems(staticNavLinks), moduleNavLinks);
+
+  // Filter nav links by search term and deduplicate by href
+  let filteredNavLinks: NavLink[] = allNavLinks
     .map((nav) => {
       if (!searchTerm) return nav;
       const lowerSearch = searchTerm.toLowerCase();
       const mainMatch = nav.label.toLowerCase().includes(lowerSearch);
-      let filteredSubmenu: SubmenuItem[] | undefined = undefined;
+      let filteredSubmenu: NavLink[] | undefined = undefined;
       if (nav.submenu) {
         filteredSubmenu = nav.submenu.filter((item) =>
           item.label.toLowerCase().includes(lowerSearch)
@@ -154,6 +196,14 @@ export default function Dashboard() {
       return null;
     })
     .filter((nav): nav is NavLink => !!nav);
+
+  // Deduplicate by href (keep first occurrence)
+  const seen = new Set<string>();
+  filteredNavLinks = filteredNavLinks.filter((nav) => {
+    if (seen.has(nav.href)) return false;
+    seen.add(nav.href);
+    return true;
+  });
 
   return (
     <>
@@ -585,65 +635,69 @@ export default function Dashboard() {
 
             <nav role="navigation" aria-label="Sidebar navigation menu">
               <ul className="sidebar-nav">
-                {filteredNavLinks.map(({ label, href, submenu }) => (
-                  <li key={href} className="sidebar-nav-item">
-                    {submenu ? (
-                      <>
-                        <button
-                          type="button"
-                          className="submenu-toggle"
-                          aria-expanded={!!openMenus[href]}
-                          aria-controls={`${href}-submenu`}
-                          onClick={() => toggleSubMenu(href)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              toggleSubMenu(href);
-                            }
-                          }}
-                        >
-                          <span className="sidebar-link submenu-label">
-                            {label}
-                          </span>
-                          <FaChevronRight
-                            aria-hidden="true"
-                            className={`submenu-arrow ${
-                              openMenus[href] ? "open" : ""
+                {filteredNavLinks.map(({ label, href, submenu, icon }) => (
+                  href ? (
+                    <li key={href} className="sidebar-nav-item">
+                      {submenu && submenu.length > 0 ? (
+                        <>
+                          <button
+                            type="button"
+                            className="submenu-toggle"
+                            aria-expanded={!!openMenus[href]}
+                            aria-controls={`${href}-submenu`}
+                            onClick={() => toggleSubMenu(href)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleSubMenu(href);
+                              }
+                            }}
+                          >
+                            <span className="sidebar-link submenu-label">
+                              {icon ? `${icon} ` : ""}{label}
+                            </span>
+                            <FaChevronRight
+                              aria-hidden="true"
+                              className={`submenu-arrow ${
+                                openMenus[href] ? "open" : ""
+                              }`}
+                            />
+                          </button>
+                          <ul
+                            id={`${href}-submenu`}
+                            role="menu"
+                            aria-label={`${label} submenu`}
+                            className={`submenu-list ${
+                              openMenus[href] ? "open" : "closed"
                             }`}
-                          />
-                        </button>
-                        <ul
-                          id={`${href}-submenu`}
-                          role="menu"
-                          aria-label={`${label} submenu`}
-                          className={`submenu-list ${
-                            openMenus[href] ? "open" : "closed"
-                          }`}
-                        >
-                          {submenu.map(({ label: subLabel, href: subHref }) => (
-                            <li
-                              key={subHref}
-                              className="submenu-item"
-                              role="none"
-                            >
-                              <Link
-                                href={subHref}
-                                role="menuitem"
-                                tabIndex={openMenus[href] ? 0 : -1}
-                                className="submenu-link"
-                              >
-                                {subLabel}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : (
-                      <Link href={href} className="sidebar-link">
-                        {label}
-                      </Link>
-                    )}
-                  </li>
+                          >
+                            {submenu.map((subItem: NavLink) => (
+                              subItem.href ? (
+                                <li
+                                  key={`${href}__${subItem.href}`}
+                                  className="submenu-item"
+                                  role="none"
+                                >
+                                  <Link
+                                    href={subItem.href}
+                                    role="menuitem"
+                                    tabIndex={openMenus[href] ? 0 : -1}
+                                    className="submenu-link"
+                                  >
+                                    {subItem.icon ? `${subItem.icon} ` : ""}{subItem.label}
+                                  </Link>
+                                </li>
+                              ) : null
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        <Link href={href} className="sidebar-link">
+                          {icon ? `${icon} ` : ""}{label}
+                        </Link>
+                      )}
+                    </li>
+                  ) : null
                 ))}
               </ul>
             </nav>

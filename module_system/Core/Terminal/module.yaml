@@ -17,7 +17,8 @@ frontend:
   nav_items:
     - label: Terminal
       path: /terminal
-      icon: Terminal
+      icon: 🖥️
       permission: terminal_access
+      priority: 2
 backend:
   router: module_system.Core.Terminal.backend.terminal_api:router

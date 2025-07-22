@@ -14,10 +14,6 @@ export const navLinks = [
     ],
   },
   {
-    label: "🖥️ Terminal",
-    href: "/terminal",
-  },
-  {
     label: "⚙️ Configuration",
     href: "/settings",
     submenu: [
@@ -32,19 +28,7 @@ export const navLinks = [
     label: "🧰 Mods",
     href: "/modmanager",
     submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager" },
       { label: "🛒 Browse Workshop", href: "/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modupdater" },
-    ],
-  },
-  {
-    label: "📁 Files",
-    href: "/filemanager",
-    submenu: [
-      { label: "📂 My Files", href: "/filemanager/uploads" },
-      { label: "⚙️ Config Files", href: "/filemanager/configs" },
-      { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
-      { label: "📄 Server Logs", href: "/filemanager/logs" },
     ],
   },
   {
@@ -55,15 +39,6 @@ export const navLinks = [
       { label: "🟢 Online Players", href: "/players/online" },
       { label: "🚫 Banned Players", href: "/players/banned" },
       { label: "✅ Whitelist", href: "/players/whitelist" },
-    ],
-  },
-  {
-    label: "📡 Webhooks",
-    href: "/webhooks",
-    submenu: [
-      { label: "📤 Send Embed", href: "/webhook" },
-      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
-      { label: "📝 Webhook Logs", href: "/webhooks/logs" },
     ],
   },
   {

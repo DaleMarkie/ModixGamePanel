@@ -16,5 +16,7 @@ frontend:
       path: /auditlogger
       icon: AuditLogger
       permission: auditlog_view
+      priority: 3
+      parent: 🛠 Tools
 backend:
   router: module_system.Core.AuditLogger.backend.auditlogger_api:router
