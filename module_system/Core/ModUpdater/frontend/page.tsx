@@ -94,7 +94,7 @@ function DockerInspector() {
   );
 }
 
-export default function Terminal() {
+export default function ModUpdater() {
   return (
     <DashboardLayout panelName="MODIX">
       <SidebarUserInfo />
