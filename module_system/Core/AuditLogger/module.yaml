@@ -14,9 +14,9 @@ frontend:
   nav_items:
     - label: Audit Logger
       path: /auditlogger
-      icon: AuditLogger
+      icon: 🕵
       permission: auditlog_view
       priority: 3
-      parent: 🛠 Tools
+      parent: Tools
 backend:
   router: module_system.Core.AuditLogger.backend.auditlogger_api:router
