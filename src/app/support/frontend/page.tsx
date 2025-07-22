@@ -94,7 +94,7 @@ function DockerInspector() {
   );
 }
 
-export default function usermanager() {
+export default function Support() {
   return (
     <DashboardLayout panelName="MODIX">
       <SidebarUserInfo />
