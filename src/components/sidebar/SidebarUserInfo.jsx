@@ -1,27 +1,31 @@
+
 import React, { useState, useEffect } from "react";
 import { FaLaptop, FaServer, FaUser } from "react-icons/fa";
+import { useUser } from "../../app/UserContext";
+import { useContainer } from "../../app/ContainerContext";
 
 export default function SidebarUserInfo() {
-  const [serverInfo, setServerInfo] = useState(null);
+  const { user, authenticated, loading } = useUser();
+  const { selectedContainer } = useContainer();
+  const [hostname, setHostname] = useState(null);
+
   useEffect(() => {
+    // Replace this with real fetch if you have a backend for server/host info
     setTimeout(() => {
-      setServerInfo({
-        hostname: "modix-prod-server-01.longname.example.com",
-        container: "pz-prod-container-05",
-        loggedInUser: "adminUser42",
-      });
+      setHostname("modix-prod-server-01.longname.example.com");
     }, 400);
   }, []);
 
-  if (!serverInfo) return null;
-  const { hostname, container, loggedInUser } = serverInfo;
-  if (!hostname || !container || !loggedInUser) return null;
+  if (loading) return null;
+  if (!authenticated || !user) return null;
+  if (!hostname || !selectedContainer) return null;
+
   return (
     <section aria-label="Server Information" className="server-info-section">
       {[
         { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
-        { icon: <FaServer size={12} />, label: "Container", value: container },
-        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
+        { icon: <FaServer size={12} />, label: "Container", value: selectedContainer },
+        { icon: <FaUser size={12} />, label: "User", value: user.username },
       ].map(({ icon, label, value }) => (
         <div
           key={label}

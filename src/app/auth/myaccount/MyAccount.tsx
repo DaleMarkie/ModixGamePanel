@@ -1,19 +1,30 @@
 "use client";
 
-import React from "react";
+
+import { useUser } from "../../UserContext";
 
 const MyAccount = () => {
-  const user = {
-    name: "Jane Doe",
-    username: "janedoe",
-    email: "jane.doe@example.com",
-    avatar: "https://i.pravatar.cc/150?u=janedoe",
-    plan: "Modix Pro",
-    licenseDaysLeft: 43,
-    licenseStatus: "Active",
-    joinedAt: "February 15, 2023",
-    servers: 3,
-  };
+  const { user, loading, authenticated } = useUser();
+
+  if (loading) return <div className="myaccount-container"><h1>My Account</h1><div className="status-message">Loading your account information...</div></div>;
+  if (!authenticated || !user) {
+    return (
+      <div className="myaccount-container">
+        <h1>My Account</h1>
+        <div className="status-message not-logged-in">
+          <p>You are not logged in.</p>
+          <p>
+            <a href="/auth/login" className="login-link">Log in</a> or <a href="/signup" className="signup-link">Sign up</a> to access your account.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
+  // Placeholder avatar if none
+  const avatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username || "User")}`;
+
 
   return (
     <div className="myaccount-container">
@@ -21,74 +32,63 @@ const MyAccount = () => {
 
       {/* Compact Profile Card */}
       <div className="profile-card">
-        <img src={user.avatar} alt="Avatar" className="avatar" />
+        <img src={avatar} alt="Avatar" className="avatar" />
         <div className="profile-details">
-          <h2>{user.name}</h2>
+          <h2>{user.name || user.username}</h2>
           <p className="username">@{user.username}</p>
           <p className="email">{user.email}</p>
           <div className="meta">
             <span>
-              <strong>Plan:</strong> {user.plan}
+              <strong>Status:</strong> {user.is_active ? "Active" : "Inactive"}
             </span>
             <span>
-              <strong>Servers:</strong> {user.servers}
-            </span>
-            <span>
-              <strong>Joined:</strong> {user.joinedAt}
+              <strong>ID:</strong> {user.id}
             </span>
           </div>
         </div>
-        <button className="delete-btn">🗑 Delete</button>
       </div>
 
-      {/* Improved License Card */}
+      {/* Roles and Permissions */}
       <div className="license-card">
-        <div className="license-top">
-          <div className="license-tier">
-            <span className="tier-icon">💎</span>
-            <div>
-              <h4>{user.plan}</h4>
-              <p className="license-status">
-                {user.licenseStatus} • {user.licenseDaysLeft} days left
-              </p>
-            </div>
-          </div>
-          <span className={`badge ${user.licenseStatus.toLowerCase()}`}>
-            {user.licenseStatus}
-          </span>
-        </div>
-
-        <div className="progress-wrapper">
-          <div className="progress-bar">
-            <div
-              className="progress"
-              style={{
-                width: `${Math.min((user.licenseDaysLeft / 90) * 100, 100)}%`,
-              }}
-            />
-          </div>
-          <p className="remaining-time">
-            ⏳ {user.licenseDaysLeft} days remaining
-          </p>
-        </div>
-
-        <div className="license-meta">
-          <div>
-            <span>📅 Joined</span>
-            <p>{user.joinedAt}</p>
-          </div>
-          <div>
-            <span>🖥️ Servers</span>
-            <p>{user.servers}</p>
-          </div>
-          <div>
-            <span>🔐 Status</span>
-            <p>{user.licenseStatus}</p>
-          </div>
-        </div>
+        <h3>Roles</h3>
+        <ul>
+          {user.roles && user.roles.length > 0 ? (
+            user.roles.map((role: string) => <li key={role}>{role}</li>)
+          ) : (
+            <li>No roles assigned</li>
+          )}
+        </ul>
+        <h3>Direct Permissions</h3>
+        <ul>
+          {user.direct_permissions && user.direct_permissions.length > 0 ? (
+            user.direct_permissions.map((perm: any, idx: number) => (
+              <li key={idx}>
+                {perm.permission} ({perm.value})
+                {perm.scope !== "global" && ` [${perm.scope}]`}
+                {perm.container_id && ` (Container: ${perm.container_id})`}
+              </li>
+            ))
+          ) : (
+            <li>No direct permissions</li>
+          )}
+        </ul>
+        <h3>Role Permissions</h3>
+        <ul>
+          {user.role_permissions && user.role_permissions.length > 0 ? (
+            user.role_permissions.map((perm: any, idx: number) => (
+              <li key={idx}>
+                {perm.permission} ({perm.value})
+                {perm.scope !== "global" && ` [${perm.scope}]`}
+                {perm.container_id && ` (Container: ${perm.container_id})`}
+              </li>
+            ))
+          ) : (
+            <li>No role permissions</li>
+          )}
+        </ul>
       </div>
 
-      {/* Settings */}
+      {/* Settings (optional, can be expanded) */}
       <div className="settings-card">
         <h3>⚙️ Profile Settings</h3>
         <form className="settings-form">
@@ -104,10 +104,6 @@ const MyAccount = () => {
             <label>Email</label>
             <input type="email" defaultValue={user.email} />
           </div>
-          <div className="form-group">
-            <label>Change Password</label>
-            <input type="password" placeholder="New password" />
-          </div>
           <button type="submit" className="save-btn">
             💾 Save
           </button>
@@ -115,6 +111,23 @@ const MyAccount = () => {
       </div>
 
       <style jsx>{`
+        .status-message {
+          text-align: center;
+          margin: 2rem 0;
+          color: #bbb;
+          font-size: 1rem;
+        }
+        .not-logged-in {
+          color: #ff7875;
+        }
+        .login-link, .signup-link {
+          color: #13c2c2;
+          text-decoration: underline;
+          margin: 0 0.5rem;
+        }
+        .login-link:hover, .signup-link:hover {
+          color: #40a9ff;
+        }
         .myaccount-container {
           padding: 2rem;
           max-width: 1000px;
@@ -350,6 +363,6 @@ const MyAccount = () => {
       `}</style>
     </div>
   );
-};
+}
 
 export default MyAccount;

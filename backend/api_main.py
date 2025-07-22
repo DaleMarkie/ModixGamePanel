@@ -11,7 +11,7 @@ from backend.API.Core.auth import auth_router
 app = FastAPI()
 
 app.include_router(docker_api_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
+app.include_router(auth_router, prefix="/api/auth")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
 register_modules(app)

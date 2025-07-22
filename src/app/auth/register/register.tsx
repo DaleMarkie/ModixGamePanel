@@ -41,7 +41,9 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch("/api/signup", {
+
+      // Call the internal Next.js API route for registration
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -11,6 +11,9 @@ import os
 from backend.API.Core.access_control import resolve_permission
 import json
 from pathlib import Path
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException as FastAPIHTTPException
 
 SECRET_KEY = os.environ.get("MODIX_SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
@@ -36,14 +39,24 @@ class TokenData(BaseModel):
 
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(User).filter_by(username=username).first()
+    print(f"[AUTH DEBUG] Username received: {username}")
+    print(f"[AUTH DEBUG] Password received: {password}")
+    if user:
+        print(f"[AUTH DEBUG] Stored bcrypt hash in DB: {user.password_hash}")
+    else:
+        print(f"[AUTH DEBUG] No user found for username: {username}")
+    # Use bcrypt to verify the password
     if not user or not bcrypt.verify(password, user.password_hash):
+        print(f"[AUTH DEBUG] Authentication failed for user: {username}")
         return None
+    print(f"[AUTH DEBUG] Authentication succeeded for user: {username}")
     return user
 
 def get_modix_config():
     config_path = Path(__file__).parent.parent.parent / "modix_config" / "modix_config.json"
     with open(config_path) as f:
         return json.load(f)
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     config = get_modix_config()
@@ -53,53 +66,107 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
             session_timeout = int(session_timeout)
         except Exception:
             session_timeout = None
-    # If session_timeout is not set, refresh token for 24 hours after each login (default)
-    expire = datetime.utcnow() + (expires_delta or timedelta(hours=24 if session_timeout is None else session_timeout))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))  # Access token: 15 min default
     to_encode = data.copy()
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))  # Refresh token: 7 days default
+    to_encode = data.copy()
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+from fastapi import Form
+
 @auth_router.post("/login", response_model=Token)
 def login(
     response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    username: str = Form(...),
+    password: str = Form(...),
+    scope: str = Form(''),
+    client_id: str = Form('string'),
+    client_secret: str = Form('********'),
     db: Session = Depends(get_db)
 ):
-    # Accepts credentials as form data (not JSON)
-    # Returns token as JSON
     config = get_modix_config()
     require_auth = config.get("MODIX_REQUIRE_AUTH")
-    session_timeout = config.get("MODIX_SESSION_TIMEOUT")
     # If auth is not required, allow any username and skip password check
     if require_auth is False or require_auth is None:
-        username = form_data.username or "guest"
-        expires_delta = timedelta(hours=24) if session_timeout is None else timedelta(minutes=int(session_timeout))
-        access_token = create_access_token(data={"sub": username}, expires_delta=expires_delta)
-        # Set JWT as HTTP-only cookie
+        username = username or "guest"
+        access_token = create_access_token(data={"sub": username})
+        refresh_token = create_refresh_token(data={"sub": username})
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            max_age=60 * 60 * 24 * 7,  # 1 week
+            max_age=60 * 15,  # 15 min
             samesite="lax",
-            secure=True  # Set to True for HTTPS
+            secure=True
         )
-        return {"access_token": access_token, "token_type": "bearer"}
-    user = authenticate_user(db, form_data.username, form_data.password)
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            max_age=60 * 60 * 24 * 7,  # 7 days
+            samesite="lax",
+            secure=True
+        )
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    user = authenticate_user(db, username, password)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    expires_delta = timedelta(hours=24) if session_timeout is None else timedelta(minutes=int(session_timeout))
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=expires_delta)
-    # Set JWT as HTTP-only cookie
+    access_token = create_access_token(data={"sub": user.username})
+    refresh_token = create_refresh_token(data={"sub": user.username})
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        max_age=60 * 60 * 24 * 7,  # 1 week
+        max_age=60 * 15,  # 15 min
         samesite="lax",
-        secure=True  # Set to True for HTTPS
+        secure=True
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        max_age=60 * 60 * 24 * 7,  # 7 days
+        samesite="lax",
+        secure=True
+    )
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+# /refresh endpoint to issue new access token using refresh token
+@auth_router.post("/refresh")
+def refresh_token(
+    response: Response,
+    db: Session = Depends(get_db),
+    refresh_token_cookie: str = Cookie(default=None, alias="refresh_token")
+):
+    if not refresh_token_cookie:
+        raise HTTPException(status_code=401, detail="Missing refresh token")
+    try:
+        payload = jwt.decode(refresh_token_cookie, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token type")
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid refresh token payload")
+        user = db.query(User).filter_by(username=username).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        # Issue new access token
+        access_token = create_access_token(data={"sub": username})
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            max_age=60 * 15,  # 15 min
+            samesite="lax",
+            secure=True
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -107,10 +174,17 @@ def get_current_user(
     request: Request = None,
     access_token_cookie: str = Cookie(default=None, alias="access_token")
 ):
+    print("!!! get_current_user CALLED !!!")
+    print(f"token arg: {token}")
+    print(f"access_token_cookie: {access_token_cookie}")
+    if request:
+        print(f"Request headers: {dict(request.headers)}")
     # Try header first, then cookie
     if not token and access_token_cookie:
         token = access_token_cookie
+        print(f"Using access_token_cookie as token: {token}")
     if not token:
+        print("No token found, raising 401")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -123,13 +197,18 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"Decoded JWT payload: {payload}")
         username: str = payload.get("sub")
         if username is None:
+            print("No username in JWT payload, raising 401")
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"JWTError: {e}")
         raise credentials_exception
     user = db.query(User).filter_by(username=username).first()
+    print(f"User from DB: {user}")
     if user is None:
+        print("No user found in DB, raising 401")
         raise credentials_exception
     return user
 
@@ -202,3 +281,77 @@ def logout(response: Response):
     # Clear the cookie
     response.delete_cookie(key="access_token")
     return {"message": "Successfully logged out."}
+
+
+
+# /me endpoint to return current user info with roles and permissions
+@auth_router.get("/me")
+def get_me(request: Request, db: Session = Depends(get_db), access_token_cookie: str = Cookie(default=None, alias="access_token")):
+    # Manually call get_current_user with explicit args
+    current_user = get_current_user(
+        token=request.headers.get("authorization").split(" ", 1)[1] if request.headers.get("authorization", "").lower().startswith("bearer ") else None,
+        db=db,
+        request=request,
+        access_token_cookie=access_token_cookie
+    )
+    # Get user roles
+    roles = [ur.role.name for ur in current_user.roles if ur.role]
+    # Get user permissions (direct and via roles)
+    direct_permissions = [
+        {
+            "permission": up.permission,
+            "value": up.value.value if hasattr(up.value, 'value') else up.value,
+            "scope": up.scope,
+            "container_id": up.container_id,
+        }
+        for up in current_user.permissions
+    ]
+    # Optionally, collect permissions from roles as well
+    role_permissions = []
+    for ur in current_user.roles:
+        if ur.role:
+            for rp in ur.role.permissions:
+                role_permissions.append({
+                    "permission": rp.permission,
+                    "value": rp.value.value if hasattr(rp.value, 'value') else rp.value,
+                    "scope": rp.scope,
+                    "container_id": rp.container_id,
+                })
+
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": getattr(current_user, "email", None),
+        "is_active": getattr(current_user, "is_active", None),
+        "name": getattr(current_user, "name", None),  # Include name if available
+        "roles": roles,
+        "direct_permissions": direct_permissions,
+        "role_permissions": role_permissions,
+    }
+
+@auth_router.get("/status")
+def get_status(
+    request: Request,
+    db: Session = Depends(get_db),
+    access_token_cookie: str = Cookie(default=None, alias="access_token")
+):
+    # Try to get token from Authorization header first, then cookie
+    token = None
+    auth_header = request.headers.get("authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+    elif access_token_cookie:
+        token = access_token_cookie
+    if not token:
+        return {"authenticated": False}
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            return {"authenticated": False}
+        user = db.query(User).filter_by(username=username).first()
+        if not user:
+            return {"authenticated": False}
+        return {"authenticated": True}
+    except Exception:
+        return {"authenticated": False}

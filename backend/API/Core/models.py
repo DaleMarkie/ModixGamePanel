@@ -12,11 +12,24 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=True)  # Full name or display name
     password_hash = Column(String, nullable=False)
     email = Column(String, unique=True)
     is_active = Column(Boolean, default=True)
     roles = relationship("UserRole", back_populates="user")
     permissions = relationship("UserPermission", back_populates="user")
+
+
+# ModixAccount class for future use (can be expanded as needed)
+class ModixAccount(Base):
+    __tablename__ = "modix_accounts"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    account_type = Column(String, nullable=False, default="standard")
+    created_at = Column(String, nullable=True)
+    profile_url = Column(String, nullable=True)
+    license_key = Column(String, nullable=True)  # For premium accounts
+    # Add more fields as needed
 
 class Role(Base):
     __tablename__ = "roles"

@@ -13,23 +13,28 @@ const Login = () => {
 
   const router = useRouter();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      // Call the internal Next.js API route with the raw password
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok && data.success) {
-        router.push("/dashboard"); // ✅ Next.js route change
+      // Accept either 'success', 'access_token', or 'token' as a sign of successful login
+      if (
+        response.ok &&
+        (result.success === true || result.access_token || result.token)
+      ) {
+        router.push("/auth/myaccount"); // ✅ Next.js route change
       } else {
-        setError(data.message || "Invalid username or password.");
+        setError(result.message || "Invalid username or password.");
       }
     } catch (err) {
       setError("Server error. Please try again later.");
