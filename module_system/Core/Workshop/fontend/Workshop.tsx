@@ -11,7 +11,7 @@ import React, {
 import ModCard from "./ModCard";
 import ModModal from "./ModModal";
 import ContextMenu from "./ContextMenu";
-import "./Workshop.css";
+import "./workshop.css";
 
 const ExportModal = ({ modIds, onClose, listName }) => {
   const textareaRef = useRef(null);
