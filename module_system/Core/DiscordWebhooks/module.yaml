@@ -4,33 +4,20 @@ description: Handles Discord webhook integration for notifications and alerts.
 author: Modix Team
 website: https://modix.store
 permissions:
-- discord_webhook_send
-- discord_webhook_manage
-- discord_webhook_logs
+  - discord:webhook:send
+  - discord:webhook:manage
 frontend:
   routes:
-  - path: /discordwebhooks
-    component: DiscordWebhooksPage
-    permission: discord_webhook_manage
-    entry: Core/DiscordWebhooks/frontend/page.tsx
+    - path: /discord/webhooks
+      component: WebhookPage
+      permission: discord:webhook:manage
+      entry: Core/DiscordWebhooks/frontend/page.tsx
   nav_items:
-  - label: Discord Webhooks
-    path: /discordwebhooks
-    icon: 📡
-    permission: discord_webhook_manage
-    priority: 6
-    submenu:
-    - label: " Send Embed"
-      icon: 📤
-      path: /webhook
-    - permission: discord_webhook_send
-    - label: " Saved Webhooks"
-      icon: 💾
-      path: /webhooks/saved
-    - permission: discord_webhook_manage
-    - label: " Webhook Logs"
-      icon: 📝
-      path: /webhooks/logs
-      permission: discord_webhook_logs
+    - label: Discord Webhooks
+      path: /discord/webhooks
+      icon: Discord
+      permission: discord:webhook:manage
+      priority: 1
+      parent: Integrations
 backend:
   router: module_system.Core.DiscordWebhooks.backend.routes:router
