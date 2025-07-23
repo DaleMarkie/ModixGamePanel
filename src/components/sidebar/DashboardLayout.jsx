@@ -7,123 +7,10 @@ import {
   FaChevronRight,
   FaBars,
 } from "react-icons/fa";
+import { navLinks } from "./navConfig.ts";
+import SidebarUserInfo from "./SidebarUserInfo";
 
-const navLinks = [
-  {
-    label: "🧭 Dashboard",
-    href: "/dashboard",
-    submenu: [
-      { label: "🖥️ My Servers", href: "/auth/myservers" },
-      { label: "🧪 Account", href: "/auth/myaccount" },
-      { label: "📄 My Licensing", href: "/auth/mylicensing" },
-      { label: "📍 Support Tickets", href: "/auth/support/tickets" },
-      { label: "⚙️ Settings", href: "/auth/mysettings" },
-    ],
-  },
-  { label: "🖥️ Terminal", href: "/terminal" },
-  {
-    label: "⚙️ Configuration",
-    href: "/settings",
-    submenu: [
-      { label: "⚙️ General Settings", href: "/settings/general" },
-      { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
-      { label: "📄 server.ini", href: "/settings/serverini" },
-      { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
-      { label: "🧟 Zombie Settings", href: "/settings/zombies" },
-    ],
-  },
-  {
-    label: "🧰 Mods",
-    href: "/modmanager",
-    submenu: [
-      { label: "🧩 Installed Mods", href: "/modmanager" },
-      { label: "🛒 Browse Workshop", href: "/workshop" },
-      { label: "🔄 Mod Update Checker", href: "/modupdater" },
-    ],
-  },
-  {
-    label: "📁 Files",
-    href: "/filemanager",
-    submenu: [
-      { label: "📂 My Files", href: "/filemanager/uploads" },
-      { label: "⚙️ Config Files", href: "/filemanager/configs" },
-      { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
-      { label: "📄 Server Logs", href: "/filemanager/logs" },
-    ],
-  },
-  {
-    label: "👥 Players",
-    href: "/players",
-    submenu: [
-      { label: "👥 All Players", href: "/players/all" },
-      { label: "🟢 Online Players", href: "/players/online" },
-      { label: "🚫 Banned Players", href: "/players/banned" },
-      { label: "✅ Whitelist", href: "/players/whitelist" },
-    ],
-  },
-  {
-    label: "📡 Webhooks",
-    href: "/webhooks",
-    submenu: [
-      { label: "📤 Send Embed", href: "/webhook" },
-      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
-      { label: "📝 Webhook Logs", href: "/webhooks/logs" },
-    ],
-  },
-  {
-    label: "🛠 Tools",
-    href: "/tools",
-    submenu: [
-      { label: "📈 Performance Stats", href: "/tools/performance" },
-      { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
-      { label: "📦 Plugin Tools", href: "/tools/plugins" },
-    ],
-  },
-  {
-    label: "🆘 Support",
-    href: "/support",
-    submenu: [
-      { label: "📚 Documentation", href: "/docs" },
-      { label: "🎫 Support Tickets", href: "/support/" },
-      { label: "❓ FAQ", href: "/support/faq" },
-    ],
-  },
-  {
-    label: "🔐 Account",
-    href: "/login",
-    submenu: [
-      { label: "🔐 Sign In", href: "/auth/login" },
-      { label: "🆕 Register", href: "/auth/register" },
-    ],
-  },
-];
-
-function SidebarUserInfo({ hostname, container, loggedInUser }) {
-  if (!hostname || !container || !loggedInUser) return null;
-  return (
-    <section aria-label="Server Information" className="server-info-section">
-      {[
-        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
-        { icon: <FaServer size={12} />, label: "Container", value: container },
-        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
-      ].map(({ icon, label, value }) => (
-        <div
-          key={label}
-          title={`${label}: ${value}`}
-          aria-label={`${label}: ${value}`}
-          className="server-info-item"
-        >
-          <span className="server-info-icon">{icon}</span>
-          <span className="server-info-label">{label}:</span>
-          <span className="server-info-value">{value}</span>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-export default function Dashboard() {
+export default function DashboardLayout({ children }) {
   const [serverInfo, setServerInfo] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
@@ -525,9 +412,7 @@ export default function Dashboard() {
               userSelect: "text",
             }}
           >
-            <h1>Welcome to Modix Dashboard</h1>
-            <p>Here you will find your server and account controls.</p>
-            {/* Replace this with your actual content */}
+            {children}
           </main>
         </div>
       </div>

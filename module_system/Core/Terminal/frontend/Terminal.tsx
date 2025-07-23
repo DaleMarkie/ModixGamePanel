@@ -14,6 +14,39 @@ import "./terminal.css";
 
 const API_BASE = "http://localhost:2010/api";
 
+interface ServerStats {
+  ramUsed?: number;
+  ramTotal?: number;
+  cpu?: number;
+  swapUsed?: number;
+  storageUsed?: number;
+  storageTotal?: number;
+  ip?: string;
+  port?: string | number;
+  status?: string;
+  uptime?: string;
+  downtime?: string;
+  healthStatus?: string;
+  serverPid?: string | number;
+  timezone?: string;
+  location?: string;
+  lastCheck?: string;
+  serverAlerts?: string;
+  version?: string;
+  diskRead?: string | number;
+  diskWrite?: string | number;
+  fsHealth?: string;
+  netIn?: string | number;
+  netOut?: string | number;
+  ping?: string | number;
+  firewallStatus?: string;
+  processCount?: string | number;
+  topProcess?: string;
+  loadAvg?: string | number;
+  dockerRunning?: boolean;
+  serviceStatus?: string;
+}
+
 const Terminal = () => {
   const [status, setStatus] = useState("Please start the server");
   const [logs, setLogs] = useState(() => {
@@ -24,14 +57,14 @@ const Terminal = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [memory, setMemory] = useState({ used: 2.5, total: 8 });
   const [lowMemoryWarning, setLowMemoryWarning] = useState(false);
-  const [serverStats, setServerStats] = useState(null);
+  const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [isServerRunning, setIsServerRunning] = useState(false);
-  const eventSourceRef = useRef(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  const addLog = (text, includeTimestamp = true) => {
+  const addLog = (text: string, includeTimestamp: boolean = true) => {
     const timestamp = new Date().toLocaleTimeString();
     const formatted = includeTimestamp ? `[${timestamp}] ${text}` : text;
-    setLogs((prev) => {
+    setLogs((prev: string[]) => {
       const updated = [...prev, formatted];
       localStorage.setItem("pz-logs", JSON.stringify(updated));
       return updated;
@@ -114,7 +147,7 @@ const Terminal = () => {
     }
   };
 
-  const handleCommand = async (cmd) => {
+  const handleCommand = async (cmd: string) => {
     switch (cmd.toLowerCase()) {
       case "start":
         if (isServerRunning) {
@@ -170,7 +203,7 @@ const Terminal = () => {
     }
   };
 
-  const submitCommand = (e) => {
+  const submitCommand = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (command.trim()) {
       addLog(`> ${command}`);
@@ -179,13 +212,13 @@ const Terminal = () => {
     }
   };
 
-  const handleClear = (e) => {
+  const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     localStorage.removeItem("pz-logs");
     setLogs([]);
   };
 
-  const handleCopyLogs = (e) => {
+  const handleCopyLogs = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const text = logs.join("\n");
     navigator.clipboard
@@ -194,7 +227,7 @@ const Terminal = () => {
       .catch(() => alert("Failed to copy logs."));
   };
 
-  const filteredLogs = logs.filter((log) =>
+  const filteredLogs = logs.filter((log: string) =>
     log.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -220,12 +253,20 @@ const Terminal = () => {
           </div>
           <div className="info-box">
             <h3>📊 CPU</h3>
-            <p>{serverStats ? `${serverStats.cpu}%` : "..."}</p>
+            <p>{
+              typeof serverStats?.cpu === "number"
+                ? `${serverStats.cpu.toFixed(1)}%`
+                : serverStats?.cpu
+                ? `${serverStats.cpu}`
+                : "..."
+            }</p>
           </div>
           <div className="info-box">
             <h3>🧠 RAM</h3>
             <p>
-              {serverStats
+              {typeof serverStats?.ramUsed === "number" && typeof serverStats?.ramTotal === "number"
+                ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB`
+                : serverStats?.ramUsed && serverStats?.ramTotal
                 ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB`
                 : "..."}
             </p>
@@ -233,7 +274,9 @@ const Terminal = () => {
           <div className="info-box">
             <h3>💽 Storage</h3>
             <p>
-              {serverStats
+              {typeof serverStats?.storageUsed === "number" && typeof serverStats?.storageTotal === "number"
+                ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB`
+                : serverStats?.storageUsed && serverStats?.storageTotal
                 ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB`
                 : "..."}
             </p>
@@ -285,7 +328,7 @@ const Terminal = () => {
 
           <div className="terminal-logs">
             {filteredLogs.length > 0 ? (
-              filteredLogs.map((log, index) => (
+              filteredLogs.map((log: string, index: number) => (
                 <pre key={index} className="terminal-log">
                   {log}
                 </pre>
@@ -367,14 +410,18 @@ const Terminal = () => {
             </div>
             <div>
               <strong>CPU Load:</strong>{" "}
-              {serverStats?.cpu ? `${serverStats.cpu.toFixed(1)}%` : "N/A"}
+              {typeof serverStats?.cpu === "number"
+                ? `${serverStats.cpu.toFixed(1)}%`
+                : serverStats?.cpu
+                ? `${serverStats.cpu}`
+                : "N/A"}
             </div>
             <div>
               <strong>Memory Usage:</strong>{" "}
-              {serverStats
-                ? `${serverStats.ramUsed.toFixed(
-                    2
-                  )} / ${serverStats.ramTotal.toFixed(2)} GB`
+              {typeof serverStats?.ramUsed === "number" && typeof serverStats?.ramTotal === "number"
+                ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB`
+                : serverStats?.ramUsed && serverStats?.ramTotal
+                ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB`
                 : "N/A"}
             </div>
             <div>
@@ -404,10 +451,10 @@ const Terminal = () => {
             </h3>
             <div>
               <strong>Storage Usage:</strong>{" "}
-              {serverStats
-                ? `${serverStats.storageUsed.toFixed(
-                    2
-                  )} / ${serverStats.storageTotal.toFixed(2)} GB`
+              {typeof serverStats?.storageUsed === "number" && typeof serverStats?.storageTotal === "number"
+                ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB`
+                : serverStats?.storageUsed && serverStats?.storageTotal
+                ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB`
                 : "N/A"}
             </div>
             <div>

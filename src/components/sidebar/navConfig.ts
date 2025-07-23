@@ -1,7 +1,6 @@
 // src/app/navConfig.js
 
 export const navLinks = [
-  // ... same navLinks array as before ...
   {
     label: "🧭 Dashboard",
     href: "/dashboard",
@@ -78,11 +77,8 @@ export const allPages = [
   { label: "Support", href: "/support" },
   { label: "Documentation", href: "/docs" },
   { label: "FAQ", href: "/support/faq" },
-  // add more pages here as needed
 ];
 
-export const extraSearchPages = [
-  // Add any extra search pages here, or leave empty if not needed
-];
+export const extraSearchPages = [];
 
 export const searchablePages = [...navLinks, ...extraSearchPages];
