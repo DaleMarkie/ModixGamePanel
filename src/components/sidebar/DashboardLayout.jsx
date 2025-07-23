@@ -66,8 +66,6 @@ export default function DashboardLayout({ children }) {
           width: 100%;
           font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
           background: none;
-          /* Remove this: */
-          /* overflow: hidden; */
         }
         
 
@@ -174,12 +172,15 @@ export default function DashboardLayout({ children }) {
           flex-grow: 1;
           overflow-y: auto;
           padding-right: 6px;
+          display: flex;
+          flex-direction: column;
         }
         nav ul {
           list-style: none;
           padding-left: 0;
           margin: 0;
           user-select: none;
+          flex-shrink: 0;
         }
         nav li {
           margin-bottom: 8px;
@@ -243,6 +244,7 @@ export default function DashboardLayout({ children }) {
           font-size: 12px;
           color: #aaa;
           user-select: none;
+          flex-shrink: 0;
         }
         .server-info-item {
           display: flex;
@@ -364,7 +366,9 @@ export default function DashboardLayout({ children }) {
                         <ul
                           id={`submenu-${href}`}
                           style={{
-                            maxHeight: openMenus[href] ? "500px" : "0px",
+                            maxHeight: openMenus[href]
+                              ? submenu.length * 38 + "px"
+                              : "0px",
                           }}
                         >
                           {submenu.map(({ label: subLabel, href: subHref }) => (
@@ -380,57 +384,55 @@ export default function DashboardLayout({ children }) {
                   </li>
                 ))}
               </ul>
+
+              {/* Moved server info section INSIDE nav, just below the nav links */}
+              {serverInfo && (
+                <section
+                  className="server-info-section"
+                  aria-label="Server Information"
+                >
+                  <div className="server-info-item">
+                    <span className="server-info-icon" aria-hidden="true">
+                      <FaLaptop />
+                    </span>
+                    <span className="server-info-label">Hostname:</span>
+                    <span className="server-info-value" title={serverInfo.hostname}>
+                      {serverInfo.hostname}
+                    </span>
+                  </div>
+                  <div className="server-info-item">
+                    <span className="server-info-icon" aria-hidden="true">
+                      <FaServer />
+                    </span>
+                    <span className="server-info-label">Container:</span>
+                    <span className="server-info-value" title={serverInfo.container}>
+                      {serverInfo.container}
+                    </span>
+                  </div>
+                  <div className="server-info-item">
+                    <span className="server-info-icon" aria-hidden="true">
+                      <FaUser />
+                    </span>
+                    <span className="server-info-label">Logged In:</span>
+                    <span className="server-info-value" title={serverInfo.loggedInUser}>
+                      {serverInfo.loggedInUser}
+                    </span>
+                  </div>
+                </section>
+              )}
             </nav>
 
-            {serverInfo && (
-              <section
-                className="server-info-section"
-                aria-label="Server Information"
-              >
-                <div className="server-info-item">
-                  <span className="server-info-icon" aria-hidden="true">
-                    <FaLaptop />
-                  </span>
-                  <span className="server-info-label">Hostname:</span>
-                  <span
-                    className="server-info-value"
-                    title={serverInfo.hostname}
-                  >
-                    {serverInfo.hostname}
-                  </span>
-                </div>
-                <div className="server-info-item">
-                  <span className="server-info-icon" aria-hidden="true">
-                    <FaServer />
-                  </span>
-                  <span className="server-info-label">Container:</span>
-                  <span
-                    className="server-info-value"
-                    title={serverInfo.container}
-                  >
-                    {serverInfo.container}
-                  </span>
-                </div>
-                <div className="server-info-item">
-                  <span className="server-info-icon" aria-hidden="true">
-                    <FaUser />
-                  </span>
-                  <span className="server-info-label">User:</span>
-                  <span
-                    className="server-info-value"
-                    title={serverInfo.loggedInUser}
-                  >
-                    {serverInfo.loggedInUser}
-                  </span>
-                </div>
-              </section>
-            )}
+            {/* Sidebar bottom area or footer if needed */}
           </aside>
 
           <main
-            id="content"
             tabIndex={-1}
-            style={{ flexGrow: 1, padding: "24px 30px", color: "#ddd" }}
+            style={{
+              flexGrow: 1,
+              overflowY: "auto",
+              padding: "20px 26px",
+            }}
+            aria-label="Dashboard Content"
           >
             {children}
           </main>
