@@ -14,7 +14,7 @@ import {
   FaLaptop,
   FaSearch,
 } from "react-icons/fa";
-import License from "../license/License";
+import Terminal from "./Terminal";
 const allPages = [
   { label: "Dashboard Home", href: "/" },
   { label: "Mod Updater", href: "/mod-updater" },
@@ -66,7 +66,7 @@ const navLinks = [
     label: "📁 Files",
     href: "/filemanager",
     submenu: [
-      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "📂 My Files", href: "/filemanager" },
       { label: "⚙️ Config Files", href: "/filemanager/configs" },
       { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
       { label: "📄 Server Logs", href: "/filemanager/logs" },
@@ -76,7 +76,7 @@ const navLinks = [
     label: "👥 Players",
     href: "/players",
     submenu: [
-      { label: "👥 All Players", href: "/players/all" },
+      { label: "👥 All Players", href: "/modules/steamplayermanager" },
       { label: "🟢 Online Players", href: "/players/online" },
       { label: "🚫 Banned Players", href: "/players/banned" },
       { label: "✅ Whitelist", href: "/players/whitelist" },
@@ -97,7 +97,7 @@ const navLinks = [
     submenu: [
       { label: "📈 Performance Stats", href: "/tools/performance" },
       { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "🎨 Theme Manager", href: "/tools/thememanager" },
       { label: "📦 Plugin Tools", href: "/tools/plugins" },
     ],
   },
@@ -214,7 +214,7 @@ export default function Dashboard() {
         /* ========== Root Container ========== */
         .dashboard-root {
           min-height: 2vh;
-          background-color: rgb(18, 18, 18);
+          background-color: rgb(, 18, 18);
           padding: 24px;
           display: flex;
           justify-content: center;
@@ -703,7 +703,7 @@ export default function Dashboard() {
             tabIndex={-1}
             aria-label="Main dashboard content"
           >
-            <License />
+            <Terminal />
           </main>
         </div>
       </div>

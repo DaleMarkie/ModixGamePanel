@@ -1,729 +1,104 @@
 "use client";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import SidebarUserInfo from "@components/sidebar/SidebarUserInfo";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import {
-  FaDiscord,
-  FaCoffee,
-  FaBars,
-  FaTimes,
-  FaChevronDown,
-  FaChevronRight,
-  FaServer,
-  FaUser,
-  FaLaptop,
-  FaSearch,
-} from "react-icons/fa";
-import Welcome from "./welcome/Welcome";
-import { useModules } from "./ModuleContext";
-import { navLinks as staticNavLinks } from "@components/sidebar/navConfig";
+function DockerInspector() {
+  const searchParams = useSearchParams();
+  const queryContainerId = searchParams.get("container_id") || "";
+  const [containerId, setContainerId] = useState(queryContainerId);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-// Type definitions for nav links
-type NavLink = {
-  label: string;
-  href: string;
-  icon?: string;
-  permission?: string;
-  priority?: number;
-  parent?: string;
-  submenu?: NavLink[];
-};
+  const fetchContainerInfo = (id: string) => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    fetch(`http://localhost:2010/api/docker/${id}/inspect`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch container info");
+        return res.json();
+      })
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  };
 
-// SidebarUserInfo refactored to use classNames
-type SidebarUserInfoProps = {
-  hostname: string;
-  container: string;
-  loggedInUser: string;
-};
-function SidebarUserInfo({
-  hostname,
-  container,
-  loggedInUser,
-}: SidebarUserInfoProps) {
-  if (!hostname || !container || !loggedInUser) return null;
+  useEffect(() => {
+    if (containerId) {
+      fetchContainerInfo(containerId);
+    }
+  }, [containerId]);
+
+  const handleQuery = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const input = form.elements.namedItem("queryId") as HTMLInputElement;
+    setContainerId(input.value.trim());
+  };
+
   return (
-    <section aria-label="Server Information" className="server-info-section">
-      {[
-        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
-        { icon: <FaServer size={12} />, label: "Container", value: container },
-        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
-      ].map(({ icon, label, value }) => (
-        <div
-          key={label}
-          title={`${label}: ${value}`}
-          aria-label={`${label}: ${value}`}
-          className="server-info-item"
+    <div style={{ padding: 24 }}>
+      <h2>Test Module: Docker Container Inspector</h2>
+      <form onSubmit={handleQuery} style={{ marginBottom: 16 }}>
+        <label>
+          <strong>Container ID:</strong>
+          <input
+            type="text"
+            name="queryId"
+            defaultValue={containerId}
+            placeholder="Enter container ID..."
+            style={{
+              marginLeft: 8,
+              padding: 4,
+              borderRadius: 4,
+              border: "1px solid #888",
+              background: "#222",
+              color: "#eee",
+            }}
+          />
+        </label>
+        <button
+          type="submit"
+          style={{
+            marginLeft: 12,
+            padding: "4px 12px",
+            borderRadius: 4,
+            background: "#444",
+            color: "#fff",
+            border: "none",
+          }}
         >
-          <span className="server-info-icon">{icon}</span>
-          <span className="server-info-label">{label}:</span>
-          <span className="server-info-value">{value}</span>
-        </div>
-      ))}
-    </section>
+          Query
+        </button>
+      </form>
+      {loading && <div>Loading...</div>}
+      {error && <div style={{ color: "red" }}>Error: {String(error)}</div>}
+      {data && (
+        <pre
+          style={{
+            background: "#222",
+            color: "#eee",
+            padding: 12,
+            borderRadius: 8,
+            marginTop: 16,
+          }}
+        >
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      )}
+    </div>
   );
 }
 
-export default function Dashboard() {
-  type ServerInfo = {
-    hostname: string;
-    container: string;
-    loggedInUser: string;
-  };
-  const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const { modules, loading, error } = useModules();
-  // Ensure modules is always an array
-  const safeModules = Array.isArray(modules) ? modules : [];
-
-  useEffect(() => {
-    async function fetchServerInfo() {
-      // Example: Replace with actual API call if needed
-      // const res = await fetch("http://localhost:8000/api/serverinfo");
-      // const data = await res.json();
-      // setServerInfo(data);
-      await new Promise((r) => setTimeout(r, 400));
-      setServerInfo({
-        hostname: "modix-prod-server-01.longname.example.com",
-        container: "pz-prod-container-05",
-        loggedInUser: "adminUser42",
-      });
-    }
-    fetchServerInfo();
-  }, []);
-
-  const toggleSubMenu = (href: string) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [href]: !prev[href],
-    }));
-  };
-
-
-  // Recursively process nav items (static or dynamic) to normalize structure (no sorting)
-  function processNavItems(navItems: any[]): NavLink[] {
-    if (!Array.isArray(navItems)) return [];
-    return navItems.map((item) => {
-      const nav: NavLink = {
-        label: item.label,
-        href: item.href || item.path,
-        icon: item.icon,
-        permission: item.permission,
-        priority: item.priority,
-        parent: item.parent,
-        submenu: item.submenu ? processNavItems(item.submenu) : undefined,
-      };
-      return nav;
-    });
-  }
-
-  // Build dynamic nav links from enabled modules (with recursion)
-  const moduleNavLinks: NavLink[] = safeModules.flatMap((mod) =>
-    processNavItems(mod.frontend?.nav_items || []).map((item) => ({ ...item, module: mod.name }))
-  );
-
-  // Recursively merge dynamic links into static links at any level by href/priority (priority as array index)
-  function mergeNavLinks(staticLinks: NavLink[], dynamicLinks: NavLink[]): NavLink[] {
-    // Helper to merge submenu recursively, using priority as array index
-    function mergeByIndex(staticSubs: NavLink[] = [], dynamicSubs: NavLink[] = []): NavLink[] {
-      const merged = [...staticSubs];
-      for (const link of dynamicSubs) {
-        if (typeof link.priority === 'number' && link.priority >= 0) {
-          let idx = link.priority;
-          // Shift down if slot is taken
-          while (merged[idx]) idx++;
-          merged.splice(idx, 0, link);
-        } else {
-          merged.push(link);
-        }
-      }
-      return merged;
-    }
-
-    // Helper to find parent by label (with emoji removed) recursively
-    function findParentByLabel(links: NavLink[], parent: string): NavLink | undefined {
-      for (const link of links) {
-        // Compare by label with emoji removed (first 2 chars)
-        const labelNoEmoji = typeof link.label === 'string' ? link.label.slice(2).trim() : link.label;
-        if (labelNoEmoji === parent) return link;
-        if (link.submenu) {
-          const found = findParentByLabel(link.submenu, parent);
-          if (found) return found;
-        }
-      }
-      return undefined;
-    }
-
-    // Track which dynamic links have been merged as submenus
-    const used = new Set<string>();
-    // For each dynamic link with a parent, insert as submenu at requested index
-    for (const dyn of dynamicLinks) {
-      if (dyn.parent) {
-        const parent = findParentByLabel(staticLinks, dyn.parent);
-        if (parent) {
-          parent.submenu = mergeByIndex(parent.submenu || [], [dyn]);
-          used.add(dyn.href);
-        }
-      }
-    }
-    // Add top-level dynamic links that aren't merged as submenu
-    const topLevelDyn = dynamicLinks.filter(d => !used.has(d.href) && !d.parent);
-    return mergeByIndex(staticLinks, topLevelDyn);
-  }
-
-  // Start with all static nav links (including all submenu)
-  const allNavLinks: NavLink[] = mergeNavLinks(processNavItems(staticNavLinks), moduleNavLinks);
-
-  // Filter nav links by search term and deduplicate by href
-  let filteredNavLinks: NavLink[] = allNavLinks
-    .map((nav) => {
-      if (!searchTerm) return nav;
-      const lowerSearch = searchTerm.toLowerCase();
-      const mainMatch = nav.label.toLowerCase().includes(lowerSearch);
-      let filteredSubmenu: NavLink[] | undefined = undefined;
-      if (nav.submenu) {
-        filteredSubmenu = nav.submenu.filter((item) =>
-          item.label.toLowerCase().includes(lowerSearch)
-        );
-      }
-      if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
-        return {
-          ...nav,
-          submenu: filteredSubmenu,
-        };
-      }
-      return null;
-    })
-    .filter((nav): nav is NavLink => !!nav);
-
-  // Deduplicate by href (keep first occurrence)
-  const seen = new Set<string>();
-  filteredNavLinks = filteredNavLinks.filter((nav) => {
-    if (seen.has(nav.href)) return false;
-    seen.add(nav.href);
-    return true;
-  });
-
+export default function Welcome() {
   return (
-    <>
-      <style>{`
-        /* ========== Global Animations ========== */
-        @keyframes gradientShift {
-          0% { background-position: 0% 2%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes fadeIn {
-          from {opacity: 0; transform: translateY(5px);}
-          to {opacity: 1; transform: translateY(0);}
-        }
-
-        /* ========== Root Container ========== */
-        .dashboard-root {
-          min-height: 2vh;
-          background-color: rgb(18, 18, 18);
-          padding: 24px;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          box-sizing: border-box;
-          background-image: url('https://images7.alphacoders.com/627/627909.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          position: relative;
-        }
-
-        .dashboard-overlay {
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: rgba(18, 18, 18, 0.7);
-          z-index: 0;
-        }
-
-        .dashboard-container {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          max-width: 1280px;
-          width: 100%;
-          background-color: #181818;
-          border-radius: 16px;
-          box-shadow: 0 10px 15px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.03);
-          overflow: hidden;
-          min-height: 80vh;
-        }
-
-        /* ========== Sidebar Styles ========== */
-        .sidebar {
-          background-color: #1c1c1c;
-          color: #eee;
-          display: flex;
-          flex-direction: column;
-          user-select: none;
-          transition: width 0.3s ease;
-          overflow: hidden;
-        }
-        .sidebar.open {
-          width: 195px;
-          padding: 16px 10px;
-        }
-        .sidebar.closed {
-          width: 60px;
-          padding: 16px 6px;
-        }
-
-        /* Logo + Title Container */
-        .sidebar-header {
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 16px;
-          gap: 6px;
-        }
-        .sidebar-header.closed {
-          align-items: center;
-          gap: 0;
-        }
-        .sidebar-header.open {
-          align-items: flex-start;
-          gap: 6px;
-        }
-
-        .sidebar-logo-row {
-          display: flex;
-          width: 100%;
-          align-items: center;
-          gap: 12px;
-          justify-content: flex-start;
-        }
-        .sidebar-logo-row.closed {
-          justify-content: center;
-          gap: 0;
-        }
-
-        .sidebar-logo {
-          height: 28px;
-          border-radius: 8px;
-          transition: height 0.3s ease;
-          user-select: none;
-          flex-shrink: 0;
-        }
-
-        .sidebar-title {
-          font-weight: 900;
-          font-size: 0.8rem;
-          background: linear-gradient(270deg, #43b581, #70b5f9, #ffa94d, #43b581);
-          background-size: 600% 600%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: gradientShift 8s ease infinite;
-          text-shadow: 0 0 6px rgba(67, 181, 129, 0.6);
-          white-space: nowrap;
-          user-select: none;
-        }
-
-        /* Server Info */
-        .server-info-section {
-          margin-top: 12px;
-          padding: px 12px;
-          background-color: rgba(255,255,255,0.06);
-          border-radius: 8px;
-          color: #c0c0c0;
-          font-size: 0.625rem;
-          user-select: none;
-          box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
-          animation: fadeIn 0.5s ease forwards;
-          width: 90%;
-          max-width: 165px;
-        }
-        .server-info-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 6px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          cursor: default;
-        }
-        .server-info-icon {
-          flex-shrink: 0;
-          color: #6ec1e4;
-          display: flex;
-          align-items: center;
-        }
-        .server-info-label {
-          font-weight: 600;
-          color: #eee;
-          min-width: 48px;
-          flex-shrink: 0;
-          user-select: text;
-        }
-        .server-info-value {
-          flex-grow: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          user-select: text;
-        }
-
-        /* Collapse Button */
-        .sidebar-collapse-btn {
-          background-color: #2c2c2c;
-          border: none;
-          color: #eee;
-          padding: 10px 14px;
-          font-size: 0.85rem;
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          margin-top: 16px;
-          border-radius: 6px;
-          user-select: none;
-          transition: all 0.3s ease;
-          width: 100%;
-          justify-content: space-between;
-        }
-        .sidebar-collapse-btn.closed {
-          justify-content: center;
-        }
-
-        /* Search Bar */
-        .sidebar-search-wrapper {
-          margin-top: 12px;
-          margin-bottom: 8px;
-          position: relative;
-        }
-        .sidebar-search-icon {
-          position: absolute;
-          left: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #888;
-          pointer-events: none;
-          user-select: none;
-        }
-        .sidebar-search-input {
-          width: 100%;
-          padding: 8px 8px 8px 32px;
-          font-size: 0.75rem;
-          border-radius: 6px;
-          border: none;
-          outline: none;
-          background-color: #262626;
-          color: #ddd;
-          transition: background-color 0.3s ease;
-        }
-        .sidebar-search-input::placeholder {
-          color: #888;
-        }
-        .sidebar-search-input:focus {
-          background-color: #333;
-        }
-
-        /* Navigation Links */
-        .sidebar-nav {
-          list-style: none;
-          padding-left: 0;
-          margin: 0;
-          flex-grow: 1;
-          overflow-y: auto;
-          scrollbar-width: thin;
-          scrollbar-color: #555 transparent;
-        }
-        .sidebar-nav::-webkit-scrollbar {
-          width: 6px;
-        }
-        .sidebar-nav::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .sidebar-nav::-webkit-scrollbar-thumb {
-          background-color: #555;
-          border-radius: 3px;
-        }
-
-        .sidebar-nav-item {
-          margin-bottom: 4px;
-          user-select: none;
-        }
-
-        .sidebar-link {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-weight: 600;
-          font-size: 0.85rem;
-          padding: 8px 10px;
-          border-radius: 6px;
-          color: #ddd;
-          text-decoration: none;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .sidebar-link:hover,
-        .sidebar-link:focus {
-          background-color: #43b581;
-          color: white;
-          outline: none;
-          text-shadow: none;
-        }
-
-        .sidebar-link.submenu-label {
-          font-weight: 700;
-          user-select: none;
-        }
-
-        /* Submenu styles */
-        .submenu-toggle {
-          background: none;
-          border: none;
-          color: inherit;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 2px;
-          font-size: 0.85rem;
-          padding: 2px 2px;
-          border-radius: 6px;
-          width: 100%;
-          text-align: left;
-          user-select: none;
-          transition: background-color 0.2s ease;
-        }
-        .submenu-toggle:hover,
-        .submenu-toggle:focus {
-          background-color: #43b581;
-          color: white;
-          outline: none;
-        }
-
-        .submenu-arrow {
-          flex-shrink: 0;
-          transition: transform 0.3s ease;
-          color: #bbb;
-        }
-        .submenu-arrow.open {
-          transform: rotate(90deg);
-          color: #43b581;
-        }
-
-        /* Submenu container */
-        .submenu-list {
-          list-style: none;
-          padding-left: 20px;
-          margin: 4px 0 0 0;
-          animation: fadeIn 0.25s ease forwards;
-        }
-        .submenu-list.closed {
-          display: none;
-        }
-
-        .submenu-item {
-          margin-bottom: 3px;
-        }
-
-        .submenu-link {
-          display: block;
-          font-weight: 500;
-          font-size: 0.8rem;
-          padding:1px 10px;
-          border-radius: 6px;
-          color: #ccc;
-          text-decoration: none;
-          cursor: pointer;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          transition: background-color 0.2s ease;
-        }
-        .submenu-link:hover,
-        .submenu-link:focus {
-          background-color: #2e8b57;
-          color: white;
-          outline: none;
-        }
-
-        /* Main content */
-        .dashboard-main-content {
-          flex-grow: 1;
-          padding: 2px 2px;
-          color: #ccc;
-          overflow-y: auto;
-          max-height: 95vh;
-          user-select: text;
-        }
-
-        /* Scrollbar for main content */
-        .dashboard-main-content::-webkit-scrollbar {
-          width: 8px;
-        }
-        .dashboard-main-content::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .dashboard-main-content::-webkit-scrollbar-thumb {
-          background-color: #555;
-          border-radius: 4px;
-        }
-      `}</style>
-
-      <div
-        className="dashboard-root"
-        role="main"
-        aria-label="Modix Game Panel Dashboard"
-      >
-        <div className="dashboard-overlay" aria-hidden="true"></div>
-
-        <div className="dashboard-container" aria-live="polite">
-          <aside
-            className={`sidebar ${sidebarOpen ? "open" : "closed"}`}
-            aria-label="Primary navigation sidebar"
-          >
-            <header
-              className={`sidebar-header ${sidebarOpen ? "open" : "closed"}`}
-            >
-              <div
-                className={`sidebar-logo-row ${
-                  sidebarOpen ? "open" : "closed"
-                }`}
-              >
-                <img
-                  src="https://i.ibb.co/cMPwcn8/logo.png"
-                  alt="Modix Logo"
-                  className="sidebar-logo"
-                  draggable="false"
-                />
-                {sidebarOpen && (
-                  <h1 className="sidebar-title">Modix Game Panel</h1>
-                )}
-              </div>
-
-              {sidebarOpen && (
-                <>
-                  {serverInfo &&
-                    typeof serverInfo.hostname === "string" &&
-                    typeof serverInfo.container === "string" &&
-                    typeof serverInfo.loggedInUser === "string" && (
-                      <SidebarUserInfo
-                        hostname={serverInfo.hostname}
-                        container={serverInfo.container}
-                        loggedInUser={serverInfo.loggedInUser}
-                      />
-                    )}
-
-                  <div className="sidebar-search-wrapper">
-                    <FaSearch
-                      className="sidebar-search-icon"
-                      aria-hidden="true"
-                    />
-                    <input
-                      type="text"
-                      aria-label="Search navigation menu"
-                      className="sidebar-search-input"
-                      placeholder="Search menu..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                </>
-              )}
-            </header>
-
-            <nav role="navigation" aria-label="Sidebar navigation menu">
-              <ul className="sidebar-nav">
-                {filteredNavLinks.map(({ label, href, submenu, icon }) => (
-                  href ? (
-                    <li key={href} className="sidebar-nav-item">
-                      {submenu && submenu.length > 0 ? (
-                        <>
-                          <button
-                            type="button"
-                            className="submenu-toggle"
-                            aria-expanded={!!openMenus[href]}
-                            aria-controls={`${href}-submenu`}
-                            onClick={() => toggleSubMenu(href)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                toggleSubMenu(href);
-                              }
-                            }}
-                          >
-                            <span className="sidebar-link submenu-label">
-                              {icon ? `${icon} ` : ""}{label}
-                            </span>
-                            <FaChevronRight
-                              aria-hidden="true"
-                              className={`submenu-arrow ${
-                                openMenus[href] ? "open" : ""
-                              }`}
-                            />
-                          </button>
-                          <ul
-                            id={`${href}-submenu`}
-                            role="menu"
-                            aria-label={`${label} submenu`}
-                            className={`submenu-list ${
-                              openMenus[href] ? "open" : "closed"
-                            }`}
-                          >
-                            {submenu.map((subItem: NavLink) => (
-                              subItem.href ? (
-                                <li
-                                  key={`${href}__${subItem.href}`}
-                                  className="submenu-item"
-                                  role="none"
-                                >
-                                  <Link
-                                    href={subItem.href}
-                                    role="menuitem"
-                                    tabIndex={openMenus[href] ? 0 : -1}
-                                    className="submenu-link"
-                                  >
-                                    {subItem.icon ? `${subItem.icon} ` : ""}{subItem.label}
-                                  </Link>
-                                </li>
-                              ) : null
-                            ))}
-                          </ul>
-                        </>
-                      ) : (
-                        <Link href={href} className="sidebar-link">
-                          {icon ? `${icon} ` : ""}{label}
-                        </Link>
-                      )}
-                    </li>
-                  ) : null
-                ))}
-              </ul>
-            </nav>
-
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              aria-pressed={sidebarOpen}
-              className={`sidebar-collapse-btn ${
-                sidebarOpen ? "open" : "closed"
-              }`}
-            >
-              {sidebarOpen ? "Collapse" : "Expand"}
-              {sidebarOpen ? <FaTimes /> : <FaBars />}
-            </button>
-          </aside>
-
-          <main
-            className="dashboard-main-content"
-            tabIndex={-1}
-            aria-label="Main dashboard content"
-          >
-            <Welcome />
-          </main>
-        </div>
-      </div>
-    </>
+    <DashboardLayout panelName="MODIX">
+      <SidebarUserInfo />
+      <DockerInspector />
+    </DashboardLayout>
   );
 }

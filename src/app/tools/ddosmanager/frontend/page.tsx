@@ -94,7 +94,7 @@ function DockerInspector() {
   );
 }
 
-export default function ModUpdater() {
+export default function DdosManager() {
   return (
     <DashboardLayout panelName="MODIX">
       <SidebarUserInfo />

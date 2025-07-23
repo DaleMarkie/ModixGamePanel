@@ -1,274 +1,536 @@
-"use client";
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { FaDiscord, FaCoffee } from "react-icons/fa";
-import { navLinks, extraSearchPages, searchablePages } from "@components/sidebar/navConfig";
+import {
+  FaLaptop,
+  FaServer,
+  FaUser,
+  FaChevronDown,
+  FaChevronRight,
+  FaBars,
+} from "react-icons/fa";
 
-export default function DashboardLayout({ panelName = "MODIX", children }) {
-  const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
-  const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
-  const [backgroundImage, setBackgroundImage] = useState(
-    'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState([]);
+const navLinks = [
+  {
+    label: "🧭 Dashboard",
+    href: "/dashboard",
+    submenu: [
+      { label: "🖥️ My Servers", href: "/auth/myservers" },
+      { label: "🧪 Account", href: "/auth/myaccount" },
+      { label: "📄 My Licensing", href: "/auth/mylicensing" },
+      { label: "📍 Support Tickets", href: "/auth/support/tickets" },
+      { label: "⚙️ Settings", href: "/auth/mysettings" },
+    ],
+  },
+  { label: "🖥️ Terminal", href: "/terminal" },
+  {
+    label: "⚙️ Configuration",
+    href: "/settings",
+    submenu: [
+      { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
+      { label: "📄 server.ini", href: "/settings/serverini" },
+      { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
+      { label: "🧟 Zombie Settings", href: "/settings/zombies" },
+    ],
+  },
+  {
+    label: "🧰 Mods",
+    href: "/modmanager",
+    submenu: [
+      { label: "🧩 Installed Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Update Checker", href: "/modupdater" },
+    ],
+  },
+  {
+    label: "📁 Files",
+    href: "/filemanager",
+    submenu: [
+      { label: "📂 My Files", href: "/filemanager/uploads" },
+      { label: "⚙️ Config Files", href: "/filemanager/configs" },
+      { label: "🧾 SandboxVars.lua", href: "/filemanager/sandboxvars" },
+      { label: "📄 Server Logs", href: "/filemanager/logs" },
+    ],
+  },
+  {
+    label: "👥 Players",
+    href: "/players",
+    submenu: [
+      { label: "👥 All Players", href: "/players/all" },
+      { label: "🟢 Online Players", href: "/players/online" },
+      { label: "🚫 Banned Players", href: "/players/banned" },
+      { label: "✅ Whitelist", href: "/players/whitelist" },
+    ],
+  },
+  {
+    label: "📡 Webhooks",
+    href: "/webhooks",
+    submenu: [
+      { label: "📤 Send Embed", href: "/webhook" },
+      { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
+      { label: "📝 Webhook Logs", href: "/webhooks/logs" },
+    ],
+  },
+  {
+    label: "🛠 Tools",
+    href: "/tools",
+    submenu: [
+      { label: "📈 Performance Stats", href: "/tools/performance" },
+      { label: "🌐 Port Checker", href: "/tools/portcheck" },
+      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "📦 Plugin Tools", href: "/tools/plugins" },
+    ],
+  },
+  {
+    label: "🆘 Support",
+    href: "/support",
+    submenu: [
+      { label: "📚 Documentation", href: "/docs" },
+      { label: "🎫 Support Tickets", href: "/support/" },
+      { label: "❓ FAQ", href: "/support/faq" },
+    ],
+  },
+  {
+    label: "🔐 Account",
+    href: "/login",
+    submenu: [
+      { label: "🔐 Sign In", href: "/auth/login" },
+      { label: "🆕 Register", href: "/auth/register" },
+    ],
+  },
+];
 
-  useEffect(() => {
-    const storedBg = localStorage.getItem("headerBgColor");
-    const storedText = localStorage.getItem("headerTextColor");
-    if (storedBg) setHeaderBgColor(storedBg);
-    if (storedText) setHeaderTextColor(storedText);
-  }, []);
-
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredResults([]);
-      return;
-    }
-    const matches = searchablePages.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredResults(matches);
-  }, [searchQuery]);
-
+function SidebarUserInfo({ hostname, container, loggedInUser }) {
+  if (!hostname || !container || !loggedInUser) return null;
   return (
-    <div
-      className="app-wrapper"
-      style={{
-        backgroundColor: "#121212",
-        backgroundImage,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center center",
-        minHeight: "100vh",
-        transition: "background-color 0.3s ease",
-        position: "relative",
-        zIndex: 0,
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0,0,0,0.5)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-      <div style={{ position: "relative", zIndex: 2 }}>
+    <section aria-label="Server Information" className="server-info-section">
+      {[
+        { icon: <FaLaptop size={12} />, label: "Host", value: hostname },
+        { icon: <FaServer size={12} />, label: "Container", value: container },
+        { icon: <FaUser size={12} />, label: "User", value: loggedInUser },
+      ].map(({ icon, label, value }) => (
         <div
-          style={{
-            maxWidth: 1200,
-            margin: "40px auto",
-            padding: "20px",
-            backgroundColor: "rgba(30,30,30,0.85)",
-            borderRadius: 12,
-            boxShadow: "0 0 20px rgba(0,0,0,0.7)",
-            minHeight: "calc(100vh - 80px)",
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 2,
-            overflow: "visible",
-          }}
+          key={label}
+          title={`${label}: ${value}`}
+          aria-label={`${label}: ${value}`}
+          className="server-info-item"
         >
-          <header
-            style={{
-              backgroundColor: headerBgColor,
-              color: headerTextColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 20px",
-              height: 60,
-              userSelect: "none",
-              borderTopLeftRadius: 12,
-              borderTopRightRadius: 12,
-              position: "relative",
-              zIndex: 3,
-            }}
-          >
-            <div
-              className="logo"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <img
-                src="https://i.ibb.co/cMPwcn8/logo.png"
-                alt="Modix Logo"
-                style={{ height: 50, objectFit: "contain" }}
-              />
-              <span
-                style={{
-                  fontWeight: 900,
-                  fontSize: "1.6rem",
-                  color: "inherit",
-                }}
-              >
-                {panelName}
-              </span>
-            </div>
-            <nav
-              className="top-menu"
-              style={{
-                display: "flex",
-                gap: 20,
-                position: "relative",
-                zIndex: 3,
-              }}
-            >
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  style={{
-                    color: headerTextColor,
-                    padding: "8px 14px",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    borderRadius: 8,
-                    transition: "background-color 0.3s ease",
-                    display: "inline-block",
-                    whiteSpace: "nowrap",
-                    userSelect: "none",
-                  }}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </header>
-          {/* 🔍 Search */}
-          <div
-            style={{
-              padding: "16px 20px",
-              position: "relative",
-              zIndex: 10,
-            }}
-          >
-            <input
-              type="text"
-              placeholder="🔍 Search Modix pages..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "none",
-                fontSize: "1rem",
-                backgroundColor: "#222",
-                color: "#fff",
-                outline: "none",
-              }}
-            />
-            {searchQuery && filteredResults.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: "#1e1e1e",
-                  borderRadius: 8,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                  marginTop: 8,
-                  maxHeight: 240,
-                  overflowY: "auto",
-                  padding: "6px 0",
-                  position: "absolute",
-                  width: "100%",
-                  zIndex: 10,
-                }}
-              >
-                {filteredResults.map(({ label, href }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    style={{
-                      display: "block",
-                      padding: "10px 14px",
-                      color: "#ddd",
-                      textDecoration: "none",
-                      fontSize: "0.95rem",
-                      borderBottom: "1px solid #333",
-                      userSelect: "none",
-                    }}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-          <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            {children}
-          </main>
-          <footer
-            style={{
-              marginTop: 24,
-              padding: "16px 24px",
-              backgroundColor: "#1f1f1f",
-              color: "#eee",
-              borderRadius: "0 0 12px 12px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: "0.75rem",
-              userSelect: "none",
-              zIndex: 2,
-            }}
-          >
-            <div>
-              <span>© 2025 {panelName}</span> &nbsp;|&nbsp;{" "}
-              <span>Made with 💚 for Project Zomboid</span>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <FooterLink href="https://discord.gg/EwWZUSR9tM">
-                <FaDiscord size={16} /> Discord
-              </FooterLink>
-              <FooterLink href="https://ko-fi.com/modixgamepanel">
-                <FaCoffee size={16} /> Ko-fi
-              </FooterLink>
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/team">Team</FooterLink>
-              <FooterLink href="/docs">Docs</FooterLink>
-              <FooterLink href="/terms">Terms</FooterLink>
-              <FooterLink href="/privacy">Privacy</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
-            </div>
-          </footer>
+          <span className="server-info-icon">{icon}</span>
+          <span className="server-info-label">{label}:</span>
+          <span className="server-info-value">{value}</span>
         </div>
-      </div>
-    </div>
+      ))}
+    </section>
   );
 }
 
-function FooterLink({ href, children }) {
-  return (
-    <a
-      href={href}
-      target={href.startsWith("http") ? "_blank" : "_self"}
-      rel="noopener noreferrer"
-      style={{
-        color: "#eee",
-        padding: "6px 10px",
-        textDecoration: "none",
-        fontWeight: 600,
-        fontSize: "0.75rem",
-        borderRadius: 8,
-        transition: "background-color 0.3s ease",
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        userSelect: "none",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#444")}
-      onMouseOut={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
+export default function Dashboard() {
+  const [serverInfo, setServerInfo] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [openMenus, setOpenMenus] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function fetchServerInfo() {
+      await new Promise((r) => setTimeout(r, 400));
+      setServerInfo({
+        hostname: "modix-prod-server-01.longname.example.com",
+        container: "pz-prod-container-05",
+        loggedInUser: "adminUser42",
+      });
+    }
+    fetchServerInfo();
+  }, []);
+
+  const toggleSubMenu = (href) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }));
+  };
+
+  const filteredNavLinks = navLinks
+    .map(({ label, href, submenu }) => {
+      if (!searchTerm) return { label, href, submenu };
+
+      const lowerSearch = searchTerm.toLowerCase();
+      const mainMatch = label.toLowerCase().includes(lowerSearch);
+
+      let filteredSubmenu = null;
+      if (submenu) {
+        filteredSubmenu = submenu.filter((item) =>
+          item.label.toLowerCase().includes(lowerSearch)
+        );
       }
-    >
-      {children}
-    </a>
+
+      if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
+        return { label, href, submenu: filteredSubmenu };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  return (
+    <>
+      <style>{`
+        .dashboard-root {
+          min-height: 2vh;
+          background-color: rgb(18, 18, 18);
+          padding: 65px;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          box-sizing: border-box;
+          background-image: url('https://images7.alphacoders.com/627/627909.jpg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          position: relative;
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-overlay {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-color: rgba(18, 18, 18, 0.7);
+          z-index: 0;
+        }
+        .dashboard-container {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          max-width: 1280px;
+          width: 100%;
+          background-color: #181818;
+          border-radius: 16px;
+          box-shadow: 0 10px 15px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.03);
+          overflow: hidden;
+          min-height: 44vh;
+        }
+        .sidebar {
+          background-color: #1c1c1c;
+          color: #eee;
+          display: flex;
+          flex-direction: column;
+          user-select: none;
+          transition: width 0.3s ease;
+          overflow: hidden;
+        }
+        .sidebar.open {
+          width: 195px;
+          padding: 16px 10px;
+        }
+        .sidebar.closed {
+          width: 60px;
+          padding: 16px 6px;
+        }
+        .sidebar-header {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 16px;
+          gap: 6px;
+        }
+        .sidebar-header.closed {
+          align-items: center;
+          gap: 0;
+        }
+        .sidebar-header.open {
+          align-items: flex-start;
+          gap: 6px;
+        }
+        .sidebar-logo-row {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+        }
+        .sidebar-logo-text {
+          font-size: 16px;
+          font-weight: 600;
+          color: white;
+          user-select: none;
+          flex-grow: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .sidebar-toggle-button {
+          border: none;
+          background: none;
+          color: white;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          font-size: 16px;
+          padding: 2px 6px;
+          border-radius: 6px;
+          transition: background-color 0.3s ease;
+        }
+        .sidebar-toggle-button:hover {
+          background-color: #28a745;
+        }
+        nav {
+          flex-grow: 1;
+          overflow-y: auto;
+          padding-right: 6px;
+        }
+        nav ul {
+          list-style: none;
+          padding-left: 0;
+          margin: 0;
+          user-select: none;
+        }
+        nav li {
+          margin-bottom: 8px;
+        }
+        nav li a, nav li button {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          font-weight: 600;
+          font-size: 14px;
+          border-radius: 10px;
+          border: none;
+          padding: 10px 14px;
+          color: #eee;
+          background: none;
+          text-align: left;
+          cursor: pointer;
+          transition: background-color 0.3s ease, color 0.3s ease;
+          user-select: none;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+        nav li a:hover, nav li button:hover {
+          background-color: #28a745; /* Green hover */
+          color: white;
+        }
+        nav li ul {
+          list-style: none;
+          margin-top: 6px;
+          margin-left: 4px;
+          padding-left: 10px;
+          border-left: 1px solid #444;
+          overflow: hidden;
+          transition: max-height 0.3s ease;
+        }
+        nav li ul li a {
+          padding: 6px 14px;
+          font-weight: 500;
+          font-size: 13px;
+          color: #ccc;
+        }
+        nav li ul li a:hover {
+          background-color: #218838; /* Darker green for submenu */
+          color: white;
+        }
+        nav li button .icon {
+          margin-left: 6px;
+          transition: transform 0.3s ease;
+          user-select: none;
+        }
+        nav li button .icon.rotate {
+          transform: rotate(90deg);
+        }
+        .server-info-section {
+          background-color: #222;
+          border-radius: 10px;
+          padding: 12px 14px;
+          margin-top: 20px;
+          font-size: 12px;
+          color: #aaa;
+          user-select: none;
+        }
+        .server-info-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 6px;
+          gap: 6px;
+          white-space: nowrap;
+        }
+        .server-info-icon {
+          color: #28a745;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+        }
+        .server-info-label {
+          font-weight: 600;
+          color: #eee;
+          flex-shrink: 0;
+          min-width: 65px;
+          user-select: text;
+        }
+        .server-info-value {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          user-select: text;
+        }
+        .search-input {
+          margin-bottom: 16px;
+          width: 100%;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: none;
+          font-size: 14px;
+          font-weight: 600;
+          color: #222;
+          background-color: #e0e0e0;
+          outline: none;
+          user-select: text;
+        }
+        .search-input::placeholder {
+          font-weight: 600;
+          color: #555;
+          font-style: italic;
+        }
+      `}</style>
+
+      <div className="dashboard-root" role="main" aria-label="Modix Dashboard">
+        <div className="dashboard-overlay" aria-hidden="true" />
+        <div className="dashboard-container" tabIndex={-1}>
+          <aside
+            className={`sidebar ${sidebarOpen ? "open" : "closed"}`}
+            aria-label="Primary Sidebar Navigation"
+          >
+            <div
+              className={`sidebar-header ${sidebarOpen ? "open" : "closed"}`}
+              onClick={() => setSidebarOpen((v) => !v)}
+              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setSidebarOpen((v) => !v);
+              }}
+            >
+              <div
+                className="sidebar-logo-row"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {sidebarOpen && (
+                  <span className="sidebar-logo-text">Modix Game Panel</span>
+                )}
+                <button
+                  className="sidebar-toggle-button"
+                  aria-pressed={sidebarOpen}
+                  aria-label={
+                    sidebarOpen ? "Collapse sidebar" : "Expand sidebar"
+                  }
+                >
+                  <FaBars />
+                </button>
+              </div>
+              {sidebarOpen && (
+                <input
+                  type="search"
+                  className="search-input"
+                  placeholder="Search menu…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Search sidebar menu"
+                />
+              )}
+            </div>
+
+            <nav role="navigation" aria-label="Sidebar menu">
+              <ul>
+                {filteredNavLinks.map(({ label, href, submenu }) => {
+                  const isOpen = openMenus[href] || false;
+
+                  if (submenu && submenu.length > 0) {
+                    return (
+                      <li key={href}>
+                        <button
+                          aria-expanded={isOpen}
+                          aria-controls={`submenu-${href}`}
+                          onClick={() => toggleSubMenu(href)}
+                          aria-haspopup="true"
+                          type="button"
+                          title={label}
+                          className="menu-button"
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              flexGrow: 1,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {label}
+                          </span>
+                          <span className={`icon ${isOpen ? "rotate" : ""}`}>
+                            <FaChevronRight />
+                          </span>
+                        </button>
+                        {isOpen && (
+                          <ul
+                            id={`submenu-${href}`}
+                            role="menu"
+                            aria-label={`${label} submenu`}
+                          >
+                            {submenu.map(
+                              ({ label: subLabel, href: subHref }) => (
+                                <li key={subHref}>
+                                  <a
+                                    href={subHref}
+                                    role="menuitem"
+                                    title={subLabel}
+                                  >
+                                    {subLabel}
+                                  </a>
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={href}>
+                      <a href={href} title={label}>
+                        {label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <SidebarUserInfo
+                hostname={serverInfo?.hostname}
+                container={serverInfo?.container}
+                loggedInUser={serverInfo?.loggedInUser}
+              />
+            </nav>
+          </aside>
+
+          <main
+            aria-label="Main content area"
+            style={{
+              flexGrow: 1,
+              backgroundColor: "#1c1c1c",
+              borderRadius: 16,
+              marginLeft: 16,
+              padding: 24,
+              color: "#ddd",
+              userSelect: "text",
+            }}
+          >
+            <h1>Welcome to Modix Dashboard</h1>
+            <p>Here you will find your server and account controls.</p>
+            {/* Replace this with your actual content */}
+          </main>
+        </div>
+      </div>
+    </>
   );
 }
