@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }) {
           border-radius: 16px;
           box-shadow: 0 10px 15px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.03);
           overflow: hidden;
-          min-height: 44vh;
+          min-height: 100vh;
         }
 
         .sidebar {
@@ -144,7 +144,7 @@ export default function DashboardLayout({ children }) {
           cursor: pointer;
         }
         .sidebar-logo-text {
-          font-size: 16px;
+          font-size: 13px;
           font-weight: 600;
           color: white;
           user-select: none;
@@ -152,6 +152,7 @@ export default function DashboardLayout({ children }) {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          marin:left: -35px;
         }
         .sidebar-toggle-button {
           border: none;
@@ -396,7 +397,10 @@ export default function DashboardLayout({ children }) {
                       <FaLaptop />
                     </span>
                     <span className="server-info-label">Hostname:</span>
-                    <span className="server-info-value" title={serverInfo.hostname}>
+                    <span
+                      className="server-info-value"
+                      title={serverInfo.hostname}
+                    >
                       {serverInfo.hostname}
                     </span>
                   </div>
@@ -405,7 +409,10 @@ export default function DashboardLayout({ children }) {
                       <FaServer />
                     </span>
                     <span className="server-info-label">Container:</span>
-                    <span className="server-info-value" title={serverInfo.container}>
+                    <span
+                      className="server-info-value"
+                      title={serverInfo.container}
+                    >
                       {serverInfo.container}
                     </span>
                   </div>
@@ -414,7 +421,10 @@ export default function DashboardLayout({ children }) {
                       <FaUser />
                     </span>
                     <span className="server-info-label">Logged In:</span>
-                    <span className="server-info-value" title={serverInfo.loggedInUser}>
+                    <span
+                      className="server-info-value"
+                      title={serverInfo.loggedInUser}
+                    >
                       {serverInfo.loggedInUser}
                     </span>
                   </div>
