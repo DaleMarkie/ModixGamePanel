@@ -94,10 +94,9 @@ function DockerInspector() {
   );
 }
 
-export default function Welcome() {
+export default function TestModulePage() {
   return (
-    <DashboardLayout panelName="MODIX">
-      <SidebarUserInfo />
+    <DashboardLayout>
       <DockerInspector />
     </DashboardLayout>
   );
