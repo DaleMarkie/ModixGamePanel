@@ -59,27 +59,41 @@ export default function DashboardLayout({ children }) {
   return (
     <>
       <style>{`
+        html, body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          width: 100%;
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          background: none;
+          /* Remove this: */
+          /* overflow: hidden; */
+        }
+        
+
         .dashboard-root {
-          min-height: 2vh;
-          background-color: rgb(18, 18, 18);
-          padding: 65px;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          box-sizing: border-box;
+          position: relative;
+          min-height: 100vh;
+          width: 100vw;
           background-image: url('https://images7.alphacoders.com/627/627909.jpg');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
-          position: relative;
-          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          padding: 65px;
+          box-sizing: border-box;
+          color: #ddd;
         }
+
         .dashboard-overlay {
-          position: absolute;
+          position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
           background-color: rgba(18, 18, 18, 0.7);
           z-index: 0;
         }
+
         .dashboard-container {
           position: relative;
           z-index: 1;
@@ -92,6 +106,7 @@ export default function DashboardLayout({ children }) {
           overflow: hidden;
           min-height: 44vh;
         }
+
         .sidebar {
           background-color: #1c1c1c;
           color: #eee;
@@ -190,7 +205,7 @@ export default function DashboardLayout({ children }) {
           text-overflow: ellipsis;
         }
         nav li a:hover, nav li button:hover {
-          background-color: #28a745; /* Green hover */
+          background-color: #28a745;
           color: white;
         }
         nav li ul {
@@ -209,7 +224,7 @@ export default function DashboardLayout({ children }) {
           color: #ccc;
         }
         nav li ul li a:hover {
-          background-color: #218838; /* Darker green for submenu */
+          background-color: #218838;
           color: white;
         }
         nav li button .icon {
@@ -313,104 +328,109 @@ export default function DashboardLayout({ children }) {
                   <FaBars />
                 </button>
               </div>
-              {sidebarOpen && (
-                <input
-                  type="search"
-                  className="search-input"
-                  placeholder="Search menu…"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  aria-label="Search sidebar menu"
-                />
-              )}
+              {sidebarOpen && <SidebarUserInfo />}
             </div>
 
-            <nav role="navigation" aria-label="Sidebar menu">
+            <nav aria-label="Main Navigation">
+              <input
+                type="search"
+                placeholder="Search navigation..."
+                className="search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Filter navigation items"
+                spellCheck={false}
+              />
               <ul>
-                {filteredNavLinks.map(({ label, href, submenu }) => {
-                  const isOpen = openMenus[href] || false;
-
-                  if (submenu && submenu.length > 0) {
-                    return (
-                      <li key={href}>
+                {filteredNavLinks.map(({ label, href, submenu }) => (
+                  <li key={href}>
+                    {submenu ? (
+                      <>
                         <button
-                          aria-expanded={isOpen}
-                          aria-controls={`submenu-${href}`}
                           onClick={() => toggleSubMenu(href)}
-                          aria-haspopup="true"
-                          type="button"
-                          title={label}
-                          className="menu-button"
+                          aria-expanded={!!openMenus[href]}
+                          aria-controls={`submenu-${href}`}
                         >
+                          <span>{label}</span>
                           <span
+                            className={`icon ${
+                              openMenus[href] ? "rotate" : ""
+                            }`}
                             aria-hidden="true"
-                            style={{
-                              flexGrow: 1,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
                           >
-                            {label}
-                          </span>
-                          <span className={`icon ${isOpen ? "rotate" : ""}`}>
                             <FaChevronRight />
                           </span>
                         </button>
-                        {isOpen && (
-                          <ul
-                            id={`submenu-${href}`}
-                            role="menu"
-                            aria-label={`${label} submenu`}
-                          >
-                            {submenu.map(
-                              ({ label: subLabel, href: subHref }) => (
-                                <li key={subHref}>
-                                  <a
-                                    href={subHref}
-                                    role="menuitem"
-                                    title={subLabel}
-                                  >
-                                    {subLabel}
-                                  </a>
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  }
-
-                  return (
-                    <li key={href}>
-                      <a href={href} title={label}>
-                        {label}
-                      </a>
-                    </li>
-                  );
-                })}
+                        <ul
+                          id={`submenu-${href}`}
+                          style={{
+                            maxHeight: openMenus[href] ? "500px" : "0px",
+                          }}
+                        >
+                          {submenu.map(({ label: subLabel, href: subHref }) => (
+                            <li key={subHref}>
+                              <a href={subHref}>{subLabel}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <a href={href}>{label}</a>
+                    )}
+                  </li>
+                ))}
               </ul>
-
-              <SidebarUserInfo
-                hostname={serverInfo?.hostname}
-                container={serverInfo?.container}
-                loggedInUser={serverInfo?.loggedInUser}
-              />
             </nav>
+
+            {serverInfo && (
+              <section
+                className="server-info-section"
+                aria-label="Server Information"
+              >
+                <div className="server-info-item">
+                  <span className="server-info-icon" aria-hidden="true">
+                    <FaLaptop />
+                  </span>
+                  <span className="server-info-label">Hostname:</span>
+                  <span
+                    className="server-info-value"
+                    title={serverInfo.hostname}
+                  >
+                    {serverInfo.hostname}
+                  </span>
+                </div>
+                <div className="server-info-item">
+                  <span className="server-info-icon" aria-hidden="true">
+                    <FaServer />
+                  </span>
+                  <span className="server-info-label">Container:</span>
+                  <span
+                    className="server-info-value"
+                    title={serverInfo.container}
+                  >
+                    {serverInfo.container}
+                  </span>
+                </div>
+                <div className="server-info-item">
+                  <span className="server-info-icon" aria-hidden="true">
+                    <FaUser />
+                  </span>
+                  <span className="server-info-label">User:</span>
+                  <span
+                    className="server-info-value"
+                    title={serverInfo.loggedInUser}
+                  >
+                    {serverInfo.loggedInUser}
+                  </span>
+                </div>
+              </section>
+            )}
           </aside>
 
           <main
-            aria-label="Main content area"
-            style={{
-              flexGrow: 1,
-              backgroundColor: "#1c1c1c",
-              borderRadius: 16,
-              marginLeft: 16,
-              padding: 24,
-              color: "#ddd",
-              userSelect: "text",
-            }}
+            id="content"
+            tabIndex={-1}
+            style={{ flexGrow: 1, padding: "24px 30px", color: "#ddd" }}
           >
             {children}
           </main>
