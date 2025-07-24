@@ -253,19 +253,22 @@ const Terminal = () => {
           </div>
           <div className="info-box">
             <h3>📊 CPU</h3>
-            <p>{
-              typeof serverStats?.cpu === "number"
+            <p>
+              {typeof serverStats?.cpu === "number"
                 ? `${serverStats.cpu.toFixed(1)}%`
                 : serverStats?.cpu
                 ? `${serverStats.cpu}`
-                : "..."
-            }</p>
+                : "..."}
+            </p>
           </div>
           <div className="info-box">
             <h3>🧠 RAM</h3>
             <p>
-              {typeof serverStats?.ramUsed === "number" && typeof serverStats?.ramTotal === "number"
-                ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB`
+              {typeof serverStats?.ramUsed === "number" &&
+              typeof serverStats?.ramTotal === "number"
+                ? `${serverStats.ramUsed.toFixed(
+                    2
+                  )} / ${serverStats.ramTotal.toFixed(2)} GB`
                 : serverStats?.ramUsed && serverStats?.ramTotal
                 ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB`
                 : "..."}
@@ -274,8 +277,11 @@ const Terminal = () => {
           <div className="info-box">
             <h3>💽 Storage</h3>
             <p>
-              {typeof serverStats?.storageUsed === "number" && typeof serverStats?.storageTotal === "number"
-                ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB`
+              {typeof serverStats?.storageUsed === "number" &&
+              typeof serverStats?.storageTotal === "number"
+                ? `${serverStats.storageUsed.toFixed(
+                    2
+                  )} / ${serverStats.storageTotal.toFixed(2)} GB`
                 : serverStats?.storageUsed && serverStats?.storageTotal
                 ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB`
                 : "..."}
@@ -418,8 +424,11 @@ const Terminal = () => {
             </div>
             <div>
               <strong>Memory Usage:</strong>{" "}
-              {typeof serverStats?.ramUsed === "number" && typeof serverStats?.ramTotal === "number"
-                ? `${serverStats.ramUsed.toFixed(2)} / ${serverStats.ramTotal.toFixed(2)} GB`
+              {typeof serverStats?.ramUsed === "number" &&
+              typeof serverStats?.ramTotal === "number"
+                ? `${serverStats.ramUsed.toFixed(
+                    2
+                  )} / ${serverStats.ramTotal.toFixed(2)} GB`
                 : serverStats?.ramUsed && serverStats?.ramTotal
                 ? `${serverStats.ramUsed} / ${serverStats.ramTotal} GB`
                 : "N/A"}
@@ -451,8 +460,11 @@ const Terminal = () => {
             </h3>
             <div>
               <strong>Storage Usage:</strong>{" "}
-              {typeof serverStats?.storageUsed === "number" && typeof serverStats?.storageTotal === "number"
-                ? `${serverStats.storageUsed.toFixed(2)} / ${serverStats.storageTotal.toFixed(2)} GB`
+              {typeof serverStats?.storageUsed === "number" &&
+              typeof serverStats?.storageTotal === "number"
+                ? `${serverStats.storageUsed.toFixed(
+                    2
+                  )} / ${serverStats.storageTotal.toFixed(2)} GB`
                 : serverStats?.storageUsed && serverStats?.storageTotal
                 ? `${serverStats.storageUsed} / ${serverStats.storageTotal} GB`
                 : "N/A"}
