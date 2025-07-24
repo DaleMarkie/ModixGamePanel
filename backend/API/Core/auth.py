@@ -39,17 +39,8 @@ class TokenData(BaseModel):
 
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(User).filter_by(username=username).first()
-    print(f"[AUTH DEBUG] Username received: {username}")
-    print(f"[AUTH DEBUG] Password received: {password}")
-    if user:
-        print(f"[AUTH DEBUG] Stored bcrypt hash in DB: {user.password_hash}")
-    else:
-        print(f"[AUTH DEBUG] No user found for username: {username}")
-    # Use bcrypt to verify the password
     if not user or not bcrypt.verify(password, user.password_hash):
-        print(f"[AUTH DEBUG] Authentication failed for user: {username}")
         return None
-    print(f"[AUTH DEBUG] Authentication succeeded for user: {username}")
     return user
 
 def get_modix_config():
@@ -174,17 +165,17 @@ def get_current_user(
     request: Request = None,
     access_token_cookie: str = Cookie(default=None, alias="access_token")
 ):
-    print("!!! get_current_user CALLED !!!")
-    print(f"token arg: {token}")
-    print(f"access_token_cookie: {access_token_cookie}")
-    if request:
-        print(f"Request headers: {dict(request.headers)}")
+    # Debug: Print where the token is coming from
+    print("[DEBUG] get_current_user: token from header:", token)
+    print("[DEBUG] get_current_user: access_token_cookie:", access_token_cookie)
     # Try header first, then cookie
     if not token and access_token_cookie:
+        print("[DEBUG] Using access_token from cookie.")
         token = access_token_cookie
-        print(f"Using access_token_cookie as token: {token}")
+    elif token:
+        print("[DEBUG] Using token from Authorization header.")
     if not token:
-        print("No token found, raising 401")
+        print("[DEBUG] No token found, raising 401")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -197,18 +188,18 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(f"Decoded JWT payload: {payload}")
+        print(f"[DEBUG] Decoded JWT payload: {payload}")
         username: str = payload.get("sub")
         if username is None:
-            print("No username in JWT payload, raising 401")
+            print("[DEBUG] No username in JWT payload, raising 401")
             raise credentials_exception
     except JWTError as e:
-        print(f"JWTError: {e}")
+        print(f"[DEBUG] JWTError: {e}")
         raise credentials_exception
     user = db.query(User).filter_by(username=username).first()
-    print(f"User from DB: {user}")
+    print(f"[DEBUG] User from DB: {user}")
     if user is None:
-        print("No user found in DB, raising 401")
+        print("[DEBUG] No user found in DB, raising 401")
         raise credentials_exception
     return user
 
@@ -278,8 +269,9 @@ def logout(response: Response):
     """
     Logout endpoint. Since JWT is stateless, clients should delete their token.
     """
-    # Clear the cookie
+    # Clear the cookies
     response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
     return {"message": "Successfully logged out."}
 
 

@@ -16,18 +16,6 @@ export default function DashboardLayout({ children }) {
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    async function fetchServerInfo() {
-      await new Promise((r) => setTimeout(r, 400));
-      setServerInfo({
-        hostname: "modix-prod-server-01.longname.example.com",
-        container: "pz-prod-container-05",
-        loggedInUser: "adminUser42",
-      });
-    }
-    fetchServerInfo();
-  }, []);
-
   const toggleSubMenu = (href) => {
     setOpenMenus((prev) => ({
       ...prev,

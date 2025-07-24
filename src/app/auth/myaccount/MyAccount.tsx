@@ -1,10 +1,26 @@
 "use client";
-
-
 import { useUser } from "../../UserContext";
+import { useRouter } from "next/navigation";
 
 const MyAccount = () => {
-  const { user, loading, authenticated } = useUser();
+
+  const { user, loading, authenticated, refresh } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      // Call backend logout to clear both access and refresh cookies
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      // Remove user and any other auth info from localStorage
+      localStorage.removeItem("user");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("auth_token");
+      refresh();
+      router.push("/auth/login");
+    } catch (e) {
+      alert("Logout failed. Please try again.");
+    }
+  };
 
   if (loading) return <div className="myaccount-container"><h1>My Account</h1><div className="status-message">Loading your account information...</div></div>;
   if (!authenticated || !user) {
@@ -46,6 +62,7 @@ const MyAccount = () => {
             </span>
           </div>
         </div>
+        <button className="logout-btn" onClick={handleLogout}>Log out</button>
       </div>
 
       {/* Roles and Permissions */}
@@ -199,7 +216,17 @@ const MyAccount = () => {
           margin-left: auto;
         }
 
-        .delete-btn:hover {
+        .logout-btn {
+          background: #ff7875;
+          border: none;
+          padding: 0.4rem 0.8rem;
+          color: #fff;
+          border-radius: 8px;
+          font-size: 0.7rem;
+          cursor: pointer;
+          margin-left: auto;
+        }
+        .logout-btn:hover {
           background: #d9363e;
         }
 

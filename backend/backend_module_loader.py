@@ -94,8 +94,9 @@ def register_modules(app: FastAPI):
             print(f"[Modix] Module {module_name} is enabled. Router path: {router_path}")
             router = dynamic_import(router_path)
             if router:
-                app.include_router(router)
-                print(f"Registered router for module: {manifest['name']}")
+                # Add '/api' prefix to every module router
+                app.include_router(router, prefix="/api")
+                print(f"Registered router for module: {manifest['name']} with /api prefix")
             else:
                 print(f"[Modix] Failed to import router for module: {module_name}")
         else:

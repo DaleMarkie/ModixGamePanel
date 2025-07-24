@@ -18,21 +18,33 @@ const Login = () => {
     setError("");
 
     try {
-      // Call the internal Next.js API route with the raw password
+      // Prepare form-urlencoded body
+      const params = new URLSearchParams();
+      params.append("grant_type", "password");
+      params.append("username", username);
+      params.append("password", password);
+      params.append("scope", "");
+      params.append("client_id", "string");
+      params.append("client_secret", "********"); // Replace with actual secret if needed
+
+      // Send credentials directly to backend
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
       });
-
       const result = await response.json();
+      console.log("[LOGIN DEBUG] Backend response:", result);
 
-      // Accept either 'success', 'access_token', or 'token' as a sign of successful login
-      if (
-        response.ok &&
-        (result.success === true || result.access_token || result.token)
-      ) {
-        router.push("/auth/myaccount"); // ✅ Next.js route change
+      // Accept any 2xx response as success for now
+      if (response.ok) {
+        if (result.token) {
+          localStorage.setItem("token", result.token);
+        }
+        router.push("/auth/myaccount");
       } else {
         setError(result.message || "Invalid username or password.");
       }

@@ -1,6 +1,7 @@
 {
   "MODIX_VERSION": "Latest",
   "MODIX_INSTANCE_ID": "modex1",
+  "MODIX_URL": "https://gamesmithonline.org",
   "MODIX_AUTO_DEPLOY": true,
   "MODIX_MODULES": null,
   "MODIX_CLUSTER": false,

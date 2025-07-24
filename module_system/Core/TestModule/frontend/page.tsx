@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import SidebarUserInfo from "@components/sidebar/SidebarUserInfo";
 
 function DockerInspector() {
   const searchParams = useSearchParams();
@@ -17,7 +16,7 @@ function DockerInspector() {
     setLoading(true);
     setError(null);
     setData(null);
-    fetch(`http://localhost:2010/api/docker/${id}/inspect`)
+    fetch(`/api/docker/${id}/inspect`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch container info");
         return res.json();

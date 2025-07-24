@@ -1,5 +1,7 @@
+
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { apiHandler } from "../utils/apiHandler";
 
 // Type for module metadata (adjust as needed)
 export type Module = {
@@ -52,11 +54,8 @@ export const ModuleProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:2010/api/modules/enabled");
-      console.debug("ModuleProvider: fetch status", res.status);
-      if (!res.ok) throw new Error("Failed to fetch modules");
-      const data = await res.json();
-      console.debug("ModuleProvider: API response", data);
+      // You can adjust cacheTtlMs as needed
+      const data = await apiHandler<any>("/api/modules/enabled", { cacheTtlMs: 60000 });
       // If API returns { modules: [...] }, extract modules
       if (data && Array.isArray(data.modules)) {
         setModules(data.modules);

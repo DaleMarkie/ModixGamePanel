@@ -1,4 +1,7 @@
+
 "use client";
+import { apiHandler } from "../utils/apiHandler";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Types for user and context
@@ -39,41 +42,52 @@ const UserContext = createContext<UserContextType>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
+  const [authenticated, setAuthenticated] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("user");
+    }
+    return false;
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     setLoading(true);
     let triedRefresh = false;
     let statusData;
-    let statusRes;
-    let meRes;
-    let meData;
     try {
-      statusRes = await fetch("/api/auth/status");
-      statusData = await statusRes.json();
+      statusData = await apiHandler("/api/auth/status", { cacheTtlMs: 10000 });
       if (!statusData.authenticated) {
         // Try refresh if not authenticated
-        const refreshRes = await fetch("/api/auth/refresh", { method: "POST" });
-        if (refreshRes.ok) {
-          triedRefresh = true;
-          // Try status again
-          statusRes = await fetch("/api/auth/status");
-          statusData = await statusRes.json();
-        }
+        await apiHandler("/api/auth/refresh", { fetchInit: { method: "POST" }, skipCache: true });
+        // Try status again
+        statusData = await apiHandler("/api/auth/status", { cacheTtlMs: 10000, skipCache: true });
       }
       setAuthenticated(!!statusData.authenticated);
       if (statusData.authenticated) {
-        meRes = await fetch("/api/auth/me");
-        meData = await meRes.json();
+        const meData = await apiHandler("/api/auth/me", { cacheTtlMs: 10000 });
         setUser(meData);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(meData));
+        }
       } else {
         setUser(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("user");
+        }
       }
     } catch (err) {
       setUser(null);
       setAuthenticated(false);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user");
+      }
     }
     setLoading(false);
   };
