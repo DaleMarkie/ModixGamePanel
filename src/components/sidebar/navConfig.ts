@@ -26,9 +26,7 @@ export const navLinks = [
   {
     label: "🧰 Mods",
     href: "/modmanager",
-    submenu: [
-      { label: "🛒 Browse Workshop", href: "/workshop" },
-    ],
+    submenu: [{ label: "🛒 Browse Workshop", href: "/workshop" }],
   },
   {
     label: "👥 Players",
@@ -44,10 +42,11 @@ export const navLinks = [
     label: "🛠 Tools",
     href: "/tools",
     submenu: [
+      { label: "📦 Plugin Tools", href: "/tools/plugins" },
+      { label: "📦 Webhook Manager", href: "/discordwebhooks" },
       { label: "📈 Performance Stats", href: "/tools/performance" },
       { label: "🌐 Port Checker", href: "/tools/portcheck" },
       { label: "🎨 Theme Manager", href: "/tools/theme" },
-      { label: "📦 Plugin Tools", href: "/tools/plugins" },
     ],
   },
   {

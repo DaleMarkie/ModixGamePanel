@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 
 export default function WebhookPage() {
@@ -56,96 +55,124 @@ export default function WebhookPage() {
 
   return (
     <div
-      className="app-wrapper"
       style={{
         backgroundColor: "#121212",
         color: "#fff",
         minHeight: "100vh",
-        padding: "20px",
+        padding: "16px",
+        fontFamily: "Segoe UI, sans-serif",
       }}
     >
-      <header
+      {/* Title */}
+      <h1
         style={{
-          backgroundColor: "#1f1f1f",
-          padding: "16px 24px",
-          borderRadius: "12px",
-          marginBottom: "20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          fontSize: "1.6rem",
+          marginBottom: 16,
+          fontWeight: 600,
         }}
       >
-        <h1 style={{ fontSize: "1.8rem", fontWeight: 700 }}>
-          📡 Webhook Sender
-        </h1>
-        <nav style={{ display: "flex", gap: "12px" }}>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/settings">Settings</Link>
-          <Link href="/webhook">Webhook</Link>
-        </nav>
-      </header>
+        📡 Webhook Sender
+      </h1>
 
-      <div
-        className="webhook-grid"
-        style={{
-          display: "flex",
-          gap: "24px",
-          flexWrap: "wrap",
-        }}
-      >
+      {/* Main Content */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        {/* Form */}
         <div style={{ flex: 1, minWidth: 300 }}>
-          <div style={{ background: "#1b1b1b", padding: 20, borderRadius: 12 }}>
-            <label>Webhook URL</label>
-            <input
-              type="text"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              placeholder="https://discord.com/api/webhooks/..."
-              style={{ width: "100%", marginBottom: 12 }}
-            />
+          <div
+            style={{
+              background: "#1a1a1a",
+              padding: 16,
+              borderRadius: 10,
+              fontSize: "0.9rem",
+            }}
+          >
+            {/* Input Fields */}
+            {[
+              ["Webhook URL", webhookUrl, setWebhookUrl],
+              [
+                "Embed Title",
+                embed.title,
+                (v) => setEmbed({ ...embed, title: v }),
+              ],
+              [
+                "Description",
+                embed.description,
+                (v) => setEmbed({ ...embed, description: v }),
+                true,
+              ],
+              [
+                "URL (optional)",
+                embed.url,
+                (v) => setEmbed({ ...embed, url: v }),
+              ],
+              [
+                "Footer",
+                embed.footer,
+                (v) => setEmbed({ ...embed, footer: v }),
+              ],
+            ].map(([label, value, setter, isTextArea], i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <label style={{ display: "block", marginBottom: 4 }}>
+                  {label}
+                </label>
+                {isTextArea ? (
+                  <textarea
+                    value={value}
+                    onChange={(e) => setter(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: 8,
+                      background: "#222",
+                      border: "none",
+                      borderRadius: 6,
+                      color: "#eee",
+                    }}
+                    rows={3}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => setter(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: 8,
+                      background: "#222",
+                      border: "none",
+                      borderRadius: 6,
+                      color: "#eee",
+                    }}
+                  />
+                )}
+              </div>
+            ))}
 
-            <label>Embed Title</label>
-            <input
-              type="text"
-              value={embed.title}
-              onChange={(e) => setEmbed({ ...embed, title: e.target.value })}
-              style={{ width: "100%", marginBottom: 12 }}
-            />
+            {/* Color Picker */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", marginBottom: 4 }}>Color</label>
+              <input
+                type="color"
+                value={embed.color}
+                onChange={(e) => setEmbed({ ...embed, color: e.target.value })}
+                style={{
+                  width: "100%",
+                  height: 36,
+                  background: "#222",
+                  border: "none",
+                  borderRadius: 6,
+                }}
+              />
+            </div>
 
-            <label>Description</label>
-            <textarea
-              value={embed.description}
-              onChange={(e) =>
-                setEmbed({ ...embed, description: e.target.value })
-              }
-              style={{ width: "100%", marginBottom: 12 }}
-            />
-
-            <label>URL (optional)</label>
-            <input
-              type="text"
-              value={embed.url}
-              onChange={(e) => setEmbed({ ...embed, url: e.target.value })}
-              style={{ width: "100%", marginBottom: 12 }}
-            />
-
-            <label>Footer</label>
-            <input
-              type="text"
-              value={embed.footer}
-              onChange={(e) => setEmbed({ ...embed, footer: e.target.value })}
-              style={{ width: "100%", marginBottom: 12 }}
-            />
-
-            <label>Color</label>
-            <input
-              type="color"
-              value={embed.color}
-              onChange={(e) => setEmbed({ ...embed, color: e.target.value })}
-              style={{ width: "100%", marginBottom: 12 }}
-            />
-
-            <label>
+            {/* Timestamp Toggle */}
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 12,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={embed.timestamp}
@@ -153,50 +180,93 @@ export default function WebhookPage() {
                   setEmbed({ ...embed, timestamp: e.target.checked })
                 }
               />
-              &nbsp;Include Timestamp
+              Include Timestamp
             </label>
 
-            <div style={{ marginTop: 20 }}>
-              <h4>Fields</h4>
+            {/* Embed Fields */}
+            <div style={{ marginBottom: 16 }}>
+              <strong style={{ display: "block", marginBottom: 6 }}>
+                Fields
+              </strong>
               {embed.fields.map((field, index) => (
                 <div
                   key={index}
-                  style={{ display: "flex", gap: 8, marginBottom: 8 }}
+                  style={{ display: "flex", gap: 6, marginBottom: 6 }}
                 >
                   <input
                     type="text"
-                    placeholder="Field Name"
+                    placeholder="Name"
                     value={field.name}
                     onChange={(e) => updateField(index, "name", e.target.value)}
-                    style={{ flex: 1 }}
+                    style={{
+                      flex: 1,
+                      padding: 6,
+                      background: "#222",
+                      border: "none",
+                      borderRadius: 6,
+                      color: "#eee",
+                    }}
                   />
                   <input
                     type="text"
-                    placeholder="Field Value"
+                    placeholder="Value"
                     value={field.value}
                     onChange={(e) =>
                       updateField(index, "value", e.target.value)
                     }
-                    style={{ flex: 1 }}
+                    style={{
+                      flex: 1,
+                      padding: 6,
+                      background: "#222",
+                      border: "none",
+                      borderRadius: 6,
+                      color: "#eee",
+                    }}
                   />
-                  <button onClick={() => removeField(index)}>✖</button>
+                  <button
+                    onClick={() => removeField(index)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#ff5f5f",
+                      cursor: "pointer",
+                      fontSize: "1.1rem",
+                    }}
+                  >
+                    ✖
+                  </button>
                 </div>
               ))}
-              <button onClick={addField} style={{ marginTop: 8 }}>
+              <button
+                onClick={addField}
+                style={{
+                  marginTop: 4,
+                  background: "#2a2a2a",
+                  color: "#ccc",
+                  padding: "6px 10px",
+                  border: "none",
+                  borderRadius: 6,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                }}
+              >
                 ➕ Add Field
               </button>
             </div>
 
+            {/* Submit Button */}
             <button
               onClick={sendWebhook}
               style={{
-                marginTop: 20,
                 backgroundColor: "#7289da",
                 color: "#fff",
-                padding: "10px 20px",
-                border: "none",
+                padding: "10px 16px",
                 borderRadius: 8,
+                border: "none",
                 cursor: "pointer",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                width: "100%",
               }}
             >
               🚀 Send Webhook
@@ -204,16 +274,18 @@ export default function WebhookPage() {
           </div>
         </div>
 
+        {/* Preview */}
         <div style={{ flex: 1, minWidth: 300 }}>
           <div
             style={{
-              background: "#1e1e1e",
-              padding: 20,
-              borderRadius: 12,
+              background: "#1d1d1d",
+              padding: 16,
+              borderRadius: 10,
               border: `2px solid ${embed.color}`,
+              fontSize: "0.9rem",
             }}
           >
-            <h3>📋 Live Preview</h3>
+            <strong style={{ fontSize: "1rem" }}>📋 Live Preview</strong>
             {embed.title && (
               <div style={{ fontWeight: 700 }}>{embed.title}</div>
             )}
@@ -224,10 +296,10 @@ export default function WebhookPage() {
               </p>
             ))}
             {embed.footer && (
-              <div style={{ fontSize: "0.9rem" }}>{embed.footer}</div>
+              <div style={{ fontSize: "0.85rem" }}>{embed.footer}</div>
             )}
             {embed.timestamp && (
-              <div style={{ fontSize: "0.8rem", color: "#aaa", marginTop: 8 }}>
+              <div style={{ fontSize: "0.75rem", color: "#aaa", marginTop: 6 }}>
                 {new Date().toLocaleString()}
               </div>
             )}
@@ -235,24 +307,22 @@ export default function WebhookPage() {
         </div>
       </div>
 
+      {/* Footer */}
       <footer
         style={{
-          marginTop: 40,
-          padding: "16px 24px",
+          marginTop: 24,
+          padding: "12px 16px",
           backgroundColor: "#1f1f1f",
-          color: "#eee",
-          borderRadius: 12,
+          color: "#aaa",
+          borderRadius: 10,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontSize: "0.9rem",
+          fontSize: "0.85rem",
         }}
       >
-        <div>
-          <span>© 2025 MODIX</span> | <span>Made for Project Zomboid</span>
-        </div>
-
-        <div style={{ display: "flex", gap: 12 }}>
+        <span>© 2025 MODIX</span>
+        <div style={{ display: "flex", gap: 10 }}>
           <a
             href="https://discord.gg/EwWZUSR9tM"
             target="_blank"
@@ -261,18 +331,17 @@ export default function WebhookPage() {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              backgroundColor: "#444",
+              backgroundColor: "#2c2c2c",
               color: "#eee",
-              padding: "8px 14px",
-              borderRadius: 12,
+              padding: "6px 12px",
+              borderRadius: 10,
               textDecoration: "none",
               fontWeight: 600,
             }}
           >
-            <FaDiscord size={20} />
+            <FaDiscord size={16} />
             Discord
           </a>
-
           <a
             href="https://ko-fi.com/modixgamepanel"
             target="_blank"
@@ -281,15 +350,15 @@ export default function WebhookPage() {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              backgroundColor: "#444",
+              backgroundColor: "#2c2c2c",
               color: "#eee",
-              padding: "8px 14px",
-              borderRadius: 12,
+              padding: "6px 12px",
+              borderRadius: 10,
               textDecoration: "none",
               fontWeight: 600,
             }}
           >
-            <FaCoffee size={20} />
+            <FaCoffee size={16} />
             Ko-fi
           </a>
         </div>
