@@ -1,14 +1,13 @@
 "use client";
 
 import React from "react";
-
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Welcome from "./Welcome"; // this is your actual feature component
+import RBAC from "./RBAC";
 
-export default function WelcomePage() {
+export default function RBACPage() {
   return (
     <DashboardLayout>
-      <Welcome />
+      <RBAC />
     </DashboardLayout>
   );
 }
