@@ -5,8 +5,9 @@ import "./Updater.css";
 
 const changelogs = [
   {
-    version: "v1.2.3",
+    version: "v1.1.2",
     date: "2025-06-10",
+    tags: ["Updater", "Mods", "UI"],
     details: [
       "Improved automatic update process for better reliability.",
       "Fixed minor bugs in mod synchronization.",
@@ -14,18 +15,23 @@ const changelogs = [
     ],
   },
   {
-    version: "v1.2.2",
+    version: "v1.1.1",
     date: "2025-05-25",
-    details: [
-      "Added manual update button.",
-      "Fixed issue with GitHub link.",
-      "Optimized download speed.",
-    ],
+    tags: ["Updater"],
+    details: ["unstable", "not working", "Optimized download speed."],
+    unavailable: true,
   },
-  // Add more changelog entries here as needed
 ];
 
-const Modal = ({ open, onClose, version, date, details }) => {
+const Modal = ({
+  open,
+  onClose,
+  version,
+  date,
+  details,
+  tags,
+  unavailable,
+}) => {
   if (!open) return null;
   return (
     <div
@@ -45,8 +51,19 @@ const Modal = ({ open, onClose, version, date, details }) => {
           ×
         </button>
         <h2 id="modal-title">
-          {version} - <span className="changelog-date">{date}</span>
+          {version} <span className="changelog-date">({date})</span>
         </h2>
+
+        {unavailable && <span className="badge-unavailable">Unavailable</span>}
+
+        <div className="changelog-tags">
+          {tags?.map((tag, idx) => (
+            <span key={idx} className="badge-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+
         <ul id="modal-description">
           {details.map((item, idx) => (
             <li key={idx}>{item}</li>
@@ -65,64 +82,45 @@ export default function Updater() {
       <header className="updater-header">
         <h1>Modix Game Panel Updater</h1>
         <p className="subtitle">
-          Keep your panel up to date with the latest features and fixes.
+          Current version: <strong>v1.1.2</strong>
+        </p>
+        <p className="update-status">
+          You are on the latest version. No updates available.
         </p>
       </header>
 
-      <section className="updater-buttons">
-        <button
-          className="download-button"
-          onClick={() =>
-            window.open(
-              "https://example.com/modix-game-panel-download",
-              "_blank"
-            )
-          }
-        >
-          Download Latest
-        </button>
-        <div className="external-links">
-          <button
-            onClick={() =>
-              window.open(
-                "https://github.com/yourrepo/modix-game-panel",
-                "_blank"
-              )
-            }
-            aria-label="Go to GitHub repository"
-          >
-            GitHub
-          </button>
-          <button
-            onClick={() =>
-              window.open("https://discord.gg/yourdiscord", "_blank")
-            }
-            aria-label="Join Discord server"
-          >
-            Discord
-          </button>
-        </div>
-      </section>
-
       <section className="changelog-section">
         <h2>Changelog</h2>
-        {changelogs.map(({ version, date, details }) => (
+        {changelogs.map(({ version, date, details, tags, unavailable }) => (
           <div
             key={version}
             className="changelog-entry"
-            onClick={() => setModalData({ version, date, details })}
+            onClick={() =>
+              setModalData({ version, date, details, tags, unavailable })
+            }
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
-                setModalData({ version, date, details });
+                setModalData({ version, date, details, tags, unavailable });
               }
             }}
             aria-label={`Open changelog details for ${version}`}
           >
             <h3>
-              {version} <span className="changelog-date">{date}</span>
+              {version}
+              <span className="changelog-date">{date}</span>
             </h3>
+            <div className="changelog-tags">
+              {unavailable && (
+                <span className="badge-unavailable">Unavailable</span>
+              )}
+              {tags?.map((tag, idx) => (
+                <span key={idx} className="badge-tag">
+                  {tag}
+                </span>
+              ))}
+            </div>
             <p>{details[0]}...</p>
           </div>
         ))}
