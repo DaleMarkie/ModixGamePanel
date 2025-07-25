@@ -84,7 +84,7 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export default function FileManager() {
+export default function FileBrowser() {
   const exampleTree = [
     {
       name: "server",

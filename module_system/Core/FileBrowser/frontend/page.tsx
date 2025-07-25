@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import FileManager from "./FileManager"; // <-- Correct import
+import FileBrowser from "./FileBrowser"; // <-- Correct import
 
-export default function FileManagerPage() {
+export default function FileBrowserPage() {
   return (
     <DashboardLayout>
-      <FileManager />
+      <FileBrowser />
     </DashboardLayout>
   );
 }

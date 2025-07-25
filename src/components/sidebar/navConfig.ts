@@ -18,8 +18,8 @@ export const navLinks = [
     submenu: [
       { label: "⚙️ General Settings", href: "/settings/general" },
       { label: "⚙️ User Permissions", href: "/rbac" },
-      { label: "⚙️ Game Libary", href: "/gamelibary" },
-      { label: "⚙️ Update Modix", href: "/" },
+      { label: "⚙️ Game Libary", href: "/games" },
+      { label: "⚙️ Update Modix", href: "/updater" },
     ],
   },
   {
