@@ -17,36 +17,53 @@ export const navLinks = [
     href: "/settings",
     submenu: [
       { label: "⚙️ General Settings", href: "/settings/general" },
-      { label: "🧪 Sandbox Options", href: "/settings/sandbox" },
-      { label: "📄 server.ini", href: "/settings/serverini" },
-      { label: "📍 Spawn Points", href: "/settings/spawnpoints" },
-      { label: "🧟 Zombie Settings", href: "/settings/zombies" },
+      { label: "⚙️ User Permissions", href: "/rbca" },
+      { label: "⚙️ Game Libary", href: "/gamelibary" },
+      { label: "⚙️ Update Modix", href: "/" },
     ],
+  },
+  {
+    label: "📁 Terminal",
+    href: "/terminal",
   },
   {
     label: "🧰 Mods",
     href: "/modmanager",
-    submenu: [{ label: "🛒 Browse Workshop", href: "/workshop" }],
+    submenu: [
+      { label: "📦 My Mods", href: "/modmanager" },
+      { label: "🛒 Browse Workshop", href: "/workshop" },
+      { label: "📥 Mod Updater", href: "/modupdater" },
+    ],
+  },
+  {
+    label: "📁 File Manager",
+    href: "/filemanager",
   },
   {
     label: "👥 Players",
     href: "/players",
     submenu: [
-      { label: "👥 All Players", href: "/players/all" },
-      { label: "🟢 Online Players", href: "/players/online" },
-      { label: "🚫 Banned Players", href: "/players/banned" },
-      { label: "✅ Whitelist", href: "/players/whitelist" },
+      { label: "👥 Player Manager", href: "/players/all" },
+      { label: "🟢 Steam Player Manager", href: "/players/online" },
+    ],
+  },
+  {
+    label: "🛠 Webhooks",
+    href: "/webhooks",
+    submenu: [
+      { label: "🔧 Send Embed", href: "/discordwebhooks" },
+      { label: "📊 Saved Webhooks", href: "/tools/performance" },
     ],
   },
   {
     label: "🛠 Tools",
     href: "/tools",
     submenu: [
-      { label: "📦 Plugin Tools", href: "/tools/plugins" },
-      { label: "📦 Webhook Manager", href: "/discordwebhooks" },
-      { label: "📈 Performance Stats", href: "/tools/performance" },
-      { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🎨 Theme Manager", href: "/tools/theme" },
+      { label: "🔧 Plugin Tools", href: "/tools/plugins" },
+      { label: "📊 Performance Stats", href: "/tools/performance" },
+      { label: "📊 Port Checker", href: "/tools/portcheck" },
+      { label: "📊 DDoS Manager", href: "/tools/ddosmanager" },
+      { label: "⚙️ Steam Parser", href: "/tools/steamparser" },
     ],
   },
   {
@@ -64,6 +81,7 @@ export const navLinks = [
     submenu: [
       { label: "🔐 Sign In", href: "/auth/login" },
       { label: "🆕 Register", href: "/auth/register" },
+      { label: "🆕 Recover Account", href: "/auth/recover" },
     ],
   },
 ];
