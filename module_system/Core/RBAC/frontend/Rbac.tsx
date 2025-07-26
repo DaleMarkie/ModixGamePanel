@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const ALL_ROLES = ["Admin", "Moderator", "User", "Guest"];
-const ALL_PERMISSIONS = [
-  "modix_dashboard_access",
-  "modix_user_manage",
-  "modix_server_manage",
-  "modix_module_manage",
-];
+const ALL_ROLES = ["Admin", "Moderator", "User", "Guest"] as const;
+const PERMISSION_GROUPS: Record<string, string[]> = {
+  Dashboard: ["modix_dashboard_access"],
+  Users: ["modix_user_manage"],
+  Servers: ["modix_server_manage"],
+  Modules: ["modix_module_manage"],
+};
 
 type User = {
   username: string;
@@ -19,47 +19,63 @@ type User = {
 };
 
 export default function RBACManager() {
-  const [users, setUsers] = useState<User[]>([
-    {
-      username: "test",
-      email: "test@example.com",
-      password: "test",
-      roles: ["Moderator"],
-      permissions: ["modix_dashboard_access"],
-    },
-  ]);
-
+  const [users, setUsers] = useState<User[]>([]);
   const [newUser, setNewUser] = useState({
     username: "",
     email: "",
     password: "",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [auditLog, setAuditLog] = useState<string[]>([]);
+  const [permissionSearch, setPermissionSearch] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem("rbacUsers");
+    if (saved) setUsers(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("rbacUsers", JSON.stringify(users));
+  }, [users]);
+
+  const logAction = (msg: string) => {
+    setAuditLog((prev) => [
+      ...prev,
+      `${new Date().toLocaleTimeString()}: ${msg}`,
+    ]);
+  };
 
   const addUser = () => {
     if (!newUser.username || !newUser.email || !newUser.password)
       return alert("Fill all fields");
-
     if (users.find((u) => u.username === newUser.username))
       return alert("Username already exists");
 
-    setUsers([...users, { ...newUser, roles: [], permissions: [] }]);
+    const newEntry = { ...newUser, roles: [], permissions: [] };
+    setUsers([...users, newEntry]);
+    logAction(`➕ Added user "${newUser.username}"`);
     setNewUser({ username: "", email: "", password: "" });
   };
 
   const removeUser = (username: string) => {
     if (!confirm(`Remove user "${username}"?`)) return;
     setUsers(users.filter((u) => u.username !== username));
+    logAction(`❌ Removed user "${username}"`);
   };
 
   const toggleRole = (username: string, role: string) => {
-    setUsers(
-      users.map((u) =>
+    setUsers((prev) =>
+      prev.map((u) =>
         u.username === username
           ? {
               ...u,
               roles: u.roles.includes(role)
-                ? u.roles.filter((r) => r !== role)
-                : [...u.roles, role],
+                ? (logAction(`🔽 Removed role "${role}" from ${username}`),
+                  u.roles.filter((r) => r !== role))
+                : (logAction(`🔼 Added role "${role}" to ${username}`),
+                  [...u.roles, role]),
             }
           : u
       )
@@ -67,14 +83,16 @@ export default function RBACManager() {
   };
 
   const togglePermission = (username: string, permission: string) => {
-    setUsers(
-      users.map((u) =>
+    setUsers((prev) =>
+      prev.map((u) =>
         u.username === username
           ? {
               ...u,
               permissions: u.permissions.includes(permission)
-                ? u.permissions.filter((p) => p !== permission)
-                : [...u.permissions, permission],
+                ? (logAction(`🚫 Revoked "${permission}" from ${username}`),
+                  u.permissions.filter((p) => p !== permission))
+                : (logAction(`✅ Granted "${permission}" to ${username}`),
+                  [...u.permissions, permission]),
             }
           : u
       )
@@ -86,38 +104,40 @@ export default function RBACManager() {
     field: "email" | "password",
     value: string
   ) => {
-    setUsers(
-      users.map((u) => (u.username === username ? { ...u, [field]: value } : u))
+    setUsers((prev) =>
+      prev.map((u) => (u.username === username ? { ...u, [field]: value } : u))
     );
+    logAction(`✏️ Updated ${field} for ${username}`);
   };
 
+  const filteredUsers = users.filter((u) =>
+    u.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div
-      style={{
-        backgroundColor: "#1c1c1c",
-        color: "#e2e2e2",
-        minHeight: "100vh",
-        padding: "24px",
-        fontFamily: "Inter, system-ui, sans-serif",
-        maxWidth: 1200,
-        margin: "0 auto",
-      }}
-    >
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-        MODIX: RBAC Panel
-      </h1>
+    <div style={container}>
+      <h1 style={heading}>RBAC Panel</h1>
+      <p
+        style={{ marginBottom: 24, fontSize: 14, color: "#bbb", maxWidth: 600 }}
+      >
+        Manage user access and permissions efficiently with this Role-Based
+        Access Control (RBAC) panel. Add and remove users, assign roles and
+        granular permissions, update credentials, and track all changes in the
+        audit log — ensuring you have full control over who can access and
+        manage different parts of the MODIX system.
+      </p>
+
+      {/* Global Search */}
+      <input
+        placeholder="Search users..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ ...inputSmall, marginBottom: 16 }}
+      />
 
       {/* Add User */}
-      <div
-        style={{
-          backgroundColor: "#262626",
-          padding: 16,
-          borderRadius: 6,
-          border: "1px solid #333",
-          marginBottom: 24,
-        }}
-      >
-        <h2 style={{ fontSize: 16, marginBottom: 12 }}>Add User</h2>
+      <div style={card}>
+        <h2 style={subheading}>Add User</h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input
             placeholder="Username"
@@ -151,190 +171,272 @@ export default function RBACManager() {
 
       {/* Users */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {users.map((user) => (
+        {filteredUsers.map((user) => {
+          const query = permissionSearch[user.username] || "";
+          return (
+            <div key={user.username} style={card}>
+              <div style={cardHeader}>
+                <strong style={{ fontSize: 16 }}>{user.username}</strong>
+                <button
+                  onClick={() => removeUser(user.username)}
+                  style={btnDanger}
+                >
+                  ✖
+                </button>
+              </div>
+
+              {/* Email / Password */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  marginBottom: 10,
+                }}
+              >
+                <label style={labelCompact}>
+                  Email:
+                  <input
+                    type="email"
+                    value={user.email}
+                    onChange={(e) =>
+                      updateUserField(user.username, "email", e.target.value)
+                    }
+                    style={inputInline}
+                  />
+                </label>
+                <label style={labelCompact}>
+                  Password:
+                  <input
+                    type="password"
+                    value={user.password}
+                    onChange={(e) =>
+                      updateUserField(user.username, "password", e.target.value)
+                    }
+                    style={inputInline}
+                  />
+                </label>
+              </div>
+
+              {/* Roles */}
+              <div style={{ marginBottom: 12 }}>
+                <span style={labelTitle}>Roles</span>
+                <div style={badgeRow}>
+                  {ALL_ROLES.map((role) => {
+                    const active = user.roles.includes(role);
+                    return (
+                      <span
+                        key={role}
+                        title={`Toggle ${role} role`}
+                        style={{
+                          ...badge,
+                          backgroundColor: active ? "#2196F3" : "#333",
+                          color: active ? "#fff" : "#aaa",
+                        }}
+                        onClick={() => toggleRole(user.username, role)}
+                      >
+                        {role}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Permission Search */}
+              <input
+                placeholder="Search permissions..."
+                value={permissionSearch[user.username] || ""}
+                onChange={(e) =>
+                  setPermissionSearch({
+                    ...permissionSearch,
+                    [user.username]: e.target.value,
+                  })
+                }
+                style={{ ...inputSmall, marginBottom: 10, width: "100%" }}
+              />
+
+              {/* Permissions */}
+              <div>
+                <span style={labelTitle}>Permissions</span>
+                {Object.entries(PERMISSION_GROUPS).map(([group, perms]) => {
+                  const visiblePerms = perms.filter((p) =>
+                    p.toLowerCase().includes(query.toLowerCase())
+                  );
+                  if (visiblePerms.length === 0) return null;
+
+                  return (
+                    <div key={group} style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, marginBottom: 4 }}>
+                        {group}
+                      </div>
+                      <div style={badgeRow}>
+                        {visiblePerms.map((perm) => {
+                          const active = user.permissions.includes(perm);
+                          return (
+                            <span
+                              key={perm}
+                              title={`Toggle ${perm}`}
+                              style={{
+                                ...badge,
+                                backgroundColor: active ? "#4CAF50" : "#333",
+                                color: active ? "#fff" : "#aaa",
+                              }}
+                              onClick={() =>
+                                togglePermission(user.username, perm)
+                              }
+                            >
+                              {perm}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Audit Log */}
+      {auditLog.length > 0 && (
+        <div style={{ marginTop: 40 }}>
+          <h3 style={{ fontSize: 15, color: "#aaa", marginBottom: 8 }}>
+            Audit Log
+          </h3>
           <div
-            key={user.username}
             style={{
-              backgroundColor: "#262626",
+              backgroundColor: "#111",
+              padding: 12,
               borderRadius: 6,
-              padding: 16,
-              border: "1px solid #333",
+              fontSize: 12,
+              color: "#999",
+              maxHeight: 200,
+              overflowY: "auto",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-                alignItems: "center",
-              }}
-            >
-              <strong style={{ fontSize: 16 }}>{user.username}</strong>
-              <button
-                onClick={() => removeUser(user.username)}
-                style={btnDanger}
-              >
-                ✖
-              </button>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                marginBottom: 10,
-              }}
-            >
-              <label style={labelCompact}>
-                Email:
-                <input
-                  type="email"
-                  value={user.email}
-                  onChange={(e) =>
-                    updateUserField(user.username, "email", e.target.value)
-                  }
-                  style={inputInline}
-                />
-              </label>
-              <label style={labelCompact}>
-                Password:
-                <input
-                  type="password"
-                  value={user.password}
-                  onChange={(e) =>
-                    updateUserField(user.username, "password", e.target.value)
-                  }
-                  style={inputInline}
-                />
-              </label>
-            </div>
-
-            {/* Roles */}
-            <div style={{ marginBottom: 8 }}>
-              <span style={labelTitle}>Roles</span>
-              <div style={badgeRow}>
-                {ALL_ROLES.map((role) => {
-                  const active = user.roles.includes(role);
-                  return (
-                    <span
-                      key={role}
-                      style={{
-                        ...badge,
-                        backgroundColor: active ? "#009688" : "#333",
-                        color: active ? "#fff" : "#aaa",
-                      }}
-                      onClick={() => toggleRole(user.username, role)}
-                    >
-                      {role}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Permissions */}
-            <div>
-              <span style={labelTitle}>Permissions</span>
-              <div style={badgeRow}>
-                {ALL_PERMISSIONS.map((perm) => {
-                  const active = user.permissions.includes(perm);
-                  return (
-                    <span
-                      key={perm}
-                      style={{
-                        ...badge,
-                        backgroundColor: active ? "#009688" : "#333",
-                        color: active ? "#fff" : "#aaa",
-                      }}
-                      onClick={() => togglePermission(user.username, perm)}
-                    >
-                      {perm}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
+            {auditLog.map((entry, i) => (
+              <div key={i}>{entry}</div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// Styles (only badgeRow changed)
+const container: React.CSSProperties = {
+  backgroundColor: "#1c1c1c",
+  color: "#e2e2e2",
+  minHeight: "100vh",
+  padding: "24px",
+  fontFamily: "Inter, system-ui, sans-serif",
+  maxWidth: 1200,
+  margin: "0 auto",
+};
+
+const heading: React.CSSProperties = {
+  fontSize: 24,
+  fontWeight: 700,
+  marginBottom: 16,
+};
+
+const subheading: React.CSSProperties = {
+  fontSize: 16,
+  marginBottom: 12,
+};
+
+const card: React.CSSProperties = {
+  backgroundColor: "#262626",
+  padding: 16,
+  borderRadius: 6,
+  border: "1px solid #333",
+};
+
+const cardHeader: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 8,
+  alignItems: "center",
+};
 
 const inputSmall: React.CSSProperties = {
   padding: "6px 10px",
   borderRadius: 4,
   border: "1px solid #444",
-  backgroundColor: "#1c1c1c",
-  color: "#e2e2e2",
-  fontSize: 13,
-  width: 180,
+  backgroundColor: "#121212",
+  color: "#ddd",
+  fontSize: 14,
   outline: "none",
+  minWidth: 140,
 };
 
 const inputInline: React.CSSProperties = {
-  padding: "5px 8px",
+  marginLeft: 8,
+  padding: "4px 8px",
   borderRadius: 4,
   border: "1px solid #444",
-  backgroundColor: "#1c1c1c",
+  backgroundColor: "#121212",
   color: "#ddd",
-  fontSize: 13,
-  width: 180,
-  marginLeft: 8,
-};
-
-const btnPrimary: React.CSSProperties = {
-  backgroundColor: "#009688",
-  color: "#fff",
-  border: "none",
-  padding: "7px 14px",
-  fontWeight: 600,
-  borderRadius: 4,
-  fontSize: 13,
-  cursor: "pointer",
-};
-
-const btnDanger: React.CSSProperties = {
-  backgroundColor: "#8b0000",
-  color: "#fff",
-  border: "none",
-  padding: "4px 10px",
-  borderRadius: 4,
-  fontSize: 12,
-  cursor: "pointer",
+  fontSize: 14,
+  outline: "none",
 };
 
 const labelCompact: React.CSSProperties = {
-  fontSize: 13,
-  color: "#aaa",
   display: "flex",
   alignItems: "center",
+  fontSize: 14,
   gap: 6,
 };
 
 const labelTitle: React.CSSProperties = {
+  fontWeight: "600",
   fontSize: 13,
-  fontWeight: 600,
-  color: "#bbb",
-  marginBottom: 4,
+  marginBottom: 6,
   display: "inline-block",
 };
 
-const badgeRow: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8,
-  marginTop: 6,
+const btnPrimary: React.CSSProperties = {
+  backgroundColor: "#2196F3",
+  border: "none",
+  color: "white",
+  padding: "6px 14px",
+  borderRadius: 4,
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: 14,
+};
+
+const btnDanger: React.CSSProperties = {
+  backgroundColor: "#f44336",
+  border: "none",
+  color: "white",
+  padding: "4px 10px",
+  borderRadius: 4,
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: 14,
 };
 
 const badge: React.CSSProperties = {
-  padding: "4px 10px",
-  borderRadius: 4,
-  fontSize: 12,
-  fontWeight: 500,
   cursor: "pointer",
   userSelect: "none",
+  padding: "4px 10px",
+  borderRadius: 12,
+  fontSize: 12,
   border: "1px solid #444",
-  transition: "background-color 0.2s",
+  whiteSpace: "nowrap",
+  transition: "background-color 0.3s, color 0.3s",
+};
+
+// THIS IS THE ONLY CHANGE:
+// badgeRow now forces one horizontal row with horizontal scroll if overflow
+const badgeRow: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "nowrap",
+  gap: 8,
+  marginTop: 6,
+  overflowX: "auto",
 };
