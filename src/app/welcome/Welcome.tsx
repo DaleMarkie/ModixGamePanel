@@ -8,6 +8,8 @@ import {
   FaGamepad,
   FaBookOpen,
   FaLifeRing,
+  FaYoutube,
+  FaSteam,
 } from "react-icons/fa";
 
 export default function InstalledPage() {
@@ -115,7 +117,7 @@ export default function InstalledPage() {
         {/* Support & Community */}
         <section className="space-y-3 text-sm text-gray-400 max-w-sm">
           <p>Need support or want to connect with other Modix users?</p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 flex-wrap">
             <a
               href="https://discord.gg/EwWZUSR9tM"
               target="_blank"
@@ -133,6 +135,24 @@ export default function InstalledPage() {
             >
               <FaCoffee />
               Ko-fi
+            </a>
+            <a
+              href="https://www.youtube.com/@modix_panel"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FF0000] hover:bg-[#cc0000] text-white font-medium py-2 px-4 rounded-md flex items-center gap-2 transition"
+            >
+              <FaYoutube />
+              YouTube
+            </a>
+            <a
+              href="https://steamcommunity.com/sharedfiles/filedetails/?id=3422448677"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#171a21] hover:bg-[#0f1114] text-white font-medium py-2 px-4 rounded-md flex items-center gap-2 transition"
+            >
+              <FaSteam />
+              Steam Workshop
             </a>
           </div>
         </section>
