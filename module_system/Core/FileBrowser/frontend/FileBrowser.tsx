@@ -124,24 +124,24 @@ export default function FileBrowser() {
 
   const fetchFileContent = useCallback(async (path) => {
     setLoadingFile(true);
-    // Simulated file content for demo purposes
-    const fileSamples = {
-      "/server/server.ini":
-        "; server.ini config file\n[Server]\nPublicName=My Server\nMaxPlayers=10\n",
-      "/server/mods/mod1.txt":
-        "Mod 1 description and data...\nLine 2 of mod1\nAnother line.",
-      "/server/mods/mod2.txt": "Mod 2 description and data...\nMore info here.",
-      "/config.lua":
-        "-- Lua config file example\nreturn {\n  setting = true\n}\n",
-      "/readme.md":
-        "# Readme\nWelcome to your Project Zomboid server!\nEnjoy editing your files!",
-    };
-    await new Promise((r) => setTimeout(r, 250)); // simulate delay
-    setFileContent(fileSamples[path] || "// No content for this file.");
-    setLoadingFile(false);
-    setEditorSearchTerm("");
-    setCurrentMatchIndex(0);
-    setMatchIndices([]);
+    try {
+      // Assuming your backend API endpoint to get file content looks like this:
+      // You may need to adjust URL & method to your API
+      const response = await fetch(
+        `/api/files/content?path=${encodeURIComponent(path)}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch file content");
+      const data = await response.json(); // assuming JSON { content: "file contents..." }
+      setFileContent(data.content || "// No content for this file.");
+    } catch (error) {
+      console.error("Error loading file:", error);
+      setFileContent("// Error loading file content.");
+    } finally {
+      setLoadingFile(false);
+      setEditorSearchTerm("");
+      setCurrentMatchIndex(0);
+      setMatchIndices([]);
+    }
   }, []);
 
   useEffect(() => {

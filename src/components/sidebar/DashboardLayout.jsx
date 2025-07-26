@@ -26,17 +26,14 @@ export default function DashboardLayout({ children }) {
   const filteredNavLinks = navLinks
     .map(({ label, href, submenu }) => {
       if (!searchTerm) return { label, href, submenu };
-
       const lowerSearch = searchTerm.toLowerCase();
       const mainMatch = label.toLowerCase().includes(lowerSearch);
-
       let filteredSubmenu = null;
       if (submenu) {
         filteredSubmenu = submenu.filter((item) =>
           item.label.toLowerCase().includes(lowerSearch)
         );
       }
-
       if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
         return { label, href, submenu: filteredSubmenu };
       }
@@ -53,18 +50,13 @@ export default function DashboardLayout({ children }) {
           height: 100%;
           width: 100%;
           font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-          background: none;
+          background: #121212;
         }
-        
-
         .dashboard-root {
           position: relative;
           min-height: 100vh;
           width: 100vw;
-          background-image: url('https://images7.alphacoders.com/627/627909.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          background: #121212;
           display: flex;
           justify-content: center;
           align-items: flex-start;
@@ -72,14 +64,12 @@ export default function DashboardLayout({ children }) {
           box-sizing: border-box;
           color: #ddd;
         }
-
         .dashboard-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
           background-color: rgba(18, 18, 18, 0.7);
           z-index: 0;
         }
-
         .dashboard-container {
           position: relative;
           z-index: 1;
@@ -92,7 +82,6 @@ export default function DashboardLayout({ children }) {
           overflow: hidden;
           min-height: 100vh;
         }
-
         .sidebar {
           background-color: #1c1c1c;
           color: #eee;
@@ -140,7 +129,6 @@ export default function DashboardLayout({ children }) {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          marin:left: -35px;
         }
         .sidebar-toggle-button {
           border: none;
@@ -220,7 +208,6 @@ export default function DashboardLayout({ children }) {
         nav li button .icon {
           margin-left: 6px;
           transition: transform 0.3s ease;
-          user-select: none;
         }
         nav li button .icon.rotate {
           transform: rotate(90deg);
@@ -229,11 +216,9 @@ export default function DashboardLayout({ children }) {
           background-color: #222;
           border-radius: 10px;
           padding: 12px 14px;
-          margin-top: 20px;
+          margin-bottom: 20px; /* moved margin to bottom so spacing below */
           font-size: 12px;
           color: #aaa;
-          user-select: none;
-          flex-shrink: 0;
         }
         .server-info-item {
           display: flex;
@@ -255,13 +240,11 @@ export default function DashboardLayout({ children }) {
           color: #eee;
           flex-shrink: 0;
           min-width: 65px;
-          user-select: text;
         }
         .server-info-value {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          user-select: text;
         }
         .search-input {
           margin-bottom: 16px;
@@ -274,47 +257,46 @@ export default function DashboardLayout({ children }) {
           color: #222;
           background-color: #e0e0e0;
           outline: none;
-          user-select: text;
         }
         .search-input::placeholder {
           font-weight: 600;
           color: #555;
           font-style: italic;
         }
+        .modix-footer {
+          width: 100%;
+          text-align: center;
+          padding: 10px 0;
+          font-size: 13px;
+          color: #999;
+          background-color: #1a1a1a;
+          border-top: 1px solid #333;
+        }
       `}</style>
 
       <div className="dashboard-root" role="main" aria-label="Modix Dashboard">
         <div className="dashboard-overlay" aria-hidden="true" />
         <div className="dashboard-container" tabIndex={-1}>
-          <aside
-            className={`sidebar ${sidebarOpen ? "open" : "closed"}`}
-            aria-label="Primary Sidebar Navigation"
-          >
+          {/* Sidebar */}
+          <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
             <div
               className={`sidebar-header ${sidebarOpen ? "open" : "closed"}`}
               onClick={() => setSidebarOpen((v) => !v)}
-              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ")
-                  setSidebarOpen((v) => !v);
-              }}
+              onKeyDown={(e) =>
+                (e.key === "Enter" || e.key === " ") && setSidebarOpen((v) => !v)
+              }
             >
-              <div
-                className="sidebar-logo-row"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                {sidebarOpen && (
-                  <span className="sidebar-logo-text">Modix Game Panel</span>
-                )}
+              <div className="sidebar-logo-row">
+                <span className="sidebar-logo-text" title="Modix Game Panel">
+                  Modix Game Panel
+                </span>
                 <button
                   className="sidebar-toggle-button"
-                  aria-pressed={sidebarOpen}
-                  aria-label={
-                    sidebarOpen ? "Collapse sidebar" : "Expand sidebar"
-                  }
+                  aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+                  onClick={() => setSidebarOpen((v) => !v)}
+                  tabIndex={-1}
                 >
                   <FaBars />
                 </button>
@@ -322,31 +304,59 @@ export default function DashboardLayout({ children }) {
               {sidebarOpen && <SidebarUserInfo />}
             </div>
 
-            <nav aria-label="Main Navigation">
-              <input
-                type="search"
-                placeholder="Search navigation..."
-                className="search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                aria-label="Filter navigation items"
-                spellCheck={false}
-              />
+            {/* Server Info Section MOVED ABOVE search input */}
+            <section className="server-info-section" aria-label="Server Information">
+              <div className="server-info-item">
+                <span className="server-info-icon" aria-hidden="true">
+                  <FaServer />
+                </span>
+                <span className="server-info-label">Server</span>
+                <span className="server-info-value">{serverInfo?.name || "Loading..."}</span>
+              </div>
+              <div className="server-info-item">
+                <span className="server-info-icon" aria-hidden="true">
+                  <FaLaptop />
+                </span>
+                <span className="server-info-label">Host</span>
+                <span className="server-info-value">{serverInfo?.host || "Loading..."}</span>
+              </div>
+              <div className="server-info-item">
+                <span className="server-info-icon" aria-hidden="true">
+                  <FaUser />
+                </span>
+                <span className="server-info-label">Owner</span>
+                <span className="server-info-value">{serverInfo?.owner || "Loading..."}</span>
+              </div>
+            </section>
+
+            {/* Search input */}
+            <input
+              type="search"
+              className="search-input"
+              placeholder="Search menu"
+              aria-label="Search menu"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              spellCheck={false}
+              autoComplete="off"
+            />
+
+            {/* Navigation */}
+            <nav role="navigation" aria-label="Main menu">
               <ul>
                 {filteredNavLinks.map(({ label, href, submenu }) => (
                   <li key={href}>
                     {submenu ? (
                       <>
                         <button
-                          onClick={() => toggleSubMenu(href)}
+                          type="button"
                           aria-expanded={!!openMenus[href]}
                           aria-controls={`submenu-${href}`}
+                          onClick={() => toggleSubMenu(href)}
                         >
                           <span>{label}</span>
                           <span
-                            className={`icon ${
-                              openMenus[href] ? "rotate" : ""
-                            }`}
+                            className={`icon ${openMenus[href] ? "rotate" : ""}`}
                             aria-hidden="true"
                           >
                             <FaChevronRight />
@@ -354,10 +364,11 @@ export default function DashboardLayout({ children }) {
                         </button>
                         <ul
                           id={`submenu-${href}`}
+                          role="region"
+                          aria-label={`${label} submenu`}
                           style={{
-                            maxHeight: openMenus[href]
-                              ? submenu.length * 38 + "px"
-                              : "0px",
+                            maxHeight: openMenus[href] ? "200px" : "0px",
+                            transition: "max-height 0.3s ease",
                           }}
                         >
                           {submenu.map(({ label: subLabel, href: subHref }) => (
@@ -373,64 +384,17 @@ export default function DashboardLayout({ children }) {
                   </li>
                 ))}
               </ul>
-
-              {/* Moved server info section INSIDE nav, just below the nav links */}
-              {serverInfo && (
-                <section
-                  className="server-info-section"
-                  aria-label="Server Information"
-                >
-                  <div className="server-info-item">
-                    <span className="server-info-icon" aria-hidden="true">
-                      <FaLaptop />
-                    </span>
-                    <span className="server-info-label">Hostname:</span>
-                    <span
-                      className="server-info-value"
-                      title={serverInfo.hostname}
-                    >
-                      {serverInfo.hostname}
-                    </span>
-                  </div>
-                  <div className="server-info-item">
-                    <span className="server-info-icon" aria-hidden="true">
-                      <FaServer />
-                    </span>
-                    <span className="server-info-label">Container:</span>
-                    <span
-                      className="server-info-value"
-                      title={serverInfo.container}
-                    >
-                      {serverInfo.container}
-                    </span>
-                  </div>
-                  <div className="server-info-item">
-                    <span className="server-info-icon" aria-hidden="true">
-                      <FaUser />
-                    </span>
-                    <span className="server-info-label">Logged In:</span>
-                    <span
-                      className="server-info-value"
-                      title={serverInfo.loggedInUser}
-                    >
-                      {serverInfo.loggedInUser}
-                    </span>
-                  </div>
-                </section>
-              )}
             </nav>
 
-            {/* Sidebar bottom area or footer if needed */}
+            <footer className="modix-footer" aria-hidden="true">
+              Modix: Game Panel v1.1.2
+            </footer>
           </aside>
 
+          {/* Main content */}
           <main
-            tabIndex={-1}
-            style={{
-              flexGrow: 1,
-              overflowY: "auto",
-              padding: "20px 26px",
-            }}
-            aria-label="Dashboard Content"
+            className="dashboard-content"
+            style={{ flexGrow: 1, padding: "20px", overflowY: "auto" }}
           >
             {children}
           </main>

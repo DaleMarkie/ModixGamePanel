@@ -15,6 +15,7 @@ export const navLinks = [
     href: "/settings",
     submenu: [
       { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "🛡️ Theme Settings", href: "/themesettings" },
       { label: "🛡️ User Permissions", href: "/rbac" },
       { label: "🎮 Game Library", href: "/games" },
       { label: "⬆️ Update Modix", href: "/updater" },
@@ -35,7 +36,7 @@ export const navLinks = [
   },
   {
     label: "🗂️ File Manager",
-    href: "/filemanager",
+    href: "/FileBrowser",
   },
   {
     label: "🎮 Players",
