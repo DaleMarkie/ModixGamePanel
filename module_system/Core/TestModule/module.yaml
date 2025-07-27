@@ -1,13 +1,13 @@
-name: Debugger
+name: TestModule
 version: 1.0.0
 description: Test module for validating dynamic module loader and Docker API integration.
 author: Modix Team
 website: https://modix.store
 frontend:
   routes:
-    - path: /debugger
-      component: DebuggerPage
-      entry: Core/Debugger/frontend/page.tsx
+    - path: /testmodule
+      component: TestModulePage
+      entry: Core/TestModule/frontend/page.tsx
   nav_items:
     - label: Test Module
       path: /testmodule
@@ -30,3 +30,4 @@ frontend:
           icon: 📑
           permission: TestModule_view
           priority: 3
+  router: module_system.Core.TestModule.backend.workshop_api:router

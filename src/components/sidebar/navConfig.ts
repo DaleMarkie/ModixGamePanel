@@ -31,6 +31,7 @@ export const navLinks = [
     submenu: [
       { label: "📦 My Mods", href: "/modmanager" },
       { label: "🛍️ Browse Workshop", href: "/workshop" },
+      { label: "🔄 Mod Performance", href: "/modperformance" },
       { label: "🔄 Mod Updater", href: "/modupdater" },
     ],
   },
