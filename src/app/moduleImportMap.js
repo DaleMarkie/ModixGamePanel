@@ -22,6 +22,4 @@ export const importMap = {
     import("../../module_system/Core/Workshop/frontend/page.tsx"),
   "Optional/Backup/Frontend/page.tsx": () =>
     import("../../module_system/Optional/Backup/Frontend/page.tsx"),
-  "Optional/Backup/Frontend/page.tsx": () =>
-    import("../../module_system/Optional/Backup/Frontend/page.tsx"),
 };

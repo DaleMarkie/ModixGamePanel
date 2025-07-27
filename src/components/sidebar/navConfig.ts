@@ -42,8 +42,8 @@ export const navLinks = [
     label: "🎮 Players",
     href: "/players",
     submenu: [
-      { label: "👥 Player Manager", href: "/players/all" },
-      { label: "🧍 Steam Player Manager", href: "/players/online" },
+      { label: "👥 Player Manager", href: "/playermanager" },
+      { label: "🧍 Steam Player Manager", href: "/steamplayermanager" },
     ],
   },
   {
@@ -58,11 +58,11 @@ export const navLinks = [
     label: "🛠️ Tools",
     href: "/tools",
     submenu: [
-      { label: "🔌 Plugin Tools", href: "/tools/plugins" },
-      { label: "📈 Performance Stats", href: "/tools/performance" },
-      { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-      { label: "🧮 Steam Parser", href: "/tools/steamparser" },
+      { label: "🔌 Plugin Tools", href: "/plugins" },
+      { label: "📈 Performance Stats", href: "/performance" },
+      { label: "🌐 Port Checker", href: "/portcheck" },
+      { label: "🛡️ DDoS Manager", href: "/ddosmanager" },
+      { label: "🧮 Steam Parser", href: "/steamparser" },
     ],
   },
   {

@@ -1,0 +1,155 @@
+/* Team.css (25% smaller) */
+
+:root {
+  --bg-color: #121212;
+  --card-bg: #1f1f1f;
+  --text-color: #e0e0e0;
+  --accent-color: #7289da;
+  --accent-hover: #5a6fbf;
+  --shadow-color: rgba(0, 0, 0, 0.7);
+  --border-radius: 10px;
+  --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.team-page header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.team-page header p {
+  font-size: 0.95rem;
+  color: #aaa;
+  margin-bottom: 2rem;
+  max-width: 440px;
+  line-height: 1.4;
+}
+
+/* Team grid smaller */
+.team-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 850px;
+  padding: 0 0.5rem;
+}
+
+/* Team member cards smaller */
+.team-member-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  padding: 1rem 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-member-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px var(--shadow-color);
+}
+
+.team-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-color);
+  margin-bottom: 0.75rem;
+  box-shadow: 0 0 6px var(--accent-color);
+}
+
+.team-member-card h2 {
+  font-size: 1.2rem;
+  margin: 0.2rem 0 0.1rem;
+}
+
+.team-member-card h3 {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #999;
+  margin-bottom: 0.8rem;
+}
+
+.team-member-card p {
+  font-size: 0.85rem;
+  color: #ccc;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+  max-width: 280px;
+}
+
+/* Social icons smaller */
+.social-links {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.social-links a {
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  transition: color 0.2s ease;
+}
+
+.social-links a:hover {
+  color: var(--accent-hover);
+}
+
+/* Responsive tweak */
+@media (max-width: 480px) {
+  .team-page {
+    padding: 1rem;
+  }
+
+  .team-list {
+    gap: 1rem;
+  }
+
+  .team-member-card p {
+    max-width: 220px;
+  }
+}
+.donation-section {
+  margin-top: 3rem;
+  text-align: center;
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.donation-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: #ffd479;
+}
+
+.donation-section p {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.donate-button {
+  background-color: #ff5f5f;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+.donate-button:hover {
+  background-color: #e44e4e;
+}
