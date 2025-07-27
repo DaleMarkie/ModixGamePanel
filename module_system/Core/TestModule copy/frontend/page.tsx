@@ -2,12 +2,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TestModule from "./Debugger";
+import Debugger from "./Debugger";
 
-export default function TestModulePage() {
+export default function DebuggerPage() {
   return (
     <DashboardLayout>
-      <TestModule />
+      <Debugger />
     </DashboardLayout>
   );
 }

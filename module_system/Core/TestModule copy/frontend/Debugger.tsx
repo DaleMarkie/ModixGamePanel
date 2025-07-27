@@ -53,16 +53,18 @@ const PRIORITIES = [
 
 export default function DebuggerPage() {
   const [selectedContainer, setSelectedContainer] = useState("");
-  const [mods, setMods] = useState({});
+  const [mods, setMods] = useState<typeof mockModData>({});
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
-  const [noteInputs, setNoteInputs] = useState({}); // Track per-mod new note input text
+  const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
 
-  // Load saved mods from localStorage or fallback to mockModData on container change
+  // Load saved mods on container change or fallback to mock
   useEffect(() => {
     if (!selectedContainer) {
       setMods({});
       setNoteInputs({});
+      setStatusFilter("");
+      setPriorityFilter("");
       return;
     }
     const savedData = localStorage.getItem(`mods_${selectedContainer}`);
@@ -76,7 +78,7 @@ export default function DebuggerPage() {
     setPriorityFilter("");
   }, [selectedContainer]);
 
-  // Save mods state to localStorage on every mods change
+  // Save mods to localStorage on mods or container change
   useEffect(() => {
     if (selectedContainer) {
       localStorage.setItem(`mods_${selectedContainer}`, JSON.stringify(mods));
@@ -119,7 +121,7 @@ export default function DebuggerPage() {
       id: Date.now(),
       text: noteText,
       date: new Date().toLocaleString(),
-      author: "Staff", // Could be dynamic
+      author: "Staff",
     };
 
     setMods((prev) => ({
