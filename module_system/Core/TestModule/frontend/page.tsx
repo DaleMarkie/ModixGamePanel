@@ -2,7 +2,7 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TestModule from "./Team";
+import TestModule from "./Debugger";
 
 export default function TestModulePage() {
   return (

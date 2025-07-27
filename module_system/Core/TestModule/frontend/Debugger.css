@@ -1,0 +1,261 @@
+/* Base dark background and white text */
+.debugger {
+  background-color: #121212;
+  color: #eee;
+  min-height: 100vh;
+  padding: 1rem 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.debugger-header {
+  margin-bottom: 1rem;
+}
+.debugger-title {
+  font-size: 2rem;
+  margin-bottom: 0.2rem;
+}
+.debugger-subtitle {
+  color: #bbb;
+  font-size: 1rem;
+}
+
+/* Container select */
+.input-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.select-dropdown {
+  width: 100%;
+  max-width: 320px;
+  background-color: #000;
+  border: 1.5px solid #264d25;
+  border-radius: 6px;
+  color: #d0f0b4;
+  padding: 0.5rem;
+  font-size: 1rem;
+  outline-offset: 2px;
+}
+.select-dropdown:focus {
+  border-color: #3da44d;
+  outline: none;
+}
+
+/* Filter buttons */
+.mod-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filter-button {
+  background-color: #223322;
+  color: white;
+  border: none;
+  padding: 0.375rem 0.675rem; /* 25% smaller */
+  border-radius: 6px; /* 25% smaller */
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+.filter-button:hover {
+  background-color: #336633;
+}
+.filter-button.active {
+  background-color: #2a8a2a;
+  box-shadow: 0 0 8px #32d632;
+}
+
+/* Section heading */
+.section-heading {
+  margin-top: 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Mod list */
+.mod-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+/* Mod card */
+.mod-card {
+  background-color: #1a1a1a;
+  border: 1.5px solid #264d25;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  transition: border-color 0.3s;
+}
+.mod-card:hover {
+  border-color: #3da44d;
+}
+
+/* Mod card header */
+.mod-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.mod-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.mod-tag-select {
+  background-color: #000;
+  border: 1.5px solid #264d25;
+  color: #a8f0a8;
+  border-radius: 4.5px; /* 25% smaller */
+  padding: 0.225rem 0.45rem; /* 25% smaller */
+  font-weight: 600;
+  cursor: pointer;
+}
+.mod-tag-select:hover,
+.mod-tag-select:focus {
+  border-color: #3da44d;
+  outline: none;
+}
+
+/* Priority row */
+.priority-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.priority-label {
+  font-weight: 600;
+}
+.priority-select {
+  background-color: #000;
+  border: 1.5px solid #264d25;
+  color: white;
+  border-radius: 4.5px; /* 25% smaller */
+  padding: 0.225rem 0.45rem; /* 25% smaller */
+  font-weight: 600;
+  cursor: pointer;
+  width: 90px; /* 120px * 0.75 */
+}
+.priority-select:hover,
+.priority-select:focus {
+  border-color: #3da44d;
+  outline: none;
+}
+
+/* Priority badge */
+.priority-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 700;
+  color: white;
+}
+.priority-gray {
+  background-color: #666;
+}
+.priority-yellow {
+  background-color: #ccbb33;
+}
+.priority-orange {
+  background-color: #e68a00;
+}
+.priority-red {
+  background-color: #cc3333;
+}
+
+/* Mod log */
+.mod-log {
+  background-color: #101010;
+  border-left: 4px solid #3da44d;
+  padding: 0.8rem 1rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+  white-space: pre-wrap;
+}
+.mod-log.empty {
+  color: #666;
+  font-style: italic;
+}
+
+/* Notes Section */
+.notes-section {
+  border-top: 1px solid #264d25;
+  padding-top: 0.7rem;
+}
+.notes-section h4 {
+  margin-bottom: 0.4rem;
+  color: #a8f0a8;
+  font-weight: 700;
+}
+.note-input {
+  width: 100%;
+  background-color: #000;
+  border: 1.5px solid #264d25;
+  border-radius: 6px;
+  color: white;
+  padding: 0.6rem;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 60px;
+  margin-bottom: 0.5rem;
+}
+.note-input:focus {
+  border-color: #3da44d;
+  outline: none;
+}
+.btn-add-note {
+  background-color: #264d25;
+  color: white;
+  border: none;
+  padding: 0.375rem 0.825rem; /* 25% smaller */
+  border-radius: 6px; /* 25% smaller */
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: background-color 0.3s;
+}
+.btn-add-note:hover {
+  background-color: #3da44d;
+}
+
+/* Notes list */
+.notes-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border-top: 1px solid #264d25;
+  padding-top: 0.5rem;
+}
+.note-item {
+  background-color: #0e0e0e;
+  border: 1px solid #264d25;
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+.note-meta {
+  font-size: 0.75rem;
+  color: #76b36b;
+  margin-bottom: 0.2rem;
+  font-style: italic;
+}
+
+/* Mod tag color variants for border */
+.tag-broken {
+  border-color: #cc3333;
+}
+.tag-fixed {
+  border-color: #33cc66;
+}
+.tag-needs_update {
+  border-color: #cccc33;
+}
+.tag-incompatible {
+  border-color: #9966cc;
+}
