@@ -6,7 +6,7 @@ website: https://modix.store
 frontend:
   routes:
     - path: /testmodule
-      component: TestModulePage
+      component: TestModule
       entry: Core/TestModule/frontend/page.tsx
   nav_items:
     - label: Test Module
@@ -30,4 +30,3 @@ frontend:
           icon: 📑
           permission: TestModule_view
           priority: 3
-  router: module_system.Core.TestModule.backend.workshop_api:router
