@@ -44,7 +44,7 @@ export const navLinks = [
     href: "/players",
     submenu: [
       { label: "👥 Player Manager", href: "/playermanager" },
-      { label: "🧍 Steam Player Manager", href: "/steamplayermanager" },
+      { label: "🧍 Steam Player Manager", href: "/SteamPlayerManager" },
     ],
   },
   {

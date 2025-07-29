@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Games from "./Games"; // <-- Correct import
+import PlayerManager from "./PlayerManager"; // <-- Correct import
 
-export default function GamesPage() {
+export default function PlayerManagerPage() {
   return (
     <DashboardLayout>
-      <Games />
+      <PlayerManager />
     </DashboardLayout>
   );
 }
