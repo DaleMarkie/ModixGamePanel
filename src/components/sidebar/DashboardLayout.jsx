@@ -307,40 +307,6 @@ export default function DashboardLayout({ children }) {
               {sidebarOpen && <SidebarUserInfo />}
             </div>
 
-            {/* Server Info Section MOVED ABOVE search input */}
-            <section
-              className="server-info-section"
-              aria-label="Server Information"
-            >
-              <div className="server-info-item">
-                <span className="server-info-icon" aria-hidden="true">
-                  <FaServer />
-                </span>
-                <span className="server-info-label">Server</span>
-                <span className="server-info-value">
-                  {serverInfo?.name || "Loading..."}
-                </span>
-              </div>
-              <div className="server-info-item">
-                <span className="server-info-icon" aria-hidden="true">
-                  <FaLaptop />
-                </span>
-                <span className="server-info-label">Host</span>
-                <span className="server-info-value">
-                  {serverInfo?.host || "Loading..."}
-                </span>
-              </div>
-              <div className="server-info-item">
-                <span className="server-info-icon" aria-hidden="true">
-                  <FaUser />
-                </span>
-                <span className="server-info-label">Owner</span>
-                <span className="server-info-value">
-                  {serverInfo?.owner || "Loading..."}
-                </span>
-              </div>
-            </section>
-
             {/* Search input */}
             <input
               type="search"

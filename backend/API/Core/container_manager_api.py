@@ -86,6 +86,7 @@ SCHEMA_DIR = Path(__file__).parent.parent.parent / "server_files" / "game_server
 # --- List Docker Containers API ---
 @router.get("/docker/containers", dependencies=[Depends(require_permission("modix_get_containers"))])
 def list_accessible_containers(db: Session = Depends(get_db), current_user=Depends(require_permission("modix_get_containers"))):
+    #print("[DEBUG] /docker/containers endpoint called")
     dockerClient = docker.from_env()
     containers = dockerClient.containers.list(all=True)
     result = []

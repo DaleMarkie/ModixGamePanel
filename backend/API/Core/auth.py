@@ -160,22 +160,23 @@ def refresh_token(
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
     access_token_cookie: str = Cookie(default=None, alias="access_token")
 ):
-    # Debug: Print where the token is coming from
-    print("[DEBUG] get_current_user: token from header:", token)
-    print("[DEBUG] get_current_user: access_token_cookie:", access_token_cookie)
-    # Try header first, then cookie
-    if not token and access_token_cookie:
-        print("[DEBUG] Using access_token from cookie.")
+    # Always check both header and cookie for access_token
+    token = None
+    auth_header = request.headers.get("authorization")
+    # print("[DEBUG] get_current_user: Authorization header:", auth_header)
+    # print("[DEBUG] get_current_user: access_token_cookie:", access_token_cookie)
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+        # print("[DEBUG] Using token from Authorization header.")
+    elif access_token_cookie:
         token = access_token_cookie
-    elif token:
-        print("[DEBUG] Using token from Authorization header.")
+        # print("[DEBUG] Using access_token from cookie.")
     if not token:
-        print("[DEBUG] No token found, raising 401")
+        # print("[DEBUG] No token found, raising 401")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -188,42 +189,42 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(f"[DEBUG] Decoded JWT payload: {payload}")
+        # print(f"[DEBUG] Decoded JWT payload: {payload}")
         username: str = payload.get("sub")
         if username is None:
-            print("[DEBUG] No username in JWT payload, raising 401")
+            # print("[DEBUG] No username in JWT payload, raising 401")
             raise credentials_exception
     except JWTError as e:
-        print(f"[DEBUG] JWTError: {e}")
+        # print(f"[DEBUG] JWTError: {e}")
         raise credentials_exception
     user = db.query(User).filter_by(username=username).first()
-    print(f"[DEBUG] User from DB: {user}")
+    # print(f"[DEBUG] User from DB: {user}")
     if user is None:
-        print("[DEBUG] No user found in DB, raising 401")
+        # print("[DEBUG] No user found in DB, raising 401")
         raise credentials_exception
     return user
 
 def get_current_user_ws(websocket: WebSocket, db: Session = Depends(get_db)):
     auth_header = websocket.headers.get("authorization")
-    print(f"[DEBUG] get_current_user_ws: Authorization header: {auth_header}")
+    # print(f"[DEBUG] get_current_user_ws: Authorization header: {auth_header}")
     if not auth_header or not auth_header.lower().startswith("bearer "):
-        print("[DEBUG] No or invalid Authorization header in WebSocket handshake.")
+        # print("[DEBUG] No or invalid Authorization header in WebSocket handshake.")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Missing or invalid Authorization header.")
     token = auth_header.split(" ", 1)[1]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            print("[DEBUG] Invalid token payload: no sub")
+            # print("[DEBUG] Invalid token payload: no sub")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token payload.")
     except JWTError as e:
-        print(f"[DEBUG] JWTError: {e}")
+        # print(f"[DEBUG] JWTError: {e}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token.")
     user = db.query(User).filter_by(username=username).first()
     if user is None:
-        print(f"[DEBUG] No user found for username: {username}")
+        # print(f"[DEBUG] No user found for username: {username}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found.")
-    print(f"[DEBUG] WebSocket user authenticated: {username} (ID: {getattr(user, 'id', None)})")
+    # print(f"[DEBUG] WebSocket user authenticated: {username} (ID: {getattr(user, 'id', None)})")
     return user
 
 def require_permission(permission: str, container_id: int = None):
@@ -231,10 +232,11 @@ def require_permission(permission: str, container_id: int = None):
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
     ):
-        print(f"[DEBUG] require_permission: user={getattr(current_user, 'username', None)} id={getattr(current_user, 'id', None)} perm={permission} container_id={container_id}")
+        # print(f"[DEBUG] require_permission CALLED: user={getattr(current_user, 'username', None)} id={getattr(current_user, 'id', None)} perm={permission} container_id={container_id}")
+        # print(f"[DEBUG] require_permission: current_user object: {current_user}")
         # Root user: grant all permissions, but do not skip permission logic
         if getattr(current_user, "username", None) == "root":
-            print(f"[DEBUG] Root user detected: {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) - granting all permissions.")
+            # print(f"[DEBUG] Root user detected: {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) - granting all permissions.")
             return current_user
         # If container_id is provided, fetch container and check per-container permission
         container = None
@@ -242,13 +244,14 @@ def require_permission(permission: str, container_id: int = None):
             from backend.API.Core.models import Container
             container = db.query(Container).filter_by(id=container_id).first()
         allowed = resolve_permission(db, current_user, permission, container)
+        # print(f"[DEBUG] require_permission: resolve_permission returned: {allowed}")
         if not allowed:
-            print(f"[DEBUG] Permission denied for user {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) on permission '{permission}' and container '{container_id}'")
+            # print(f"[DEBUG] Permission denied for user {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) on permission '{permission}' and container '{container_id}'")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Missing required permission: {permission}"
             )
-        print(f"[DEBUG] Permission granted for user {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) on permission '{permission}' and container '{container_id}'")
+        # print(f"[DEBUG] Permission granted for user {getattr(current_user, 'username', None)} (ID: {getattr(current_user, 'id', None)}) on permission '{permission}' and container '{container_id}'")
         return current_user
     return dependency
 
@@ -278,14 +281,7 @@ def logout(response: Response):
 
 # /me endpoint to return current user info with roles and permissions
 @auth_router.get("/me")
-def get_me(request: Request, db: Session = Depends(get_db), access_token_cookie: str = Cookie(default=None, alias="access_token")):
-    # Manually call get_current_user with explicit args
-    current_user = get_current_user(
-        token=request.headers.get("authorization").split(" ", 1)[1] if request.headers.get("authorization", "").lower().startswith("bearer ") else None,
-        db=db,
-        request=request,
-        access_token_cookie=access_token_cookie
-    )
+def get_me(current_user: User = Depends(get_current_user)):
     # Get user roles
     roles = [ur.role.name for ur in current_user.roles if ur.role]
     # Get user permissions (direct and via roles)
