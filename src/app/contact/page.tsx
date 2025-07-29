@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Dashboard from "./Dashboard2"; // <-- Correct import
+import Contact from "./Contact"; // <-- Correct import
 
-export default function Dashboard2Page() {
+export default function ContactPage() {
   return (
     <DashboardLayout>
-      <Dashboard />
+      <Contact />
     </DashboardLayout>
   );
 }
