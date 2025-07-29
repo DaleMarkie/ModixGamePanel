@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Support from "./Support";
 
-export default function UserSupportTickets() {
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import support from "./Support"; // <-- Correct import
+
+export default function UserSupportTicketsPage() {
   return (
     <DashboardLayout>
-      <Support />
+      <support />
     </DashboardLayout>
   );
 }

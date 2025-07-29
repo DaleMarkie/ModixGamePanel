@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Testpage from "./Terms"; // <-- Correct import
+import Games from "./Games"; // <-- Correct import
 
-export default function TermsPage() {
+export default function GamesPage() {
   return (
     <DashboardLayout>
-      <Testpage />
+      <Games />
     </DashboardLayout>
   );
 }
