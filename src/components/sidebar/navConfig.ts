@@ -63,7 +63,7 @@ export const navLinks = [
       { label: "📈 Performance Stats", href: "/performance" },
       { label: "🌐 Port Checker", href: "/portcheck" },
       { label: "🛡️ DDoS Manager", href: "/ddosmanager" },
-      { label: "🧮 Steam Parser", href: "/steamparser" },
+      { label: "🧮 Steam Parser", href: "/SteamParser" },
     ],
   },
   {
