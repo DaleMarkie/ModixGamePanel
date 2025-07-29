@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import DashboardLayout from "@components/sidebar/DashboardLayout";
-import ThemeManager from "./ThemeManager"; // your actual feature component
 
-export default function UpdaterPage() {
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import FireWallManager from "./FireWallManager"; // <-- Correct import
+
+export default function FireWallManagerPage() {
   return (
     <DashboardLayout>
-      <ThemeManager />
+      <FireWallManager />
     </DashboardLayout>
   );
 }

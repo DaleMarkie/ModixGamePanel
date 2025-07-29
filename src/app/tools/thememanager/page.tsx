@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import DashboardLayout from "@components/sidebar/DashboardLayout";
-import FireWallManager from "./FireWallManager";
 
-export default function FireWall() {
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import ThemeManager from "./ThemeManager"; // <-- Correct import
+
+export default function ThemeManagerPage() {
   return (
     <DashboardLayout>
-      <FireWallManager />
+      <ThemeManager />
     </DashboardLayout>
   );
 }
