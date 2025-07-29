@@ -14,7 +14,7 @@ interface ContainerContextType {
   refresh: () => void;
 }
 
-const defaultContainer = "pz-prod-container-05";
+const defaultContainer = "";
 
 
 const ContainerContext = createContext<ContainerContextType>({
