@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import BuildTools from "./BuildTools"; // <-- Correct import
+import AnticheatManager from "./AnticheatManager";
 
-export default function BuildToolsPage() {
+export default function AnticheatPage() {
   return (
     <DashboardLayout>
-      <BuildTools />
+      <AnticheatManager />
     </DashboardLayout>
   );
 }

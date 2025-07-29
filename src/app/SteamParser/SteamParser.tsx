@@ -49,7 +49,9 @@ const SteamParser = () => {
       }
 
       const parsedMods = modItems.map((item) => {
-        const title = item.querySelector(".workshopItemTitle")?.textContent.trim() || "Untitled Mod";
+        const title =
+          item.querySelector(".workshopItemTitle")?.textContent.trim() ||
+          "Untitled Mod";
         const link = item.querySelector("a")?.href || "#";
         const idMatch = link.match(/id=(\d+)/);
         const modId = idMatch ? idMatch[1] : "Unknown";
@@ -59,14 +61,22 @@ const SteamParser = () => {
         const description =
           item.querySelector(".workshopItemDescription")?.textContent.trim() ||
           "No description available.";
-        const author = item.querySelector(".workshopItemAuthorName")?.textContent.trim() || "Unknown Author";
-        const subscribersText = item.querySelector(".numSubscribers")?.textContent || "0";
-        const subscribers = parseInt(subscribersText.replace(/[^\d]/g, ""), 10) || 0;
-        const lastUpdated = item.querySelector(".workshopItemUpdated")?.getAttribute("title") || "";
-        const fileSize = item.querySelector(".workshopItemFileSize")?.textContent.trim() || "Unknown size";
-        const tags = Array.from(item.querySelectorAll(".workshopItemTags .workshopTag")).map((tagEl) =>
-          tagEl.textContent.trim()
-        );
+        const author =
+          item.querySelector(".workshopItemAuthorName")?.textContent.trim() ||
+          "Unknown Author";
+        const subscribersText =
+          item.querySelector(".numSubscribers")?.textContent || "0";
+        const subscribers =
+          parseInt(subscribersText.replace(/[^\d]/g, ""), 10) || 0;
+        const lastUpdated =
+          item.querySelector(".workshopItemUpdated")?.getAttribute("title") ||
+          "";
+        const fileSize =
+          item.querySelector(".workshopItemFileSize")?.textContent.trim() ||
+          "Unknown size";
+        const tags = Array.from(
+          item.querySelectorAll(".workshopItemTags .workshopTag")
+        ).map((tagEl) => tagEl.textContent.trim());
 
         return {
           modId,
@@ -197,13 +207,21 @@ const SteamParser = () => {
               cursor: "pointer",
               transition: "transform 0.2s ease",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             <img
               src={mod.image}
               alt={mod.title}
-              style={{ width: "100%", borderRadius: "8px", marginBottom: "10px", objectFit: "cover", height: "100px" }}
+              style={{
+                width: "100%",
+                borderRadius: "8px",
+                marginBottom: "10px",
+                objectFit: "cover",
+                height: "100px",
+              }}
             />
             <div
               style={{
@@ -262,7 +280,9 @@ const SteamParser = () => {
               boxShadow: "0 0 20px #1DB954",
             }}
           >
-            <h3 style={{ marginBottom: "12px", color: "#1DB954" }}>{selectedMod.title}</h3>
+            <h3 style={{ marginBottom: "12px", color: "#1DB954" }}>
+              {selectedMod.title}
+            </h3>
             <img
               src={selectedMod.image}
               alt={selectedMod.title}
@@ -279,7 +299,8 @@ const SteamParser = () => {
               <strong>Author:</strong> {selectedMod.author}
             </p>
             <p>
-              <strong>Subscribers:</strong> {selectedMod.subscribers.toLocaleString()}
+              <strong>Subscribers:</strong>{" "}
+              {selectedMod.subscribers.toLocaleString()}
             </p>
             <p>
               <strong>Last Updated:</strong> {selectedMod.lastUpdated}
@@ -339,9 +360,10 @@ const SteamParser = () => {
           About Munatall - Installation Guide
         </h2>
         <p>
-          <strong>Munatall</strong> is a popular Project Zomboid server mod that enhances gameplay with new
-          features, balancing, and content. To install Munatall on your Linux server using SteamCMD, follow
-          these steps:
+          <strong>Munatall</strong> is a popular Project Zomboid server mod that
+          enhances gameplay with new features, balancing, and content. To
+          install Munatall on your Linux server using SteamCMD, follow these
+          steps:
         </p>
         <ol style={{ marginLeft: "20px", marginTop: "12px" }}>
           <li>
@@ -375,7 +397,8 @@ const SteamParser = () => {
             </pre>
           </li>
           <li>
-            <code>Set the installation directory</code> for Project Zomboid (example path):
+            <code>Set the installation directory</code> for Project Zomboid
+            (example path):
             <pre
               style={{
                 backgroundColor: "#222",
@@ -390,7 +413,8 @@ const SteamParser = () => {
             </pre>
           </li>
           <li>
-            <code>Install or update Project Zomboid server</code> (AppID: 380870):
+            <code>Install or update Project Zomboid server</code> (AppID:
+            380870):
             <pre
               style={{
                 backgroundColor: "#222",
@@ -419,7 +443,8 @@ const SteamParser = () => {
               workshop_download_item 108600 2478803348
             </pre>
             <p style={{ marginTop: "8px" }}>
-              (Replace <code>2478803348</code> with the Munatall Steam Workshop mod ID)
+              (Replace <code>2478803348</code> with the Munatall Steam Workshop
+              mod ID)
             </p>
           </li>
           <li>
@@ -438,12 +463,15 @@ const SteamParser = () => {
             </pre>
           </li>
           <li>
-            <p>Finally, configure your Project Zomboid server to enable Munatall in the mods list and start your server.</p>
+            <p>
+              Finally, configure your Project Zomboid server to enable Munatall
+              in the mods list and start your server.
+            </p>
           </li>
         </ol>
         <p>
-          For more detailed setup and troubleshooting, please visit the official Munatall Steam Workshop page or
-          community forums.
+          For more detailed setup and troubleshooting, please visit the official
+          Munatall Steam Workshop page or community forums.
         </p>
       </div>
     </div>

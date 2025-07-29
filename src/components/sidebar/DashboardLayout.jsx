@@ -285,7 +285,8 @@ export default function DashboardLayout({ children }) {
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                (e.key === "Enter" || e.key === " ") && setSidebarOpen((v) => !v)
+                (e.key === "Enter" || e.key === " ") &&
+                setSidebarOpen((v) => !v)
               }
             >
               <div className="sidebar-logo-row">
@@ -294,7 +295,9 @@ export default function DashboardLayout({ children }) {
                 </span>
                 <button
                   className="sidebar-toggle-button"
-                  aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+                  aria-label={
+                    sidebarOpen ? "Collapse sidebar" : "Expand sidebar"
+                  }
                   onClick={() => setSidebarOpen((v) => !v)}
                   tabIndex={-1}
                 >
@@ -305,27 +308,36 @@ export default function DashboardLayout({ children }) {
             </div>
 
             {/* Server Info Section MOVED ABOVE search input */}
-            <section className="server-info-section" aria-label="Server Information">
+            <section
+              className="server-info-section"
+              aria-label="Server Information"
+            >
               <div className="server-info-item">
                 <span className="server-info-icon" aria-hidden="true">
                   <FaServer />
                 </span>
                 <span className="server-info-label">Server</span>
-                <span className="server-info-value">{serverInfo?.name || "Loading..."}</span>
+                <span className="server-info-value">
+                  {serverInfo?.name || "Loading..."}
+                </span>
               </div>
               <div className="server-info-item">
                 <span className="server-info-icon" aria-hidden="true">
                   <FaLaptop />
                 </span>
                 <span className="server-info-label">Host</span>
-                <span className="server-info-value">{serverInfo?.host || "Loading..."}</span>
+                <span className="server-info-value">
+                  {serverInfo?.host || "Loading..."}
+                </span>
               </div>
               <div className="server-info-item">
                 <span className="server-info-icon" aria-hidden="true">
                   <FaUser />
                 </span>
                 <span className="server-info-label">Owner</span>
-                <span className="server-info-value">{serverInfo?.owner || "Loading..."}</span>
+                <span className="server-info-value">
+                  {serverInfo?.owner || "Loading..."}
+                </span>
               </div>
             </section>
 
@@ -356,7 +368,9 @@ export default function DashboardLayout({ children }) {
                         >
                           <span>{label}</span>
                           <span
-                            className={`icon ${openMenus[href] ? "rotate" : ""}`}
+                            className={`icon ${
+                              openMenus[href] ? "rotate" : ""
+                            }`}
                             aria-hidden="true"
                           >
                             <FaChevronRight />

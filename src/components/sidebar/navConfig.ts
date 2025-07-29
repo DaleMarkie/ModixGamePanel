@@ -14,7 +14,7 @@ export const navLinks = [
     label: "🧩 Configuration",
     href: "/settings",
     submenu: [
-      { label: "⚙️ General Settings", href: "/settings/general" },
+      { label: "⚙️ General Settings", href: "/serversettings" },
       { label: "🛡️ Theme Settings", href: "/themesettings" },
       { label: "🛡️ User Permissions", href: "/rbac" },
       { label: "🎮 Game Library", href: "/games" },
