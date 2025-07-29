@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Testpage from "./Docs"; // <-- Correct import
+import License from "./License"; // <-- Correct import
 
-export default function DocsPage() {
+export default function LicensePage() {
   return (
     <DashboardLayout>
-      <Testpage />
+      <License />
     </DashboardLayout>
   );
 }
