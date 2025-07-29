@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Performance from "./Performance";
 
-export default function PerformancePage() {
+import DashboardLayout from "@components/sidebar/DashboardLayout";
+import PortCheck from "./PortCheck"; // <-- Correct import
+
+export default function PortCheckPage() {
   return (
     <DashboardLayout>
-      <Performance />
+      <PortCheck />
     </DashboardLayout>
   );
 }

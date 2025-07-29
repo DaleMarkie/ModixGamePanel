@@ -9,9 +9,9 @@ const fakeTrafficData = [
   { time: "12:25", inbound: 450, outbound: 420 },
 ];
 
-const width = 450; // 25% smaller from 600
-const height = 150; // 25% smaller from 200
-const padding = 30; // 25% smaller from 40
+const width = 450;
+const height = 150;
+const padding = 30;
 
 const maxY = Math.max(
   ...fakeTrafficData.map((d) => Math.max(d.inbound, d.outbound))
@@ -43,30 +43,28 @@ const DdosManager = () => {
   >([]);
   const [traffic, setTraffic] = useState(fakeTrafficData);
 
-  // Fetch real Docker containers and suspicious IPs from Modix API
   useEffect(() => {
     async function fetchData() {
       try {
         const containersRes = await fetch("/api/docker/containers");
         const containersData = await containersRes.json();
-        setDockerContainers(containersData);
+        setDockerContainers(
+          Array.isArray(containersData) ? containersData : []
+        );
 
         const ipsRes = await fetch("/api/ddos/suspicious-ips");
         const ipsData = await ipsRes.json();
-        setSuspiciousIPs(ipsData);
+        setSuspiciousIPs(Array.isArray(ipsData) ? ipsData : []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        // fallback to empty or existing data on failure
       }
     }
-    fetchData();
 
-    // Optionally refresh every 10 seconds
+    fetchData();
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Update attack status based on containers
   useEffect(() => {
     const underAttackCount = dockerContainers.filter(
       (c) => c.underAttack
@@ -80,21 +78,17 @@ const DdosManager = () => {
     }
   }, [dockerContainers]);
 
-  // Block IP handler - Ideally send this to your backend
   function blockIp(ip: string) {
-    // Example: POST to backend to block IP
     fetch("/api/ddos/block-ip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ip }),
     }).then(() => {
-      // Optimistic UI update
       setSuspiciousIPs((prev) => prev.filter((item) => item.ip !== ip));
       alert(`Blocked IP: ${ip}`);
     });
   }
 
-  // Toggle attack status for a container (simulate mitigation) - could POST to API
   function toggleMitigation(id: string) {
     setDockerContainers((prev) =>
       prev.map((c) => (c.id === id ? { ...c, underAttack: !c.underAttack } : c))
