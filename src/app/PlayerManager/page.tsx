@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import ModixHealth from "./ModixHealth"; // <-- Correct import
+import PlayerManager from "./PlayerManager"; // <-- Correct import
 
-export default function ModixHealthPage() {
+export default function PlayerManagerPage() {
   return (
     <DashboardLayout>
-      <ModixHealth />
+      <PlayerManager />
     </DashboardLayout>
   );
 }

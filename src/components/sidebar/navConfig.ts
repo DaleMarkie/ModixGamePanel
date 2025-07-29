@@ -32,6 +32,7 @@ export const navLinks = [
       { label: "📦 My Mods", href: "/modmanager" },
       { label: "🛍️ Browse Workshop", href: "/workshop" },
       { label: "🔄 Mod Performance", href: "/modperformance" },
+      { label: "🔄 Modix Health", href: "/ModixHealth" },
       { label: "🔄 Mod Updater", href: "/modupdater" },
     ],
   },
