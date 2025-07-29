@@ -289,10 +289,16 @@ export default function DashboardLayout({ children }) {
                 setSidebarOpen((v) => !v)
               }
             >
-              <div className="sidebar-logo-row">
-                <span className="sidebar-logo-text" title="Modix Game Panel">
-                  Modix Game Panel
-                </span>
+              <div className={`sidebar-logo-row ${sidebarOpen ? "open" : "closed"}`}> 
+                <img
+                  src="https://i.ibb.co/cMPwcn8/logo.png"
+                  alt="Modix Logo"
+                  className="sidebar-logo"
+                  draggable="false"
+                />
+                {sidebarOpen && (
+                  <h1 className="sidebar-title">Modix Game Panel</h1>
+                )}
                 <button
                   className="sidebar-toggle-button"
                   aria-label={
@@ -318,7 +324,6 @@ export default function DashboardLayout({ children }) {
               spellCheck={false}
               autoComplete="off"
             />
-
             {/* Navigation */}
             <nav role="navigation" aria-label="Main menu">
               <ul>
@@ -334,9 +339,7 @@ export default function DashboardLayout({ children }) {
                         >
                           <span>{label}</span>
                           <span
-                            className={`icon ${
-                              openMenus[href] ? "rotate" : ""
-                            }`}
+                            className={`icon ${openMenus[href] ? "rotate" : ""}`}
                             aria-hidden="true"
                           >
                             <FaChevronRight />
@@ -365,12 +368,10 @@ export default function DashboardLayout({ children }) {
                 ))}
               </ul>
             </nav>
-
             <footer className="modix-footer" aria-hidden="true">
               Modix: Game Panel v1.1.2
             </footer>
           </aside>
-
           {/* Main content */}
           <main
             className="dashboard-content"
