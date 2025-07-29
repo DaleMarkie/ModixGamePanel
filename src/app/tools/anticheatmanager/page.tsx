@@ -3,9 +3,9 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import AnticheatManager from "./AnticheatManager"; // <-- Correct import
+import AnticheatManager from "./AnticheatManager";
 
-export default function AnticheatManagerPage() {
+export default function AnticheatPage() {
   return (
     <DashboardLayout>
       <AnticheatManager />
