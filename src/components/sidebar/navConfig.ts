@@ -31,9 +31,10 @@ export const navLinks = [
     submenu: [
       { label: "📦 My Mods", href: "/modmanager" },
       { label: "🛍️ Browse Workshop", href: "/workshop" },
-      { label: "🔄 Mod Performance", href: "/modperformance" },
-      { label: "🔄 Modix Health", href: "/ModixHealth" },
-      { label: "🔄 Mod Updater", href: "/modupdater" },
+      { label: "📊 Mod Performance", href: "/tools/performance" }, // performance = stats
+      { label: "🧪 Mod Debugger", href: "/tools/debugger" }, // debugger = testing/analyzing
+      { label: "🩺 Modix Health", href: "/ModixHealth" }, // health = diagnostics
+      { label: "🛠️ Mod Updater", href: "/modupdater" }, // updater = tools/fixes
     ],
   },
   {
