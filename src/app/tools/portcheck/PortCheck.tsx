@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "./PortCheck.css";
 import {
   FaSyncAlt,
   FaStopCircle,
@@ -19,10 +18,10 @@ interface Container {
 }
 
 const statusColors: Record<Status, string> = {
-  open: "status-open",
-  closed: "status-closed",
-  checking: "status-checking",
-  error: "status-error",
+  open: "text-green-400",
+  closed: "text-red-500",
+  checking: "text-yellow-400",
+  error: "text-gray-400",
 };
 
 export default function PortCheck() {
@@ -72,92 +71,98 @@ export default function PortCheck() {
   };
 
   return (
-    <div className="port-check-container">
-      <h1 className="title">Port Checker & Docker Manager</h1>
+    <div className="bg-zinc-900 text-white min-h-screen p-6 space-y-10">
+      <div>
+        <h1 className="text-3xl font-semibold mb-4">
+          Port Checker & Docker Manager
+        </h1>
 
-      {/* Docker Containers */}
-      <section>
-        <div className="section-header">
-          <h2>Docker Containers</h2>
+        {/* Docker Containers */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-medium">Docker Containers</h2>
           <button
             onClick={loadContainers}
             disabled={loadingContainers}
-            aria-label="Refresh containers"
-            className="btn btn-refresh"
+            className="flex items-center gap-2 px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 transition disabled:opacity-50"
           >
             {loadingContainers ? (
-              <FaSpinner className="icon-spin" />
+              <FaSpinner className="animate-spin" />
             ) : (
               <FaSyncAlt />
-            )}{" "}
+            )}
             Refresh
           </button>
         </div>
 
         {loadingContainers ? (
-          <p className="text-muted">Loading containers...</p>
+          <p className="text-zinc-400">Loading containers...</p>
         ) : containers.length === 0 ? (
-          <p className="text-muted">No containers found.</p>
+          <p className="text-zinc-500">No containers found.</p>
         ) : (
-          <table className="containers-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Image</th>
-                <th>Port</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {containers.map(({ name, image, port, status }) => (
-                <tr key={name} className="table-row">
-                  <td className="name">{name}</td>
-                  <td>{image}</td>
-                  <td className="port">{port}</td>
-                  <td className={`status ${statusColors[status]}`}>
-                    {status === "open" ? (
-                      <FaCheckCircle className="icon-inline" />
-                    ) : (
-                      <FaTimesCircle className="icon-inline" />
-                    )}
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </td>
-                  <td className="actions">
-                    <button
-                      onClick={() => handleAction(name, "restart")}
-                      aria-label={`Restart container ${name}`}
-                      title="Restart"
-                      className="btn-icon btn-blue"
-                    >
-                      <FaSyncAlt size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleAction(name, "stop")}
-                      aria-label={`Stop container ${name}`}
-                      title="Stop"
-                      className="btn-icon btn-red"
-                    >
-                      <FaStopCircle size={20} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto border border-zinc-700 rounded-md">
+            <table className="min-w-full table-auto text-sm">
+              <thead className="bg-zinc-800 text-zinc-300">
+                <tr>
+                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">Image</th>
+                  <th className="px-4 py-2 text-left">Port</th>
+                  <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-2 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {containers.map(({ name, image, port, status }) => (
+                  <tr
+                    key={name}
+                    className="border-t border-zinc-800 hover:bg-zinc-800 transition"
+                  >
+                    <td className="px-4 py-2">{name}</td>
+                    <td className="px-4 py-2 text-zinc-400">{image}</td>
+                    <td className="px-4 py-2">{port}</td>
+                    <td
+                      className={`px-4 py-2 flex items-center gap-2 ${statusColors[status]}`}
+                    >
+                      {status === "open" ? (
+                        <FaCheckCircle />
+                      ) : (
+                        <FaTimesCircle />
+                      )}
+                      <span className="capitalize">{status}</span>
+                    </td>
+                    <td className="px-4 py-2 space-x-2">
+                      <button
+                        onClick={() => handleAction(name, "restart")}
+                        className="p-2 rounded bg-blue-600 hover:bg-blue-500 transition"
+                        title="Restart"
+                      >
+                        <FaSyncAlt />
+                      </button>
+                      <button
+                        onClick={() => handleAction(name, "stop")}
+                        className="p-2 rounded bg-red-600 hover:bg-red-500 transition"
+                        title="Stop"
+                      >
+                        <FaStopCircle />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </section>
+      </div>
 
       {/* Manual Port Check */}
-      <section>
-        <h2 className="section-title">Manual Port Check</h2>
-        <div className="manual-check-form">
+      <div>
+        <h2 className="text-xl font-medium mb-3">Manual Port Check</h2>
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
           <input
             type="text"
             placeholder="Host or IP"
             value={manualHost}
             onChange={(e) => setManualHost(e.target.value)}
-            className="input-text"
+            className="bg-zinc-800 text-white px-4 py-2 rounded w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="number"
@@ -166,35 +171,34 @@ export default function PortCheck() {
             onChange={(e) => setManualPort(e.target.value)}
             min={1}
             max={65535}
-            className="input-number"
+            className="bg-zinc-800 text-white px-4 py-2 rounded w-full sm:w-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={checkPort}
             disabled={manualChecking || !manualHost || !manualPort}
-            className="btn btn-check"
+            className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 transition disabled:opacity-50"
           >
             {manualChecking ? (
-              <FaSpinner className="icon-spin" />
+              <FaSpinner className="animate-spin" />
             ) : (
               <FaSearch />
-            )}{" "}
+            )}
             Check
           </button>
         </div>
 
         {manualStatus && manualStatus !== "checking" && (
           <p
-            className={`manual-status ${
-              manualStatus === "open" ? "status-open" : "status-closed"
+            className={`mt-4 text-sm ${
+              manualStatus === "open" ? "text-green-400" : "text-red-400"
             }`}
-            aria-live="polite"
           >
             {manualStatus === "open"
               ? `Port ${manualPort} on ${manualHost} is open.`
               : `Port ${manualPort} on ${manualHost} is closed.`}
           </p>
         )}
-      </section>
+      </div>
     </div>
   );
 }

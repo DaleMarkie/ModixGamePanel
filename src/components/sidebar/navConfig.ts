@@ -5,7 +5,7 @@ export const navLinks = [
     submenu: [
       { label: "🖥️ My Servers", href: "/auth/myservers" },
       { label: "👤 Account", href: "/auth/myaccount" },
-      { label: "🔑 My Licensing", href: "/auth/mylicensing" },
+      { label: "🔑 My Licensing", href: "/license" },
       { label: "🎟️ Support Tickets", href: "/auth/support/tickets" },
       { label: "🛠️ Settings", href: "/auth/mysettings" },
     ],
@@ -60,11 +60,12 @@ export const navLinks = [
     label: "🛠️ Tools",
     href: "/tools",
     submenu: [
-      { label: "🔌 Plugin Tools", href: "/plugins" },
-      { label: "📈 Performance Stats", href: "/performance" },
-      { label: "🌐 Port Checker", href: "/portcheck" },
-      { label: "🛡️ DDoS Manager", href: "/ddosmanager" },
-      { label: "🧮 Steam Parser", href: "/SteamParser" },
+      { label: "🔌 Plugin Tools", href: "/tools/plugins" },
+      { label: "📈 Performance Stats", href: "/tools/performance" },
+      { label: "🌐 Port Checker", href: "/tools/portcheck" },
+      { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
+      { label: "🧮 FireWall Manager", href: "/tools/firewallmanager" },
+      { label: "🧮 Steam Parser", href: "/tools/SteamParser" },
     ],
   },
   {
