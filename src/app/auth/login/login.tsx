@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showSocialPopup, setShowSocialPopup] = useState(false);
 
   const router = useRouter();
 
@@ -56,42 +57,37 @@ const Login = () => {
     router.push("/signup");
   };
 
+  const handleSocialClick = () => {
+    setShowSocialPopup(true);
+    setTimeout(() => {
+      setShowSocialPopup(false);
+    }, 3000);
+  };
+
   return (
     <>
       <div className="container">
         <aside className="left-panel">
-          <div className="container">
-            <aside className="left-panel">
-              <div className="logo">v1.1.2</div>
-              <h1 className="welcome-title">
-                Welcome to Modix
-                <br />
-                Game Panel
-              </h1>
-              <p className="welcome-subtitle">
-                Sign in for free and take full control of your game servers.
-                <br />
-                <br />
-                Modix is a powerful, secure, and user-friendly platform designed
-                <br />
-                to simplify server management whether you're running one server
-                or one hundred.
-                <br />
-                <br />
-                Get real-time monitoring, one-click deployment, and seamless
-                automation,
-                <br />
-                all in one place.
-                <br />
-                <br />
-                No hidden fees. No hassle. Just the tools you need to keep your
-                community alive and thriving.
-              </p>
-              <div className="illustration" aria-hidden="true">
-                🎮
-              </div>
-            </aside>
-            {/* rest of your layout */}
+          <div className="logo">v1.1.2</div>
+          <h1 className="welcome-title">Modix Game Panel</h1>
+          <p className="welcome-subtitle">
+            <strong>Effortless Server Management. Free Forever.</strong>
+            <br />
+            <br />
+            Modix is a full-featured, cloud-ready panel built for gamers,
+            communities, and server admins.
+            <br />
+            <br />
+            Spin up, manage, and monitor your game servers with real-time
+            insights, seamless automation, and intuitive controls — no technical
+            skills needed.
+            <br />
+            <br />
+            Join thousands who trust Modix to keep their servers online,
+            optimized, and growing. Start for free, no credit card required.
+          </p>
+          <div className="illustration" aria-hidden="true">
+            🎮
           </div>
         </aside>
 
@@ -155,16 +151,36 @@ const Login = () => {
             <div className="social-login-container">
               <span>Or sign in with</span>
               <div className="social-buttons">
-                <button type="button" className="social-btn discord">
+                <button
+                  type="button"
+                  className="social-btn discord"
+                  onClick={handleSocialClick}
+                >
                   Discord
                 </button>
-                <button type="button" className="social-btn steam">
+                <button
+                  type="button"
+                  className="social-btn steam"
+                  onClick={handleSocialClick}
+                >
                   Steam
                 </button>
-                <button type="button" className="social-btn facebook">
+                <button
+                  type="button"
+                  className="social-btn facebook"
+                  onClick={handleSocialClick}
+                >
                   Facebook
                 </button>
               </div>
+              {showSocialPopup && (
+                <div className="social-popup">
+                  <strong>🚧 Feature coming soon!</strong>
+                  <br />
+                  Social login is not yet available. Please use standard login
+                  for now.
+                </div>
+              )}
             </div>
 
             <footer className="footer">Modix Game Panel &copy; 2025</footer>
