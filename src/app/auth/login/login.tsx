@@ -36,15 +36,13 @@ const Login = () => {
         body: params.toString(),
       });
 
-      const result = await response.json();
-      console.log("[LOGIN DEBUG] Backend response:", result);
+      const result: { token?: string; message?: string } =
+        await response.json();
 
       if (response.ok) {
         if (result.token) {
           localStorage.setItem("token", result.token);
         }
-
-        // ✅ Hard reload after token is stored to make sure auth state is picked up
         window.location.href = "/auth/myaccount";
       } else {
         setError(result.message || "Invalid username or password.");
@@ -59,72 +57,126 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h1 className="login-title">🔐 Login to Modix Panel</h1>
+    <>
+      <div className="container">
+        <aside className="left-panel">
+          <div className="container">
+            <aside className="left-panel">
+              <div className="logo">v1.1.2</div>
+              <h1 className="welcome-title">
+                Welcome to Modix
+                <br />
+                Game Panel
+              </h1>
+              <p className="welcome-subtitle">
+                Sign in for free and take full control of your game servers.
+                <br />
+                <br />
+                Modix is a powerful, secure, and user-friendly platform designed
+                <br />
+                to simplify server management whether you're running one server
+                or one hundred.
+                <br />
+                <br />
+                Get real-time monitoring, one-click deployment, and seamless
+                automation,
+                <br />
+                all in one place.
+                <br />
+                <br />
+                No hidden fees. No hassle. Just the tools you need to keep your
+                community alive and thriving.
+              </p>
+              <div className="illustration" aria-hidden="true">
+                🎮
+              </div>
+            </aside>
+            {/* rest of your layout */}
+          </div>
+        </aside>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Enter your username"
-          />
+        <main className="right-panel" role="main" aria-label="Login form">
+          <form onSubmit={handleLogin} className="login-form" noValidate>
+            <h2 className="form-title">Sign In</h2>
 
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-          />
+            <label htmlFor="username" className="input-label">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your username"
+              required
+              autoComplete="username"
+              className="input-field"
+            />
 
-          {error && <div className="login-error">{error}</div>}
+            <label htmlFor="password" className="input-label">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              required
+              autoComplete="current-password"
+              className="input-field"
+            />
 
-          <button type="submit" className="login-button">
-            🚀 Login
-          </button>
+            {error && <div className="error-message">{error}</div>}
 
-          <div className="login-extra">
+            <button type="submit" className="btn-login">
+              🚀 Log In
+            </button>
+
             <button
               type="button"
-              className="forgot-password"
+              className="forgot-link"
               onClick={() => setShowForgotPassword(true)}
             >
               Forgot password?
             </button>
-          </div>
-        </form>
 
-        <div className="signup-section">
-          <p>Don't have an account?</p>
-          <button className="signup-button" onClick={handleSignUp}>
-            📝 Sign Up
-          </button>
-        </div>
+            <div className="signup-prompt">
+              New here?{" "}
+              <button
+                type="button"
+                onClick={handleSignUp}
+                className="btn-signup"
+              >
+                Create an account
+              </button>
+            </div>
 
-        <div className="social-login">
-          <p className="social-text">Or login with</p>
-          <div className="social-buttons">
-            <button className="social-btn discord">Discord</button>
-            <button className="social-btn steam">Steam</button>
-            <button className="social-btn facebook">Facebook</button>
-          </div>
-        </div>
+            <div className="social-login-container">
+              <span>Or sign in with</span>
+              <div className="social-buttons">
+                <button type="button" className="social-btn discord">
+                  Discord
+                </button>
+                <button type="button" className="social-btn steam">
+                  Steam
+                </button>
+                <button type="button" className="social-btn facebook">
+                  Facebook
+                </button>
+              </div>
+            </div>
 
-        <p className="login-footer">Modix Game Panel © 2025</p>
+            <footer className="footer">Modix Game Panel &copy; 2025</footer>
+          </form>
+        </main>
       </div>
 
       <ForgotPasswordModal
         visible={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
       />
-    </div>
+    </>
   );
 };
 
