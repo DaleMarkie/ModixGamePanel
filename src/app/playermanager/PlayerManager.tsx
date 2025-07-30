@@ -1,249 +1,385 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  ChangeEvent,
+  MouseEvent,
+} from "react";
 import {
-  FaUser,
-  FaBan,
-  FaCheck,
   FaSearch,
+  FaCheckCircle,
+  FaBan,
   FaTimes,
-  FaUsers,
-  FaEye,
-  FaClock,
-  FaGavel,
-  FaEnvelopeOpenText,
+  FaSteamSymbol,
+  FaStar,
+  FaSortAlphaDown,
+  FaSortAmountDown,
+  FaUserSlash,
+  FaUser,
+  FaSpinner,
 } from "react-icons/fa";
 import "./PlayerManager.css";
 
-const samplePlayers = [
-  {
-    id: 1,
-    name: "PlayerOne",
-    active: true,
-    time: "5h 30m",
-    suspensions: 0,
-    bans: 0,
-    tickets: 2,
-  },
-  {
-    id: 2,
-    name: "NoobMaster",
-    active: false,
-    time: "3h 12m",
-    suspensions: 1,
-    bans: 1,
-    tickets: 0,
-  },
-  {
-    id: 3,
-    name: "StealthNinja",
-    active: true,
-    time: "12h 44m",
-    suspensions: 0,
-    bans: 0,
-    tickets: 1,
-  },
-  {
-    id: 4,
-    name: "CasualGamer",
-    active: false,
-    time: "7h 21m",
-    suspensions: 2,
-    bans: 1,
-    tickets: 3,
-  },
-];
+const SPECIAL_STEAM_ID = "76561198347512345";
 
-const PlayerManager = () => {
-  const [players, setPlayers] = useState(samplePlayers);
-  const [filter, setFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [showKickModal, setShowKickModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
+interface Player {
+  steamId: string;
+  name: string;
+  online: boolean;
+  playtime: number; // in minutes presumably
+  banned: boolean;
+  notes?: string;
+}
 
-  const filteredPlayers = players.filter((player) => {
-    const matchesSearch = player.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    if (filter === "active") return player.active && matchesSearch;
-    if (filter === "inactive") return !player.active && matchesSearch;
-    return matchesSearch;
-  });
+type ViewOnlineFilter = "all" | "online" | "offline";
+type SortType = "name" | "playtime";
 
-  const toggleBan = (id) => {
+const PlayerManager: React.FC = () => {
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [viewOnline, setViewOnline] = useState<ViewOnlineFilter>("all");
+  const [sortType, setSortType] = useState<SortType>("name");
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [savingNotes, setSavingNotes] = useState<boolean>(false);
+  const [loadingPlayers, setLoadingPlayers] = useState<boolean>(false);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch players via backend RCON proxy
+  const fetchPlayers = async () => {
+    setLoadingPlayers(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/rcon/players");
+      if (!res.ok) throw new Error("Failed to fetch players");
+      const data: { players: Player[] } = await res.json();
+      setPlayers(data.players || []);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unknown error fetching players"
+      );
+    } finally {
+      setLoadingPlayers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlayers();
+  }, []);
+
+  const filteredPlayers = useMemo(() => {
+    let filtered = players;
+    if (viewOnline === "online") filtered = filtered.filter((p) => p.online);
+    else if (viewOnline === "offline")
+      filtered = filtered.filter((p) => !p.online);
+    if (searchTerm.trim())
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    if (sortType === "name")
+      filtered = filtered.slice().sort((a, b) => a.name.localeCompare(b.name));
+    else if (sortType === "playtime")
+      filtered = filtered.slice().sort((a, b) => b.playtime - a.playtime);
+    return filtered;
+  }, [players, searchTerm, viewOnline, sortType]);
+
+  // Kick player via RCON API
+  const kickPlayer = async (steamId: string) => {
+    if (!window.confirm("Are you sure you want to kick this player?")) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/rcon/kick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steamId }),
+      });
+      if (!res.ok) throw new Error("Failed to kick player");
+      alert("Player kicked successfully!");
+      await fetchPlayers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error kicking player");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Ban/unban player via RCON API + save notes via separate API
+  const toggleBan = async (steamId: string, currentBanStatus: boolean) => {
+    if (
+      !window.confirm(
+        `${
+          currentBanStatus ? "Unban" : "Ban"
+        } this player? This action may require a server restart.`
+      )
+    )
+      return;
+
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/rcon/ban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steamId, ban: !currentBanStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update ban status");
+
+      alert(
+        `Player ${!currentBanStatus ? "banned" : "unbanned"} successfully!`
+      );
+      await fetchPlayers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error updating ban");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Notes change locally in modal
+  const changeNotes = (steamId: string, notes: string) => {
     setPlayers((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p))
+      prev.map((p) => (p.steamId === steamId ? { ...p, notes } : p))
     );
+    if (selectedPlayer?.steamId === steamId) {
+      setSelectedPlayer({ ...selectedPlayer, notes });
+    }
   };
 
-  const openKickModal = (player) => {
-    setSelectedPlayer(player);
-    setShowKickModal(true);
+  // Save notes to backend DB (not via RCON)
+  const saveNotes = async () => {
+    if (!selectedPlayer) return;
+    setSavingNotes(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/playerNotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          steamId: selectedPlayer.steamId,
+          notes: selectedPlayer.notes,
+          banned: selectedPlayer.banned,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save notes");
+      alert("Notes saved successfully!");
+      await fetchPlayers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error saving notes");
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
-  const closeKickModal = () => {
-    setSelectedPlayer(null);
-    setShowKickModal(false);
-  };
-
-  const confirmKick = () => {
-    alert(`Kicked ${selectedPlayer.name}`);
-    closeKickModal();
-  };
-
-  const openViewModal = (player) => {
-    setSelectedPlayer(player);
-    setShowViewModal(true);
-  };
-
-  const closeViewModal = () => {
-    setSelectedPlayer(null);
-    setShowViewModal(false);
+  // Event handlers for input change (for search input)
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
-    <div className="player-manager-box">
-      <div className="player-manager-header">
-        <FaUsers className="icon" />
-        <h2>Player Manager</h2>
-      </div>
-
-      <div className="player-manager-controls">
-        <div className="search-bar">
-          <FaSearch className="icon" />
-          <input
-            type="text"
-            placeholder="Search players..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="filter-buttons">
-          {["all", "active", "inactive"].map((f) => (
-            <button
-              key={f}
-              className={filter === f ? "filter-btn active" : "filter-btn"}
-              onClick={() => setFilter(f)}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <table className="player-table">
-        <thead>
-          <tr>
-            <th>
-              <FaUser className="icon" /> Name
-            </th>
-            <th>
-              <FaClock className="icon" /> Play Time
-            </th>
-            <th>
-              <FaGavel className="icon" /> Suspensions
-            </th>
-            <th>
-              <FaBan className="icon" /> Bans
-            </th>
-            <th>
-              <FaEnvelopeOpenText className="icon" /> Tickets
-            </th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPlayers.length === 0 ? (
-            <tr>
-              <td colSpan="6" className="no-players">
-                No players found.
-              </td>
-            </tr>
-          ) : (
-            filteredPlayers.map((player) => (
-              <tr
-                key={player.id}
-                className={player.active ? "active-player" : "inactive-player"}
+    <div className="steam-player-manager">
+      <header className="spm-header">
+        <h2>
+          <FaSteamSymbol /> Player Manager (RCON)
+        </h2>
+        <div className="spm-controls">
+          <div className="search-bar">
+            <FaSearch />
+            <input
+              type="text"
+              placeholder="Search players..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              disabled={loadingPlayers}
+              aria-label="Search players"
+            />
+          </div>
+          <div
+            className="view-toggle"
+            role="group"
+            aria-label="Filter players by online status"
+          >
+            {["all", "online", "offline"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setViewOnline(status as ViewOnlineFilter)}
+                className={viewOnline === status ? "active" : ""}
+                aria-pressed={viewOnline === status}
+                disabled={loadingPlayers}
               >
-                <td>{player.name}</td>
-                <td>{player.time}</td>
-                <td>{player.suspensions}</td>
-                <td>{player.bans}</td>
-                <td>{player.tickets}</td>
-                <td>
-                  <button
-                    className="action-btn view"
-                    onClick={() => openViewModal(player)}
-                  >
-                    <FaEye /> View
-                  </button>
-                  <button
-                    className={`action-btn ${player.active ? "ban" : "unban"}`}
-                    onClick={() => toggleBan(player.id)}
-                  >
-                    {player.active ? "Ban" : "Unban"}
-                  </button>
-                  <button
-                    className="action-btn kick"
-                    onClick={() => openKickModal(player)}
-                  >
-                    Kick
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
-      {/* Kick Modal */}
-      {showKickModal && selectedPlayer && (
-        <div className="modal-backdrop" onClick={closeKickModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Kick {selectedPlayer.name}?</h3>
-            <p>This will disconnect the player immediately.</p>
-            <div className="modal-actions">
-              <button className="confirm-kick" onClick={confirmKick}>
-                Confirm
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
-              <button onClick={closeKickModal}>
-                <FaTimes /> Cancel
-              </button>
-            </div>
+            ))}
+          </div>
+          <div className="sort-toggle" role="group" aria-label="Sort players">
+            <button
+              onClick={() => setSortType("name")}
+              className={sortType === "name" ? "active" : ""}
+              aria-pressed={sortType === "name"}
+              disabled={loadingPlayers}
+            >
+              <FaSortAlphaDown /> Name
+            </button>
+            <button
+              onClick={() => setSortType("playtime")}
+              className={sortType === "playtime" ? "active" : ""}
+              aria-pressed={sortType === "playtime"}
+              disabled={loadingPlayers}
+            >
+              <FaSortAmountDown /> Playtime
+            </button>
           </div>
         </div>
+      </header>
+
+      {error && (
+        <p role="alert" style={{ color: "red", padding: "0 1rem" }}>
+          Error: {error}
+        </p>
       )}
 
-      {/* View Modal */}
-      {showViewModal && selectedPlayer && (
-        <div className="modal-backdrop" onClick={closeViewModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Player Details</h3>
-            <p>
-              <strong>Name:</strong> {selectedPlayer.name}
-            </p>
-            <p>
-              <strong>Play Time:</strong> {selectedPlayer.time}
-            </p>
-            <p>
-              <strong>Suspensions:</strong> {selectedPlayer.suspensions}
-            </p>
-            <p>
-              <strong>Bans:</strong> {selectedPlayer.bans}
-            </p>
-            <p>
-              <strong>Support Tickets:</strong> {selectedPlayer.tickets}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {selectedPlayer.active ? "Active" : "Banned"}
-            </p>
-            <div className="modal-actions">
-              <button onClick={closeViewModal}>
-                <FaTimes /> Close
+      <main className="player-list" role="list">
+        {loadingPlayers && (
+          <p>
+            Loading players... <FaSpinner className="spin" />
+          </p>
+        )}
+
+        {!loadingPlayers && filteredPlayers.length === 0 && (
+          <p>No players found.</p>
+        )}
+
+        {filteredPlayers.map((player) => (
+          <article
+            key={player.steamId}
+            className={`player-card ${player.online ? "online" : "offline"} ${
+              player.steamId === SPECIAL_STEAM_ID ? "highlight-user" : ""
+            } ${player.banned ? "banned" : ""}`}
+            role="listitem"
+            tabIndex={0}
+            onClick={() => setSelectedPlayer(player)}
+          >
+            <div className="player-name">
+              <FaUser />
+              {player.name}
+              {player.steamId === SPECIAL_STEAM_ID && (
+                <FaStar title="Special user" className="special-icon" />
+              )}
+            </div>
+            <div className="player-meta">
+              <span className="steam-id">SteamID: {player.steamId}</span>
+              <span
+                className={`status ${player.online ? "online" : "offline"}`}
+                aria-label={player.online ? "Online" : "Offline"}
+                title={player.online ? "Online" : "Offline"}
+              >
+                {player.online ? <FaCheckCircle /> : <FaTimes />}
+              </span>
+              <span className="playtime">
+                Playtime: {Math.floor(player.playtime / 60)}m
+              </span>
+              {player.banned && (
+                <span className="banned" title="Player is banned">
+                  <FaBan />
+                </span>
+              )}
+            </div>
+            <div className="player-actions">
+              <button
+                className="btn kick-btn"
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                  e.stopPropagation();
+                  kickPlayer(player.steamId);
+                }}
+                disabled={actionLoading}
+                aria-label={`Kick ${player.name}`}
+                title="Kick Player"
+              >
+                <FaUserSlash />
+              </button>
+              <button
+                className="btn ban-btn"
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                  e.stopPropagation();
+                  toggleBan(player.steamId, player.banned);
+                }}
+                disabled={actionLoading}
+                aria-label={`${player.banned ? "Unban" : "Ban"} ${player.name}`}
+                title={player.banned ? "Unban Player" : "Ban Player"}
+              >
+                <FaBan />
               </button>
             </div>
+          </article>
+        ))}
+      </main>
+
+      {/* Player detail modal */}
+      {selectedPlayer && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setSelectedPlayer(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            tabIndex={-1}
+          >
+            <header className="modal-header">
+              <h3 id="modal-title">{selectedPlayer.name} Details</h3>
+              <button
+                className="close-btn"
+                aria-label="Close player details"
+                onClick={() => setSelectedPlayer(null)}
+              >
+                &times;
+              </button>
+            </header>
+
+            <section className="modal-body">
+              <p>
+                <strong>Steam ID:</strong> {selectedPlayer.steamId}
+              </p>
+              <p>
+                <strong>Status:</strong>{" "}
+                {selectedPlayer.online ? "Online" : "Offline"}
+              </p>
+              <p>
+                <strong>Playtime:</strong>{" "}
+                {Math.floor(selectedPlayer.playtime / 60)} minutes
+              </p>
+              <p>
+                <strong>Banned:</strong> {selectedPlayer.banned ? "Yes" : "No"}
+              </p>
+              <label htmlFor="notes">
+                <strong>Notes:</strong>
+              </label>
+              <textarea
+                id="notes"
+                value={selectedPlayer.notes || ""}
+                onChange={(e) =>
+                  changeNotes(selectedPlayer.steamId, e.target.value)
+                }
+                rows={5}
+                disabled={savingNotes}
+              />
+            </section>
+
+            <footer className="modal-footer">
+              <button
+                onClick={saveNotes}
+                disabled={savingNotes}
+                aria-label="Save player notes"
+              >
+                {savingNotes ? "Saving..." : "Save Notes"}
+              </button>
+              <button onClick={() => setSelectedPlayer(null)}>Close</button>
+            </footer>
           </div>
         </div>
       )}
