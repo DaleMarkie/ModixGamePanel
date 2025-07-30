@@ -74,17 +74,16 @@ const Login = () => {
             <strong>Effortless Server Management. Free Forever.</strong>
             <br />
             <br />
-            Modix is a full-featured, cloud-ready panel built for gamers,
-            communities, and server admins.
+            Modix is a full-featured panel built for gamers, modders, and server
+            admins.
             <br />
             <br />
             Spin up, manage, and monitor your game servers with real-time
-            insights, seamless automation, and intuitive controls — no technical
-            skills needed.
+            insights, seamless automation, and intuitive controls and no
+            technical skills needed.
             <br />
             <br />
-            Join thousands who trust Modix to keep their servers online,
-            optimized, and growing. Start for free, no credit card required.
+            Start for free, no credit card required.
           </p>
           <div className="illustration" aria-hidden="true">
             🎮
