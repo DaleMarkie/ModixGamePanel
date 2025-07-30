@@ -41,10 +41,22 @@ def create_base_users_from_config():
 
     db: Session = SessionLocal()
     # Ensure all roles from ROLE_TEMPLATES exist (never deletes roles not in templates)
+    from backend.API.Core.models import RolePermission, PermissionValue
     for tmpl in ROLE_TEMPLATES:
         role = db.query(Role).filter_by(name=tmpl["name"]).first()
         if not role:
-            db.add(Role(name=tmpl["name"], hierarchy_level=tmpl["hierarchy_level"], description=tmpl["description"]))
+            # Create the role
+            role = Role(name=tmpl["name"], hierarchy_level=tmpl["hierarchy_level"], description=tmpl["description"])
+            db.add(role)
+            db.commit()
+            # Assign permissions from template (if any)
+            perms = tmpl.get("permissions", [])
+            for perm in perms:
+                # Normalize permission name
+                perm_name = str(perm).replace(":", "_").lower()
+                # Only add if not already present
+                if not db.query(RolePermission).filter_by(role_id=role.id, permission=perm_name).first():
+                    db.add(RolePermission(role_id=role.id, permission=perm_name, value=PermissionValue.allow))
         # Optionally update role description/hierarchy if changed in template
         elif role.description != tmpl["description"] or role.hierarchy_level != tmpl["hierarchy_level"]:
             role.description = tmpl["description"]
