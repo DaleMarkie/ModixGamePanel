@@ -11,6 +11,8 @@
     "gen-import-map": "node scripts/generateImportMap.js"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.6",
+    "lucide-react": "^0.534.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
