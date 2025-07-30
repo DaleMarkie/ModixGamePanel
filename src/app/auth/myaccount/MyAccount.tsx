@@ -3,14 +3,16 @@ import { useUser } from "../../UserContext";
 import { useRouter } from "next/navigation";
 
 const MyAccount = () => {
-
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
       // Call backend logout to clear both access and refresh cookies
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
       // Remove user and any other auth info from localStorage
       localStorage.removeItem("user");
       localStorage.removeItem("refresh_token");
@@ -22,7 +24,15 @@ const MyAccount = () => {
     }
   };
 
-  if (loading) return <div className="myaccount-container"><h1>My Account</h1><div className="status-message">Loading your account information...</div></div>;
+  if (loading)
+    return (
+      <div className="myaccount-container">
+        <h1>My Account</h1>
+        <div className="status-message">
+          Loading your account information...
+        </div>
+      </div>
+    );
   if (!authenticated || !user) {
     return (
       <div className="myaccount-container">
@@ -30,17 +40,26 @@ const MyAccount = () => {
         <div className="status-message not-logged-in">
           <p>You are not logged in.</p>
           <p>
-            <a href="/auth/login" className="login-link">Log in</a> or <a href="/signup" className="signup-link">Sign up</a> to access your account.
+            <a href="/auth/login" className="login-link">
+              Log in
+            </a>{" "}
+            or{" "}
+            <a href="/signup" className="signup-link">
+              Sign up
+            </a>{" "}
+            to access your account.
           </p>
         </div>
       </div>
     );
   }
 
-
   // Placeholder avatar if none
-  const avatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username || "User")}`;
-
+  const avatar =
+    user.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      user.name || user.username || "User"
+    )}`;
 
   return (
     <div className="myaccount-container">
@@ -62,47 +81,70 @@ const MyAccount = () => {
             </span>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>Log out</button>
+        <button className="logout-btn" onClick={handleLogout}>
+          Log out
+        </button>
       </div>
 
       {/* Roles and Permissions */}
+      {/* Roles and Permissions */}
       <div className="license-card">
-        <h3>Roles</h3>
-        <ul>
-          {user.roles && user.roles.length > 0 ? (
-            user.roles.map((role: string) => <li key={role}>{role}</li>)
-          ) : (
-            <li>No roles assigned</li>
-          )}
-        </ul>
-        <h3>Direct Permissions</h3>
-        <ul>
-          {user.direct_permissions && user.direct_permissions.length > 0 ? (
-            user.direct_permissions.map((perm: any, idx: number) => (
-              <li key={idx}>
-                {perm.permission} ({perm.value})
-                {perm.scope !== "global" && ` [${perm.scope}]`}
-                {perm.container_id && ` (Container: ${perm.container_id})`}
-              </li>
-            ))
-          ) : (
-            <li>No direct permissions</li>
-          )}
-        </ul>
-        <h3>Role Permissions</h3>
-        <ul>
-          {user.role_permissions && user.role_permissions.length > 0 ? (
-            user.role_permissions.map((perm: any, idx: number) => (
-              <li key={idx}>
-                {perm.permission} ({perm.value})
-                {perm.scope !== "global" && ` [${perm.scope}]`}
-                {perm.container_id && ` (Container: ${perm.container_id})`}
-              </li>
-            ))
-          ) : (
-            <li>No role permissions</li>
-          )}
-        </ul>
+        <h3>Roles & Permissions</h3>
+
+        {user.roles && user.roles.length > 0 ? (
+          user.roles.map((role: string) => (
+            <div key={role} className="role-card">
+              <h4>{role}</h4>
+
+              <div className="permission-group">
+                <strong>Direct Permissions</strong>
+                <ul>
+                  {user.direct_permissions &&
+                  user.direct_permissions.length > 0 ? (
+                    user.direct_permissions.map((perm: any, idx: number) =>
+                      perm.role === role || !perm.role ? ( // show only relevant perms or global
+                        <li key={`dp-${idx}`}>
+                          <code>{perm.permission}</code>{" "}
+                          <span className="allow-badge">{perm.value}</span>
+                          {perm.scope !== "global" && <em> [{perm.scope}]</em>}
+                          {perm.container_id && (
+                            <em> (Container: {perm.container_id})</em>
+                          )}
+                        </li>
+                      ) : null
+                    )
+                  ) : (
+                    <li>No direct permissions</li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="permission-group">
+                <strong>Role Permissions</strong>
+                <ul>
+                  {user.role_permissions && user.role_permissions.length > 0 ? (
+                    user.role_permissions
+                      .filter((perm: any) => perm.role === role)
+                      .map((perm: any, idx: number) => (
+                        <li key={`rp-${idx}`}>
+                          <code>{perm.permission}</code>{" "}
+                          <span className="allow-badge">{perm.value}</span>
+                          {perm.scope !== "global" && <em> [{perm.scope}]</em>}
+                          {perm.container_id && (
+                            <em> (Container: {perm.container_id})</em>
+                          )}
+                        </li>
+                      ))
+                  ) : (
+                    <li>No role permissions</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No roles assigned</p>
+        )}
       </div>
 
       {/* Settings (optional, can be expanded) */}
@@ -137,12 +179,14 @@ const MyAccount = () => {
         .not-logged-in {
           color: #ff7875;
         }
-        .login-link, .signup-link {
+        .login-link,
+        .signup-link {
           color: #13c2c2;
           text-decoration: underline;
           margin: 0 0.5rem;
         }
-        .login-link:hover, .signup-link:hover {
+        .login-link:hover,
+        .signup-link:hover {
           color: #40a9ff;
         }
         .myaccount-container {
@@ -390,6 +434,6 @@ const MyAccount = () => {
       `}</style>
     </div>
   );
-}
+};
 
 export default MyAccount;

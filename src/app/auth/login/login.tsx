@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import ForgotPasswordModal from "../ForgotPasswordModal"; // Ensure this is Next-compatible
-import "./login.css"; // Adjust path as needed
+import ForgotPasswordModal from "../ForgotPasswordModal";
+import "./login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -18,33 +18,34 @@ const Login = () => {
     setError("");
 
     try {
-      // Prepare form-urlencoded body
       const params = new URLSearchParams();
       params.append("grant_type", "password");
       params.append("username", username);
       params.append("password", password);
       params.append("scope", "");
       params.append("client_id", "string");
-      params.append("client_secret", "********"); // Replace with actual secret if needed
+      params.append("client_secret", "********");
 
-      // Send credentials directly to backend
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
-          "accept": "application/json",
+          accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        credentials: "include",
         body: params.toString(),
       });
+
       const result = await response.json();
       console.log("[LOGIN DEBUG] Backend response:", result);
 
-      // Accept any 2xx response as success for now
       if (response.ok) {
         if (result.token) {
           localStorage.setItem("token", result.token);
         }
-        router.push("/auth/myaccount");
+
+        // ✅ Hard reload after token is stored to make sure auth state is picked up
+        window.location.href = "/auth/myaccount";
       } else {
         setError(result.message || "Invalid username or password.");
       }
@@ -54,7 +55,7 @@ const Login = () => {
   };
 
   const handleSignUp = () => {
-    router.push("/signup"); // ✅ Next.js navigation
+    router.push("/signup");
   };
 
   return (
@@ -119,7 +120,6 @@ const Login = () => {
         <p className="login-footer">Modix Game Panel © 2025</p>
       </div>
 
-      {/* Forgot Password Modal */}
       <ForgotPasswordModal
         visible={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
