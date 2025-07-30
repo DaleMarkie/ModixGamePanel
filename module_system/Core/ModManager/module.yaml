@@ -4,20 +4,20 @@ description: Manages installed modules and their configurations.
 author: Modix Team
 website: https://modix.store
 permissions:
-- mod_manager_access
-- mod_manager_install
-- mod_manager_remove
+- access
+- install
+- remove
 frontend:
   routes:
   - path: /modmanager
     component: ModuleManagerPage
-    permission: mod_manager_access
+    permission: access
     entry: Core/ModManager/frontend/page.tsx
   nav_items:
   - label: Installed Mods
     path: /modmanager
     icon: 🧩
-    permission: mod_manager_access
+    permission: access
     priority: 1
     parent: Mods
 backend:

@@ -4,17 +4,17 @@ description: Workshop inteterface for managing and installing game mods
 author: Modix Team
 website: https://modix.store
 permissions:
-  - workshop_manage
+  - manage
 frontend:
   routes:
     - path: /workshop
       component: Workshop
       entry: Core/Workshop/frontend/page.tsx
-      permission: workshop_manage
+      permission: manage
   nav_items:
     - label: Workshop
       path: /workshop
       icon: Workshop
-      permission: workshop_manage
+      permission: manage
 backend:
   router: module_system.Core.Workshop.backend.workshop_api:router

@@ -4,18 +4,18 @@ description: Manages player data and actions for DayZ servers.
 author: Modix Team
 website: https://modix.store
 permissions:
-- dayzplayer:view
-- dayzplayer:ban
-- dayzplayer:kick
+- view
+- ban
+- kick
 frontend:
   routes:
   - path: /dayz/players
     component: DayZPlayerManagerPage
-    permission: dayzplayer:view
+    permission: view
   nav_items:
   - label: DayZ Players
     path: /dayz/players
     icon: Person
-    permission: dayzplayer:view
+    permission: view
 backend:
   router: module_system.Game Modules.DayZ.PlayerManager.backend.routes:router

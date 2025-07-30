@@ -4,19 +4,19 @@ description: Manages DayZ server lifecycle, settings, and status.
 author: Modix Team
 website: https://modix.store
 permissions:
-- dayzserver:view
-- dayzserver:start
-- dayzserver:stop
-- dayzserver:restart
+- view
+- start
+- stop
+- restart
 frontend:
   routes:
   - path: /dayz/servers
     component: DayZServerManagerPage
-    permission: dayzserver:view
+    permission: view
   nav_items:
   - label: DayZ Servers
     path: /dayz/servers
     icon: Server
-    permission: dayzserver:view
+    permission: view
 backend:
   router: module_system.Game Modules.DayZ.ServerManager.backend.routes:router

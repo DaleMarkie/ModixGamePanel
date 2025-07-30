@@ -4,17 +4,17 @@ description: Provides external API endpoints for integrations and automation.
 author: Modix Team
 website: https://modix.store
 permissions:
-- api:view
-- api:use
+- view
+- use
 frontend:
   routes:
   - path: /api
     component: APIPage
-    permission: api:view
+    permission: view
   nav_items:
   - label: API
     path: /api
     icon: Api
-    permission: api:view
+    permission: view
 backend:
   router: module_system.Optional.API.backend.routes:router

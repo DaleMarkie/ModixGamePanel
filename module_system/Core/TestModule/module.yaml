@@ -3,6 +3,9 @@ version: 1.0.0
 description: Test module for validating dynamic module loader and Docker API integration.
 author: Modix Team
 website: https://modix.store
+permissions:
+  - view
+  - edit
 frontend:
   routes:
     - path: /testmodule
@@ -12,21 +15,21 @@ frontend:
     - label: Test Module
       path: /testmodule
       icon: ⚗️
-      permission: TestModule_view
+      permission: view
       priority: 7
       submenu:
         - label: Overview
           path: /testmodule/overview
           icon: 🔎
-          permission: TestModule_view
+          permission: view
           priority: 1
         - label: Settings
           path: /testmodule/settings
           icon: ⚙️
-          permission: TestModule_edit
+          permission: edit
           priority: 2
         - label: Logs
           path: /testmodule/logs
           icon: 📑
-          permission: TestModule_view
+          permission: view
           priority: 3

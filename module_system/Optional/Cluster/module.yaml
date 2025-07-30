@@ -4,17 +4,17 @@ description: Manages server clusters for scaling and redundancy.
 author: Modix Team
 website: https://modix.store
 permissions:
-- cluster:view
-- cluster:manage
+- view
+- manage
 frontend:
   routes:
   - path: /clusters
     component: ClusterManagerPage
-    permission: cluster:view
+    permission: view
   nav_items:
   - label: Clusters
     path: /clusters
     icon: Cluster
-    permission: cluster:view
+    permission: view
 backend:
   router: module_system.Optional.Cluster.backend.routes:router

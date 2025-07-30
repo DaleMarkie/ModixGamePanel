@@ -1,21 +1,22 @@
 name: UmodModManager
+nickname: umod
 version: 1.0.0
 description: Manages uMod plugins and mods for supported games.
 author: Modix Team
 website: https://modix.store
 permissions:
-- umod:view
-- umod:install
-- umod:remove
+- view
+- install
+- remove
 frontend:
   routes:
   - path: /umod
     component: UmodModManagerPage
-    permission: umod:view
+    permission: view
   nav_items:
   - label: uMod Mods
     path: /umod
     icon: Extension
-    permission: umod:view
+    permission: view
 backend:
   router: module_system.Optional.UmodModManager.backend.routes:router

@@ -4,17 +4,17 @@ description: Automates server setup and configuration.
 author: Modix Team
 website: https://modix.store
 permissions:
-- serverbuilder:view
-- serverbuilder:create
+- view
+- create
 frontend:
   routes:
   - path: /serverbuilder
     component: ServerBuilderPage
-    permission: serverbuilder:view
+    permission: view
   nav_items:
   - label: Server Builder
     path: /serverbuilder
     icon: Build
-    permission: serverbuilder:view
+    permission: view
 backend:
   router: module_system.Optional.ServerBuilder.backend.routes:router

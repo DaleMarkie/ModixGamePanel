@@ -11,6 +11,10 @@ from backend.API.Core.models import User, Role, UserRole, UserPermission, ROLE_T
 from sqlalchemy.orm import Session
 from pathlib import Path
 
+# For YAML parsing and file scanning
+import yaml
+import os
+
 # SQLite database file (relative to backend directory)
 SQLALCHEMY_DATABASE_URL = "sqlite:///backend/modix.db"
 
@@ -105,5 +109,54 @@ def create_base_users_from_config():
         for perm in u.get("permissions", []):
             if not db.query(UserPermission).filter_by(user_id=user.id, permission=perm).first():
                 db.add(UserPermission(user_id=user.id, permission=perm, value="allow", container_id=None))
+    db.commit()
+    db.close()
+
+
+def register_module_permissions(module_base_path="module_system"):
+    """
+    Scan all module.yaml files in module_base_path, extract permissions (from permissions list and frontend routes/nav_items),
+    and add them to the database if not already present.
+    """
+    db: Session = SessionLocal()
+    permissions_found = set()
+    for root, dirs, files in os.walk(module_base_path):
+        for file in files:
+            if file == "module.yaml":
+                yaml_path = os.path.join(root, file)
+                with open(yaml_path, "r") as f:
+                    try:
+                        data = yaml.safe_load(f)
+                    except Exception as e:
+                        print(f"[WARN] Could not parse {yaml_path}: {e}")
+                        continue
+                # Use nickname if present, else name
+                module_prefix = (data.get("nickname") or data.get("name") or "UnknownModule").lower()
+                # If under Game_Modules, use folder above as first section
+                if "Game_Modules" in yaml_path:
+                    parts = yaml_path.split(os.sep)
+                    try:
+                        idx = parts.index("Game_Modules")
+                        game_folder = parts[idx+1].lower()
+                        module_prefix = f"{game_folder}_{module_prefix}"
+                    except Exception:
+                        pass
+                module_prefix = module_prefix + "_"
+                # Only use declared permissions
+                perms = data.get("permissions", [])
+                for perm in perms:
+                    if perm:
+                        clean_perm = (module_prefix + str(perm).replace(":", "_")).lower()
+                        permissions_found.add(clean_perm)
+    # Ensure root user has all permissions found (static and dynamic), in sorted order
+    root_user = db.query(User).filter_by(username="root").first()
+    all_perms = set()
+    # Add static permissions (with no prefix, but replace ':' with '_')
+    for perm in PERMISSIONS:
+        all_perms.add(str(perm).replace(":", "_").lower())
+    all_perms.update(permissions_found)
+    for perm in sorted(all_perms):
+        if root_user and not db.query(UserPermission).filter_by(user_id=root_user.id, permission=perm).first():
+            db.add(UserPermission(user_id=root_user.id, permission=perm, value="allow", container_id=None))
     db.commit()
     db.close()

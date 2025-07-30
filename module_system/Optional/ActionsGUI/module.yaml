@@ -1,20 +1,21 @@
 name: ActionsGUI
+nickname: actions
 version: 1.0.0
 description: Graphical interface for managing and triggering server actions.
 author: Modix Team
 website: https://modix.store
 permissions:
-- actions:view
-- actions:trigger
+- view
+- trigger
 frontend:
   routes:
   - path: /actions
     component: ActionsGUIPage
-    permission: actions:view
+    permission: view
   nav_items:
   - label: Actions
     path: /actions
     icon: Bolt
-    permission: actions:view
+    permission: view
 backend:
   router: module_system.Optional.ActionsGUI.backend.routes:router

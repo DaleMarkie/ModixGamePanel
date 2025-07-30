@@ -4,24 +4,25 @@ description: Role-based access control for users and groups.
 author: Modix Team
 website: https://modix.store
 permissions:
-- rbac_user_delete
-- rbac_user_edit
-- rbac_user_create
-- rbac_role_create
-- rbac_role_edit
-- rbac_role_delete
-- rbac_manage
+- user_delete
+- user_edit
+- user_create
+- role_create
+- role_edit
+- role_delete
+- manage
+- view
 frontend:
   routes:
   - path: /rbac
     component: RBACPage
-    permission: rbac_view
+    permission: view
     entry: Core/RBAC/frontend/page.tsx
   nav_items:
   - label: RBAC
     path: /rbac
     icon: 🛂
-    permission: rbac_view
+    permission: view
     priority: 3
     parent: 🧭 Dashboard
 
