@@ -24,7 +24,7 @@ import { SiDocker } from "react-icons/si";
 
 export default function InstalledPage() {
   return (
-    <main className="relative min-h-screen bg-[#121212] text-gray-200 px-6 py-12 font-sans flex flex-col items-center justify-center text-center space-y-12 overflow-hidden">
+    <main className="relative min-h-screen bg-[#121212] text-gray-200 px-6 py-12 font-sans flex flex-col items-center justify-center text-center space-y-16 overflow-hidden">
       {/* Background */}
       <div
         className="absolute inset-0 z-0"
@@ -63,37 +63,42 @@ export default function InstalledPage() {
           issues as we continue refining the platform.
           <br />
           <br />
-          Your feedback is invaluable if you encounter any problems, please
+          Your feedback is invaluable — if you encounter any problems, please
           report them on our Discord community. Thank you for supporting Modix
           and helping us improve!
           <br />
           <br />
-          Enjoy exploring Modix, <br /> The Modix Team
+          Enjoy exploring Modix,
+          <br />
+          The Modix Team
         </p>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 w-full max-w-6xl space-y-14">
+      <div className="relative z-10 w-full max-w-6xl space-y-20">
         {/* Hero Section */}
-        <section className="space-y-4 text-center">
-          <FaCheckCircle size={54} className="text-green-500 mx-auto" />
-          <h1 className="text-4xl md:text-5xl font-bold text-green-500">
+        <section className="space-y-6 text-center max-w-3xl mx-auto">
+          <FaCheckCircle size={64} className="text-green-500 mx-auto" />
+          <h1 className="text-5xl font-bold text-green-500">
             Modix Game Panel
           </h1>
-          <p className="text-base md:text-lg max-w-3xl mx-auto text-gray-300 leading-relaxed">
+          <p className="text-lg max-w-3xl mx-auto text-gray-300 leading-relaxed">
             A complete, web-based control panel for game server owners.
             <br />
             <span className="text-white font-semibold">
               Fast, Secure, Free
             </span>{" "}
             — with everything from mod management to real-time analytics.
-            Developed By The Modix Team. OV3RLORD & GameSmithOnline.
+            <br />
+            Developed by The Modix Team: OV3RLORD & GameSmithOnline.
           </p>
-          v1.1.2 - Unstable Release
+          <p className="text-sm text-gray-500 italic">
+            v1.1.2 — Unstable Release
+          </p>
         </section>
 
         {/* Feature Grid */}
-        <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+        <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
           <FeatureCard
             icon={<FaTerminal className="text-green-400" />}
             title="Live Terminal"
@@ -125,11 +130,6 @@ export default function InstalledPage() {
             description="Get real-time alerts for crashes, events, or bans via Discord webhooks and automation."
           />
           <FeatureCard
-            icon={<FaFolderOpen className="text-purple-400" />}
-            title="File Browser"
-            description="Navigate folders and files smoothly with breadcrumb views and drag-drop uploads."
-          />
-          <FeatureCard
             icon={<FaShieldAlt className="text-red-500" />}
             title="DDoS Monitor"
             description="Track unusual inbound traffic and potential attacks with real-time server protection stats."
@@ -152,7 +152,7 @@ export default function InstalledPage() {
         </section>
 
         {/* Action Buttons */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-xl mx-auto">
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-xl mx-auto">
           <Link
             href="/auth/login"
             className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
@@ -176,10 +176,12 @@ export default function InstalledPage() {
           </Link>
         </section>
 
-        {/* Community */}
-        <section className="text-sm text-gray-400 space-y-2 max-w-lg mx-auto">
-          <p>Need help? Join our support or follow development:</p>
-          <div className="flex flex-wrap justify-center gap-4">
+        {/* Community Section */}
+        <section className="max-w-lg mx-auto text-sm text-gray-400 space-y-3">
+          <p className="text-center font-semibold text-gray-300">
+            Need help? Join our support or follow development:
+          </p>
+          <div className="flex flex-wrap justify-center gap-5">
             <CommunityButton
               href="https://discord.gg/EwWZUSR9tM"
               icon={<FaDiscord />}
@@ -206,6 +208,56 @@ export default function InstalledPage() {
             />
           </div>
         </section>
+
+        {/* Upcoming Features Section */}
+        <section className="max-w-3xl mx-auto bg-gradient-to-br from-gray-850 to-gray-900 rounded-xl p-10 shadow-md border border-gray-700">
+          <h2 className="text-4xl font-extrabold text-white mb-6 tracking-tight">
+            Upcoming Features
+          </h2>
+          <p className="text-gray-300 text-lg mb-8 leading-relaxed font-medium">
+            We’re constantly improving Modix. Here’s a sneak peek at what’s
+            coming soon:
+          </p>
+          <ul className="space-y-5">
+            {[
+              "Advanced load order management for mods with drag-and-drop interface.",
+              "Community forums integration for direct user collaboration and support.",
+              "Enhanced analytics dashboard with detailed player metrics and trends.",
+              "Multi-server management with centralized control panel.",
+              "Automated backups and restore points for server configurations.",
+            ].map((item, idx) => (
+              <li key={idx} className="flex items-start gap-4 text-gray-400">
+                <svg
+                  className="w-6 h-6 mt-1 flex-shrink-0 text-cyan-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-md font-semibold leading-snug">
+                  {item}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-10 text-sm italic text-gray-500 max-w-md mx-auto text-center">
+            Stay tuned and join our{" "}
+            <a
+              href="https://discord.gg/EwWZUSR9tM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:underline"
+            >
+              Discord
+            </a>{" "}
+            to give feedback and test beta features!
+          </p>
+        </section>
       </div>
     </main>
   );
@@ -221,12 +273,10 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-5 space-y-2 shadow-sm backdrop-blur-sm">
-      <div className="flex items-center gap-3 text-lg font-semibold text-white">
-        {icon}
-        {title}
-      </div>
-      <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+    <div className="bg-[#1e1e1e] rounded-lg p-5 shadow-md hover:shadow-lg transition cursor-default">
+      <div className="flex items-center gap-3 mb-3 text-2xl">{icon}</div>
+      <h3 className="text-xl font-semibold text-white mb-1">{title}</h3>
+      <p className="text-gray-400 text-sm leading-snug">{description}</p>
     </div>
   );
 }
@@ -247,10 +297,9 @@ function CommunityButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition ${className}`}
+      className={`flex items-center gap-2 px-4 py-2 rounded-md text-white font-semibold transition ${className}`}
     >
-      {icon}
-      <span>{label}</span>
+      {icon} <span className="hidden sm:inline">{label}</span>
     </a>
   );
 }
