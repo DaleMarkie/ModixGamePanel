@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import ForgotPasswordModal from "../ForgotPasswordModal"; // Ensure this is Next-compatible
-import "./login.css"; // Adjust path as needed
+import ForgotPasswordModal from "../ForgotPasswordModal";
+import "./login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showSocialPopup, setShowSocialPopup] = useState(false);
 
   const router = useRouter();
 
@@ -18,33 +19,32 @@ const Login = () => {
     setError("");
 
     try {
-      // Prepare form-urlencoded body
       const params = new URLSearchParams();
       params.append("grant_type", "password");
       params.append("username", username);
       params.append("password", password);
       params.append("scope", "");
       params.append("client_id", "string");
-      params.append("client_secret", "********"); // Replace with actual secret if needed
+      params.append("client_secret", "********");
 
-      // Send credentials directly to backend
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
-          "accept": "application/json",
+          accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        credentials: "include",
         body: params.toString(),
       });
-      const result = await response.json();
-      console.log("[LOGIN DEBUG] Backend response:", result);
 
-      // Accept any 2xx response as success for now
+      const result: { token?: string; message?: string } =
+        await response.json();
+
       if (response.ok) {
         if (result.token) {
           localStorage.setItem("token", result.token);
         }
-        router.push("/auth/myaccount");
+        window.location.href = "/auth/myaccount";
       } else {
         setError(result.message || "Invalid username or password.");
       }
@@ -54,77 +54,144 @@ const Login = () => {
   };
 
   const handleSignUp = () => {
-    router.push("/signup"); // ✅ Next.js navigation
+    router.push("/signup");
+  };
+
+  const handleSocialClick = () => {
+    setShowSocialPopup(true);
+    setTimeout(() => {
+      setShowSocialPopup(false);
+    }, 3000);
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h1 className="login-title">🔐 Login to Modix Panel</h1>
+    <>
+      <div className="container">
+        <aside className="left-panel">
+          <div className="logo">v1.1.2</div>
+          <h1 className="welcome-title">Modix Game Panel</h1>
+          <p className="welcome-subtitle">
+            <strong>Effortless Server Management. Free Forever.</strong>
+            <br />
+            <br />
+            Modix is a full-featured panel built for gamers, modders, and server
+            admins.
+            <br />
+            <br />
+            Spin up, manage, and monitor your game servers with real-time
+            insights, seamless automation, and intuitive controls and no
+            technical skills needed.
+            <br />
+            <br />
+            Start for free, no credit card required.
+          </p>
+          <div className="illustration" aria-hidden="true">
+            🎮
+          </div>
+        </aside>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Enter your username"
-          />
+        <main className="right-panel" role="main" aria-label="Login form">
+          <form onSubmit={handleLogin} className="login-form" noValidate>
+            <h2 className="form-title">Sign In</h2>
 
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-          />
+            <label htmlFor="username" className="input-label">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your username"
+              required
+              autoComplete="username"
+              className="input-field"
+            />
 
-          {error && <div className="login-error">{error}</div>}
+            <label htmlFor="password" className="input-label">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              required
+              autoComplete="current-password"
+              className="input-field"
+            />
 
-          <button type="submit" className="login-button">
-            🚀 Login
-          </button>
+            {error && <div className="error-message">{error}</div>}
 
-          <div className="login-extra">
+            <button type="submit" className="btn-login">
+              🚀 Log In
+            </button>
+
             <button
               type="button"
-              className="forgot-password"
+              className="forgot-link"
               onClick={() => setShowForgotPassword(true)}
             >
               Forgot password?
             </button>
-          </div>
-        </form>
 
-        <div className="signup-section">
-          <p>Don't have an account?</p>
-          <button className="signup-button" onClick={handleSignUp}>
-            📝 Sign Up
-          </button>
-        </div>
+            <div className="signup-prompt">
+              New here?{" "}
+              <button
+                type="button"
+                onClick={handleSignUp}
+                className="btn-signup"
+              >
+                Create an account
+              </button>
+            </div>
 
-        <div className="social-login">
-          <p className="social-text">Or login with</p>
-          <div className="social-buttons">
-            <button className="social-btn discord">Discord</button>
-            <button className="social-btn steam">Steam</button>
-            <button className="social-btn facebook">Facebook</button>
-          </div>
-        </div>
+            <div className="social-login-container">
+              <span>Or sign in with</span>
+              <div className="social-buttons">
+                <button
+                  type="button"
+                  className="social-btn discord"
+                  onClick={handleSocialClick}
+                >
+                  Discord
+                </button>
+                <button
+                  type="button"
+                  className="social-btn steam"
+                  onClick={handleSocialClick}
+                >
+                  Steam
+                </button>
+                <button
+                  type="button"
+                  className="social-btn facebook"
+                  onClick={handleSocialClick}
+                >
+                  Facebook
+                </button>
+              </div>
+              {showSocialPopup && (
+                <div className="social-popup">
+                  <strong>🚧 Feature coming soon!</strong>
+                  <br />
+                  Social login is not yet available. Please use standard login
+                  for now.
+                </div>
+              )}
+            </div>
 
-        <p className="login-footer">Modix Game Panel © 2025</p>
+            <footer className="footer">Modix Game Panel &copy; 2025</footer>
+          </form>
+        </main>
       </div>
 
-      {/* Forgot Password Modal */}
       <ForgotPasswordModal
         visible={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
       />
-    </div>
+    </>
   );
 };
 
