@@ -16,6 +16,5 @@ frontend:
   - label: Harmony Mods
     path: /harmony
     icon: Extension
-    permission: harmony:view
 backend:
   router: module_system.Optional.HarmonyModManager.backend.routes:router

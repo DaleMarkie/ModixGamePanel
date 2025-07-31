@@ -17,6 +17,5 @@ frontend:
   - label: CurseForge Mods
     path: /curseforge
     icon: Extension
-    permission: view
 backend:
   router: module_system.Optional.CursforgeModManager.backend.routes:router

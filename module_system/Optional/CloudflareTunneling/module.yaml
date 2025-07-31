@@ -17,6 +17,5 @@ frontend:
   - label: Tunnels
     path: /tunnels
     icon: Cloud
-    permission: view
 backend:
   router: module_system.Optional.CloudflareTunneling.backend.routes:router

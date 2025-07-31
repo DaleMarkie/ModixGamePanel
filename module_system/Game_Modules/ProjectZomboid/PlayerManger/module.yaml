@@ -16,6 +16,5 @@ frontend:
   - label: Players
     path: /pz/players
     icon: Person
-    permission: pzplayer:view
 backend:
   router: module_system.Game_Modules.ProjectZomboid.PlayerManger.backend.routes:router

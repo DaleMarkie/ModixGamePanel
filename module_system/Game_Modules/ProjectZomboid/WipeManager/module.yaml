@@ -15,6 +15,5 @@ frontend:
   - label: Wipe Manager
     path: /pz/wipes
     icon: Delete
-    permission: pzwipe:view
 backend:
   router: module_system.Game_Modules.ProjectZomboid.WipeManager.backend.routes:router

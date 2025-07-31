@@ -16,6 +16,5 @@ frontend:
   - label: PZ Bans
     path: /pz/bans
     icon: Block
-    permission: view
 backend:
   router: module_system.Game_Modules.ProjectZomboid.BanManager.backend.routes:router

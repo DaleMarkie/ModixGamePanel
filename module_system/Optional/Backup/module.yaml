@@ -17,6 +17,5 @@ frontend:
   - label: Backup
     path: /backup
     icon: Backup
-    permission: view
 backend:
   router: module_system.Optional.Backup.backend.routes:router

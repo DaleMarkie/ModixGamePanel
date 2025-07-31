@@ -16,6 +16,5 @@ frontend:
   - label: DayZ Mods
     path: /dayz/mods
     icon: Extension
-    permission: view
 backend:
   router: module_system.Game Modules.DayZ.DayZModmanger.backend.routes:router

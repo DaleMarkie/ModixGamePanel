@@ -16,6 +16,5 @@ frontend:
   - label: Profiler
     path: /profiler
     icon: Speed
-    permission: view
 backend:
   router: module_system.Optional.JavaProfiler.backend.routes:router
