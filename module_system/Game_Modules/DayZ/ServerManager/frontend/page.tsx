@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import ServerManager from "./ServerManager";
 
-export default function ThemeManagerPage() {
+export default function BanManagerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <ServerManager />
     </DashboardLayout>
   );
 }

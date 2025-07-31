@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import MonulithModManager from "./MonulithModManagerPage";
 
-export default function ThemeManagerPage() {
+export default function MonulithModManagerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <MonulithModManager />
     </DashboardLayout>
   );
 }

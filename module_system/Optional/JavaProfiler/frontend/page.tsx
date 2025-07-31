@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import JavaProfiler from "./JavaProfiler";
 
-export default function ThemeManagerPage() {
+export default function JavaProfilerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <JavaProfiler />
     </DashboardLayout>
   );
 }

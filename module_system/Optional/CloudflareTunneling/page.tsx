@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import CloudflareTunneling from "./CloudflareTunneling";
 
-export default function ThemeManagerPage() {
+export default function CloudflareTunnelingPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <CloudflareTunneling />
     </DashboardLayout>
   );
 }

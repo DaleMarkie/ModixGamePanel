@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import Cluster from "./Cluster";
 
-export default function ThemeManagerPage() {
+export default function ClusterPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <Cluster />
     </DashboardLayout>
   );
 }

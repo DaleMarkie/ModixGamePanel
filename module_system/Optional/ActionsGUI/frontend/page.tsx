@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import ActionsGUI from "./ActionsGUI";
 
-export default function ThemeManagerPage() {
+export default function ActionsGUIPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <ActionsGUI />
     </DashboardLayout>
   );
 }

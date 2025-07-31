@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import DayZModmanger from "./DayZModmanger";
 
-export default function ThemeManagerPage() {
+export default function DayZModmangerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <DayZModmanger />
     </DashboardLayout>
   );
 }

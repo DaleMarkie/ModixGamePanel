@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import CrashAnalyzer from "./CrashAnalyzer";
 
-export default function ThemeManagerPage() {
+export default function CrashAnalyzerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <CrashAnalyzer />
     </DashboardLayout>
   );
 }

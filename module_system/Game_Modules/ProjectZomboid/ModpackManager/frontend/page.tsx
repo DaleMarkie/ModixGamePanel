@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import ModpackManager from "./ModpackManager";
 
-export default function ThemeManagerPage() {
+export default function ModpackManagerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <ModpackManager />
     </DashboardLayout>
   );
 }

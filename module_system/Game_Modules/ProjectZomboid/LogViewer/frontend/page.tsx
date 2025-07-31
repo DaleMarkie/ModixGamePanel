@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import LogViewer from "./LogViewer";
 
-export default function ThemeManagerPage() {
+export default function LogViewerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <LogViewer />
     </DashboardLayout>
   );
 }

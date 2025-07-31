@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import HarmonyModManager from "./HarmonyModManager";
 
-export default function ThemeManagerPage() {
+export default function HarmonyModManagerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <HarmonyModManager />
     </DashboardLayout>
   );
 }

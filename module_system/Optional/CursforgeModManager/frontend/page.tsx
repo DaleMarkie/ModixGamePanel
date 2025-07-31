@@ -1,14 +1,13 @@
 "use client";
-
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TerminalDocs from "./TerminalDocs"; // <-- Correct import
+import CursforgeModManager from "./CursforgeModManager";
 
-export default function ThemeManagerPage() {
+export default function CursforgeModManagerPage() {
   return (
     <DashboardLayout>
-      <TerminalDocs />
+      <CursforgeModManager />
     </DashboardLayout>
   );
 }
