@@ -18,16 +18,15 @@ frontend:
   - label: My Files
     path: /FileBrowser
     icon: 📂
-    permission: file_view
     priority: 3
     submenu:
-    - label: "Config Files"
+    - label: Config Files
       icon: ⚙️
       path: /filemanager/configs
-    - label: "SandboxVars.lua"
+    - label: SandboxVars.lua
       icon: 🧾
       path: /filemanager/sandboxvars
-    - label: "Server Logs"
+    - label: Server Logs
       icon: 📄
       path: /filemanager/logs
   router: module_system.Core.FileBrowser.backend.ftp_api:router

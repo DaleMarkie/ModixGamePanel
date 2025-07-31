@@ -4,7 +4,7 @@
 import json
 import os
 import docker
-from backend.debug_logger import DebugLogger
+from debug_logger import DebugLogger
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODIX_CONFIG_PATH = os.path.join(BASE_DIR, 'modix_config', 'modix_config.json')

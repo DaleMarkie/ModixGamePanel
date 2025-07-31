@@ -22,9 +22,7 @@ frontend:
   - label: RBAC
     path: /rbac
     icon: 🛂
-    permission: view
     priority: 3
     parent: 🧭 Dashboard
-
 backend:
   router: module_system.Core.RBAC.backend.permissions_api:router

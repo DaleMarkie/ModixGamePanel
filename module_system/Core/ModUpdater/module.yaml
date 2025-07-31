@@ -15,7 +15,6 @@ frontend:
   - label: Mod Update Checker
     path: /mod-updater
     icon: 🔄
-    permission: update
     priority: 3
     parent: Mods
 backend:

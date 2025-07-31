@@ -7,7 +7,11 @@ from passlib.hash import bcrypt
 from pydantic import BaseModel
 from typing import List, Optional
 
-router = APIRouter(tags=["RBAC"], dependencies=[Depends(require_permission("modix_manage_permissions"))])
+router = APIRouter(
+    prefix="/rbac",
+    tags=["RBAC"],
+    dependencies=[Depends(require_permission("modix_manage_permissions"))]
+)
 
 def get_db():
     db = SessionLocal()

@@ -17,7 +17,6 @@ frontend:
   - label: Installed Mods
     path: /modmanager
     icon: 🧩
-    permission: access
     priority: 1
     parent: Mods
 backend:

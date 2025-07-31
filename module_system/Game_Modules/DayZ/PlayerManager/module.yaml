@@ -16,6 +16,5 @@ frontend:
   - label: DayZ Players
     path: /dayz/players
     icon: Person
-    permission: view
 backend:
   router: module_system.Game Modules.DayZ.PlayerManager.backend.routes:router

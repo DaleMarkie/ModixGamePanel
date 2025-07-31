@@ -17,6 +17,5 @@ frontend:
   - label: uMod Mods
     path: /umod
     icon: Extension
-    permission: view
 backend:
   router: module_system.Optional.UmodModManager.backend.routes:router

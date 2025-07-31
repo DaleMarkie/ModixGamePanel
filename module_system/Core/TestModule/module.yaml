@@ -4,32 +4,28 @@ description: Test module for validating dynamic module loader and Docker API int
 author: Modix Team
 website: https://modix.store
 permissions:
-  - view
-  - edit
+- view
+- edit
 frontend:
   routes:
-    - path: /testmodule
-      component: TestModule
-      entry: Core/TestModule/frontend/page.tsx
+  - path: /testmodule
+    component: TestModule
+    entry: Core/TestModule/frontend/page.tsx
   nav_items:
-    - label: Test Module
-      path: /testmodule
-      icon: ⚗️
-      permission: view
-      priority: 7
-      submenu:
-        - label: Overview
-          path: /testmodule/overview
-          icon: 🔎
-          permission: view
-          priority: 1
-        - label: Settings
-          path: /testmodule/settings
-          icon: ⚙️
-          permission: edit
-          priority: 2
-        - label: Logs
-          path: /testmodule/logs
-          icon: 📑
-          permission: view
-          priority: 3
+  - label: Test Module
+    path: /testmodule
+    icon: ⚗️
+    priority: 7
+    submenu:
+    - label: Overview
+      path: /testmodule/overview
+      icon: 🔎
+      priority: 1
+    - label: Settings
+      path: /testmodule/settings
+      icon: ⚙️
+      priority: 2
+    - label: Logs
+      path: /testmodule/logs
+      icon: 📑
+      priority: 3

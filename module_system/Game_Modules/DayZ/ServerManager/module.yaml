@@ -17,6 +17,5 @@ frontend:
   - label: DayZ Servers
     path: /dayz/servers
     icon: Server
-    permission: view
 backend:
   router: module_system.Game Modules.DayZ.ServerManager.backend.routes:router

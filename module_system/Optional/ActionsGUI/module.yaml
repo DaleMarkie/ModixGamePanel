@@ -16,6 +16,5 @@ frontend:
   - label: Actions
     path: /actions
     icon: Bolt
-    permission: view
 backend:
   router: module_system.Optional.ActionsGUI.backend.routes:router

@@ -14,6 +14,5 @@ frontend:
   - label: Rcon
     path: /rcon
     icon: Terminal
-    permission: rcon_player_manage
 backend:
   router: module_system.Core.RconPlayerManager.backend.rconplayermanager_api:router

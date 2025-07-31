@@ -4,19 +4,18 @@ description: Audit logging interface for viewing and managing system audit logs
 author: Modix Team
 website: https://modix.store
 permissions:
-  - view
+- view
 frontend:
   routes:
-    - path: /auditlogger
-      component: AuditLogger
-      entry: Core/AuditLogger/frontend/page.tsx
-      permission: view
+  - path: /auditlogger
+    component: AuditLogger
+    entry: Core/AuditLogger/frontend/page.tsx
+    permission: view
   nav_items:
-    - label: Audit Logger
-      path: /auditlogger
-      icon: 🕵
-      permission: view
-      priority: 3
-      parent: Tools
+  - label: Audit Logger
+    path: /auditlogger
+    icon: 🕵
+    priority: 3
+    parent: Tools
 backend:
   router: module_system.Core.AuditLogger.backend.auditlogger_api:router
