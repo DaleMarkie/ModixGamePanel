@@ -92,8 +92,8 @@ export default function DashboardLayout({ children }) {
           overflow: hidden;
         }
         .sidebar.open {
-          width: 195px;
-          padding: 16px 10px;
+          width: 240px;
+          padding: 16px 16px;
         }
         .sidebar.closed {
           width: 60px;
@@ -289,7 +289,11 @@ export default function DashboardLayout({ children }) {
                 setSidebarOpen((v) => !v)
               }
             >
-              <div className={`sidebar-logo-row ${sidebarOpen ? "open" : "closed"}`}> 
+              <div
+                className={`sidebar-logo-row ${
+                  sidebarOpen ? "open" : "closed"
+                }`}
+              >
                 <img
                   src="https://i.ibb.co/cMPwcn8/logo.png"
                   alt="Modix Logo"
@@ -339,7 +343,9 @@ export default function DashboardLayout({ children }) {
                         >
                           <span>{label}</span>
                           <span
-                            className={`icon ${openMenus[href] ? "rotate" : ""}`}
+                            className={`icon ${
+                              openMenus[href] ? "rotate" : ""
+                            }`}
                             aria-hidden="true"
                           >
                             <FaChevronRight />
