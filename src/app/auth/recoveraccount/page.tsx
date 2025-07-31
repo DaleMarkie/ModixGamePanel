@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Register from "./Register"; // <-- Correct import
+import RecoverAccount from "./RecoverAccount"; // <-- Correct import
 
-export default function RegisterPage() {
+export default function RecoverAccountPage() {
   return (
     <DashboardLayout>
-      <Register />
+      <RecoverAccount />
     </DashboardLayout>
   );
 }

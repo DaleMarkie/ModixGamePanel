@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 
-import Dashboard from './components/core/dashboard/Dashboard';
+import Dashboard from "./components/core/dashboard/Dashboard";
 import MyServers from "./components/core/games/myservers/MyServers";
 import FileManager from "./components/core/filemanager/FileManager";
 import Workshop from "./components/core/workshopmanager/Workshop";
@@ -15,9 +15,10 @@ import Help from "./components/core/help/Help";
 import Login from "./components/core/auth/login";
 import Signup from "./components/core/auth/signup";
 import Games from "./components/core/games/Games";
-import ThemeManager from './components/core/thememanager/ThemeManager';
-import GameManager from './components/core/gamemanager/GameManager';
+import ThemeManager from "./components/core/thememanager/ThemeManager";
+import GameManager from "./components/core/gamemanager/GameManager";
 import MyAccount from "./components/core/dashboard/MyAccount/MyAccount";
+import RecoverAccount from "./components/core/dashboard/RecoverAccount/RecoverAccount";
 
 function App() {
   const [panelName, setPanelName] = useState("MODIX");
@@ -189,14 +190,23 @@ function App() {
             <header style={headerStyle}>
               <div
                 className="logo"
-                style={{ fontWeight: 700, fontSize: "1.6rem", cursor: "default" }}
+                style={{
+                  fontWeight: 700,
+                  fontSize: "1.6rem",
+                  cursor: "default",
+                }}
               >
                 {panelName}
               </div>
 
               <nav
                 className="top-menu"
-                style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  position: "relative",
+                }}
               >
                 {navLinks.map(({ to, label }) => (
                   <Link key={label} to={to} style={headerButtonStyle}>
@@ -215,7 +225,11 @@ function App() {
                 ) : (
                   dynamicModules.flatMap((mod) =>
                     (mod.frontend?.nav_items || []).map((item) => (
-                      <Link key={mod.name + item.path} to={item.path} style={headerButtonStyle}>
+                      <Link
+                        key={mod.name + item.path}
+                        to={item.path}
+                        style={headerButtonStyle}
+                      >
                         {item.label}
                       </Link>
                     ))
@@ -223,7 +237,11 @@ function App() {
                 )}
 
                 <div
-                  style={{ ...headerButtonStyle, userSelect: "none", position: "relative" }}
+                  style={{
+                    ...headerButtonStyle,
+                    userSelect: "none",
+                    position: "relative",
+                  }}
                   onMouseEnter={() => setGamesMenuOpen(true)}
                   onMouseLeave={() => setGamesMenuOpen(false)}
                 >
@@ -232,8 +250,12 @@ function App() {
                     <Link
                       to="/games"
                       style={submenuItemStyle}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#444")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#444")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
                       onClick={() => setGamesMenuOpen(false)}
                     >
                       All Games
@@ -241,8 +263,12 @@ function App() {
                     <Link
                       to="/myservers"
                       style={submenuItemStyle}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#444")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#444")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
                       onClick={() => setGamesMenuOpen(false)}
                     >
                       My Servers
@@ -264,20 +290,26 @@ function App() {
                     textDecoration: "none",
                     transition: "all 0.2s ease-in-out",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#555")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3d3d3d")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#555")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#3d3d3d")
+                  }
                 >
                   Login
                 </Link>
               </nav>
             </header>
-
             {/* Warning Label */}
             <div style={warningLabelStyle}>
-              ⚠️ Modix is still in development. Some features may not work as expected.
+              ⚠️ Modix is still in development. Some features may not work as
+              expected.
             </div>
-
-            <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
+            <main
+              className="main-content"
+              style={{ flexGrow: 1, marginTop: 20 }}
+            >
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/myservers" element={<MyServers />} />
@@ -294,6 +326,8 @@ function App() {
                 <Route path="/thememanager" element={<ThemeManager />} />
                 <Route path="/gamemanager" element={<GameManager />} />
                 <Route path="/myaccount" element={<MyAccount />} />
+                <Route path="/recoveraccount" element={<RecoverAccount />} />
+
                 {/* Dynamic module routes and error handling for all roots/pages */}
                 {pageError || moduleError
                   ? null
@@ -310,7 +344,6 @@ function App() {
                     )}
               </Routes>
             </main>
-
             <footer style={footerStyle}>
               <div>
                 <span>© 2025 {panelName}</span> &nbsp;|&nbsp;{" "}

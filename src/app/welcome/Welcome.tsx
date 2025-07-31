@@ -211,21 +211,17 @@ export default function InstalledPage() {
 
         {/* Upcoming Features Section */}
         <section className="max-w-3xl mx-auto bg-gradient-to-br from-gray-850 to-gray-900 rounded-xl p-10 shadow-md border border-gray-700">
-          <h2 className="text-4xl font-extrabold text-white mb-6 tracking-tight">
-            Upcoming Features
+          <h2 className="text-5xl font-bold text-white mb-6 tracking-tight">
+            Modix Changelog
           </h2>
           <p className="text-gray-300 text-lg mb-8 leading-relaxed font-medium">
-            We’re constantly improving Modix. Here’s a sneak peek at what’s
-            coming soon:
+            Stay up to date with the latest improvements, fixes, and new
+            features. We’re always working to make Modix better — here’s what’s
+            new:
           </p>
+
           <ul className="space-y-5">
-            {[
-              "Advanced load order management for mods with drag-and-drop interface.",
-              "Community forums integration for direct user collaboration and support.",
-              "Enhanced analytics dashboard with detailed player metrics and trends.",
-              "Multi-server management with centralized control panel.",
-              "Automated backups and restore points for server configurations.",
-            ].map((item, idx) => (
+            {["test"].map((item, idx) => (
               <li key={idx} className="flex items-start gap-4 text-gray-400">
                 <svg
                   className="w-6 h-6 mt-1 flex-shrink-0 text-cyan-500"
