@@ -1,3 +1,19 @@
+# ================= JWT Payload Structure =====================
+#
+# Example JWT payload issued by backend:
+# {
+#   "sub": "username",            # Username (subject)
+#   "permissions": [               # List of allowed permission strings
+#     "modix_dashboard_access",
+#     "modix_server_create",
+#     ...
+#   ],
+#   "exp": 1722350000              # Expiry timestamp (UTC, seconds)
+# }
+#
+# For refresh tokens, an additional field is present:
+#   "type": "refresh"
+# =============================================================
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, Cookie, WebSocket
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
@@ -17,7 +33,7 @@ from fastapi.exceptions import HTTPException as FastAPIHTTPException
 
 SECRET_KEY = os.environ.get("MODIX_SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 120  # 2 hours
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
@@ -50,20 +66,15 @@ def get_modix_config():
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    config = get_modix_config()
-    session_timeout = config.get("MODIX_SESSION_TIMEOUT")
-    if session_timeout is not None:
-        try:
-            session_timeout = int(session_timeout)
-        except Exception:
-            session_timeout = None
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))  # Access token: 15 min default
+    # Set access token expiry to 2 hours by default
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = data.copy()
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
-    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))  # Refresh token: 7 days default
+    # Set refresh token expiry to 7 days by default
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))
     to_encode = data.copy()
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -107,8 +118,24 @@ def login(
     user = authenticate_user(db, username, password)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username})
-    refresh_token = create_refresh_token(data={"sub": user.username})
+    # Collect user permissions (direct and via roles), prefix with module name if not already
+    def prefix_perm(perm: str) -> str:
+        # Guess module from permission name (e.g., for rbac, modix, container, etc.)
+        if perm.startswith("rbac_") or perm.startswith("modix_") or perm.startswith("container_"):
+            return perm
+        # Default to rbac_ for this module (customize as needed)
+        return f"rbac_{perm}"
+
+    direct_permissions = [prefix_perm(up.permission) for up in user.permissions if up.value.value == "allow"]
+    role_permissions = []
+    for ur in user.roles:
+        if ur.role:
+            for rp in ur.role.permissions:
+                if rp.value.value == "allow":
+                    role_permissions.append(prefix_perm(rp.permission))
+    all_permissions = list(set(direct_permissions + role_permissions))
+    access_token = create_access_token(data={"sub": user.username, "permissions": all_permissions})
+    refresh_token = create_refresh_token(data={"sub": user.username, "permissions": all_permissions})
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -133,6 +160,10 @@ def refresh_token(
     db: Session = Depends(get_db),
     refresh_token_cookie: str = Cookie(default=None, alias="refresh_token")
 ):
+    """
+    Issue a new access token using a valid refresh token.
+    Refresh token must have type 'refresh' and not be expired.
+    """
     if not refresh_token_cookie:
         raise HTTPException(status_code=401, detail="Missing refresh token")
     try:
@@ -145,13 +176,27 @@ def refresh_token(
         user = db.query(User).filter_by(username=username).first()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
-        # Issue new access token
-        access_token = create_access_token(data={"sub": username})
+        # Collect user permissions (direct and via roles), prefix with module name if not already
+        def prefix_perm(perm: str) -> str:
+            if perm.startswith("rbac_") or perm.startswith("modix_") or perm.startswith("container_"):
+                return perm
+            return f"rbac_{perm}"
+
+        direct_permissions = [prefix_perm(up.permission) for up in user.permissions if up.value.value == "allow"]
+        role_permissions = []
+        for ur in user.roles:
+            if ur.role:
+                for rp in ur.role.permissions:
+                    if rp.value.value == "allow":
+                        role_permissions.append(prefix_perm(rp.permission))
+        all_permissions = list(set(direct_permissions + role_permissions))
+        # Issue new access token with permissions (2 hour expiry)
+        access_token = create_access_token(data={"sub": username, "permissions": all_permissions})
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            max_age=60 * 15,  # 15 min
+            max_age=60 * ACCESS_TOKEN_EXPIRE_MINUTES,  # 2 hours
             samesite="lax",
             secure=True
         )
