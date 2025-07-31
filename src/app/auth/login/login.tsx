@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import ForgotPasswordModal from "../ForgotPasswordModal";
 import "./login.css";
 
 const Login = () => {
@@ -187,7 +186,7 @@ const Login = () => {
         </main>
       </div>
 
-      <ForgotPasswordModal
+      <Login
         visible={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
       />
