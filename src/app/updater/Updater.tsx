@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Updater.css";
 
-const changelogs = [
+const fallbackChangelogs = [
   {
     version: "v1.1.2",
     date: "2025-06-10",
@@ -76,9 +76,45 @@ const Modal = ({
 
 export default function Updater() {
   const [modalData, setModalData] = useState(null);
+  const [changelogs, setChangelogs] = useState([]);
+  const [apiStatus, setApiStatus] = useState<"loading" | "connected" | "error">(
+    "loading"
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
+    fetch("http://localhost:8000/api/changelog", {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Bad response code");
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) throw new Error("Invalid response format");
+        setChangelogs(data);
+        setApiStatus("connected");
+      })
+      .catch((err) => {
+        console.error("API failed:", err.message);
+        setChangelogs(fallbackChangelogs);
+        setApiStatus("error");
+      });
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <div className="updater-container">
+      <div className={`api-status ${apiStatus}`}>
+        {apiStatus === "loading" && "🔄 Connecting to API..."}
+        {apiStatus === "connected" && "✅ API Connected"}
+        {apiStatus === "error" && "❌ API Connection Failed - Using fallback"}
+      </div>
+
       <header className="updater-header">
         <h1>Modix Game Panel Updater</h1>
         <p className="subtitle">

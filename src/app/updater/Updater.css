@@ -304,3 +304,27 @@ body,
   text-transform: uppercase;
   user-select: none;
 }
+
+.api-status {
+  text-align: center;
+  font-weight: bold;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.api-status.loading {
+  background-color: #fffbe6;
+  color: #ad8b00;
+}
+
+.api-status.connected {
+  background-color: #f6ffed;
+  color: #389e0d;
+}
+
+.api-status.error {
+  background-color: #fff1f0;
+  color: #cf1322;
+}
