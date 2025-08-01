@@ -31,43 +31,66 @@ export default function PortCheck() {
   const [manualPort, setManualPort] = useState("");
   const [manualStatus, setManualStatus] = useState<Status | null>(null);
   const [manualChecking, setManualChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch containers from API
   const loadContainers = async () => {
     setLoadingContainers(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setContainers([
-      {
-        name: "pz-server-1",
-        image: "projectzomboid:latest",
-        port: 27015,
-        status: "open",
-      },
-      {
-        name: "pz-server-2",
-        image: "projectzomboid:latest",
-        port: 27016,
-        status: "closed",
-      },
-    ]);
-    setLoadingContainers(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/containers");
+      if (!res.ok) throw new Error(`Error: ${res.status} ${res.statusText}`);
+      const data: Container[] = await res.json();
+      setContainers(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load containers.");
+      setContainers([]);
+    } finally {
+      setLoadingContainers(false);
+    }
   };
 
   useEffect(() => {
     loadContainers();
   }, []);
 
+  // Restart or stop container via API
   const handleAction = async (name: string, action: "restart" | "stop") => {
-    alert(`${action} triggered on ${name}`);
-    loadContainers();
+    setError(null);
+    try {
+      const res = await fetch(`/api/containers/${name}/${action}`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error(`Failed to ${action} container ${name}`);
+      // Optionally, you could parse JSON response here if your API returns something
+      // Refresh container list after action
+      await loadContainers();
+    } catch (err: any) {
+      setError(err.message || `Error performing ${action} on ${name}`);
+    }
   };
 
+  // Manual port check via API
   const checkPort = async () => {
     if (!manualHost || !manualPort) return;
     setManualChecking(true);
     setManualStatus("checking");
-    await new Promise((r) => setTimeout(r, 1200));
-    setManualStatus(Math.random() > 0.5 ? "open" : "closed");
-    setManualChecking(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/check-port", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ host: manualHost, port: Number(manualPort) }),
+      });
+      if (!res.ok) throw new Error("Failed to check port");
+      const data: { status: "open" | "closed" } = await res.json();
+      setManualStatus(data.status);
+    } catch (err: any) {
+      setManualStatus("error");
+      setError(err.message || "Port check failed.");
+    } finally {
+      setManualChecking(false);
+    }
   };
 
   return (
@@ -93,6 +116,8 @@ export default function PortCheck() {
             Refresh
           </button>
         </div>
+
+        {error && <p className="text-red-500 mb-3">{error}</p>}
 
         {loadingContainers ? (
           <p className="text-zinc-400">Loading containers...</p>
@@ -195,7 +220,9 @@ export default function PortCheck() {
           >
             {manualStatus === "open"
               ? `Port ${manualPort} on ${manualHost} is open.`
-              : `Port ${manualPort} on ${manualHost} is closed.`}
+              : manualStatus === "closed"
+              ? `Port ${manualPort} on ${manualHost} is closed.`
+              : "Port check error."}
           </p>
         )}
       </div>

@@ -1,4 +1,126 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+type ServerData = {
+  cpu: {
+    model: string;
+    cores: string;
+    clockSpeed: string;
+    architecture: string;
+    flags: string;
+  };
+  memory: {
+    total: string;
+    used: string;
+    swapTotal: string;
+    swapUsed: string;
+  };
+  disk: {
+    total: string;
+    root: string;
+    data: string;
+  };
+  network: {
+    primaryIP: string;
+    publicIP: string;
+    interface: string;
+    rxTx: string;
+  };
+  os: {
+    os: string;
+    platform: string;
+    kernel: string;
+    uptime: string;
+    hostname: string;
+  };
+  docker: {
+    runningInDocker: string;
+    containerID: string;
+    image: string;
+    volumes: string;
+  };
+  modix: {
+    version: string;
+    gitCommit: string;
+    buildTime: string;
+    environment: string;
+    apiPort: string;
+    frontendPort: string;
+  };
+  gpu: {
+    model: string;
+    driver: string;
+    vram: string;
+    cuda: string;
+  };
+  extra: {
+    timezone: string;
+    locale: string;
+    shell: string;
+    python: string;
+    nodejs: string;
+  };
+};
+
+const defaultData: ServerData = {
+  cpu: {
+    model: "Loading...",
+    cores: "Loading...",
+    clockSpeed: "Loading...",
+    architecture: "Loading...",
+    flags: "Loading...",
+  },
+  memory: {
+    total: "Loading...",
+    used: "Loading...",
+    swapTotal: "Loading...",
+    swapUsed: "Loading...",
+  },
+  disk: {
+    total: "Loading...",
+    root: "Loading...",
+    data: "Loading...",
+  },
+  network: {
+    primaryIP: "Loading...",
+    publicIP: "Loading...",
+    interface: "Loading...",
+    rxTx: "Loading...",
+  },
+  os: {
+    os: "Loading...",
+    platform: "Loading...",
+    kernel: "Loading...",
+    uptime: "Loading...",
+    hostname: "Loading...",
+  },
+  docker: {
+    runningInDocker: "Loading...",
+    containerID: "Loading...",
+    image: "Loading...",
+    volumes: "Loading...",
+  },
+  modix: {
+    version: "Loading...",
+    gitCommit: "Loading...",
+    buildTime: "Loading...",
+    environment: "Loading...",
+    apiPort: "Loading...",
+    frontendPort: "Loading...",
+  },
+  gpu: {
+    model: "Loading...",
+    driver: "Loading...",
+    vram: "Loading...",
+    cuda: "Loading...",
+  },
+  extra: {
+    timezone: "Loading...",
+    locale: "Loading...",
+    shell: "Loading...",
+    python: "Loading...",
+    nodejs: "Loading...",
+  },
+};
 
 const InfoItem = ({
   label,
@@ -54,6 +176,24 @@ const Card = ({
 );
 
 const Performance = () => {
+  const [data, setData] = useState<ServerData>(defaultData);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Replace with your real backend API URL
+    fetch("http://localhost:8000/api/server-info")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+        const json = await res.json();
+        setData(json);
+        setError(null);
+      })
+      .catch((e) => {
+        setError("Failed to load server info.");
+        console.error(e);
+      });
+  }, []);
+
   return (
     <main className="min-h-screen bg-zinc-950 px-6 py-10 text-zinc-100">
       <header className="mb-10">
@@ -65,31 +205,37 @@ const Performance = () => {
         </p>
       </header>
 
+      {error && (
+        <div className="mb-6 p-4 bg-red-900 rounded text-red-300 font-semibold">
+          {error}
+        </div>
+      )}
+
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card title="🧠 CPU">
           <InfoItem
             label="Model"
-            value="Intel Xeon E5-2670 v3 @ 2.30GHz"
+            value={data.cpu.model}
             tooltip="The CPU model and base clock speed installed on this server."
           />
           <InfoItem
             label="Cores"
-            value="24 (12 physical, 24 threads)"
+            value={data.cpu.cores}
             tooltip="Total CPU cores and threads available (physical + hyper-threaded)."
           />
           <InfoItem
             label="Clock Speed"
-            value="2.30 GHz (Turbo 3.1 GHz)"
+            value={data.cpu.clockSpeed}
             tooltip="Base and turbo clock frequencies of the CPU."
           />
           <InfoItem
             label="Architecture"
-            value="x86_64"
+            value={data.cpu.architecture}
             tooltip="CPU instruction set architecture."
           />
           <InfoItem
             label="Flags"
-            value="sse4_2 avx2 hypervisor"
+            value={data.cpu.flags}
             tooltip="CPU features and capabilities supported."
           />
         </Card>
@@ -97,22 +243,22 @@ const Performance = () => {
         <Card title="💾 Memory">
           <InfoItem
             label="Total RAM"
-            value="64 GB"
+            value={data.memory.total}
             tooltip="Total installed physical RAM."
           />
           <InfoItem
             label="Used RAM"
-            value="21.3 GB"
+            value={data.memory.used}
             tooltip="Currently used RAM by the system and processes."
           />
           <InfoItem
             label="Swap Total"
-            value="16 GB"
+            value={data.memory.swapTotal}
             tooltip="Total swap space available for memory overflow."
           />
           <InfoItem
             label="Swap Used"
-            value="2.1 GB"
+            value={data.memory.swapUsed}
             tooltip="Currently used swap space."
           />
         </Card>
@@ -120,17 +266,17 @@ const Performance = () => {
         <Card title="🗃️ Disk">
           <InfoItem
             label="Total Disk"
-            value="1.5 TB (SSD)"
+            value={data.disk.total}
             tooltip="Total storage capacity of the disk drive(s)."
           />
           <InfoItem
             label="/ (root)"
-            value="80 GB used / 120 GB (66%)"
+            value={data.disk.root}
             tooltip="Disk usage and available space on the root partition."
           />
           <InfoItem
             label="/data"
-            value="460 GB used / 1.2 TB (38%)"
+            value={data.disk.data}
             tooltip="Disk usage on the /data partition where large files reside."
           />
         </Card>
@@ -138,22 +284,22 @@ const Performance = () => {
         <Card title="🌐 Network">
           <InfoItem
             label="Primary IP"
-            value="192.168.1.200"
+            value={data.network.primaryIP}
             tooltip="Internal IP address assigned to this server."
           />
           <InfoItem
             label="Public IP"
-            value="93.184.216.34"
+            value={data.network.publicIP}
             tooltip="External IP address visible on the internet."
           />
           <InfoItem
             label="Interface"
-            value="eth0"
+            value={data.network.interface}
             tooltip="Network interface used for primary communication."
           />
           <InfoItem
             label="RX/TX"
-            value="1.3 TB / 890 GB"
+            value={data.network.rxTx}
             tooltip="Total received (RX) and transmitted (TX) network data."
           />
         </Card>
@@ -161,27 +307,27 @@ const Performance = () => {
         <Card title="⚙️ Operating System">
           <InfoItem
             label="OS"
-            value="Ubuntu 22.04.3 LTS"
+            value={data.os.os}
             tooltip="The operating system running on this server."
           />
           <InfoItem
             label="Platform"
-            value="Linux"
+            value={data.os.platform}
             tooltip="Underlying platform kernel type."
           />
           <InfoItem
             label="Kernel"
-            value="5.15.0-91-generic"
+            value={data.os.kernel}
             tooltip="Specific Linux kernel version."
           />
           <InfoItem
             label="Uptime"
-            value="14 days, 03:27:12"
+            value={data.os.uptime}
             tooltip="How long the system has been running since last reboot."
           />
           <InfoItem
             label="Hostname"
-            value="modix-prod-node01"
+            value={data.os.hostname}
             tooltip="The server's network hostname."
           />
         </Card>
@@ -189,22 +335,22 @@ const Performance = () => {
         <Card title="🐳 Docker">
           <InfoItem
             label="Running In Docker"
-            value="Yes"
+            value={data.docker.runningInDocker}
             tooltip="Indicates if the service is running inside a Docker container."
           />
           <InfoItem
             label="Container ID"
-            value="2c01d3f798a7"
+            value={data.docker.containerID}
             tooltip="Unique identifier of the running Docker container."
           />
           <InfoItem
             label="Image"
-            value="ghcr.io/modix/server:latest"
+            value={data.docker.image}
             tooltip="Docker image name and tag used."
           />
           <InfoItem
             label="Volumes"
-            value="/var/lib/modix /data/mods"
+            value={data.docker.volumes}
             tooltip="Mounted volume paths inside the container."
           />
         </Card>
@@ -212,32 +358,32 @@ const Performance = () => {
         <Card title="🚀 Modix">
           <InfoItem
             label="Version"
-            value="v2.8.1"
+            value={data.modix.version}
             tooltip="Current version of the Modix server software."
           />
           <InfoItem
             label="Git Commit"
-            value="4dfaa92 (main)"
+            value={data.modix.gitCommit}
             tooltip="Git commit hash of the current build."
           />
           <InfoItem
             label="Build Time"
-            value="2025-07-28 15:24 UTC"
+            value={data.modix.buildTime}
             tooltip="Timestamp when the current build was compiled."
           />
           <InfoItem
             label="Environment"
-            value="production"
+            value={data.modix.environment}
             tooltip="Runtime environment of the application."
           />
           <InfoItem
             label="API Port"
-            value="3001"
+            value={data.modix.apiPort}
             tooltip="Port used by Modix API."
           />
           <InfoItem
             label="Frontend Port"
-            value="3000"
+            value={data.modix.frontendPort}
             tooltip="Port where Modix frontend UI is served."
           />
         </Card>
@@ -245,22 +391,22 @@ const Performance = () => {
         <Card title="🎮 GPU">
           <InfoItem
             label="Model"
-            value="NVIDIA A4000"
+            value={data.gpu.model}
             tooltip="Graphics processing unit model installed."
           />
           <InfoItem
             label="Driver"
-            value="525.147.05"
+            value={data.gpu.driver}
             tooltip="GPU driver version."
           />
           <InfoItem
             label="VRAM"
-            value="16 GB"
+            value={data.gpu.vram}
             tooltip="Dedicated video memory size."
           />
           <InfoItem
             label="CUDA"
-            value="12.1"
+            value={data.gpu.cuda}
             tooltip="CUDA toolkit version supported."
           />
         </Card>
@@ -268,35 +414,31 @@ const Performance = () => {
         <Card title="📦 Extra Info">
           <InfoItem
             label="Timezone"
-            value="UTC (Auto)"
+            value={data.extra.timezone}
             tooltip="Configured system timezone."
           />
           <InfoItem
             label="Locale"
-            value="en_US.UTF-8"
+            value={data.extra.locale}
             tooltip="System locale settings."
           />
           <InfoItem
             label="Shell"
-            value="/bin/bash"
+            value={data.extra.shell}
             tooltip="Default user shell."
           />
           <InfoItem
             label="Python"
-            value="3.11.3 (uvicorn+fastapi)"
+            value={data.extra.python}
             tooltip="Python runtime and web framework version."
           />
           <InfoItem
             label="Node.js"
-            value="v18.17.1"
+            value={data.extra.nodejs}
             tooltip="Node.js runtime version."
           />
         </Card>
       </div>
-
-      <footer className="mt-16 text-sm text-center text-zinc-600">
-        Modix Host Inspector
-      </footer>
     </main>
   );
 };
