@@ -1,62 +1,57 @@
 import React, { useState, useEffect } from "react";
 
-const fakeTrafficData = [
-  { time: "12:00", inbound: 200, outbound: 180 },
-  { time: "12:05", inbound: 300, outbound: 280 },
-  { time: "12:10", inbound: 250, outbound: 220 },
-  { time: "12:15", inbound: 400, outbound: 380 },
-  { time: "12:20", inbound: 350, outbound: 320 },
-  { time: "12:25", inbound: 450, outbound: 420 },
-];
-
 const width = 450;
 const height = 150;
 const padding = 30;
 
-const maxY = Math.max(
-  ...fakeTrafficData.map((d) => Math.max(d.inbound, d.outbound))
-);
-
-function scaleX(index: number) {
-  return (
-    padding + (index * (width - padding * 2)) / (fakeTrafficData.length - 1)
-  );
+function scaleX(index: number, total: number) {
+  return padding + (index * (width - padding * 2)) / (total - 1);
 }
 
-function scaleY(value: number) {
+function scaleY(value: number, maxY: number) {
   return height - padding - (value * (height - padding * 2)) / maxY;
 }
 
-function linePath(data: number[]) {
+function linePath(data: number[], maxY: number, total: number) {
   return data
-    .map((point, i) => `${i === 0 ? "M" : "L"}${scaleX(i)} ${scaleY(point)}`)
+    .map(
+      (point, i) =>
+        `${i === 0 ? "M" : "L"}${scaleX(i, total)} ${scaleY(point, maxY)}`
+    )
     .join(" ");
 }
 
 const DdosManager = () => {
-  const [attackStatus, setAttackStatus] = useState("No attacks detected");
+  const [attackStatus, setAttackStatus] = useState("Loading...");
   const [suspiciousIPs, setSuspiciousIPs] = useState<
-    { ip: string; threatLevel: string }[]
+    { ip: string; threat_level: string }[]
   >([]);
   const [dockerContainers, setDockerContainers] = useState<
-    { id: string; name: string; status: string; underAttack: boolean }[]
+    { id: string; name: string; status: string; under_attack: boolean }[]
   >([]);
-  const [traffic, setTraffic] = useState(fakeTrafficData);
+  const [traffic, setTraffic] = useState<
+    { time: string; inbound: number; outbound: number }[]
+  >([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const containersRes = await fetch("/api/docker/containers");
-        const containersData = await containersRes.json();
+        const res1 = await fetch("/api/performance/containers");
+        const containersData = await res1.json();
         setDockerContainers(
           Array.isArray(containersData) ? containersData : []
         );
 
-        const ipsRes = await fetch("/api/ddos/suspicious-ips");
-        const ipsData = await ipsRes.json();
-        setSuspiciousIPs(Array.isArray(ipsData) ? ipsData : []);
+        const res2 = await fetch("/api/performance/suspicious-ips");
+        const ipData = await res2.json();
+        setSuspiciousIPs(Array.isArray(ipData) ? ipData : []);
+
+        const res3 = await fetch("/api/performance/traffic");
+        const trafficData = await res3.json();
+        setTraffic(Array.isArray(trafficData) ? trafficData : []);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Failed to fetch performance data:", error);
+        setAttackStatus("❌ Failed to load performance data.");
       }
     }
 
@@ -67,63 +62,39 @@ const DdosManager = () => {
 
   useEffect(() => {
     const underAttackCount = dockerContainers.filter(
-      (c) => c.underAttack
+      (c) => c.under_attack
     ).length;
     if (underAttackCount > 0) {
-      setAttackStatus(
-        `⚠️ ${underAttackCount} Docker container(s) under attack!`
-      );
+      setAttackStatus(`⚠️ ${underAttackCount} container(s) under attack`);
     } else {
-      setAttackStatus("No attacks detected");
+      setAttackStatus("✅ No attacks detected");
     }
   }, [dockerContainers]);
 
   function blockIp(ip: string) {
-    fetch("/api/ddos/block-ip", {
+    fetch("/api/performance/block-ip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ip }),
     }).then(() => {
       setSuspiciousIPs((prev) => prev.filter((item) => item.ip !== ip));
-      alert(`Blocked IP: ${ip}`);
     });
   }
 
-  function toggleMitigation(id: string) {
-    setDockerContainers((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, underAttack: !c.underAttack } : c))
-    );
-  }
+  const maxY = Math.max(...traffic.flatMap((d) => [d.inbound, d.outbound]), 1);
 
   return (
-    <div className="ddos-page p-6 bg-gray-900 text-white min-h-screen max-w-4xl mx-auto font-sans">
-      <h1 className="text-3xl font-extrabold mb-6 tracking-wide">
-        DDoS Protection Control Hub
-      </h1>
-      <p className="mb-6 text-gray-400 max-w-xl leading-relaxed">
-        Your centralized defense and real-time monitoring of distributed
-        denial-of-service attacks targeting your Dockerized game servers. Here,
-        you can visualize network traffic patterns, identify Docker containers
-        currently under threat, review suspicious IP addresses attempting to
-        breach your servers, and execute swift mitigation actions such as
-        blocking malicious IPs or toggling attack states on individual
-        containers. Stay ahead of threats and maintain optimal server
-        performance with this comprehensive security control center
-      </p>
+    <div className="p-6 bg-gray-900 text-white min-h-screen font-sans max-w-5xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">DDoS Protection Control Hub</h1>
 
-      <section className="attack-status mb-8">
-        <h2 className="text-xl font-semibold mb-2">Current Status</h2>
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-1">Status</h2>
         <p className="text-lg text-gray-300">{attackStatus}</p>
       </section>
 
-      <section className="traffic-chart mb-8 bg-gray-800 rounded-lg p-4 shadow-lg">
-        <h2 className="text-xl font-semibold mb-3">Network Traffic Overview</h2>
-        <svg
-          width={width}
-          height={height}
-          className="mx-auto"
-          style={{ backgroundColor: "#111" }}
-        >
+      <section className="mb-8 bg-gray-800 rounded-lg p-4">
+        <h2 className="text-xl font-semibold mb-3">Traffic Overview</h2>
+        <svg width={width} height={height} className="mx-auto bg-black rounded">
           {[0, 0.25, 0.5, 0.75, 1].map((v) => (
             <line
               key={v}
@@ -139,164 +110,115 @@ const DdosManager = () => {
           {traffic.map((d, i) => (
             <text
               key={i}
-              x={scaleX(i)}
-              y={height - 10}
+              x={scaleX(i, traffic.length)}
+              y={height - 5}
               fill="#888"
               fontSize={10}
               textAnchor="middle"
-              className="select-none"
             >
               {d.time}
             </text>
           ))}
 
-          {[0, 0.25, 0.5, 0.75, 1].map((v) => {
-            const val = Math.round(maxY * (1 - v));
-            return (
-              <text
-                key={v}
-                x={5}
-                y={padding + v * (height - padding * 2)}
-                fill="#888"
-                fontSize={10}
-                alignmentBaseline="middle"
-                className="select-none"
-              >
-                {val}
-              </text>
-            );
-          })}
-
           <path
-            d={linePath(traffic.map((d) => d.inbound))}
+            d={linePath(
+              traffic.map((d) => d.inbound),
+              maxY,
+              traffic.length
+            )}
             fill="none"
             stroke="#00ff99"
             strokeWidth={2}
-            strokeLinecap="round"
           />
           <path
-            d={linePath(traffic.map((d) => d.outbound))}
+            d={linePath(
+              traffic.map((d) => d.outbound),
+              maxY,
+              traffic.length
+            )}
             fill="none"
             stroke="#ff4466"
             strokeWidth={2}
-            strokeLinecap="round"
           />
-
-          <circle
-            cx={width - padding - 90}
-            cy={padding - 12}
-            r={5}
-            fill="#00ff99"
-          />
-          <text
-            x={width - padding - 80}
-            y={padding - 10}
-            fill="#00ff99"
-            fontWeight="bold"
-            fontSize={12}
-            className="select-none"
-          >
-            Inbound
-          </text>
-          <circle
-            cx={width - padding - 40}
-            cy={padding - 12}
-            r={5}
-            fill="#ff4466"
-          />
-          <text
-            x={width - padding - 30}
-            y={padding - 10}
-            fill="#ff4466"
-            fontWeight="bold"
-            fontSize={12}
-            className="select-none"
-          >
-            Outbound
-          </text>
         </svg>
       </section>
 
-      <section className="docker-status mb-8">
-        <h2 className="text-xl font-semibold mb-3">Docker Containers</h2>
-        <ul>
-          {dockerContainers.length === 0 && (
-            <li className="text-gray-400 italic">
-              No Docker containers detected.
-            </li>
-          )}
-          {dockerContainers.map((dc) => (
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Docker Containers</h2>
+        <ul className="space-y-2">
+          {dockerContainers.map((c) => (
             <li
-              key={dc.id}
-              className={`flex justify-between items-center p-3 mb-3 rounded-lg shadow-md transition-colors duration-300 ${
-                dc.underAttack
-                  ? "bg-red-700 animate-pulse shadow-red-800"
-                  : "bg-green-700 shadow-green-800"
+              key={c.id}
+              className={`flex justify-between items-center p-3 rounded-lg shadow ${
+                c.under_attack ? "bg-red-700" : "bg-green-700"
               }`}
             >
               <div>
-                <strong className="text-lg">{dc.name}</strong>{" "}
-                <span className="text-sm italic text-gray-300">
-                  {dc.status}
-                </span>
-                {dc.underAttack && (
-                  <span className="ml-2 inline-block px-2 py-0.5 text-xs font-bold uppercase rounded bg-red-900 text-red-300">
+                <strong>{c.name}</strong>{" "}
+                <span className="text-sm italic text-gray-200">{c.status}</span>
+                {c.under_attack && (
+                  <span className="ml-2 text-xs bg-red-900 px-2 py-0.5 rounded">
                     Under Attack
                   </span>
                 )}
               </div>
               <button
-                onClick={() => toggleMitigation(dc.id)}
-                className={`px-3 py-1 rounded font-semibold transition-colors duration-300 text-sm ${
-                  dc.underAttack
+                onClick={() =>
+                  setDockerContainers((prev) =>
+                    prev.map((x) =>
+                      x.id === c.id
+                        ? { ...x, under_attack: !x.under_attack }
+                        : x
+                    )
+                  )
+                }
+                className={`px-3 py-1 text-sm rounded font-semibold ${
+                  c.under_attack
                     ? "bg-green-600 hover:bg-green-800"
                     : "bg-yellow-600 hover:bg-yellow-800"
                 }`}
-                aria-label={
-                  dc.underAttack ? "Mitigate Attack" : "Simulate Attack"
-                }
               >
-                {dc.underAttack ? "Mitigate" : "Simulate Attack"}
+                {c.under_attack ? "Mitigate" : "Simulate"}
               </button>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="suspicious-ips mb-6">
-        <h2 className="text-xl font-semibold mb-3">Suspicious IPs</h2>
-        {suspiciousIPs.length === 0 ? (
-          <p className="text-gray-400 italic">No suspicious IPs detected.</p>
-        ) : (
-          <ul className="space-y-2 max-h-56 overflow-y-auto">
-            {suspiciousIPs.map(({ ip, threatLevel }) => (
-              <li
-                key={ip}
-                className="flex justify-between items-center p-2 bg-gray-800 rounded shadow"
+      <section>
+        <h2 className="text-xl font-semibold mb-2">Suspicious IPs</h2>
+        <ul className="space-y-2 max-h-60 overflow-y-auto">
+          {suspiciousIPs.length === 0 && (
+            <li className="text-gray-400 italic">
+              No suspicious IPs detected.
+            </li>
+          )}
+          {suspiciousIPs.map(({ ip, threat_level }) => (
+            <li
+              key={ip}
+              className="flex justify-between items-center p-3 bg-gray-800 rounded"
+            >
+              <span className="font-mono text-sm">{ip}</span>
+              <span
+                className={`text-xs font-bold px-2 py-0.5 rounded ${
+                  threat_level === "high"
+                    ? "bg-red-600 text-red-100"
+                    : threat_level === "medium"
+                    ? "bg-yellow-600 text-yellow-100"
+                    : "bg-green-600 text-green-100"
+                }`}
               >
-                <span className="font-mono text-sm">{ip}</span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded ${
-                    threatLevel === "high"
-                      ? "bg-red-600 text-red-200"
-                      : threatLevel === "medium"
-                      ? "bg-yellow-600 text-yellow-200"
-                      : "bg-green-600 text-green-200"
-                  }`}
-                >
-                  {threatLevel.toUpperCase()}
-                </span>
-                <button
-                  onClick={() => blockIp(ip)}
-                  className="ml-3 text-xs px-2 py-1 bg-red-700 hover:bg-red-800 rounded font-semibold"
-                  aria-label={`Block IP ${ip}`}
-                >
-                  Block
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                {threat_level.toUpperCase()}
+              </span>
+              <button
+                onClick={() => blockIp(ip)}
+                className="ml-4 text-xs px-2 py-1 bg-red-700 hover:bg-red-800 rounded"
+              >
+                Block
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );
