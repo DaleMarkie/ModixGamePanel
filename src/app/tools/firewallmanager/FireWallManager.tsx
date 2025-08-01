@@ -18,84 +18,124 @@ type FirewallLog = {
   protocol: string;
 };
 
-const sampleRules: FirewallRule[] = [
-  {
-    id: 1,
-    action: "allow",
-    protocol: "tcp",
-    port: "80",
-    ipRange: "any",
-    description: "Allow HTTP traffic",
-  },
-  {
-    id: 2,
-    action: "deny",
-    protocol: "tcp",
-    port: "22",
-    ipRange: "any",
-    description: "Block SSH from outside",
-  },
-];
-
-const sampleLogs: FirewallLog[] = [
-  {
-    timestamp: new Date().toISOString(),
-    ip: "203.0.113.42",
-    action: "blocked",
-    port: 22,
-    protocol: "tcp",
-  },
-  {
-    timestamp: new Date().toISOString(),
-    ip: "198.51.100.7",
-    action: "allowed",
-    port: 80,
-    protocol: "tcp",
-  },
-];
-
 export default function Firewall() {
-  const [rules, setRules] = useState<FirewallRule[]>(sampleRules);
-  const [logs, setLogs] = useState<FirewallLog[]>(sampleLogs);
+  const [rules, setRules] = useState<FirewallRule[]>([]);
+  const [logs, setLogs] = useState<FirewallLog[]>([]);
   const [autoBlock, setAutoBlock] = useState(false);
   const [geoBlockList, setGeoBlockList] = useState<string[]>(["CN", "RU"]);
   const [newRule, setNewRule] = useState<Omit<FirewallRule, "id">>({
     action: "deny",
     protocol: "tcp",
     port: "",
-    ipRange: "any",
+    ipRange: "any", // consider changing to "0.0.0.0/0" or ""
     description: "",
   });
 
-  function addRule() {
-    if (!newRule.port) return alert("Port is required");
-    setRules([
-      ...rules,
-      {
-        id: Date.now(),
-        ...newRule,
-      },
-    ]);
-    setNewRule({
-      action: "deny",
-      protocol: "tcp",
-      port: "",
-      ipRange: "any",
-      description: "",
-    });
+  const API_BASE = "http://localhost:8000/api/firewall";
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [rulesRes, logsRes, settingsRes] = await Promise.all([
+          fetch(`${API_BASE}/rules`),
+          fetch(`${API_BASE}/logs`),
+          fetch(`${API_BASE}/settings`).catch(() => null), // settings optional
+        ]);
+
+        if (!rulesRes.ok) throw new Error("Failed to fetch rules");
+        if (!logsRes.ok) throw new Error("Failed to fetch logs");
+
+        const rulesData = await rulesRes.json();
+        const logsData = await logsRes.json();
+
+        setRules(rulesData);
+        setLogs(logsData);
+
+        if (settingsRes && settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (typeof settingsData.autoBlock === "boolean")
+            setAutoBlock(settingsData.autoBlock);
+          if (Array.isArray(settingsData.geoBlocks))
+            setGeoBlockList(settingsData.geoBlocks);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    loadData();
+  }, []);
+
+  async function toggleAutoBlock(enabled: boolean) {
+    setAutoBlock(enabled);
+    try {
+      const res = await fetch(`${API_BASE}/auto-block`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      if (!res.ok) throw new Error("Failed to update auto block");
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  function removeRule(id: number) {
-    setRules(rules.filter((r) => r.id !== id));
+  async function updateGeoBlocks(newList: string[]) {
+    setGeoBlockList(newList);
+    try {
+      const res = await fetch(`${API_BASE}/geo-blocks`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ geoBlocks: newList }),
+      });
+      if (!res.ok) throw new Error("Failed to update geo blocks");
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function addRule() {
+    if (!newRule.port) return alert("Port is required");
+
+    try {
+      const res = await fetch(`${API_BASE}/rules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRule),
+      });
+      if (!res.ok) throw new Error("Failed to add rule");
+
+      const createdRule: FirewallRule = await res.json();
+      setRules((prev) => [...prev, createdRule]);
+      setNewRule({
+        action: "deny",
+        protocol: "tcp",
+        port: "",
+        ipRange: "any",
+        description: "",
+      });
+    } catch (e: any) {
+      alert(`Error adding rule: ${e.message}`);
+    }
+  }
+
+  async function removeRule(id: number) {
+    try {
+      const res = await fetch(`${API_BASE}/rules/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete rule");
+      setRules((prev) => prev.filter((r) => r.id !== id));
+    } catch (e: any) {
+      alert(`Error deleting rule: ${e.message}`);
+    }
   }
 
   function removeGeoBlock(code: string) {
-    setGeoBlockList(geoBlockList.filter((c) => c !== code));
+    const updated = geoBlockList.filter((c) => c !== code);
+    updateGeoBlocks(updated);
   }
 
   function addGeoBlock(code: string) {
     if (!geoBlockList.includes(code)) {
-      setGeoBlockList([...geoBlockList, code]);
+      updateGeoBlocks([...geoBlockList, code]);
     }
   }
 
@@ -109,7 +149,7 @@ export default function Firewall() {
           type="checkbox"
           id="autoBlock"
           checked={autoBlock}
-          onChange={(e) => setAutoBlock(e.target.checked)}
+          onChange={(e) => toggleAutoBlock(e.target.checked)}
         />
       </section>
 
@@ -196,7 +236,6 @@ export default function Firewall() {
                       action: e.target.value as FirewallRule["action"],
                     }))
                   }
-                  aria-label="Select action"
                 >
                   <option value="allow">Allow</option>
                   <option value="deny">Deny</option>
@@ -212,7 +251,6 @@ export default function Firewall() {
                       protocol: e.target.value as FirewallRule["protocol"],
                     }))
                   }
-                  aria-label="Select protocol"
                 >
                   <option value="tcp">TCP</option>
                   <option value="udp">UDP</option>
@@ -229,7 +267,6 @@ export default function Firewall() {
                     setNewRule((r) => ({ ...r, port: e.target.value }))
                   }
                   placeholder="Port or range"
-                  aria-label="Enter port or range"
                 />
               </td>
               <td>
@@ -241,7 +278,6 @@ export default function Firewall() {
                     setNewRule((r) => ({ ...r, ipRange: e.target.value }))
                   }
                   placeholder="IP Range"
-                  aria-label="Enter IP Range"
                 />
               </td>
               <td>
@@ -253,7 +289,6 @@ export default function Firewall() {
                     setNewRule((r) => ({ ...r, description: e.target.value }))
                   }
                   placeholder="Description"
-                  aria-label="Enter rule description"
                 />
               </td>
               <td>
@@ -291,15 +326,16 @@ export default function Firewall() {
             </thead>
             <tbody>
               {logs.map(({ timestamp, ip, action, port, protocol }, i) => (
-                <tr
-                  key={i}
-                  className={
-                    action === "allowed" ? "logs-allowed" : "logs-blocked"
-                  }
-                >
+                <tr key={`${timestamp}-${ip}-${i}`}>
                   <td>{new Date(timestamp).toLocaleString()}</td>
                   <td>{ip}</td>
-                  <td>{action}</td>
+                  <td
+                    className={
+                      action === "blocked" ? "log-blocked" : "log-allowed"
+                    }
+                  >
+                    {action}
+                  </td>
                   <td>{port}</td>
                   <td>{protocol.toUpperCase()}</td>
                 </tr>

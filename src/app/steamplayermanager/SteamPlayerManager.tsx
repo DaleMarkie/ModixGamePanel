@@ -17,39 +17,19 @@ import "./SteamPlayerManager.css";
 const SPECIAL_STEAM_ID = "76561198347512345";
 
 const SteamPlayerManager = () => {
-  const [containers, setContainers] = useState([]);
-  const [selectedContainer, setSelectedContainer] = useState("");
   const [players, setPlayers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewOnline, setViewOnline] = useState("all");
   const [sortType, setSortType] = useState("name");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [savingNotes, setSavingNotes] = useState(false);
-  const [loadingContainers, setLoadingContainers] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [updatingBan, setUpdatingBan] = useState(false);
 
-  // Fetch Docker containers from backend API
-  const fetchContainers = async () => {
-    setLoadingContainers(true);
-    try {
-      const res = await fetch("/api/containers");
-      if (!res.ok) throw new Error("Failed to fetch containers");
-      const data = await res.json();
-      setContainers(data);
-      if (data.length > 0) setSelectedContainer(data[0].id); // auto-select first container
-    } catch (error) {
-      alert("Error loading containers: " + error.message);
-    } finally {
-      setLoadingContainers(false);
-    }
-  };
-
-  // Fetch players from backend API for the selected container
-  const fetchPlayers = async (containerId) => {
-    if (!containerId) return;
+  const fetchPlayers = async () => {
     setLoadingPlayers(true);
     try {
-      const res = await fetch(`/api/players?containerId=${containerId}`);
+      const res = await fetch("/api/players");
       if (!res.ok) throw new Error("Failed to fetch players");
       const data = await res.json();
       setPlayers(data);
@@ -60,58 +40,69 @@ const SteamPlayerManager = () => {
     }
   };
 
-  // Initial load: containers
   useEffect(() => {
-    fetchContainers();
+    fetchPlayers();
   }, []);
-
-  // Load players when selectedContainer changes
-  useEffect(() => {
-    if (selectedContainer) {
-      fetchPlayers(selectedContainer);
-      setSelectedPlayer(null); // clear any selected player on container change
-    }
-  }, [selectedContainer]);
 
   const filteredPlayers = useMemo(() => {
     let filtered = players;
     if (viewOnline === "online") filtered = filtered.filter((p) => p.online);
     else if (viewOnline === "offline")
       filtered = filtered.filter((p) => !p.online);
+
     if (searchTerm.trim())
       filtered = filtered.filter((p) =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
+
     if (sortType === "name")
       filtered = filtered.slice().sort((a, b) => a.name.localeCompare(b.name));
     else if (sortType === "playtime")
       filtered = filtered.slice().sort((a, b) => b.playtime - a.playtime);
+
     return filtered;
   }, [players, searchTerm, viewOnline, sortType]);
 
-  // Toggle ban status with backend update
+  // Ban toggle with backend update
   const toggleBan = async (steamId) => {
+    if (updatingBan) return; // prevent multiple clicks
     const player = players.find((p) => p.steamId === steamId);
     if (!player) return;
 
-    // Optimistic UI update
-    setPlayers((prev) =>
-      prev.map((p) => (p.steamId === steamId ? { ...p, banned: !p.banned } : p))
-    );
+    const newBanStatus = !player.banned;
 
+    // Optimistic UI update:
+    setPlayers((prev) =>
+      prev.map((p) =>
+        p.steamId === steamId ? { ...p, banned: newBanStatus } : p
+      )
+    );
+    // If modal is open for this player, update selectedPlayer's banned too
+    if (selectedPlayer?.steamId === steamId) {
+      setSelectedPlayer({ ...selectedPlayer, banned: newBanStatus });
+    }
+
+    setUpdatingBan(true);
     try {
+      // Use selectedPlayer.notes if this is the same player, else fallback to current notes in state
+      const notesToSend =
+        selectedPlayer?.steamId === steamId
+          ? selectedPlayer.notes
+          : player.notes;
+
       const res = await fetch("/api/playerNotes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           steamId,
-          banned: !player.banned,
-          notes: player.notes,
-          containerId: selectedContainer, // pass container id for backend context
+          banned: newBanStatus,
+          notes: notesToSend ?? "",
         }),
       });
       if (!res.ok) throw new Error("Failed to update ban status");
-      await fetchPlayers(selectedContainer);
+
+      // Refresh full list to sync server state
+      await fetchPlayers();
     } catch (error) {
       alert("Error updating ban: " + error.message);
       // revert UI if error
@@ -120,10 +111,15 @@ const SteamPlayerManager = () => {
           p.steamId === steamId ? { ...p, banned: player.banned } : p
         )
       );
+      if (selectedPlayer?.steamId === steamId) {
+        setSelectedPlayer({ ...selectedPlayer, banned: player.banned });
+      }
+    } finally {
+      setUpdatingBan(false);
     }
   };
 
-  // Change notes locally
+  // Notes change locally in modal
   const changeNotes = (steamId, notes) => {
     setPlayers((prev) =>
       prev.map((p) => (p.steamId === steamId ? { ...p, notes } : p))
@@ -145,12 +141,11 @@ const SteamPlayerManager = () => {
           steamId: selectedPlayer.steamId,
           notes: selectedPlayer.notes,
           banned: selectedPlayer.banned,
-          containerId: selectedContainer, // pass container id for backend context
         }),
       });
       if (!response.ok) throw new Error("Failed to save notes");
       alert("Notes saved successfully!");
-      await fetchPlayers(selectedContainer);
+      await fetchPlayers(); // refresh list after save
     } catch (error) {
       alert(`Error: ${error.message}`);
     } finally {
@@ -165,26 +160,6 @@ const SteamPlayerManager = () => {
         <h2>
           <FaSteamSymbol /> Steam Players
         </h2>
-
-        {/* Container select */}
-        <div className="container-select">
-          {loadingContainers ? (
-            <p>Loading containers...</p>
-          ) : (
-            <select
-              value={selectedContainer}
-              onChange={(e) => setSelectedContainer(e.target.value)}
-              aria-label="Select Docker container"
-            >
-              {containers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
         <div className="spm-controls">
           <div className="search-bar">
             <FaSearch />
@@ -332,7 +307,7 @@ const SteamPlayerManager = () => {
               <label htmlFor="notesTextarea">Notes</label>
               <textarea
                 id="notesTextarea"
-                value={selectedPlayer.notes}
+                value={selectedPlayer.notes ?? ""}
                 onChange={(e) =>
                   changeNotes(selectedPlayer.steamId, e.target.value)
                 }
@@ -343,6 +318,7 @@ const SteamPlayerManager = () => {
                   type="checkbox"
                   checked={selectedPlayer.banned}
                   onChange={() => toggleBan(selectedPlayer.steamId)}
+                  disabled={updatingBan}
                 />
                 Ban Player
               </label>
