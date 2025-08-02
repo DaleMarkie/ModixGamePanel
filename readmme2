@@ -1,0 +1,2 @@
+server: npm run dev
+backend: python3 backend/api_main.py

@@ -1,0 +1,2 @@
+apt install npm 
+npm install react react-dom next
