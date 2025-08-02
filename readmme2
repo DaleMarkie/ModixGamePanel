@@ -1,2 +1,3 @@
 server: npm run dev
 backend: python3 backend/api_main.py
+containers: python3 ./backend/modix_auto_deployment.py
