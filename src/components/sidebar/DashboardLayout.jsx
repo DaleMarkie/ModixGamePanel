@@ -394,7 +394,7 @@ export default function DashboardLayout({ children }) {
                 <img
                   alt="Modix Logo"
                   className="sidebar-logo"
-                  src="https://modix.gg/assets/img/modix-icon.png"
+                  src="https://i.ibb.co/cMPwcn8/logo.png"
                   draggable={false}
                   loading="lazy"
                   width={32}

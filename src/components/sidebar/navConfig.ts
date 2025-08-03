@@ -27,11 +27,11 @@ export const navLinks = [
     label: "🎮 Server & Game Config",
     href: "/settings",
     submenu: [
-      { label: "⚙️ General Settings", href: "/serversettings" },
-      { label: "🧑‍⚖️ User Permissions", href: "/rbac" },
-      { label: "🗃️ Game Library", href: "/games" },
-      { label: "🩺 Modix Health", href: "/ModixHealth" },
-      { label: "🧬 Update Modix Core", href: "/updater" },
+      { label: "⚙️ General Settings", href: "/server/serversettings" },
+      { label: "🧑‍⚖️ User Permissions", href: "/server/rbac" },
+      { label: "🗃️ Game Library", href: "/server/games" },
+      { label: "🩺 Modix Health", href: "/server/ModixHealth" },
+      { label: "🧬 Update Modix Core", href: "/server/updater" },
     ],
   },
   {
@@ -47,8 +47,8 @@ export const navLinks = [
         label: "🛍️ Steam Workshop",
         href: "/workshop",
         submenu: [
-          { label: "🔥 Browse Workshop", href: "/workshop/popular" },
-          { label: "🆕 Steam Collections", href: "/workshop/new" },
+          { label: "🔥 Browse Workshop", href: "/workshop" },
+          { label: "🆕 Steam Collections", href: "/workshop_collections" },
         ],
       },
       {
@@ -72,15 +72,16 @@ export const navLinks = [
     label: "👥 Player Management",
     href: "/players",
     submenu: [
-      { label: "🧍 Player Manager", href: "/SteamPlayerManager" },
-      { label: "🔍 Player Search", href: "/players/search" },
+      { label: "🧍 Player'ss Online", href: "/playermanager/online" },
+      { label: "🧍 Player's Offlines", href: "/playermanager/offline" },
+      { label: "🔍 Player Search", href: "/playermanager/search" },
       {
         label: "⛔ Player Records",
         href: "/players/records",
         submenu: [
-          { label: "⛔ Player Bans", href: "/players/bans" },
-          { label: "📝 Player Notes", href: "/players/notes" },
-          { label: "📊 Player Stats", href: "/players/stats" },
+          { label: "⛔ Player Bans", href: "/playermanager/bans" },
+          { label: "📝 Player Notes", href: "/playermanager/notes" },
+          { label: "📊 Player Stats", href: "/playermanager/stats" },
         ],
       },
     ],
@@ -115,15 +116,15 @@ export const navLinks = [
     label: "🌐 Community Plugins",
     href: "/communityplugins",
     submenu: [
-      { label: "🧩 Browse Plugins", href: "/communityplugins" },
+      { label: "🧩 Browse Plugins", href: "/communityplugins/browse" },
       {
         label: "⚙️ Manage Plugins",
-        href: "/communityplugins",
+        href: "/communityplugins/manage",
         badge: { text: "Inactive", color: "gray" },
       },
       {
         label: "📢 Plugin Announcements",
-        href: "/communityplugins",
+        href: "/communityplugins/announcements",
       },
     ],
   },
@@ -131,19 +132,19 @@ export const navLinks = [
     label: "⚙️ Settings",
     href: "/platform-settings", // <-- renamed href to avoid clash
     submenu: [
-      { label: "🗝️ API Keys & Tokens", href: "/platform-settings/api" },
-      { label: "📜 Audit Logs", href: "/platform-settings/audit" },
-      { label: "🌍 Language & Region", href: "/platform-settings/locale" },
-      { label: "🛡️ Security Preferences", href: "/platform-settings/security" },
-      { label: "🎨 Theme Customization", href: "/themesettings" },
+      { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
+      { label: "📜 Audit Logs", href: "/settings/audit" },
+      { label: "🌍 Language & Region", href: "/settings/locale" },
+      { label: "🛡️ Security Preferences", href: "/settings/security" },
+      { label: "🎨 Theme Customization", href: "/settings/themesettings" },
     ],
   },
   {
     label: "🆘 Support",
     href: "/support",
     submenu: [
-      { label: "📘 Documentation", href: "/docs" },
-      { label: "🎟️ Support Tickets", href: "/support/" },
+      { label: "📘 Documentation", href: "/support/docs" },
+      { label: "🎟️ My Tickets", href: "/support/mytickets" },
       { label: "❓ FAQ", href: "/support/faq" },
     ],
   },
