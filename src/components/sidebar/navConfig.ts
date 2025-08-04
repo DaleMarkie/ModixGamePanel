@@ -32,6 +32,7 @@ export const navLinks = [
       { label: "🗃️ Game Library", href: "/server/games" },
       { label: "🩺 Modix Health", href: "/server/ModixHealth" },
       { label: "🧬 Update Modix Core", href: "/server/updater" },
+      { label: "🗄️ Backup Server", href: "/server/backup" },
     ],
   },
   {
@@ -48,7 +49,7 @@ export const navLinks = [
         href: "/workshop",
         submenu: [
           { label: "🔥 Browse Workshop", href: "/workshop" },
-          { label: "🆕 Steam Collections", href: "/workshop_collections" },
+          { label: "🆕 Steam Collections", href: "/mods/steamparser" },
         ],
       },
       {
@@ -57,7 +58,7 @@ export const navLinks = [
         submenu: [
           { label: "📊 Mod Performance", href: "/tools/performance" },
           { label: "🧪 Mod Debugger", href: "/tools/debugger" },
-          { label: "🩺 Modix Health", href: "/ModixHealth" },
+          { label: "📊 Load Order Editor", href: "/tools/ordereditor" },
           { label: "🛠️ Mod Updaters", href: "/modupdater" },
         ],
       },
@@ -106,25 +107,38 @@ export const navLinks = [
     label: "🛠️ Tools",
     href: "/tools",
     submenu: [
-      { label: "📈 Performance Stats", href: "/tools/performance" },
-      { label: "🌐 Port Checker", href: "/tools/portcheck" },
-      { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-      { label: "🧮 FireWall Manager", href: "/tools/firewallmanager" },
+      {
+        label: "📊 Monitoring",
+        href: "/tools/monitoring",
+        submenu: [
+          { label: "📈 Performance Stats", href: "/tools/performance" },
+          { label: "🌐 Port Checker", href: "/tools/portcheck" },
+          { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
+        ],
+      },
+      {
+        label: "🛡️ Security",
+        href: "/tools/security",
+        submenu: [
+          { label: "🧮 Firewall Manager", href: "/tools/firewallmanager" },
+          // You can add more security tools here if needed
+        ],
+      },
     ],
   },
   {
     label: "🌐 Community Plugins",
     href: "/communityplugins",
     submenu: [
-      { label: "🧩 Browse Plugins", href: "/communityplugins/browse" },
+      { label: "🧩 Browse Plugins", href: "/communityplugins" },
       {
         label: "⚙️ Manage Plugins",
-        href: "/communityplugins/manage",
+        href: "/communityplugins",
         badge: { text: "Inactive", color: "gray" },
       },
       {
         label: "📢 Plugin Announcements",
-        href: "/communityplugins/announcements",
+        href: "/communityplugins",
       },
     ],
   },

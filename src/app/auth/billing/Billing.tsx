@@ -54,7 +54,7 @@ const plans = [
   {
     id: "pro",
     name: "Modix Pro",
-    price: "$6/mo",
+    price: "£5/mo",
     description: "Premium features for power users and server owners.",
     features: [
       {
@@ -103,7 +103,7 @@ const plans = [
   {
     id: "host",
     name: "Hosting Edition",
-    price: "$20/mo",
+    price: "£10/mo",
     description:
       "Tailored for professional hosting providers with dedicated resources.",
     features: [

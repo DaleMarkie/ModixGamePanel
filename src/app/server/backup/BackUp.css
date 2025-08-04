@@ -1,0 +1,259 @@
+/* Reset some basics */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #121212;
+  color: #e0e0e0;
+  margin: 0;
+  padding: 0;
+}
+
+.backup-page {
+  max-width: 1920px;
+  margin: 2rem auto;
+  padding: 1rem 2rem;
+  background: #1e1e1e;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.create-backup-btn {
+  display: block;
+  margin: 0 auto 1.5rem auto;
+  background-color: #085b26; /* blue-500 */
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.6rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.create-backup-btn:hover:not(:disabled),
+.create-backup-btn:focus:not(:disabled) {
+  background-color: #085b26; /* blue-600 */
+  outline: none;
+}
+
+.create-backup-btn:disabled {
+  background-color: #085b26; /* blue-400 */
+  cursor: not-allowed;
+}
+
+.backup-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: #2a2a2a;
+  transition: border-color 0.25s ease;
+}
+
+.backup-item:hover,
+.backup-item:focus-within {
+  border-color: #085b26;
+}
+
+.backup-name {
+  font-weight: 600;
+  flex-grow: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e0e0e0;
+}
+
+.backup-date {
+  font-size: 0.85rem;
+  color: #9ca3af; /* gray-400 */
+  margin-left: 1rem;
+  min-width: 120px;
+  text-align: right;
+  font-family: monospace;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.backup-actions button {
+  border: none;
+  background: #3b3b3b;
+  color: #d1d5db; /* gray-300 */
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  user-select: none;
+}
+
+.backup-actions button:hover,
+.backup-actions button:focus {
+  background: #4f46e5; /* indigo-600 */
+  color: #fff;
+  outline: none;
+}
+
+.backup-actions button span[aria-hidden="true"] {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Delete button - danger style */
+.delete-btn {
+  background-color: #7f1d1d; /* red-900 */
+  color: #fca5a5; /* red-300 */
+}
+
+.delete-btn:hover,
+.delete-btn:focus {
+  background-color: #991b1b; /* red-800 */
+  color: #fff;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  /* Fade-in animation */
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.modal {
+  background: #1f2937; /* gray-800 */
+  padding: 1.8rem 2.4rem;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+
+  /* Scale-up animation */
+  transform: scale(0.95);
+  opacity: 0;
+  animation: scaleUp 0.3s ease forwards;
+}
+
+.modal h2 {
+  margin-top: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+  color: #f9fafb;
+}
+
+.modal p {
+  font-size: 1rem;
+  color: #d1d5db; /* gray-300 */
+  margin-bottom: 1.8rem;
+  line-height: 1.4;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modal-buttons button {
+  cursor: pointer;
+  padding: 0.5rem 1.3rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  transition: background-color 0.25s ease;
+  user-select: none;
+}
+
+.modal-buttons button:focus {
+  outline: 2px solid #3b82f6; /* blue-500 */
+  outline-offset: 2px;
+}
+
+.modal-confirm-btn {
+  background-color: #3b82f6; /* blue-500 */
+  color: white;
+}
+
+.modal-confirm-btn.delete-btn {
+  background-color: #b91c1c;
+}
+
+.modal-confirm-btn:hover,
+.modal-confirm-btn:focus {
+  filter: brightness(0.9);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  to {
+    background: rgba(0, 0, 0, 0.85);
+  }
+}
+
+@keyframes scaleUp {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .backup-page {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .backup-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .backup-date {
+    margin-left: 0;
+    margin-top: 0.3rem;
+    text-align: left;
+  }
+
+  .backup-actions {
+    margin-left: 0;
+    margin-top: 0.7rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
