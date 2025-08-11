@@ -1,0 +1,196 @@
+/* Dark base colors */
+body,
+main {
+  background-color: #121212; /* darker, clean black */
+  color: #e0e0e0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 2rem 1rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container */
+main {
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+/* Header */
+h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+  color: #ffffff;
+}
+
+p {
+  color: #a3a3a3;
+  margin-top: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Tickets Table */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px; /* more space for clarity */
+  margin-top: 2rem;
+}
+
+/* Table header */
+thead th {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #888888;
+  border-bottom: 1px solid #2a2a2a;
+  user-select: none;
+}
+
+/* Table rows */
+tbody tr {
+  background-color: #1e1e1e;
+  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px #2c2c2c;
+}
+
+tbody tr:hover {
+  background-color: #292929;
+}
+
+/* Cells */
+td {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  vertical-align: middle;
+  color: #e0e0e0;
+  user-select: text;
+  border-radius: 8px;
+}
+
+/* Rounded corners on first and last td in row */
+tbody tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  font-family: monospace;
+  color: #046d27;
+  font-weight: 600;
+}
+
+tbody tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  user-select: none;
+}
+
+/* Status colors */
+.status-open {
+  background-color: #d73a49; /* clean red */
+  color: #fff;
+}
+
+.status-in-progress {
+  background-color: #dbab09; /* warm amber */
+  color: #222;
+}
+
+.status-resolved {
+  background-color: #2f9e44; /* strong green */
+  color: #fff;
+}
+
+.status-unknown {
+  background-color: #616161; /* medium gray */
+  color: #eee;
+}
+
+/* Priority */
+.priority-low {
+  color: #6fcf97; /* soft green */
+  font-weight: 600;
+}
+
+.priority-medium {
+  color: #f2c94c; /* warm yellow */
+  font-weight: 600;
+}
+
+.priority-high {
+  color: #e55353; /* soft red */
+  font-weight: 600;
+}
+
+/* Link styles */
+a {
+  color: #5aa0f7;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover,
+a:focus {
+  color: #046d27;
+  outline: none;
+}
+
+/* Responsive: stack table on small screens */
+@media (max-width: 600px) {
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 1rem;
+    box-shadow: none;
+    background-color: transparent;
+  }
+
+  tbody td {
+    padding: 0.75rem 0;
+    position: relative;
+    padding-left: 45%;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    margin-bottom: 6px;
+  }
+
+  tbody td::before {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    color: #777;
+    white-space: nowrap;
+    content: attr(data-label);
+  }
+
+  tbody td:last-child {
+    margin-bottom: 0;
+  }
+}
