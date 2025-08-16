@@ -16,7 +16,8 @@
         "Moderator"
       ],
       "permissions": [
-        "modix_dashboard_access"
+        "modix_dashboard_access",
+        "terminal_access"
       ]
     }
   ],
