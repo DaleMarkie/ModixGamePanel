@@ -1,460 +1,292 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { FaCog, FaFolderOpen, FaTrash, FaSyncAlt } from "react-icons/fa";
 import "./ModManager.css";
 
-const defaultMods = [
-  {
-    id: "2937301109",
-    name: "🧠 Superb Survivors",
-    mod_id: "SuperSurvivorsMod",
-    description: "Adds intelligent NPC survivors who loot, fight, and survive.",
-    thumbnail:
-      "https://steamuserimages-a.akamaihd.net/ugc/1823392108611387684/45E8A378F5B2A2C3853C187E2A741EBD9D4A490A/",
-    category: "Survival",
-  },
-  {
-    id: "1516836158",
-    name: "🔫 Brita's Weapon Pack",
-    mod_id: "Brita_Weapons",
-    description:
-      "Adds a huge array of realistic firearms, attachments, and tactical gear.",
-    thumbnail:
-      "https://steamuserimages-a.akamaihd.net/ugc/1680381866615934737/9846BEA3459D6C8018A91826D839E7E9B620A6A9/",
-    category: "Weapons",
-  },
-  {
-    id: "2200148440",
-    name: "🏍️ Autotsar Motorclub",
-    mod_id: "ATClub",
-    description:
-      "Brings in motorcycles, biker outfits, and detailed riding mechanics.",
-    thumbnail:
-      "https://steamuserimages-a.akamaihd.net/ugc/1753551365093001244/02DA1E9B98C9830EF3EF35DD83D5C1F999BBAF71/",
-    category: "Vehicles",
-  },
-];
+const API_BASE = "http://localhost:2010/api";
 
-const defaultCategories = [
-  "Weapons",
-  "Vehicles",
-  "Survival",
-  "Food & Farming",
-  "Zombies",
-  "Building & Construction",
-  "Gameplay Mechanics",
-  "UI & HUD",
-  "Audio",
-  "Maps & Locations",
-  "Animation & Models",
-  "Textures & Graphics",
-  "Tools & Utilities",
-  "Story & Quests",
-  "Miscellaneous",
-];
+interface ModInfo {
+  id: string;
+  name: string;
+  path: string;
+  poster: string | null;
+  enabled: boolean;
+}
 
-export default function ModManager() {
-  // Load from localStorage or fallback to default
-  const [profiles, setProfiles] = useState(() => {
-    const saved = localStorage.getItem("modmanager_profiles");
-    return saved ? JSON.parse(saved) : { Default: [...defaultMods] };
-  });
+const ModManager: React.FC = () => {
+  const [mods, setMods] = useState<ModInfo[]>([]);
+  const [allMods, setAllMods] = useState<ModInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem("modmanager_categories");
-    return saved ? JSON.parse(saved) : defaultCategories;
-  });
-
-  const [search, setSearch] = useState("");
-  const [checkingId, setCheckingId] = useState(null);
-  const [newCategory, setNewCategory] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
-
-  const [activeProfile, setActiveProfile] = useState(() => {
-    const saved = localStorage.getItem("modmanager_activeProfile");
-    return saved || "Default";
-  });
-
-  const [newProfileName, setNewProfileName] = useState("");
-  const [layoutMode, setLayoutMode] = useState("list");
-
-  const [containerId, setContainerId] = useState("");
-  const [loadingContainerMods, setLoadingContainerMods] = useState(false);
-
-  const mods = profiles[activeProfile] || [];
-
-  // Save profiles to localStorage when changed
   useEffect(() => {
-    localStorage.setItem("modmanager_profiles", JSON.stringify(profiles));
-  }, [profiles]);
+    fetchMods();
+  }, []);
 
-  // Save categories to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem("modmanager_categories", JSON.stringify(categories));
-  }, [categories]);
-
-  // Save activeProfile to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem("modmanager_activeProfile", activeProfile);
-  }, [activeProfile]);
-
-  const updateMods = (newMods) => {
-    setProfiles((prev) => ({
-      ...prev,
-      [activeProfile]: newMods,
-    }));
-  };
-
-  const filteredMods = mods.filter(
-    (mod) =>
-      (activeCategory === "All" || mod.category === activeCategory) &&
-      (mod.name.toLowerCase().includes(search.toLowerCase()) ||
-        mod.description.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  const exportModList = () => {
-    const modIds = filteredMods.map((mod) => mod.id);
-    const exportText = modIds.join("\n");
-    navigator.clipboard.writeText(exportText).then(() => {
-      alert("Mod list exported to clipboard:\n" + exportText);
-    });
-  };
-
-  const handleCheckUpdate = (id) => {
-    setCheckingId(id);
-    setTimeout(() => {
-      alert("✅ Mod is up to date!");
-      setCheckingId(null);
-    }, 1000);
-  };
-
-  const handleCategoryChange = (modId, newCategory) => {
-    const updated = mods.map((mod) =>
-      mod.id === modId ? { ...mod, category: newCategory } : mod
-    );
-    updateMods(updated);
-  };
-
-  const handleAddCategory = () => {
-    const trimmed = newCategory.trim();
-    if (trimmed && !categories.includes(trimmed)) {
-      setCategories((prev) => [...prev, trimmed]);
-      setNewCategory("");
-    }
-  };
-
-  const handleCreateProfile = () => {
-    const trimmed = newProfileName.trim();
-    if (trimmed && !profiles[trimmed]) {
-      setProfiles((prev) => ({
-        ...prev,
-        [trimmed]: [...defaultMods],
-      }));
-      setActiveProfile(trimmed);
-      setNewProfileName("");
-    }
-  };
-
-  const handleResetToDefaultMods = () => {
-    updateMods([...defaultMods]);
-  };
-
-  const loadModsFromContainer = async () => {
-    if (!containerId.trim()) {
-      alert("Please enter a valid Docker container ID.");
-      return;
-    }
-    setLoadingContainerMods(true);
+  const fetchMods = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/pzmods/${containerId.trim()}`);
-      if (!res.ok) {
-        throw new Error(`Error fetching mods: ${res.statusText}`);
-      }
+      const res = await fetch(`${API_BASE}/mods`);
+      if (!res.ok) throw new Error("Failed to fetch mods");
       const data = await res.json();
-      if (!data.mods || !Array.isArray(data.mods)) {
-        throw new Error("Invalid data format from backend");
-      }
-
-      const newMods = data.mods.map((modId) => {
-        const found = defaultMods.find((m) => m.id === modId);
-        if (found) return found;
-        return {
-          id: modId,
-          name: "Unknown Mod",
-          mod_id: modId,
-          description: "No info available for this mod.",
-          thumbnail: "https://via.placeholder.com/64?text=Unknown",
-          category: "Miscellaneous",
-        };
-      });
-
-      updateMods(newMods);
-      setActiveCategory("All");
-      setSearch("");
-      alert(`Loaded ${newMods.length} mods from container ${containerId}`);
+      setMods(data.mods || []);
+      setAllMods(data.mods || []);
     } catch (err) {
-      alert(err.message || "Failed to load mods from container.");
+      setError((err as Error).message);
+      setMods([]);
+      setAllMods([]);
     } finally {
-      setLoadingContainerMods(false);
+      setLoading(false);
     }
   };
 
-  // New: Delete a mod from current profile
-  const handleDeleteMod = (modId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this mod from the current profile?"
-      )
-    ) {
-      const updatedMods = mods.filter((mod) => mod.id !== modId);
-      updateMods(updatedMods);
+  const loadPZOrder = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/mods/order`);
+      if (!res.ok) throw new Error("Failed to load mod order");
+      const data = await res.json();
+      setMods(data.mods || []);
+      setAllMods(data.mods || []);
+    } catch (err) {
+      console.error("Failed to load Project Zomboid order:", err);
     }
   };
 
-  // New: Delete category and move mods to "Miscellaneous"
-  const handleDeleteCategory = (categoryToDelete) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete category "${categoryToDelete}"? Mods in this category will be moved to "Miscellaneous".`
-      )
-    ) {
-      const updatedCategories = categories.filter(
-        (cat) => cat !== categoryToDelete
-      );
-      const updatedMods = mods.map((mod) =>
-        mod.category === categoryToDelete
-          ? { ...mod, category: "Miscellaneous" }
-          : mod
-      );
-      setCategories(updatedCategories);
-      updateMods(updatedMods);
-      // If activeCategory was deleted, reset to "All"
-      if (activeCategory === categoryToDelete) {
-        setActiveCategory("All");
-      }
+  const loadBypassMods = () => {
+    const dummy = [
+      {
+        id: "0000000000",
+        name: "Example Mod (Bypass)",
+        path: "/path/to/example/mod",
+        poster: null,
+        enabled: false,
+      },
+      {
+        id: "1111111111",
+        name: "Another Fake Mod",
+        path: "/another/path/mod",
+        poster: null,
+        enabled: true,
+      },
+      {
+        id: "2222222222",
+        name: "Yet Another Mod",
+        path: "/path/to/mod3",
+        poster: null,
+        enabled: true,
+      },
+    ];
+    setMods(dummy);
+    setAllMods(dummy);
+    setError(null);
+  };
+
+  const toggleMod = async (id: string) => {
+    setMods((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, enabled: !m.enabled } : m))
+    );
+    setAllMods((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, enabled: !m.enabled } : m))
+    );
+
+    try {
+      const mod = mods.find((m) => m.id === id);
+      if (!mod) return;
+      await fetch(`${API_BASE}/mods/${id}/toggle`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !mod.enabled }),
+      });
+    } catch (err) {
+      console.error("Failed to toggle mod:", err);
     }
   };
+
+  const openMod = async (path: string) => {
+    try {
+      await fetch(`${API_BASE}/mods/open`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+    } catch (err) {
+      console.error("Failed to open mod:", err);
+    }
+  };
+
+  const deleteMod = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this mod?")) return;
+    try {
+      await fetch(`${API_BASE}/mods/${id}`, { method: "DELETE" });
+      setMods((prev) => prev.filter((m) => m.id !== id));
+      setAllMods((prev) => prev.filter((m) => m.id !== id));
+    } catch (err) {
+      console.error("Failed to delete mod:", err);
+    }
+  };
+
+  const openModSettings = (id: string) => {
+    alert(`Open settings for mod: ${id}`);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    if (!value.trim()) {
+      setMods(allMods);
+    } else {
+      setMods(
+        allMods.filter((m) =>
+          m.name.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    }
+  };
+
+  if (loading) return <p className="loading">Loading mods...</p>;
+
+  const enabledMods = mods.filter((m) => m.enabled);
+  const disabledMods = mods.filter((m) => !m.enabled);
 
   return (
-    <div className="container">
-      <div className="modlist-wrapper">
-        <h1 className="modlist-title">🧩 Mod Manager</h1>
-        <p
-          className="modlist-description"
-          style={{ marginBottom: "1rem", color: "#fff", maxWidth: "600px" }}
-        >
-          Manage your game mods effortlessly — create profiles, organize by
-          categories, search and filter mods, enable or disable them, and export
-          your mod lists with ease.
-        </p>
-
-        <p style={{ marginBottom: "1rem", color: "#fff" }}>
-          Showing {filteredMods.length} mod
-          {filteredMods.length !== 1 ? "s" : ""} from {mods.length} total mod
-          {mods.length !== 1 ? "s" : ""} in profile "{activeProfile}"
-        </p>
-
-        <div style={{ marginBottom: "1rem", display: "flex", gap: "0.5rem" }}>
-          <input
-            type="text"
-            placeholder="Enter Docker container ID"
-            value={containerId}
-            onChange={(e) => setContainerId(e.target.value)}
-            style={{ flexGrow: 1, padding: "0.5rem" }}
-          />
-          <button
-            className="mod-btn blue"
-            onClick={loadModsFromContainer}
-            disabled={loadingContainerMods}
-          >
-            {loadingContainerMods
-              ? "Loading Mods..."
-              : "Load Mods from Container"}
+    <div className="modmanager-container">
+      {/* Top Toolbar */}
+      <div className="top-actions">
+        <div className="toolbar-left">
+          <button onClick={fetchMods} title="Refresh Mods">
+            <FaSyncAlt /> Refresh
           </button>
+          <button onClick={loadPZOrder} title="Load Project Zomboid Order">
+            <FaSyncAlt /> Load Order
+          </button>
+          {error && (
+            <button onClick={loadBypassMods} title="Load Example Mods">
+              ⚡ Load Dummy Mods
+            </button>
+          )}
         </div>
 
-        <div
-          style={{
-            marginBottom: "1rem",
-            display: "flex",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <label>Profile:</label>
-          <select
-            value={activeProfile}
-            onChange={(e) => setActiveProfile(e.target.value)}
-          >
-            {Object.keys(profiles).map((profile) => (
-              <option key={profile} value={profile}>
-                {profile}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="New profile name"
-            value={newProfileName}
-            onChange={(e) => setNewProfileName(e.target.value)}
-          />
-          <button className="mod-btn green" onClick={handleCreateProfile}>
-            Create Profile
-          </button>
-          <button className="mod-btn red" onClick={handleResetToDefaultMods}>
-            Reset Mods
-          </button>
-          <button
-            className="mod-btn gray"
-            onClick={() =>
-              setLayoutMode((prev) => (prev === "list" ? "grid" : "list"))
-            }
-          >
-            Switch to {layoutMode === "list" ? "Grid" : "List"} View
-          </button>
+        <div className="toolbar-center">
+          <h1>Workshop Mods</h1>
         </div>
 
-        <div
-          style={{
-            marginBottom: "1rem",
-            display: "flex",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <label>Filter by category:</label>
-          <button
-            className={`mod-btn category-btn ${
-              activeCategory === "All" ? "active" : ""
-            }`}
-            onClick={() => setActiveCategory("All")}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
-            <div
-              key={cat}
-              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
-              <button
-                className={`mod-btn category-btn ${
-                  activeCategory === cat ? "active" : ""
-                }`}
-                onClick={() => setActiveCategory(cat)}
-              >
-                {cat}
-              </button>
-              {/* Show delete button for category if not "All" */}
-              {cat !== "All" && cat !== "Miscellaneous" && (
-                <button
-                  className="mod-btn red small"
-                  title={`Delete category ${cat}`}
-                  onClick={() => handleDeleteCategory(cat)}
-                  style={{
-                    padding: "0 5px",
-                    height: "24px",
-                    fontWeight: "bold",
-                    lineHeight: "1",
-                    marginLeft: 2,
-                    userSelect: "none",
-                  }}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
+        <div className="toolbar-right">
           <input
             type="text"
-            placeholder="Add new category"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAddCategory();
-            }}
-            style={{ marginLeft: "auto", padding: "0.2rem 0.5rem" }}
+            placeholder="Search mods..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
           />
-          <button className="mod-btn green small" onClick={handleAddCategory}>
-            Add Category
-          </button>
         </div>
+      </div>
 
-        <input
-          className="modlist-search"
-          type="text"
-          placeholder="Search mods..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {error && (
+        <div className="error-box">
+          <h3>⚠ Could not load mods</h3>
+          <p>
+            This can happen if your Project Zomboid Workshop folder is missing
+            or the API is offline.
+          </p>
+        </div>
+      )}
 
-        <button
-          className="mod-btn blue"
-          onClick={exportModList}
-          style={{ marginBottom: "1rem" }}
-        >
-          Export Mod List
-        </button>
-
-        <ul className={`modlist ${layoutMode}`}>
-          {filteredMods.map((mod) => (
-            <li key={mod.id} className="modlist-item">
-              <img
-                className="modlist-item-thumb"
-                src={mod.thumbnail}
-                alt={mod.name}
-                width={64}
-                height={64}
-              />
-              <div className="modlist-item-info">
-                <h3 className="modlist-item-title">{mod.name}</h3>
-                <p className="modlist-item-desc">{mod.description}</p>
-                <p className="modlist-item-category">
-                  Category:{" "}
-                  <select
-                    value={mod.category}
-                    onChange={(e) =>
-                      handleCategoryChange(mod.id, e.target.value)
-                    }
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </p>
-                <div
-                  style={{
-                    marginTop: "0.25rem",
-                    display: "flex",
-                    gap: "0.5rem",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
-                  <button
-                    className="mod-btn gray"
-                    onClick={() => handleCheckUpdate(mod.id)}
-                    disabled={checkingId === mod.id}
-                  >
-                    {checkingId === mod.id ? "Checking..." : "Check Update"}
-                  </button>
-
-                  {/* New: Delete mod button */}
-                  <button
-                    className="mod-btn red"
-                    onClick={() => handleDeleteMod(mod.id)}
-                    title="Delete this mod"
-                  >
-                    Delete
-                  </button>
-                </div>
+      {mods.length === 0 ? (
+        <p className="no-mods">No mods found.</p>
+      ) : (
+        <>
+          {enabledMods.length > 0 && (
+            <>
+              <h2>✅ Enabled Mods</h2>
+              <div className="mod-list">
+                {enabledMods.map((mod) => (
+                  <ModRow
+                    key={mod.id}
+                    mod={mod}
+                    toggleMod={toggleMod}
+                    openSettings={openModSettings}
+                    openMod={openMod}
+                    deleteMod={deleteMod}
+                  />
+                ))}
               </div>
-            </li>
-          ))}
-        </ul>
+            </>
+          )}
+
+          {disabledMods.length > 0 && (
+            <>
+              <h2>❌ Disabled Mods</h2>
+              <div className="mod-list">
+                {disabledMods.map((mod) => (
+                  <ModRow
+                    key={mod.id}
+                    mod={mod}
+                    toggleMod={toggleMod}
+                    openSettings={openModSettings}
+                    openMod={openMod}
+                    deleteMod={deleteMod}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+interface ModRowProps {
+  mod: ModInfo;
+  toggleMod: (id: string) => void;
+  openSettings: (id: string) => void;
+  openMod: (path: string) => void;
+  deleteMod: (id: string) => void;
+}
+
+const ModRow: React.FC<ModRowProps> = ({
+  mod,
+  toggleMod,
+  openSettings,
+  openMod,
+  deleteMod,
+}) => {
+  return (
+    <div className={`mod-row ${mod.enabled ? "enabled" : "disabled"}`}>
+      <div className="mod-image">
+        {mod.poster ? (
+          <img src={`${API_BASE}/mods/${mod.id}/poster`} alt={mod.name} />
+        ) : (
+          <div className="mod-noimage">No Image</div>
+        )}
+      </div>
+      <div className="mod-details">
+        <h2>{mod.name}</h2>
+        <p>
+          <strong>ID:</strong> {mod.id}
+        </p>
+        <p className="mod-path">{mod.path}</p>
+      </div>
+      <div className="mod-actions">
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={mod.enabled}
+            onChange={() => toggleMod(mod.id)}
+          />
+          <span className="slider"></span>
+        </label>
+        <button className="settings-btn" onClick={() => openSettings(mod.id)}>
+          <FaCog />
+        </button>
+        <button className="open-btn" onClick={() => openMod(mod.path)}>
+          <FaFolderOpen />
+        </button>
+        <button className="delete-btn" onClick={() => deleteMod(mod.id)}>
+          <FaTrash />
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default ModManager;

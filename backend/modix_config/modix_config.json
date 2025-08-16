@@ -17,7 +17,8 @@
       ],
       "permissions": [
         "modix_dashboard_access",
-        "terminal_access"
+        "terminal_access",
+        "modmanager_access"
       ]
     }
   ],
