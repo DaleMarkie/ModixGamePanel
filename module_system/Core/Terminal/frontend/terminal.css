@@ -1,427 +1,256 @@
-/* Reset & base */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-body,
-.terminal {
-  background-color: #121212;
-  color: #e0e0e0;
-  font-family: "Fira Code", monospace;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2rem;
-  transition: background 0.2s ease;
-}
-
 /* Container */
-.boxed-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 1rem auto;
-  padding: 1rem;
+.modmanager-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  color: #e6e6e6;
 }
 
-/* Warning banner */
-.warning-banner {
-  background: #ff4d6d;
+/* Header Panel */
+/* Header Panel */
+.header-panel {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px 12px; /* smaller padding */
+  margin-bottom: 15px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-left button,
+.header-right input {
+  height: 30px; /* smaller height */
+  font-size: 13px;
+}
+
+.header-left {
+  display: flex;
+  gap: 6px;
+}
+
+.header-left button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #2e2e2e;
   color: #fff;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 10px rgba(255, 77, 109, 0.3);
+  border: none;
+  padding: 0 8px; /* tighter padding */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.header-left button:hover {
+  background: #3d3d3d;
+}
+
+.header-center h1 {
+  margin: 0;
+  font-size: 1.1rem; /* smaller font */
+  font-weight: bold;
   text-align: center;
 }
 
-/* Layout */
-.terminal-layout {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  min-height: 500px;
-}
-
-/* Side info boxes */
-.side-boxes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 150px;
-  background: #1e1e1e;
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-.side-boxes.right {
-  width: 150px;
-}
-
-.info-box {
-  background: #2b2b2b;
-  border-radius: 6px;
-  padding: 0.75rem;
-  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.05);
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-.info-box:hover {
-  background: #333;
-  transform: translateY(-2px);
-}
-
-.info-box h3 {
-  font-size: 0.9rem;
-  color: #ccc;
-  margin-bottom: 0.4rem;
-}
-
-.info-box p {
-  font-size: 0.95rem;
-  color: #eee;
-  word-break: break-word;
-}
-
-/* Terminal wrapper */
-.terminal-wrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  background: #1f1f1f;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
-  overflow: hidden;
-}
-
-/* Header */
-.terminal-header-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #2a2a2a;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #444;
-  font-weight: 600;
-  color: #ddd;
-  font-size: 0.95rem;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-/* Status */
-.status {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-}
-.status.running {
-  color: #4caf50;
-}
-.status.stopped {
-  color: #f44336;
-}
-.status.starting {
-  color: #ff9800;
-}
-
-/* Controls */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.controls button {
-  background: #3a3a3a;
-  color: #fff;
-  font-weight: 600;
-  padding: 0.4rem 0.85rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.controls button:hover:not(:disabled) {
-  background: #505050;
-}
-.controls button:disabled {
-  background: #555;
-  color: #888;
-  cursor: not-allowed;
-}
-.controls .log-search {
-  background: #2b2b2b;
+.header-right input {
+  padding: 0 8px;
   border: 1px solid #444;
-  border-radius: 6px;
-  padding: 0.35rem 0.7rem;
-  color: #ccc;
-  outline-offset: 2px;
-  width: 150px;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-.controls .log-search:focus {
-  border-color: #5fa8ff;
-  background: #222;
-  color: #fff;
-}
-
-/* Terminal logs */
-.terminal-logs {
-  flex-grow: 1;
-  background: #141414;
-  color: #e0e0e0;
-  padding: 0.75rem 1rem;
-  font-family: "Fira Code", monospace;
-  font-size: 1rem;
-  overflow-y: auto;
-  border-top: 1px solid #333;
-  border-bottom: 1px solid #333;
-  line-height: 1.4;
-}
-
-/* Log entries */
-.terminal-log {
-  position: relative;
-  padding-left: 12px;
-  border-left: 4px solid transparent;
-  margin-bottom: 0.25rem;
-  transition: background 0.2s ease;
-}
-.terminal-log:hover {
-  background: rgba(95, 158, 255, 0.1);
-}
-
-/* Prefix labels */
-.terminal-log::before {
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.1rem 0.4rem;
   border-radius: 4px;
+  background: #2a2a2a;
   color: #fff;
-  user-select: none;
-  text-transform: uppercase;
-  opacity: 0.9;
+  font-size: 13px;
+  height: 30px;
 }
 
-/* Log types */
-.terminal-log.info {
-  border-left-color: #4f83cc;
-  background: rgba(79, 131, 204, 0.08);
-}
-.terminal-log.info::before {
-  background: #4f83cc;
-  content: "INFO";
-}
-
-.terminal-log.command {
-  border-left-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.08);
-}
-.terminal-log.command::before {
-  background: #3b82f6;
-  content: "COMMAND";
-}
-
-.terminal-log.warning {
-  border-left-color: #eab308;
-  background: rgba(234, 179, 8, 0.08);
-}
-.terminal-log.warning::before {
-  background: #eab308;
-  content: "WARNING";
-}
-
-.terminal-log.error {
-  border-left-color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
-}
-.terminal-log.error::before {
-  background: #ef4444;
-  content: "ERROR";
-}
-
-/* Highlight [System] tags */
-.terminal-logs mark.system-tag {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  font-weight: 700;
-  border-radius: 2px;
-  padding: 0 3px;
-}
-
-/* Command form */
-.command-form {
+.header-bottom {
+  margin-top: 6px; /* smaller space between rows */
   display: flex;
-  padding: 0.5rem 1rem;
-  background: #1e1e1e;
-  border-top: 1px solid #333;
-  gap: 0.5rem;
-  align-items: center;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  gap: 10px;
+  font-size: 12px; /* smaller text */
 }
-.command-form input[type="text"] {
-  flex-grow: 1;
-  background: #2b2b2b;
-  border: 1px solid #444;
-  border-radius: 6px;
-  padding: 0.35rem 0.65rem;
-  color: #eee;
-  font-size: 0.9rem;
-}
-.command-form input[type="text"]:focus {
-  border-color: #5fa8ff;
-  background: #222;
-  color: #fff;
-}
-.command-form button {
-  background: #3a3a3a;
-  color: #fff;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-.command-form button:hover {
-  background: #505050;
-}
-/* --- Project Zomboid Files Missing Popup --- */
 
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.65);
+.header-bottom .stat {
+  padding: 2px 6px; /* tighter padding */
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.header-bottom .total {
+  background: #2a2a2a;
+}
+
+.header-bottom .enabled {
+  background: #214d21;
+  color: #a6f3a6;
+}
+
+.header-bottom .disabled {
+  background: #4d2121;
+  color: #f3a6a6;
+}
+
+/* Error box */
+.error-box {
+  background: #3d2323;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #992d2d;
+  margin-bottom: 20px;
+}
+
+/* No mods text */
+.no-mods {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+}
+
+/* Mod list */
+.mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Mod row */
+.mod-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+.mod-row.enabled {
+  border-left: 4px solid #3cb43c;
+}
+
+.mod-row.disabled {
+  border-left: 4px solid #b43c3c;
+}
+
+.mod-image {
+  width: 80px;
+  height: 80px;
+  background: #2a2a2a;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.25s ease-in-out;
+  overflow: hidden;
 }
 
-.popup-box {
-  background: #1e1e2f;
-  color: #f5f5f5;
-  padding: 2rem;
-  border-radius: 1rem;
-  max-width: 700px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-  animation: slideIn 0.25s ease-in-out;
-  font-family: "Inter", sans-serif;
+.mod-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.popup-box h2 {
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
-  color: #ffcc00;
+.mod-noimage {
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+}
+
+.mod-details {
+  flex: 1;
+}
+
+.mod-details h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.mod-path {
+  font-size: 0.8rem;
+  color: #999;
+  word-break: break-all;
+}
+
+/* Mod actions */
+.mod-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 6px;
 }
 
-.popup-box h3 {
-  font-size: 1.25rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: #00d8ff;
-}
-
-.popup-box p {
-  margin-bottom: 1rem;
-  line-height: 1.6;
-}
-
-.popup-box ol,
-.popup-box ul {
-  margin-left: 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.popup-box li {
-  margin-bottom: 0.5rem;
-}
-
-.popup-box pre {
-  background: #2c2c3c;
-  color: #f5f5f5;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin: 0.5rem 0;
-  font-family: "Fira Code", monospace;
-  font-size: 0.9rem;
-}
-
-.popup-box code {
-  background: #2c2c3c;
-  padding: 0.15rem 0.3rem;
-  border-radius: 0.3rem;
-  font-family: "Fira Code", monospace;
-  font-size: 0.9rem;
-}
-
-.popup-box button {
-  background: #ff4c4c;
-  color: white;
+.mod-actions button {
+  background: #2e2e2e;
+  color: #fff;
   border: none;
-  padding: 0.6rem 1.25rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
+  padding: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 1.5rem;
 }
 
-.popup-box button:hover {
-  background: #ff1c1c;
+.mod-actions button:hover {
+  background: #444;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.settings-btn {
+  color: #ffd966;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.open-btn {
+  color: #6fa8dc;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .popup-box {
-    padding: 1.5rem;
-  }
+.delete-btn {
+  color: #e06666;
+}
 
-  .popup-box h2 {
-    font-size: 1.5rem;
-  }
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
 
-  .popup-box h3 {
-    font-size: 1.1rem;
-  }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #888;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #3cb43c;
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
 }

@@ -1,11 +1,16 @@
 # Ensure project root is in sys.path for direct script execution
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import shutil
+import subprocess
+from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+
+# Add project root to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from backend.API.Core.database import init_db, create_base_users_from_config, register_module_permissions
 from backend.API.Core.container_manager_api import router as container_manager_router
 from backend.API.Core.docker_api import router as docker_api_router
@@ -66,14 +71,7 @@ def list_mods():
     if not os.path.exists(STEAM_WORKSHOP_DIR):
         raise HTTPException(status_code=404, detail="Workshop folder not found.")
 
-    mods = [{
-        "id": "0000000000",
-        "name": "Example Mod (Test Only)",
-        "path": "/path/to/example/mod",
-        "poster": None,
-        "enabled": True
-    }]
-
+    mods = []
     for entry in os.scandir(STEAM_WORKSHOP_DIR):
         if entry.is_dir():
             mod_name = read_mod_name_from_info(entry.path)
@@ -87,7 +85,7 @@ def list_mods():
                 "name": mod_name,
                 "path": os.path.abspath(entry.path),
                 "poster": f"/api/mods/{entry.name}/poster" if poster_path else None,
-                "enabled": True
+                "enabled": True  # TODO: read from config if needed
             })
 
     return {"mods": mods}
@@ -102,6 +100,47 @@ def get_mod_poster(mod_id: str):
         if "poster.png" in files:
             return FileResponse(os.path.join(root, "poster.png"))
     raise HTTPException(status_code=404, detail="Poster not found.")
+
+# === Toggle mod enabled/disabled ===
+@app.post("/api/mods/{mod_id}/toggle")
+def toggle_mod(mod_id: str):
+    # This is placeholder logic — replace with actual persistent config toggle
+    mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
+    if not os.path.exists(mod_path):
+        raise HTTPException(status_code=404, detail="Mod not found.")
+    # Here you’d normally update a config file or DB
+    return {"status": "ok", "message": f"Mod {mod_id} toggled"}
+
+# === Delete mod folder ===
+@app.delete("/api/mods/{mod_id}")
+def delete_mod(mod_id: str):
+    mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
+    if not os.path.exists(mod_path):
+        raise HTTPException(status_code=404, detail="Mod not found.")
+    try:
+        shutil.rmtree(mod_path)
+        return {"status": "ok", "message": f"Mod {mod_id} deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# === Open mod folder in OS file explorer ===
+@app.post("/api/mods/open")
+def open_mod_folder(data: dict):
+    path: Optional[str] = data.get("path")
+    if not path or not os.path.exists(path):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    try:
+        if sys.platform.startswith("linux"):
+            subprocess.Popen(["xdg-open", path])
+        elif sys.platform == "win32":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", path])
+        else:
+            raise HTTPException(status_code=500, detail="Unsupported OS")
+        return {"status": "ok", "message": f"Opened {path}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
 def on_startup():

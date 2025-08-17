@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "predev": "npm run gen-import-map",
-    "dev": "next dev",
+    "dev": "concurrently \"next dev\" \"PYTHONPATH=. python backend/api_main.py\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -35,6 +35,7 @@
     "@types/react-dom": "^19",
     "@types/react-icons": "^3.0.0",
     "@types/react-toastify": "^4.0.2",
+    "concurrently": "^9.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
