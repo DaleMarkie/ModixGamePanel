@@ -9,9 +9,9 @@
   "MODIX_PASSWORD": "test",
   "MODIX_USERS":[
     {
-      "username": "test",
-      "password": "test",
-      "email": "test",
+      "username": "test1",
+      "password": "test1",
+      "email": "test1",
       "roles": [
         "Moderator"
       ],

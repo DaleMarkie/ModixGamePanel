@@ -21,7 +21,7 @@ const Terminal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [isServerRunning, setIsServerRunning] = useState(false);
-  const [showFilePathPopup, setShowFilePathPopup] = useState(false); // <-- new
+  const [installing, setInstalling] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const addLog = (text: string, includeTimestamp = true) => {
@@ -68,15 +68,6 @@ const Terminal: React.FC = () => {
         const errorData = await response.json();
         addLog(`[Error] ${errorData.error || "Server start failed"}`);
         setStatus("Failed to start server.");
-
-        // Show popup if server start failed due to missing files
-        if (
-          errorData.error?.includes("path") ||
-          errorData.error?.includes("files")
-        ) {
-          setShowFilePathPopup(true);
-        }
-
         return;
       }
 
@@ -108,55 +99,94 @@ const Terminal: React.FC = () => {
     } catch {
       addLog("[Error] Could not start server.");
       setStatus("Failed to start server.");
-      setShowFilePathPopup(true); // <-- show popup on catch error
+    }
+  };
+
+  const installServer = async () => {
+    if (installing) return;
+    setInstalling(true);
+    addLog(
+      "[System] Installing Project Zomboid server (this may take several minutes)..."
+    );
+
+    try {
+      const res = await fetch(`${API_BASE}/install-server`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        addLog("[Error] Install failed to start.");
+        alert("❌ Install failed to start.");
+        setInstalling(false);
+        return;
+      }
+
+      const es = new EventSource(`${API_BASE}/install-logs`);
+      es.onmessage = (e) => {
+        addLog(e.data, false);
+        if (e.data.includes("[Install finished]")) {
+          es.close();
+          addLog("[System] Install complete. Auto-starting server...");
+          setInstalling(false);
+          startServerStream();
+        }
+      };
+      es.onerror = () => {
+        addLog("[Error] Lost connection to installer logs.");
+        es.close();
+        setInstalling(false);
+      };
+    } catch (err) {
+      addLog("[Error] Install request failed.");
+      alert("❌ Could not reach backend installer.");
+      setInstalling(false);
     }
   };
 
   const handleCommand = async (cmd: string) => {
-    switch (cmd.toLowerCase()) {
-      case "start":
-        if (isServerRunning) return addLog("[System] Server already running.");
-        await startServerStream();
-        break;
-      case "stop":
-        if (!isServerRunning) return addLog("[System] Server is not running.");
-        if (eventSourceRef.current) eventSourceRef.current.close();
-        try {
-          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-          addLog("[System] Server stopped.");
-          setStatus("Server stopped.");
-          setIsServerRunning(false);
-        } catch {
-          addLog("[Error] Failed to stop server.");
-        }
-        break;
-      case "restart":
-        addLog("[System] Restarting server...");
-        setStatus("Restarting server...");
-        if (eventSourceRef.current) eventSourceRef.current.close();
-        try {
-          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-          addLog("[System] Server shutdown completed.");
-        } catch {
-          addLog("[Error] Restart failed during shutdown.");
-        }
-        setTimeout(startServerStream, 1500);
-        break;
-      case "shutdown":
-        addLog("[System] Shutting down server...");
-        setStatus("Shutting down server...");
-        if (eventSourceRef.current) eventSourceRef.current.close();
-        try {
-          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-          addLog("[System] Server has been shut down.");
-          setStatus("Server has been shut down.");
-          setIsServerRunning(false);
-        } catch {
-          addLog("[Error] Failed to shut down server.");
-        }
-        break;
-      default:
-        addLog(`[Warning] Unknown command: ${cmd}`);
+    const lc = cmd.toLowerCase();
+    if (lc === "start") {
+      if (isServerRunning) return addLog("[System] Server already running.");
+      return startServerStream();
+    }
+    if (lc === "stop") {
+      if (!isServerRunning) return addLog("[System] Server is not running.");
+      if (eventSourceRef.current) eventSourceRef.current.close();
+      try {
+        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
+        addLog("[System] Server stopped.");
+        setStatus("Server stopped.");
+        setIsServerRunning(false);
+      } catch {
+        addLog("[Error] Failed to stop server.");
+      }
+      return;
+    }
+    if (lc === "restart") {
+      addLog("[System] Restarting server...");
+      setStatus("Restarting server...");
+      if (eventSourceRef.current) eventSourceRef.current.close();
+      try {
+        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
+        addLog("[System] Server shutdown completed.");
+      } catch {
+        addLog("[Error] Restart failed during shutdown.");
+      }
+      setTimeout(startServerStream, 1500);
+      return;
+    }
+    if (lc === "shutdown") {
+      addLog("[System] Shutting down server...");
+      setStatus("Shutting down server...");
+      if (eventSourceRef.current) eventSourceRef.current.close();
+      try {
+        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
+        addLog("[System] Server has been shut down.");
+        setStatus("Server has been shut down.");
+        setIsServerRunning(false);
+      } catch {
+        addLog("[Error] Failed to shut down server.");
+      }
+      return;
     }
   };
 
@@ -185,414 +215,79 @@ const Terminal: React.FC = () => {
   );
 
   return (
-    <div className="boxed-container">
-      <div className="terminal-layout">
-        <div className="terminal-wrapper">
-          <header className="terminal-header-box">
-            <div
-              className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}
-            >
-              ● {status}
-            </div>
-            <div className="controls">
-              <button
-                onClick={() => handleCommand("start")}
-                disabled={isServerRunning}
-              >
-                Start
-              </button>
-              <button
-                onClick={() => handleCommand("restart")}
-                disabled={!isServerRunning}
-              >
-                Restart
-              </button>
-              <button
-                onClick={() => handleCommand("stop")}
-                disabled={!isServerRunning}
-              >
-                Stop
-              </button>
-              <button
-                onClick={() => handleCommand("shutdown")}
-                disabled={!isServerRunning}
-              >
-                Shutdown
-              </button>
-              <input
-                className="log-search"
-                type="text"
-                placeholder="Search logs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </header>
-
-          <div className="terminal-logs">
-            {filteredLogs.length ? (
-              filteredLogs.map((log, index) => (
-                <pre key={index} className="terminal-log">
-                  {log}
-                </pre>
-              ))
-            ) : (
-              <p className="terminal-log no-results">No matching logs found.</p>
-            )}
-          </div>
-
-          <form onSubmit={submitCommand} className="command-form">
-            <input
-              type="text"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              placeholder="Type command here..."
-            />
-            <button type="submit">Send</button>
-            <button type="button" onClick={handleClear}>
-              Clear
-            </button>
-            <button type="button" onClick={handleCopyLogs}>
-              Copy Logs
-            </button>
-          </form>
+    <div className="terminal-layout">
+      {/* --- Header --- */}
+      <header className="terminal-header-box">
+        <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>
+          ● {status}
         </div>
+        <div className="controls">
+          <button onClick={installServer} disabled={installing}>
+            {installing ? "Installing..." : "Install Server"}
+          </button>
+          <button
+            onClick={() => handleCommand("start")}
+            disabled={isServerRunning}
+          >
+            Start
+          </button>
+          <button
+            onClick={() => handleCommand("restart")}
+            disabled={!isServerRunning}
+          >
+            Restart
+          </button>
+          <button
+            onClick={() => handleCommand("stop")}
+            disabled={!isServerRunning}
+          >
+            Stop
+          </button>
+          <button
+            onClick={() => handleCommand("shutdown")}
+            disabled={!isServerRunning}
+          >
+            Shutdown
+          </button>
+          <input
+            className="log-search"
+            type="text"
+            placeholder="Search logs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </header>
+
+      {/* --- Logs --- */}
+      <div className="terminal-logs">
+        {filteredLogs.length ? (
+          filteredLogs.map((log, index) => (
+            <pre key={index} className="terminal-log">
+              {log}
+            </pre>
+          ))
+        ) : (
+          <p className="terminal-log no-results">No matching logs found.</p>
+        )}
       </div>
 
-      {/* --- File Path Popup --- */}
-      {showFilePathPopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>⚠ Project Zomboid Files Missing</h2>
-
-            <p>
-              The server cannot start because it cannot locate your Project
-              Zomboid game files.
-            </p>
-
-            <div className="popup-section">
-              <h3>For New Users:</h3>
-              <ol>
-                <li>
-                  Ensure you have downloaded Project Zomboid and its server
-                  files.
-                </li>
-                <li>
-                  Verify that the files are placed in a folder accessible by the
-                  server.
-                </li>
-                <li>
-                  Default example path on Linux:
-                  <br />
-                  <strong>/home/user/ProjectZomboidServer/</strong>
-                </li>
-              </ol>
-            </div>
-
-            <div className="popup-section">
-              <h3>For Advanced Users:</h3>
-              <ul>
-                <li>
-                  Check file permissions — the server must have read/write
-                  access.
-                </li>
-                <li>
-                  If using Docker, ensure the host folder is mapped correctly
-                  into the container.
-                </li>
-                <li>
-                  Confirm that the `server.ini` or configuration points to the
-                  correct path.
-                </li>
-                <li>Check server logs for any "file not found" errors.</li>
-              </ul>
-            </div>
-
-            <button onClick={() => setShowFilePathPopup(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* --- File Path Popup --- */}
-      {showFilePathPopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>⚠ Project Zomboid Files Missing</h2>
-
-            <p>
-              The server cannot start because it cannot locate your Project
-              Zomboid game files.
-            </p>
-
-            <div className="popup-section">
-              <h3>For New Users:</h3>
-              <ol>
-                <li>
-                  Ensure you have downloaded Project Zomboid and its server
-                  files.
-                </li>
-                <li>
-                  Verify that the files are placed in a folder accessible by the
-                  server.
-                </li>
-                <li>
-                  Default example path on Linux:
-                  <br />
-                  <strong>/home/user/ProjectZomboidServer/</strong>
-                </li>
-              </ol>
-            </div>
-
-            <div className="popup-section">
-              <h3>For Advanced Users:</h3>
-              <ul>
-                <li>
-                  Check file permissions — the server must have read/write
-                  access.
-                </li>
-                <li>
-                  Confirm that the `server.ini` or configuration points to the
-                  correct path.
-                </li>
-                <li>Check server logs for any "file not found" errors.</li>
-              </ul>
-            </div>
-
-            <button onClick={() => setShowFilePathPopup(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* --- File Path Popup --- */}
-      {showFilePathPopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>⚠ Project Zomboid Files Missing</h2>
-
-            <p>
-              The server cannot start because it cannot locate your Project
-              Zomboid game files.
-            </p>
-
-            <div className="popup-section">
-              <h3>For New Users:</h3>
-              <ol>
-                <li>
-                  Ensure you have downloaded SteamCMD for Linux:{" "}
-                  <code>https://developer.valvesoftware.com/wiki/SteamCMD</code>
-                </li>
-                <li>
-                  Open a terminal and navigate to the folder where SteamCMD is
-                  located:
-                </li>
-                <pre>
-                  <code>cd ~/steamcmd</code>
-                </pre>
-                <li>Login anonymously to SteamCMD:</li>
-                <pre>
-                  <code>./steamcmd.sh +login anonymous</code>
-                </pre>
-                <li>
-                  Install the Project Zomboid server files to your desired
-                  folder:
-                </li>
-                <pre>
-                  <code>force_install_dir ~/ProjectZomboidServer/</code>
-                </pre>
-                <pre>
-                  <code>app_update 380870 validate</code>
-                </pre>
-                <li>Exit SteamCMD:</li>
-                <pre>
-                  <code>quit</code>
-                </pre>
-              </ol>
-            </div>
-
-            <div className="popup-section">
-              <h3>For Advanced Users:</h3>
-              <ul>
-                <li>
-                  Ensure the server folder has proper read/write permissions:{" "}
-                  <code>chmod -R 755 ~/ProjectZomboidServer/</code>
-                </li>
-                <li>
-                  Verify that your `server.ini` configuration points to the
-                  correct installation path.
-                </li>
-                <li>Check server logs for any "file not found" errors.</li>
-              </ul>
-            </div>
-
-            <button onClick={() => setShowFilePathPopup(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* --- Project Zomboid Files Missing Popup --- */}
-      {showFilePathPopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>⚠ Project Zomboid Files Missing</h2>
-
-            <p>
-              Your server cannot start because it cannot find the Project
-              Zomboid game files. Please follow the instructions below to
-              install them on Linux.
-            </p>
-
-            <div className="popup-section">
-              <h3>💡 For New Users</h3>
-              <p>Use SteamCMD to download and install the server files:</p>
-              <ol>
-                <li>
-                  Download SteamCMD:{" "}
-                  <a
-                    href="https://developer.valvesoftware.com/wiki/SteamCMD"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    SteamCMD Linux
-                  </a>
-                </li>
-                <li>
-                  Open a terminal and navigate to SteamCMD folder:
-                  <pre>
-                    <code>cd ~/steamcmd</code>
-                  </pre>
-                </li>
-                <li>
-                  Login anonymously:
-                  <pre>
-                    <code>./steamcmd.sh +login anonymous</code>
-                  </pre>
-                </li>
-                <li>
-                  Set install directory:
-                  <pre>
-                    <code>force_install_dir ~/ProjectZomboidServer/</code>
-                  </pre>
-                </li>
-                <li>
-                  Download server files:
-                  <pre>
-                    <code>app_update 380870 validate</code>
-                  </pre>
-                </li>
-                <li>
-                  Exit SteamCMD:
-                  <pre>
-                    <code>quit</code>
-                  </pre>
-                </li>
-              </ol>
-            </div>
-
-            <div className="popup-section">
-              <h3>⚙ For Advanced Users</h3>
-              <ul>
-                <li>
-                  Ensure the server folder has proper permissions:
-                  <pre>
-                    <code>chmod -R 755 ~/ProjectZomboidServer/</code>
-                  </pre>
-                </li>
-                <li>
-                  Double-check your <code>server.ini</code> configuration points
-                  to the correct path.
-                </li>
-                <li>
-                  Check logs for missing file errors and ensure the install path
-                  is consistent.
-                </li>
-              </ul>
-            </div>
-
-            <button onClick={() => setShowFilePathPopup(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* --- Project Zomboid Files Missing Popup --- */}
-      {showFilePathPopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>⚠ Project Zomboid Files Missing</h2>
-
-            <p>
-              this popup only means that Modix cannot locate your Project
-              Zomboid server files at the path it expects. Nothing else is
-              broken yet; the server just won’t start until the files exist in
-              the correct location.
-            </p>
-
-            <div className="popup-section">
-              <h3>💡 For New Users</h3>
-              <p>Use SteamCMD to download and install the server files:</p>
-              <ol>
-                <li>
-                  Download SteamCMD:{" "}
-                  <a
-                    href="https://developer.valvesoftware.com/wiki/SteamCMD"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    SteamCMD Linux
-                  </a>
-                </li>
-                <li>
-                  Open a terminal and navigate to SteamCMD folder:
-                  <pre>
-                    <code>cd ~/steamcmd</code>
-                  </pre>
-                </li>
-                <li>
-                  Login anonymously:
-                  <pre>
-                    <code>./steamcmd.sh +login anonymous</code>
-                  </pre>
-                </li>
-                <li>
-                  Set install directory:
-                  <pre>
-                    <code>force_install_dir ~/ProjectZomboidServer/</code>
-                  </pre>
-                </li>
-                <li>
-                  Download server files:
-                  <pre>
-                    <code>app_update 380870 validate</code>
-                  </pre>
-                </li>
-                <li>
-                  Exit SteamCMD:
-                  <pre>
-                    <code>quit</code>
-                  </pre>
-                </li>
-              </ol>
-            </div>
-
-            <div className="popup-section">
-              <h3>⚙ For Advanced Users</h3>
-              <ul>
-                <li>
-                  Ensure the server folder has proper permissions:
-                  <pre>
-                    <code>chmod -R 755 ~/ProjectZomboidServer/</code>
-                  </pre>
-                </li>
-                <li>
-                  Double-check your <code>server.ini</code> configuration points
-                  to the correct path.
-                </li>
-                <li>
-                  Check logs for missing file errors and ensure the install path
-                  is consistent.
-                </li>
-              </ul>
-            </div>
-
-            <button onClick={() => setShowFilePathPopup(false)}>Close</button>
-          </div>
-        </div>
-      )}
+      {/* --- Command Input --- */}
+      <form onSubmit={submitCommand} className="command-form">
+        <input
+          type="text"
+          value={command}
+          onChange={(e) => setCommand(e.target.value)}
+          placeholder="Type command here..."
+        />
+        <button type="submit">Send</button>
+        <button type="button" onClick={handleClear}>
+          Clear
+        </button>
+        <button type="button" onClick={handleCopyLogs}>
+          Copy Logs
+        </button>
+      </form>
     </div>
   );
 };
