@@ -3,7 +3,18 @@ import sys
 import os
 import shutil
 import subprocess
+import platform
+import socket
+import datetime
+import uuid
 from typing import Optional
+
+import psutil
+try:
+    import GPUtil
+except ImportError:
+    GPUtil = None
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -38,7 +49,133 @@ STEAM_WORKSHOP_DIR = os.path.expanduser(
     "~/Zomboid/steamapps/workshop/content/108600"
 )
 
-# === Read mod.info helper ===
+# === SYSTEM INFO ENDPOINT ===
+@app.get("/api/server-info")
+def get_server_info():
+    try:
+        # CPU
+        cpu_model = platform.processor() or "Unknown"
+        cpu_cores = f"{psutil.cpu_count(logical=False)} physical / {psutil.cpu_count(logical=True)} logical"
+        cpu_clock = f"{psutil.cpu_freq().current:.2f} MHz" if psutil.cpu_freq() else "Unknown"
+        cpu_arch = platform.machine()
+        cpu_flags = " | ".join(platform.uname())
+
+        # Memory
+        mem = psutil.virtual_memory()
+        swap = psutil.swap_memory()
+
+        # Disk
+        disk_total = psutil.disk_usage("/").total // (1024**3)
+        disk_root = psutil.disk_usage("/").used // (1024**3)
+        data_path = "/data"
+        disk_data = psutil.disk_usage(data_path).used // (1024**3) if os.path.exists(data_path) else 0
+
+        # Network
+        hostname = socket.gethostname()
+        primary_ip = socket.gethostbyname(hostname)
+        public_ip = "N/A"  # can be filled with external API if needed
+        interfaces = psutil.net_if_addrs()
+        primary_iface = list(interfaces.keys())[0] if interfaces else "Unknown"
+        net_io = psutil.net_io_counters()
+        rx_tx = f"RX: {net_io.bytes_recv // (1024**2)} MB / TX: {net_io.bytes_sent // (1024**2)} MB"
+
+        # OS
+        os_name = platform.system()
+        platform_info = platform.platform()
+        kernel = platform.release()
+        uptime_seconds = int(datetime.datetime.now().timestamp() - psutil.boot_time())
+        uptime = str(datetime.timedelta(seconds=uptime_seconds))
+
+        # Docker
+        running_in_docker = os.path.exists("/.dockerenv")
+        container_id = uuid.uuid4().hex[:12] if running_in_docker else "N/A"
+
+        # Modix placeholder
+        modix = {
+            "version": "1.0.0",
+            "gitCommit": "abcdef123",
+            "buildTime": datetime.datetime.now().isoformat(),
+            "environment": "production",
+            "apiPort": "2010",
+            "frontendPort": "3000",
+        }
+
+        # GPU
+        if GPUtil:
+            gpus = GPUtil.getGPUs()
+        else:
+            gpus = []
+        if gpus:
+            gpu = {
+                "model": gpus[0].name,
+                "driver": gpus[0].driver,
+                "vram": f"{gpus[0].memoryTotal} MB",
+                "cuda": gpus[0].uuid,
+            }
+        else:
+            gpu = {
+                "model": "N/A",
+                "driver": "N/A",
+                "vram": "N/A",
+                "cuda": "N/A",
+            }
+
+        # Extra
+        extra = {
+            "timezone": datetime.datetime.now().astimezone().tzname(),
+            "locale": os.getenv("LANG", "en_US"),
+            "shell": os.getenv("SHELL", "N/A"),
+            "python": platform.python_version(),
+            "nodejs": "Unknown",  # cannot detect Node.js from backend
+        }
+
+        return {
+            "cpu": {
+                "model": cpu_model,
+                "cores": cpu_cores,
+                "clockSpeed": cpu_clock,
+                "architecture": cpu_arch,
+                "flags": cpu_flags,
+            },
+            "memory": {
+                "total": f"{mem.total // (1024**3)} GB",
+                "used": f"{mem.used // (1024**3)} GB",
+                "swapTotal": f"{swap.total // (1024**3)} GB",
+                "swapUsed": f"{swap.used // (1024**3)} GB",
+            },
+            "disk": {
+                "total": f"{disk_total} GB",
+                "root": f"{disk_root} GB",
+                "data": f"{disk_data} GB",
+            },
+            "network": {
+                "primaryIP": primary_ip,
+                "publicIP": public_ip,
+                "interface": primary_iface,
+                "rxTx": rx_tx,
+            },
+            "os": {
+                "os": os_name,
+                "platform": platform_info,
+                "kernel": kernel,
+                "uptime": uptime,
+                "hostname": hostname,
+            },
+            "docker": {
+                "runningInDocker": str(running_in_docker),
+                "containerID": container_id,
+                "image": "N/A",
+                "volumes": "N/A",
+            },
+            "modix": modix,
+            "gpu": gpu,
+            "extra": extra,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# === Existing MODS routes ===
 def read_mod_name_from_info(mod_dir: str) -> str:
     info_file = os.path.join(mod_dir, "mod.info")
     if os.path.isfile(info_file):
@@ -65,7 +202,6 @@ def read_mod_name_from_info(mod_dir: str) -> str:
                         pass
     return os.path.basename(mod_dir)
 
-# === GET mods list ===
 @app.get("/api/mods")
 def list_mods():
     if not os.path.exists(STEAM_WORKSHOP_DIR):
@@ -85,12 +221,11 @@ def list_mods():
                 "name": mod_name,
                 "path": os.path.abspath(entry.path),
                 "poster": f"/api/mods/{entry.name}/poster" if poster_path else None,
-                "enabled": True  # TODO: read from config if needed
+                "enabled": True
             })
 
     return {"mods": mods}
 
-# === Serve poster.png ===
 @app.get("/api/mods/{mod_id}/poster")
 def get_mod_poster(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
@@ -101,17 +236,13 @@ def get_mod_poster(mod_id: str):
             return FileResponse(os.path.join(root, "poster.png"))
     raise HTTPException(status_code=404, detail="Poster not found.")
 
-# === Toggle mod enabled/disabled ===
 @app.post("/api/mods/{mod_id}/toggle")
 def toggle_mod(mod_id: str):
-    # This is placeholder logic — replace with actual persistent config toggle
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
     if not os.path.exists(mod_path):
         raise HTTPException(status_code=404, detail="Mod not found.")
-    # Here you’d normally update a config file or DB
     return {"status": "ok", "message": f"Mod {mod_id} toggled"}
 
-# === Delete mod folder ===
 @app.delete("/api/mods/{mod_id}")
 def delete_mod(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
@@ -123,7 +254,6 @@ def delete_mod(mod_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# === Open mod folder in OS file explorer ===
 @app.post("/api/mods/open")
 def open_mod_folder(data: dict):
     path: Optional[str] = data.get("path")

@@ -181,7 +181,7 @@ const Performance = () => {
 
   useEffect(() => {
     // Replace with your real backend API URL
-    fetch("http://localhost:8000/api/server-info")
+    fetch("http://localhost:2010/api/server-info")
       .then(async (res) => {
         if (!res.ok) throw new Error(`API error: ${res.statusText}`);
         const json = await res.json();
