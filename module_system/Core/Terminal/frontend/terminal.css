@@ -1,8 +1,8 @@
 /* --- Wrapper for Sidebar + Terminal --- */
 .terminal-wrapper {
-  display: flex;
+  display: flex; /* ✅ fix: was display: fixed */
   flex: 1;
-  width: 100vw;
+  width: 100vw; /* ✅ 1111vw was making everything huge */
   height: 100vh;
   margin: 0;
   padding: 0;
@@ -67,7 +67,7 @@
 /* Header */
 .terminal-header-box {
   display: flex;
-  flex-wrap: wrap; /* responsive compactness */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   background: #181818;
@@ -85,6 +85,7 @@
 .status.running {
   color: #4caf50;
 }
+
 .status.stopped {
   color: #f44336;
 }
@@ -129,7 +130,7 @@
 
 /* Logs */
 .terminal-logs {
-  max-height: 320px; /* compact but scrollable */
+  max-height: 320px;
   background: #0f0f0f;
   padding: 10px;
   overflow-y: auto;
@@ -140,6 +141,37 @@
 
 .terminal-log {
   margin: 1px 0;
+  font-family: "JetBrains Mono", monospace;
+  white-space: pre-wrap;
+}
+
+/* Colour-coded spans inside log lines */
+.log-default {
+  color: #dddddd;
+}
+
+.log-timestamp {
+  color: #888888;
+}
+
+.log-command {
+  color: #4fc3f7;
+  font-weight: 600;
+}
+
+.log-system {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.log-install {
+  color: #ffb74d;
+  font-style: italic;
+}
+
+.log-error {
+  color: #ffeb3b;
+  font-weight: 700;
 }
 
 .terminal-log.no-results {
@@ -208,4 +240,42 @@
   max-height: 75vh;
   overflow-y: auto;
   border: 1px solid #2c2c2c;
+}
+/* Tabs container: force row layout */
+.terminal-tabs {
+  display: flex;
+  flex-direction: row; /* force horizontal */
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  background: #1b1b1b;
+  border-bottom: 2px solid #2a2a2a;
+}
+
+/* Tab buttons: no gaps, look professional */
+.tab-btn {
+  flex: 1; /* each tab same width */
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0; /* square edges so they connect */
+  background: #2a2a2a;
+  color: #ccc;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.tab-btn:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+/* Active tab highlight */
+.tab-btn.active {
+  background: #01891c;
+  color: #fff;
+  font-weight: 600;
 }
