@@ -395,12 +395,7 @@ export default function DashboardLayout({ children }) {
                   alt="Modix Logo"
                   className="sidebar-logo"
                   src="https://i.ibb.co/cMPwcn8/logo.png"
-                  draggable={false}
-                  loading="lazy"
-                  width={32}
-                  height={32}
-                  decoding="async"
-                  fetchpriority="low"
+                  fetchPriority="high" // ✅ correct
                 />
                 {sidebarOpen && (
                   <span className="sidebar-title">Modix Game Panel</span>

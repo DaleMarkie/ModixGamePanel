@@ -11,7 +11,9 @@ interface ServerStats {
   uptime?: string;
 }
 
-type TabType = "system" | "server" | "install";
+type TabType = "server" | "system";
+
+const MAX_LOGS = 500;
 
 const Terminal: React.FC = () => {
   const [status, setStatus] = useState("Please start the server");
@@ -20,40 +22,64 @@ const Terminal: React.FC = () => {
     return saved
       ? JSON.parse(saved)
       : {
-          system: ["[System] System terminal ready."],
           server: ["[System] Server terminal ready."],
-          install: ["[System] Installer terminal ready."],
+          system: ["[System] System terminal ready."],
         };
   });
-  const [activeTab, setActiveTab] = useState<TabType>("system");
+  const [activeTab, setActiveTab] = useState<TabType>("server");
   const [command, setCommand] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [isServerRunning, setIsServerRunning] = useState(false);
-  const [installing, setInstalling] = useState(false);
-  const [serverCrashed, setServerCrashed] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // --- Add a log to a tab ---
+  // --- Helpers ---
+  const saveLogs = (updated: Record<TabType, string[]>) => {
+    localStorage.setItem("pz-logs-tabs", JSON.stringify(updated));
+    return updated;
+  };
+
   const addLog = (
     text: string,
-    tab: TabType = "system",
+    tab: TabType = "server",
     includeTimestamp = true
   ) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const formatted = includeTimestamp ? `[${timestamp}] ${text}` : text;
+    const formatted = includeTimestamp
+      ? `[${new Date().toLocaleTimeString()}] ${text}`
+      : text;
 
     setLogsByTab((prev) => {
       const updated = {
         ...prev,
-        [tab]: [...prev[tab], formatted].slice(-500),
+        [tab]: [...prev[tab], formatted].slice(-MAX_LOGS),
       };
-      localStorage.setItem("pz-logs-tabs", JSON.stringify(updated));
-      return updated;
+
+      // Mirror errors from server -> system
+      if (tab === "server" && text.startsWith("[Error]")) {
+        updated.system = [...prev.system, formatted].slice(-MAX_LOGS);
+      }
+
+      return saveLogs(updated);
     });
   };
 
-  // --- Fetch server stats ---
+  const parseLog = (log: string) => {
+    const match = log.match(/^(\[[0-9: ]+[APM]*\])?\s*(\[[^\]]+\])?(.*)$/i);
+    if (!match) return { timestamp: "", tag: "", rest: log };
+    const [, timestamp, tag, rest] = match;
+    return { timestamp: timestamp || "", tag: tag || "", rest: rest || "" };
+  };
+
+  const getTagClass = (tag: string) => {
+    const t = tag.toLowerCase();
+    if (!t) return "log-default";
+    if (t.includes("error")) return "log-error";
+    if (t.includes("system")) return "log-system";
+    if (tag.trim().startsWith(">")) return "log-command";
+    return "log-default";
+  };
+
+  // --- API calls ---
   const fetchStats = async () => {
     try {
       const res = await fetch(`${API_BASE}/server-stats`);
@@ -74,9 +100,9 @@ const Terminal: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // --- Start server and stream logs ---
   const startServerStream = async () => {
-    if (eventSourceRef.current) eventSourceRef.current.close();
+    // Close any existing stream
+    eventSourceRef.current?.close();
 
     setStatus("Starting server...");
     addLog("[System] Starting Project Zomboid server...", "server");
@@ -85,13 +111,21 @@ const Terminal: React.FC = () => {
       const response = await fetch(`${API_BASE}/start-server`, {
         method: "POST",
       });
+
+      // If backend rejected startup
       if (!response.ok) {
-        const errorData = await response.json();
-        addLog(`[Error] ${errorData.error || "Server start failed"}`, "server");
+        const errorData = await response.json().catch(() => ({}));
+        const msg = `[Error] ${
+          errorData.error || errorData.detail || "Could not start server."
+        }`;
+        addLog(msg, "server");
+        addLog(msg, "system");
         setStatus("Failed to start server.");
-        return;
+        setIsServerRunning(false);
+        return; // ❌ don’t attach EventSource
       }
 
+      // ✅ Only create EventSource when server started
       const es = new EventSource(`${API_BASE}/server-logs-stream`);
       eventSourceRef.current = es;
 
@@ -100,9 +134,6 @@ const Terminal: React.FC = () => {
           addLog("[System] Server process finished.", "server");
           setStatus("Server stopped.");
           setIsServerRunning(false);
-          setActiveTab("system");
-          setServerCrashed(true);
-          alert("❌ Server crashed or stopped unexpectedly!");
           es.close();
           eventSourceRef.current = null;
         } else {
@@ -114,187 +145,113 @@ const Terminal: React.FC = () => {
         addLog("[Error] Server stream error or lost.", "server");
         setStatus("Connection lost.");
         setIsServerRunning(false);
-        setActiveTab("system");
-        if (!serverCrashed) {
-          setServerCrashed(true);
-          alert("❌ Server crashed or lost connection!");
-        }
-        if (eventSourceRef.current) eventSourceRef.current.close();
+        eventSourceRef.current?.close();
         eventSourceRef.current = null;
       };
 
       setStatus("Server is running");
       setIsServerRunning(true);
-      setActiveTab("server");
-      setServerCrashed(false);
-    } catch {
-      addLog("[Error] Could not start server.", "server");
+    } catch (err) {
+      const msg = `[Error] Failed to contact backend: ${String(err)}`;
+      addLog(msg, "server");
+      addLog(msg, "system");
       setStatus("Failed to start server.");
     }
   };
 
-  // --- Install server ---
-  const installServer = async () => {
-    if (installing) return;
-    setInstalling(true);
-    addLog(
-      "[System] Installing Project Zomboid server (this may take several minutes)...",
-      "install"
-    );
-
+  const sendBackendCommand = async (cmd: string) => {
     try {
-      const res = await fetch(`${API_BASE}/install-server`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/send-command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: cmd }),
+      });
+
       if (!res.ok) {
-        addLog("[Error] Install failed to start.", "install");
-        alert("❌ Install failed to start.");
-        setInstalling(false);
+        const err = await res.json().catch(() => ({}));
+        addLog(`[Error] ${err.error || "Command failed"}`, "system");
         return;
       }
 
-      const es = new EventSource(`${API_BASE}/install-logs`);
-      es.onmessage = (e) => {
-        addLog(e.data, "install", false);
-        if (e.data.includes("[Install finished]")) {
-          es.close();
-          addLog(
-            "[System] Install complete. Auto-starting server...",
-            "install"
-          );
-          setInstalling(false);
-          startServerStream();
-        }
-      };
-      es.onerror = () => {
-        addLog("[Error] Lost connection to installer logs.", "install");
-        es.close();
-        setInstalling(false);
-      };
-    } catch (err) {
-      addLog("[Error] Install request failed.", "install");
-      alert("❌ Could not reach backend installer.");
-      setInstalling(false);
+      const data = await res.json();
+      if (data.output) addLog(data.output, "system", false);
+    } catch {
+      addLog("[Error] Failed to send command to server.", "system");
     }
   };
 
-  // --- Command handler ---
+  // --- Commands ---
   const handleCommand = async (cmd: string) => {
     const lc = cmd.toLowerCase();
-    if (lc === "start") {
-      if (isServerRunning)
-        return addLog("[System] Server already running.", "system");
-      return startServerStream();
-    }
-    if (lc === "stop") {
-      if (!isServerRunning)
-        return addLog("[System] Server is not running.", "system");
-      if (eventSourceRef.current) eventSourceRef.current.close();
-      try {
-        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-        addLog("[System] Server stopped.", "server");
-        setStatus("Server stopped.");
-        setIsServerRunning(false);
-        setActiveTab("system");
-      } catch {
-        addLog("[Error] Failed to stop server.", "system");
-      }
-      return;
-    }
-    if (lc === "restart") {
-      addLog("[System] Restarting server...", "system");
-      setStatus("Restarting server...");
-      if (eventSourceRef.current) eventSourceRef.current.close();
-      try {
-        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-        addLog("[System] Server shutdown completed.", "system");
-      } catch {
-        addLog("[Error] Restart failed during shutdown.", "system");
-      }
-      setTimeout(startServerStream, 1500);
-      return;
-    }
-    if (lc === "shutdown") {
-      addLog("[System] Shutting down server...", "system");
-      setStatus("Shutting down server...");
-      if (eventSourceRef.current) eventSourceRef.current.close();
-      try {
-        await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-        addLog("[System] Server has been shut down.", "system");
-        setStatus("Server has been shut down.");
-        setIsServerRunning(false);
-        setActiveTab("system");
-      } catch {
-        addLog("[Error] Failed to shut down server.", "system");
-      }
-      return;
+    addLog(`> ${cmd}`, "system", true);
+
+    switch (lc) {
+      case "start":
+        return isServerRunning
+          ? addLog("[System] Server already running.", "system")
+          : startServerStream();
+      case "stop":
+      case "shutdown":
+        if (!isServerRunning)
+          return addLog("[System] Server is not running.", "system");
+        eventSourceRef.current?.close();
+        try {
+          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
+          addLog(`[System] Server ${lc}ped.`, "server");
+          setStatus(`Server ${lc}ped.`);
+          setIsServerRunning(false);
+        } catch {
+          addLog(`[Error] Failed to ${lc} server.`, "system");
+        }
+        return;
+      case "restart":
+        addLog("[System] Restarting server...", "system");
+        setStatus("Restarting server...");
+        eventSourceRef.current?.close();
+        try {
+          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
+          addLog("[System] Server shutdown completed.", "system");
+        } catch {
+          addLog("[Error] Restart failed during shutdown.", "system");
+        }
+        setTimeout(startServerStream, 1500);
+        return;
+      default:
+        return sendBackendCommand(cmd);
     }
   };
 
-  // --- Submit command from input ---
-  const submitCommand = (e: React.FormEvent<HTMLFormElement>) => {
+  const submitCommand = (e: React.FormEvent) => {
     e.preventDefault();
     if (!command.trim()) return;
-    addLog(`> ${command}`, "system");
     handleCommand(command.trim());
     setCommand("");
   };
 
-  // --- Utility actions ---
   const handleClear = () => {
-    setLogsByTab((prev) => {
-      const updated = { ...prev, [activeTab]: [] };
-      localStorage.setItem("pz-logs-tabs", JSON.stringify(updated));
-      return updated;
-    });
+    setLogsByTab((prev) => saveLogs({ ...prev, [activeTab]: [] }));
   };
 
-  const handleCopyLogs = () => {
+  const handleCopyLogs = () =>
     navigator.clipboard.writeText(logsByTab[activeTab].join("\n")).then(
       () => alert("Logs copied!"),
       () => alert("Failed to copy logs.")
     );
-  };
 
-  // --- Filter logs by search ---
   const filteredLogs = logsByTab[activeTab].filter((log) =>
     log.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- Parse logs into parts ---
-  const parseLog = (log: string) => {
-    const match = log.match(/^(\[[0-9: ]+[APM]*\])?\s*(\[[^\]]+\])?(.*)$/i);
-    if (match) {
-      const [, timestamp, tag, rest] = match;
-      return { timestamp: timestamp || "", tag: tag || "", rest: rest || "" };
-    }
-    return { timestamp: "", tag: "", rest: log };
-  };
-
-  // --- Color classes ---
-  const getTagClass = (tag: string) => {
-    if (!tag) return "log-default";
-    if (tag.toLowerCase().includes("error")) return "log-error";
-    if (tag.toLowerCase().includes("system")) return "log-system";
-    if (tag.toLowerCase().includes("install")) return "log-install";
-    if (tag.trim().startsWith(">")) return "log-command";
-    return "log-default";
-  };
-
+  // --- Render ---
   return (
     <div className="terminal-layout">
-      {/* --- Header --- */}
+      {/* Header */}
       <header className="terminal-header-box">
         <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>
           ● {status}
-          {serverCrashed && <span className="crash-indicator"> ● CRASHED</span>}
         </div>
         <div className="controls">
-          <button onClick={installServer} disabled={installing}>
-            {installing ? "Installing..." : "Install Server"}
-          </button>
-          <button
-            onClick={() => startServerStream()}
-            disabled={isServerRunning}
-          >
+          <button onClick={startServerStream} disabled={isServerRunning}>
             Start
           </button>
           <button
@@ -325,20 +282,20 @@ const Terminal: React.FC = () => {
         </div>
       </header>
 
-      {/* --- Tabs --- */}
+      {/* Tabs */}
       <div className="terminal-tabs">
-        {(["system", "server", "install"] as TabType[]).map((tab) => (
+        {(["system", "server"] as TabType[]).map((tab) => (
           <button
             key={tab}
             className={`tab-btn ${activeTab === tab ? "active" : ""}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)} Logs
+            {tab === "server" ? "Server" : "System"}
           </button>
         ))}
       </div>
 
-      {/* --- Logs --- */}
+      {/* Logs */}
       <div className="terminal-logs">
         {filteredLogs.length ? (
           filteredLogs.map((log, index) => {
@@ -356,7 +313,7 @@ const Terminal: React.FC = () => {
         )}
       </div>
 
-      {/* --- Command Input --- */}
+      {/* Command Input */}
       <form onSubmit={submitCommand} className="command-form">
         <input
           type="text"

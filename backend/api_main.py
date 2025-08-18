@@ -48,11 +48,6 @@ app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
 register_modules(app)
 
-STEAM_WORKSHOP_DIR = os.path.expanduser("~/Zomboid/steamapps/workshop/content/108600")
-STEAMCMD_DIR = os.path.expanduser("~/steamcmd")
-PZ_SERVER_DIR = os.path.expanduser("~/pzserver")
-START_SCRIPT = os.path.join(PZ_SERVER_DIR, "start-server.sh")
-
 # Router for terminal/server endpoints
 router = APIRouter(prefix="/api", tags=["terminal"])
 
@@ -160,86 +155,144 @@ async def install_logs():
 # ==============
 # Server Control
 # ==============
-@router.post("/start-server")
+
+import os
+import subprocess
+import threading
+import datetime
+import shutil
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from queue import Queue
+
+app = FastAPI()
+
+# Allow frontend (React dev server) to call backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Config ---
+PZ_SERVER_DIR = "/home/steam/pzserver"  # adjust to your actual install path
+START_SCRIPT = os.path.join(PZ_SERVER_DIR, "start-server.sh")
+
+server_process: subprocess.Popen | None = None
+server_log_queue: Queue[str] = Queue()
+_server_started_at: float | None = None
+
+
+# --- Helpers ---
+def _enqueue_output(out, queue, stop_token="[Process finished]"):
+    for line in iter(out.readline, ""):
+        queue.put(line.strip())
+    queue.put(stop_token)
+
+
+def _check_java_installed() -> bool:
+    return shutil.which("java") is not None
+
+
+# --- API Routes ---
+@app.post("/api/start-server")
 async def start_server():
-    """
-    Start the PZ server if installed.
-    Frontend will listen on /api/server-logs-stream for live output.
-    """
-    global server_process, _server_started_at
+    global server_process
 
-    if not os.path.exists(START_SCRIPT):
-        return JSONResponse({"error": "Server files missing. Please click Install Server first."}, status_code=400)
-
-    # Only one instance
     if server_process and server_process.poll() is None:
-        return {"message": "Server already running", "pid": server_process.pid}
+        return JSONResponse({"error": "Server already running"}, status_code=400)
 
-    # Ensure script is executable
+    server_log_queue.put("[System] Starting Project Zomboid server...")
+
     try:
-        os.chmod(START_SCRIPT, 0o755)
-    except Exception:
-        pass
+        # Adjust path to your server start script
+        server_process = subprocess.Popen(
+            ["bash", "start-server.sh", "-nosteam"],
+            cwd="/home/steam/pzserver",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+    except Exception as e:
+        msg = f"[Error] Failed to launch process: {str(e)}"
+        server_log_queue.put(msg)
+        return JSONResponse({"error": msg}, status_code=500)
 
-    server_process = subprocess.Popen(
-        ["bash", START_SCRIPT, "-nosteam"],
-        cwd=PZ_SERVER_DIR,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-        universal_newlines=True,
-    )
+    # Background readers for both stdout and stderr
+    threading.Thread(target=enqueue_output, args=(server_process.stdout, "OUT"), daemon=True).start()
+    threading.Thread(target=enqueue_output, args=(server_process.stderr, "ERR"), daemon=True).start()
 
-    _server_started_at = datetime.datetime.now().timestamp()
+    # Wait briefly to check if it died instantly
+    time.sleep(2)
+    if server_process.poll() is not None:
+        exit_code = server_process.returncode
+        server_log_queue.put(f"[Error] Server failed immediately (exit code {exit_code})")
+        return JSONResponse({"error": f"Exit code {exit_code}"}, status_code=500)
 
-    threading.Thread(
-        target=_enqueue_output,
-        args=(server_process.stdout, server_log_queue, "[Process finished]"),
-        daemon=True,
-    ).start()
-
-    return {"message": "Project Zomboid server started", "pid": server_process.pid}
+    server_log_queue.put("[System] Server started successfully")
+    return {"message": "Server started", "pid": server_process.pid}
 
 
-@router.get("/server-logs-stream")
-async def server_logs_stream():
-    """Stream server logs via SSE."""
-    def event_stream():
+@app.get("/api/server-logs-stream")
+async def stream_logs():
+    async def event_generator():
         while True:
             try:
                 line = server_log_queue.get(timeout=1)
                 yield f"data: {line}\n\n"
-                if line == "[Process finished]":
+            except queue.Empty:
+                if server_process and server_process.poll() is not None:
+                    yield "data: [Process finished]\n\n"
                     break
-            except Empty:
-                continue
-
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-@router.post("/shutdown-server")
+@app.post("/api/shutdown-server")
 async def shutdown_server():
-    """Stop the running PZ server process."""
-    global server_process, _server_started_at
-
+    global server_process
     if not server_process or server_process.poll() is not None:
-        return {"message": "No server is running"}
+        return JSONResponse({"error": "Server not running"}, status_code=400)
 
-    # Try graceful first
+    server_log_queue.put("[System] Shutting down server...")
     server_process.terminate()
     try:
         server_process.wait(timeout=10)
     except subprocess.TimeoutExpired:
         server_process.kill()
+        server_log_queue.put("[Error] Forced kill (timeout)")
 
-    server_process = None
-    _server_started_at = None
-    server_log_queue.put("[System] Server shutdown requested")
-    server_log_queue.put("[Process finished]")
-
+    server_log_queue.put("[System] Server stopped")
     return {"message": "Server stopped"}
 
+
+@app.post("/api/send-command")
+async def send_command(cmd: dict):
+    global server_process
+    if not server_process or server_process.poll() is not None:
+        return JSONResponse({"error": "Server not running"}, status_code=400)
+
+    command = cmd.get("command", "")
+    if not command:
+        return JSONResponse({"error": "No command provided"}, status_code=400)
+
+    try:
+        server_process.stdin.write(command + "\n")
+        server_process.stdin.flush()
+        return {"output": f"> {command}"}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/server-stats")
+async def server_stats():
+    # Dummy stats for now — replace with psutil if needed
+    if server_process and server_process.poll() is None:
+        return {"status": "running", "pid": server_process.pid}
+    return {"status": "stopped"}
 
 # =============
 # Server Stats
