@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "predev": "npm run gen-import-map",
+    "dev": "next dev",
     "dev": "concurrently \"next dev\" \"PYTHONPATH=. python backend/api_main.py\"",
     "build": "next build",
     "start": "next start",
