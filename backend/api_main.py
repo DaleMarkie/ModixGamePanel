@@ -16,18 +16,24 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.API.Core.database import init_db, create_base_users_from_config, register_module_permissions
 from backend.API.Core.container_manager_api import router as container_manager_router
 from backend.API.Core.docker_api import router as docker_api_router
-from backend.backend_module_loader import register_modules
 from backend.API.Core.module_api import router as module_api_router
 from backend.API.Core.auth import auth_router
+from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api import router as projectzomboid_terminal_router
+
+from backend.backend_module_loader import register_modules
 
 app = FastAPI()
 
+# Core routers
 app.include_router(docker_api_router, prefix="/api")
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
+app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
+
 register_modules(app)
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,11 +42,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# === Project Zomboid Mods ===
 STEAM_WORKSHOP_DIR = os.path.expanduser(
     "~/Zomboid/steamapps/workshop/content/108600"
 )
 
-# === Read mod.info helper ===
 def read_mod_name_from_info(mod_dir: str) -> str:
     info_file = os.path.join(mod_dir, "mod.info")
     if os.path.isfile(info_file):
@@ -67,7 +73,6 @@ def read_mod_name_from_info(mod_dir: str) -> str:
                         pass
     return os.path.basename(mod_dir)
 
-# === GET mods list ===
 @app.get("/api/mods")
 def list_mods():
     if not os.path.exists(STEAM_WORKSHOP_DIR):
@@ -87,13 +92,11 @@ def list_mods():
                 "name": mod_name,
                 "path": os.path.abspath(entry.path),
                 "poster": f"/api/mods/{entry.name}/poster" if poster_path else None,
-                "enabled": True,  # TODO: read from config if needed
+                "enabled": True,
             })
 
     return {"mods": mods}
 
-
-# === Serve poster.png ===
 @app.get("/api/mods/{mod_id}/poster")
 def get_mod_poster(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
@@ -104,17 +107,13 @@ def get_mod_poster(mod_id: str):
             return FileResponse(os.path.join(root, "poster.png"))
     raise HTTPException(status_code=404, detail="Poster not found.")
 
-# === Toggle mod enabled/disabled ===
 @app.post("/api/mods/{mod_id}/toggle")
 def toggle_mod(mod_id: str):
-    # This is placeholder logic — replace with actual persistent config toggle
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
     if not os.path.exists(mod_path):
         raise HTTPException(status_code=404, detail="Mod not found.")
-    # Here you’d normally update a config file or DB
     return {"status": "ok", "message": f"Mod {mod_id} toggled"}
 
-# === Delete mod folder ===
 @app.delete("/api/mods/{mod_id}")
 def delete_mod(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
@@ -126,7 +125,6 @@ def delete_mod(mod_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# === Open mod folder in OS file explorer ===
 @app.post("/api/mods/open")
 def open_mod_folder(data: dict):
     path: Optional[str] = data.get("path")
