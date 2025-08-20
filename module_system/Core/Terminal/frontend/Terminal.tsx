@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./terminal.css";
 
-const API_BASE = "http://localhost:2010/api";
+const API_BASE = "http://localhost:2010/api/projectzomboid";
 
 interface ServerStats {
   ramUsed?: number;
@@ -102,7 +102,21 @@ const Terminal: React.FC = () => {
     }
   };
 
+  const testBackend = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/ping`);
+      if (res.ok) {
+        addLog("[System] Backend is online.", "system", false);
+      } else {
+        addLog("[Error] Backend responded but not OK.", "system", false);
+      }
+    } catch {
+      addLog("[Error] Could not reach backend API.", "system", false);
+    }
+  };
+
   useEffect(() => {
+    testBackend(); // 👈 runs once at startup
     fetchStats();
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
