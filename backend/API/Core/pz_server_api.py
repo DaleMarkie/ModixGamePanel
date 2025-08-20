@@ -15,8 +15,10 @@ router = APIRouter(tags=["ProjectZomboid"])
 # Models
 # -------------------------
 class ServerOptions(BaseModel):
-    os: str  # "linux" | "windows" | "chromeos"
+    os: str  # "linux" | "windows" | "chromeos" | "docker"
     customPath: Optional[str] = None
+    useDocker: Optional[bool] = False
+    dockerImage: Optional[str] = "pzserver-image"
 
 class CommandRequest(BaseModel):
     command: str
@@ -36,44 +38,9 @@ GAMEFILES_DIR = os.path.join(PROJECT_ROOT, "backend", "gamefiles", "projectzombo
 START_SCRIPT_LINUX = os.path.join(GAMEFILES_DIR, "start-server.sh")
 START_SCRIPT_WINDOWS = os.path.join(GAMEFILES_DIR, "start-server.bat")
 
-WORKSHOP_DIR_LINUX = os.path.expanduser("~/Zomboid/steamapps/workshop/content/108600")
-WORKSHOP_DIR_WINDOWS = os.path.join(
-    os.getenv("ProgramFiles(x86)", "C:\\Program Files (x86)"),
-    "Steam", "steamapps", "workshop", "content", "108600"
-)
-
 # -------------------------
 # Helpers
 # -------------------------
-def is_chromeos() -> bool:
-    """Detect if running inside ChromeOS Crostini container."""
-    try:
-        return os.path.exists("/dev/.crosvm") or "CROS" in os.uname().release.upper()
-    except Exception:
-        return False
-
-def get_default_script(os_type: str) -> str:
-    if os_type == "windows":
-        return START_SCRIPT_WINDOWS
-    else:  # linux + chromeos
-        return START_SCRIPT_LINUX
-
-def get_workshop_dir(os_type: Optional[str] = None) -> str:
-    """Return the correct workshop dir based on OS type or auto-detect."""
-    if os_type == "windows" or sys.platform == "win32":
-        return WORKSHOP_DIR_WINDOWS
-    if os_type == "chromeos" or (os_type is None and is_chromeos()):
-        candidates = [
-            os.path.expanduser("~/.steam/steam/steamapps/workshop/content/108600"),
-            os.path.expanduser("~/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/workshop/content/108600"),
-            WORKSHOP_DIR_LINUX,  # fallback
-        ]
-        for c in candidates:
-            if os.path.exists(c):
-                return c
-        return WORKSHOP_DIR_LINUX
-    return WORKSHOP_DIR_LINUX
-
 async def enqueue_output(stream, queue):
     loop = asyncio.get_running_loop()
     while True:
@@ -81,6 +48,12 @@ async def enqueue_output(stream, queue):
         if not line:
             break
         await queue.put(line.strip())
+
+def is_chromeos() -> bool:
+    try:
+        return os.path.exists("/dev/.crosvm") or "CROS" in os.uname().release.upper()
+    except Exception:
+        return False
 
 # -------------------------
 # Server Routes
@@ -92,20 +65,29 @@ async def start_server(options: ServerOptions):
     if server_process and server_process.poll() is None:
         return JSONResponse({"error": "Server already running"}, status_code=400)
 
-    # Pick correct startup script depending on OS
-    if options.os == "windows":
-        script = START_SCRIPT_WINDOWS
-        if not os.path.exists(script):
-            return JSONResponse({"error": f"Windows server script not found: {script}"}, status_code=400)
-        cmd = [script]
-    else:  # Linux / ChromeOS
-        script = os.path.join(GAMEFILES_DIR, "ProjectZomboidServer.sh")
-        if not os.path.exists(script):
-            return JSONResponse({"error": f"PZ server script not found: {script}"}, status_code=400)
-        # Call game server directly with -nosteam (important for headless server hosting)
-        cmd = ["bash", script, "-nosteam", "-servername", "MyZomboidServer", "-port", "16261"]
-
     try:
+        if options.useDocker:
+            # Run inside Docker container
+            docker_image = options.dockerImage or "pzserver-image"
+
+            cmd = [
+                "docker", "run", "--rm",
+                "-v", f"{GAMEFILES_DIR}:/pzserver",
+                "-p", "16261:16261/udp", "-p", "16262:16262/udp",
+                "--name", "pzserver",
+                docker_image
+            ]
+        else:
+            # Baremetal script execution
+            script = options.customPath or (START_SCRIPT_WINDOWS if options.os == "windows" else START_SCRIPT_LINUX)
+            if not os.path.exists(script):
+                return JSONResponse({"error": f"Server script not found: {script}"}, status_code=400)
+
+            if options.os == "windows":
+                cmd = [script]
+            else:
+                cmd = ["bash", script]
+
         server_process = subprocess.Popen(
             cmd,
             cwd=GAMEFILES_DIR,
@@ -114,14 +96,13 @@ async def start_server(options: ServerOptions):
             stdin=subprocess.PIPE,
             bufsize=1,
             text=True,
-            shell=(options.os == "windows"),
+            shell=False,
         )
         server_stdin = server_process.stdin
 
-        # Start async log collector
         asyncio.create_task(enqueue_output(server_process.stdout, server_logs))
 
-        return {"status": "starting", "path": script, "cmd": " ".join(cmd), "os": options.os}
+        return {"status": "starting", "mode": "docker" if options.useDocker else "baremetal"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -149,8 +130,11 @@ async def send_command(req: CommandRequest):
         return JSONResponse({"error": "Server not running"}, status_code=400)
 
     try:
-        server_stdin.write(req.command + "\n")
-        server_stdin.flush()
+        if server_stdin:
+            server_stdin.write(req.command + "\n")
+            server_stdin.flush()
+        else:
+            return JSONResponse({"error": "stdin not available (docker?)"}, status_code=400)
         return {"status": "sent", "command": req.command}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -191,30 +175,21 @@ async def server_stats():
         return {"status": "running", "error": str(e)}
 
 # -------------------------
-# SteamCMD
+# SteamCMD (baremetal only)
 # -------------------------
 def detect_steamcmd(os_type: Optional[str] = None) -> Optional[str]:
-    """Detect SteamCMD path depending on OS type or auto-detect."""
     if os_type == "windows" or sys.platform == "win32":
         candidates = [
             shutil.which("steamcmd"),
             r"C:\steamcmd\steamcmd.exe",
             r"C:\Program Files (x86)\Steam\steamcmd.exe",
         ]
-    elif os_type == "chromeos" or (os_type is None and is_chromeos()):
-        candidates = [
-            shutil.which("steamcmd"),
-            os.path.expanduser("~/steamcmd/steamcmd.sh"),
-            "/usr/games/steamcmd",
-            os.path.expanduser("~/.var/app/com.valvesoftware.Steam/data/steamcmd/steamcmd.sh"),  # ChromeOS Flatpak
-        ]
-    else:  # generic linux
+    else:
         candidates = [
             shutil.which("steamcmd"),
             os.path.expanduser("~/steamcmd/steamcmd.sh"),
             "/usr/games/steamcmd",
         ]
-
     for c in candidates:
         if c and os.path.exists(c):
             return c
