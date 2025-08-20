@@ -92,16 +92,20 @@ async def start_server(options: ServerOptions):
     if server_process and server_process.poll() is None:
         return JSONResponse({"error": "Server already running"}, status_code=400)
 
-    script = options.customPath or get_default_script(options.os)
-    if not os.path.exists(script):
-        return JSONResponse({"error": f"Server script not found: {script}"}, status_code=400)
+    # Pick correct startup script depending on OS
+    if options.os == "windows":
+        script = START_SCRIPT_WINDOWS
+        if not os.path.exists(script):
+            return JSONResponse({"error": f"Windows server script not found: {script}"}, status_code=400)
+        cmd = [script]
+    else:  # Linux / ChromeOS
+        script = os.path.join(GAMEFILES_DIR, "ProjectZomboidServer.sh")
+        if not os.path.exists(script):
+            return JSONResponse({"error": f"PZ server script not found: {script}"}, status_code=400)
+        # Call game server directly with -nosteam (important for headless server hosting)
+        cmd = ["bash", script, "-nosteam", "-servername", "MyZomboidServer", "-port", "16261"]
 
     try:
-        if options.os == "windows":
-            cmd = [script]
-        else:  # linux + chromeos
-            cmd = ["bash", script]
-
         server_process = subprocess.Popen(
             cmd,
             cwd=GAMEFILES_DIR,
@@ -114,9 +118,10 @@ async def start_server(options: ServerOptions):
         )
         server_stdin = server_process.stdin
 
+        # Start async log collector
         asyncio.create_task(enqueue_output(server_process.stdout, server_logs))
 
-        return {"status": "starting", "path": script, "os": options.os}
+        return {"status": "starting", "path": script, "cmd": " ".join(cmd), "os": options.os}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 

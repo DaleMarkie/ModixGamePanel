@@ -1,8 +1,6 @@
 # Ensure project root is in sys.path for direct script execution
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import shutil
 import subprocess
 from typing import Optional
@@ -10,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-# Add project root to sys.path
+# === Project root path fix ===
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # === Core Imports ===
@@ -22,10 +20,13 @@ from backend.API.Core.auth import auth_router
 
 # === Game Specific APIs ===
 from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api import router as projectzomboid_terminal_router
-from backend.API.Core.pz_server_api import router as projectzomboid_server_router   # <-- ADD THIS
+from backend.API.Core.pz_server_api import router as projectzomboid_server_router   # server control
 
 from backend.backend_module_loader import register_modules
 
+# ---------------------------
+# FastAPI App
+# ---------------------------
 app = FastAPI()
 
 # === Core Routers ===
@@ -36,7 +37,7 @@ app.include_router(module_api_router, prefix="/api")
 
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
-app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")  # <-- server control
+app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")
 
 register_modules(app)
 
@@ -49,7 +50,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# === Project Zomboid Mods ===
+# ---------------------------
+# Project Zomboid Mods API
+# ---------------------------
 STEAM_WORKSHOP_DIR = os.path.expanduser(
     "~/Zomboid/steamapps/workshop/content/108600"
 )
@@ -99,7 +102,7 @@ def list_mods():
                 "name": mod_name,
                 "path": os.path.abspath(entry.path),
                 "poster": f"/api/mods/{entry.name}/poster" if poster_path else None,
-                "enabled": True,
+                "enabled": True,  # TODO: real enable/disable tracking
             })
 
     return {"mods": mods}
@@ -150,135 +153,18 @@ def open_mod_folder(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-    
-    import sys
-import os
-import shutil
-import subprocess
-from typing import Optional
-from fastapi import APIRouter, HTTPException
-
-router = APIRouter()
-
-# === Game server paths ===
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-GAMEFILES_DIR = os.path.join(PROJECT_ROOT, "backend", "gamefiles", "projectzomboid")
-START_SCRIPT_LINUX = os.path.join(GAMEFILES_DIR, "start-server.sh")
-START_SCRIPT_WINDOWS = os.path.join(GAMEFILES_DIR, "start-server.bat")
-
-# === Steam Workshop Mods ===
-WORKSHOP_DIR_LINUX = os.path.expanduser("~/Zomboid/steamapps/workshop/content/108600")
-WORKSHOP_DIR_WINDOWS = os.path.join(os.getenv("ProgramFiles(x86)", "C:\\Program Files (x86)"),
-                                    "Steam", "steamapps", "workshop", "content", "108600")
-
-def get_workshop_dir() -> str:
-    """Return workshop dir depending on OS."""
-    if sys.platform == "win32":
-        return WORKSHOP_DIR_WINDOWS
-    return WORKSHOP_DIR_LINUX
-
-# === Server process management ===
-server_process: Optional[subprocess.Popen] = None
-
-@router.post("/start")
-def start_server():
-    """Start Project Zomboid server."""
-    global server_process
-    if server_process and server_process.poll() is None:
-        raise HTTPException(status_code=400, detail="Server already running")
-
-    try:
-        if sys.platform.startswith("linux") or sys.platform == "darwin":
-            cmd = ["bash", START_SCRIPT_LINUX]
-        elif sys.platform == "win32":
-            cmd = [START_SCRIPT_WINDOWS]
-        else:
-            raise HTTPException(status_code=500, detail="Unsupported OS")
-
-        server_process = subprocess.Popen(cmd, cwd=GAMEFILES_DIR)
-        return {"status": "ok", "message": "Server starting..."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/stop")
-def stop_server():
-    """Stop Project Zomboid server."""
-    global server_process
-    if not server_process or server_process.poll() is not None:
-        raise HTTPException(status_code=400, detail="Server not running")
-
-    server_process.terminate()
-    server_process.wait(timeout=30)
-    server_process = None
-    return {"status": "ok", "message": "Server stopped"}
-
-
-@router.get("/status")
-def server_status():
-    """Check if server is running."""
-    if server_process and server_process.poll() is None:
-        return {"running": True}
-    return {"running": False}
-
-
-# === SteamCMD Integration ===
-def detect_steamcmd() -> str:
-    """Try to locate steamcmd binary depending on OS."""
-    if sys.platform.startswith("linux") or sys.platform == "darwin":
-        candidates = [
-            shutil.which("steamcmd"),
-            os.path.expanduser("~/steamcmd/steamcmd.sh"),
-            "/usr/games/steamcmd",
-        ]
-    elif sys.platform == "win32":
-        candidates = [
-            shutil.which("steamcmd"),
-            r"C:\steamcmd\steamcmd.exe",
-            r"C:\Program Files (x86)\Steam\steamcmd.exe",
-        ]
-    else:
-        return None
-
-    for c in candidates:
-        if c and os.path.exists(c):
-            return c
-    return None
-
-
-@router.post("/steamcmd-update")
-def steamcmd_update():
-    """Update/install Project Zomboid dedicated server + workshop mods using SteamCMD."""
-    steamcmd_path = detect_steamcmd()
-    if not steamcmd_path:
-        raise HTTPException(status_code=500, detail="SteamCMD not found. Please install it and add to PATH.")
-
-    try:
-        cmd = [
-            steamcmd_path,
-            "+login", "anonymous",
-            "+force_install_dir", GAMEFILES_DIR,
-            "+app_update", "380870", "validate",
-            "+quit",
-        ]
-
-        result = subprocess.run(cmd, cwd=GAMEFILES_DIR, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"SteamCMD failed: {result.stderr}")
-
-        return {"status": "ok", "message": "Project Zomboid server updated", "output": result.stdout}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-
-# === Startup Hooks ===
+# ---------------------------
+# Startup Hooks
+# ---------------------------
 @app.on_event("startup")
 def on_startup():
     init_db()
     create_base_users_from_config()
     register_module_permissions()
 
+# ---------------------------
+# Entrypoint
+# ---------------------------
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
