@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./terminal.css";
 
-const API_BASE = "http://localhost:2010/api/projectzomboid";
-
 interface ServerStats {
   ramUsed?: number;
   ramTotal?: number;
@@ -19,6 +17,18 @@ interface ServerOptions {
 }
 
 const MAX_LOGS = 500;
+
+// --- Helper to resolve API base per selected game ---
+const getApiBase = () => {
+  const selectedGame = localStorage.getItem("selectedGame") || "pz";
+  switch (selectedGame) {
+    case "rimworld":
+      return "http://localhost:2010/api/rimworld";
+    case "pz":
+    default:
+      return "http://localhost:2010/api/projectzomboid";
+  }
+};
 
 const Terminal: React.FC = () => {
   const [status, setStatus] = useState("Please start the server");
@@ -40,7 +50,13 @@ const Terminal: React.FC = () => {
     os: "linux",
     customPath: "",
   });
+  const [selectedGame, setSelectedGame] = useState<string>(
+    localStorage.getItem("selectedGame") || "pz"
+  );
+
   const eventSourceRef = useRef<EventSource | null>(null);
+
+  const API_BASE = getApiBase();
 
   // --- Helpers ---
   const saveLogs = (updated: Record<TabType, string[]>) => {
@@ -106,7 +122,11 @@ const Terminal: React.FC = () => {
     try {
       const res = await fetch(`${API_BASE}/ping`);
       if (res.ok) {
-        addLog("[System] Backend is online.", "system", false);
+        addLog(
+          `[System] Backend for ${selectedGame} is online.`,
+          "system",
+          false
+        );
       } else {
         addLog("[Error] Backend responded but not OK.", "system", false);
       }
@@ -116,23 +136,24 @@ const Terminal: React.FC = () => {
   };
 
   useEffect(() => {
-    testBackend(); // 👈 runs once at startup
+    setSelectedGame(localStorage.getItem("selectedGame") || "pz");
+    testBackend();
     fetchStats();
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [API_BASE]);
 
   const startServerStream = async () => {
     eventSourceRef.current?.close();
 
     setStatus("Starting server...");
-    addLog("[System] Starting Project Zomboid server...", "server");
+    addLog(`[System] Starting ${selectedGame} server...`, "server");
 
     try {
       const response = await fetch(`${API_BASE}/start-server`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(serverOptions), // send options to backend
+        body: JSON.stringify(serverOptions),
       });
 
       if (!response.ok) {
@@ -269,10 +290,9 @@ const Terminal: React.FC = () => {
       {/* Header */}
       <header className="terminal-header-box">
         <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>
-          ● {status}
+          ● {status} <strong>({selectedGame})</strong>
         </div>
         <div className="controls">
-          {/* --- New Options --- */}
           <select
             value={serverOptions.os}
             onChange={(e) =>
