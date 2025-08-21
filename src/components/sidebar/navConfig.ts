@@ -73,14 +73,17 @@ export const navLinks = [
     label: "👥 Player Management",
     href: "/players",
     submenu: [
-      { label: "🧍 Player'ss Online", href: "/playermanager/online" },
-      { label: "🧍 Player's Offlines", href: "/playermanager/offline" },
+      { label: "🧍 All PLayers", href: "/playermanager/online" },
+      { label: "🧍 Online", href: "/playermanager/offline" },
       { label: "🔍 Player Search", href: "/playermanager/search" },
+      { label: "💬 Chat Logs", href: "/discord/logs/chat" },
+      { label: "👥 Player Join/Leave Logs", href: "/discord/logs/player" },
+      
       {
         label: "⛔ Player Records",
         href: "/players/records",
         submenu: [
-          { label: "⛔ Player Bans", href: "/playermanager/bans" },
+          { label: "⛔ Player Banned", href: "/playermanager/bans" },
           { label: "📝 Player Notes", href: "/playermanager/notes" },
           { label: "📊 Player Stats", href: "/playermanager/stats" },
         ],

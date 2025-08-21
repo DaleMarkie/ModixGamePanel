@@ -1,143 +1,250 @@
+/* === Layout & Base === */
 .modmanager-container {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  color: #f5f5f5;
-  background-color: #1e1e1e;
-  min-height: 100vh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #e6e6e6;
+  background: #121212;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #ffcc00;
+/* === Header === */
+.header-panel {
+  background: #1e1e1e;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.mod-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.mod-card {
-  background-color: #2c2c2c;
+.header-center h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 600;
+  color: #fff;
+}
+
+.header-right input {
+  padding: 0.5rem 0.75rem;
   border-radius: 8px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #eee;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.header-right input::placeholder {
+  color: #888;
+}
+
+.header-right input:focus {
+  border-color: #888;
+  background: #333;
+  outline: none;
+}
+
+.header-bottom {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.header-bottom .stat {
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+/* === States === */
+.stat.enabled {
+  background: #16391c;
+  color: #4ade80; /* soft green */
+}
+
+.stat.disabled {
+  background: #3a1a1a;
+  color: #f87171; /* soft red */
+}
+
+/* === Messages === */
+.error-box {
+  background: #2b1d1d;
+  border: 1px solid #703838;
+  color: #fca5a5;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.loading,
+.no-mods {
+  text-align: center;
+  color: #aaa;
+  padding: 1rem;
+}
+
+/* === Section Titles === */
+h2 {
+  font-size: 1.3rem;
+  margin: 1.5rem 0 0.8rem;
+  font-weight: 600;
+  border-left: 4px solid #666;
+  padding-left: 0.5rem;
+  color: #f3f3f3;
+}
+
+/* === Mod List === */
+.mod-list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* === Mod Row === */
+.mod-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #1c1c1c;
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  padding: 0.9rem;
+  transition: transform 0.15s ease, border-color 0.2s;
+}
+
+.mod-row:hover {
+  transform: translateY(-2px);
+  border-color: #444;
+}
+
+.mod-row.enabled {
+  border-left: 5px solid #22c55e; /* green accent */
+}
+
+.mod-row.disabled {
+  border-left: 5px solid #ef4444; /* red accent */
+}
+
+/* === Mod Image === */
+.mod-image {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  padding-bottom: 10px;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.mod-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
-}
-
-.mod-card img {
+.mod-image img {
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .mod-noimage {
-  background-color: #444;
-  color: #bbb;
-  text-align: center;
-  padding: 60px 0;
-  font-size: 14px;
+  font-size: 0.8rem;
+  color: #777;
 }
 
-.mod-card h2 {
-  font-size: 18px;
-  margin: 10px;
+/* === Mod Details === */
+.mod-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.mod-details h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #fff;
 }
 
-.mod-id,
-.mod-path {
-  font-size: 12px;
-  color: #aaa;
-  margin: 0 10px 4px 10px;
-}
-
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 6px 12px;
-  font-size: 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s ease;
-}
-
-.btn-enable {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-enable:hover {
-  background-color: #218838;
-}
-
-.btn-disable {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-disable:hover {
-  background-color: #c82333;
-}
-
-/* Error box styles */
-.error-box {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 20px;
-  background-color: #3b1f1f;
-  border: 1px solid #a33;
-  border-radius: 8px;
-  color: #f5f5f5;
-}
-
-.error-box h2 {
-  color: #ff6666;
-}
-
-.error-box ul {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.error-box code {
-  background-color: #222;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-family: monospace;
-}
-.toolbar-btn {
-  background: #333;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  border: none;
-}
-
-.toolbar-btn:hover {
-  background: #444;
-}
-
-.toolbar-btn input[type="file"] {
-  display: none;
-}
-
-.mods-folder-display {
-  margin-top: 5px;
-  font-size: 0.2em;
+.mod-details p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
   color: #ccc;
+}
+
+.mod-details .mod-path {
+  font-size: 0.8rem;
+  color: #888;
+  word-break: break-all;
+}
+/* === Buttons === */
+button,
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #2a2a2a;
+  color: #eee;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+button:hover,
+.btn:hover {
+  background: #3a3a3a;
+  border-color: #555;
+}
+
+button:active,
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* === Variants === */
+.btn-primary {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1e4fd1;
+  border-color: #163db2;
+}
+
+.btn-danger {
+  background: #dc2626;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  border-color: #991b1b;
+}
+
+.btn-secondary {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+/* Small compact button */
+.btn-small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
 }

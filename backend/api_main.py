@@ -17,6 +17,8 @@ from backend.API.Core.container_manager_api import router as container_manager_r
 from backend.API.Core.docker_api import router as docker_api_router
 from backend.API.Core.module_api import router as module_api_router
 from backend.API.Core.auth import auth_router
+from backend.API.Core.steam_search_player_api import router as steam_search_router
+
 
 # === Game Specific APIs ===
 from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api import router as projectzomboid_terminal_router
@@ -30,10 +32,13 @@ from backend.backend_module_loader import register_modules
 app = FastAPI()
 
 # === Core Routers ===
+# === Core Routers ===
 app.include_router(docker_api_router, prefix="/api")
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
+app.include_router(steam_search_router, prefix="/api")   # <-- add this
+
 
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
