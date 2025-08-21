@@ -1,4 +1,4 @@
-#!/project/workspace/backend/venv/bin/python
+#!/project/workspace/backend/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
