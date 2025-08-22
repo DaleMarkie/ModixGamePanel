@@ -13,8 +13,8 @@ export const navLinks = [
         href: "/dashboard/profile",
         submenu: [
           { label: "👤 Account Info", href: "/auth/myaccount" },
-          { label: "💳 Billing", href: "/auth/billing" },
-          { label: "🔑 My License", href: "/license" },
+          { label: "💳 Billing", href: "/billing" },
+          { label: "🔑 My License", href: "/auth/License" },
           { label: "⚙️ Settings", href: "/auth/mysettings" },
         ],
       },
@@ -31,7 +31,6 @@ export const navLinks = [
     submenu: [
       { label: "📦 My Mods", href: "/modmanager" },
       { label: "🔥 Workshop", href: "/workshop" },
-      { label: "🆕 Steam Collections", href: "/mods/steamparser" },
 
       {
         label: "🛠️ Mod Tools",
@@ -41,6 +40,7 @@ export const navLinks = [
           { label: "🧪 Mod Debugger", href: "/tools/debugger" },
           { label: "📊 Load Order Editor", href: "/tools/ordereditor" },
           { label: "🛠️ Updates", href: "/modupdater" },
+          { label: "🆕 Steam Parser", href: "/mods/steamparser" },
         ],
       },
     ],

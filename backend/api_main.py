@@ -25,6 +25,9 @@ from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api impor
 from backend.API.Core.pz_server_api import router as projectzomboid_server_router   # server control
 from backend.API.Core.dayz_server_api import router as dayz_server_router
 
+from backend.API.Core.mod_debugger_api import router as mod_debugger_router
+
+
 from backend.backend_module_loader import register_modules
 
 
@@ -39,6 +42,8 @@ app.include_router(auth_router, prefix="/api/auth")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
 app.include_router(steam_search_router, prefix="/api")
+app.include_router(mod_debugger_router, prefix="/api/debugger")
+
 
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")

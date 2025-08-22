@@ -22,50 +22,47 @@ interface ModInfo {
 
 type ModData = Record<string, ModInfo>;
 
-const TAGS = [
-  { key: "", label: "All", emoji: "📦" },
-  { key: "broken", label: "Broken", emoji: "🔴" },
-  { key: "fixed", label: "Fixed", emoji: "🟢" },
-  { key: "needs_update", label: "Needs Update", emoji: "🟡" },
-  { key: "incompatible", label: "Incompatible", emoji: "🟣" },
-];
-
-const PRIORITIES = [
-  { key: "", label: "All" },
-  { key: "Low", label: "Low" },
-  { key: "Medium", label: "Medium" },
-  { key: "High", label: "High" },
-  { key: "Critical", label: "Critical" },
-];
-
 export default function DebuggerPage() {
-  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [activeServer, setActiveServer] = useState<string | null>(null);
   const [mods, setMods] = useState<ModData>({});
   const [statusFilter, setStatusFilter] = useState<ModStatus | "">("");
   const [priorityFilter, setPriorityFilter] = useState<ModPriority | "">("");
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
-  const [newModName, setNewModName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load selected game from localStorage
+  // Collapsibles
+  const [showMods, setShowMods] = useState(true);
+  const [showLogs, setShowLogs] = useState(true);
+  const [showNotes, setShowNotes] = useState(true);
+
+  // Detect active server
   useEffect(() => {
-    const stored = localStorage.getItem("selectedGame");
-    if (stored) setSelectedGame(stored);
+    async function fetchActiveServer() {
+      try {
+        setError(null);
+        const res = await fetch("/api/active-server");
+        if (!res.ok) throw new Error("Failed to fetch active server");
+        const data = await res.json();
+        setActiveServer(data.server || null);
+      } catch (err: any) {
+        setError(err.message || "Unknown error fetching active server");
+      }
+    }
+    fetchActiveServer();
   }, []);
 
-  // Load mods for selected game
+  // Load mods when server is active
   useEffect(() => {
-    if (!selectedGame) {
+    if (!activeServer) {
       setMods({});
       return;
     }
-
     async function fetchMods() {
       try {
         setError(null);
         setLoading(true);
-        const res = await fetch(`/api/games/${selectedGame}/mods`);
+        const res = await fetch(`/api/servers/${activeServer}/mods`);
         if (!res.ok) throw new Error("Failed to fetch mods");
         const data: ModData = await res.json();
         setMods(data);
@@ -77,65 +74,62 @@ export default function DebuggerPage() {
       }
     }
     fetchMods();
-  }, [selectedGame]);
+  }, [activeServer]);
 
-  // Update mod status
+  // Update mod status quickly
   async function updateModStatus(modName: string, newStatus: ModStatus) {
-    if (!selectedGame) return;
+    if (!activeServer) return;
     try {
-      const mod = mods[modName];
-      const updatedMod = { ...mod, status: newStatus };
-      const res = await fetch(
-        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}`,
+      const updated = { ...mods[modName], status: newStatus };
+      await fetch(
+        `/api/servers/${activeServer}/mods/${encodeURIComponent(modName)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedMod),
+          body: JSON.stringify(updated),
         }
       );
-      if (!res.ok) throw new Error("Failed to update mod status");
-      setMods((prev) => ({ ...prev, [modName]: updatedMod }));
-    } catch (err: any) {
-      alert(err.message || "Error updating mod status");
+      setMods((prev) => ({ ...prev, [modName]: updated }));
+    } catch {
+      alert("Error updating mod status");
     }
   }
 
   // Update mod priority
   async function updateModPriority(modName: string, newPriority: ModPriority) {
-    if (!selectedGame) return;
+    if (!activeServer) return;
     try {
-      const mod = mods[modName];
-      const updatedMod = { ...mod, priority: newPriority };
-      const res = await fetch(
-        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}`,
+      const updated = { ...mods[modName], priority: newPriority };
+      await fetch(
+        `/api/servers/${activeServer}/mods/${encodeURIComponent(modName)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedMod),
+          body: JSON.stringify(updated),
         }
       );
-      if (!res.ok) throw new Error("Failed to update mod priority");
-      setMods((prev) => ({ ...prev, [modName]: updatedMod }));
-    } catch (err: any) {
-      alert(err.message || "Error updating mod priority");
+      setMods((prev) => ({ ...prev, [modName]: updated }));
+    } catch {
+      alert("Error updating mod priority");
     }
   }
 
-  // Add note
+  // Add a quick note
   async function addNote(modName: string) {
     const text = noteInputs[modName]?.trim();
-    if (!text || !selectedGame) return;
+    if (!text || !activeServer) return;
     try {
-      const newNote = { text, author: "Staff" };
       const res = await fetch(
-        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}/notes`,
+        `/api/servers/${activeServer}/mods/${encodeURIComponent(
+          modName
+        )}/notes`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newNote),
+          body: JSON.stringify({ text, author: "Staff" }),
         }
       );
-      if (!res.ok) throw new Error("Failed to add note");
+      if (!res.ok) throw new Error();
       const savedNote: Note = await res.json();
       setMods((prev) => ({
         ...prev,
@@ -145,56 +139,8 @@ export default function DebuggerPage() {
         },
       }));
       setNoteInputs((prev) => ({ ...prev, [modName]: "" }));
-    } catch (err: any) {
-      alert(err.message || "Error adding note");
-    }
-  }
-
-  // Delete note
-  async function deleteNote(modName: string, noteId: number) {
-    if (!selectedGame) return;
-    try {
-      const res = await fetch(
-        `/api/games/${selectedGame}/mods/${encodeURIComponent(
-          modName
-        )}/notes/${noteId}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("Failed to delete note");
-      setMods((prev) => ({
-        ...prev,
-        [modName]: {
-          ...prev[modName],
-          notes: prev[modName].notes.filter((n) => n.id !== noteId),
-        },
-      }));
-    } catch (err: any) {
-      alert(err.message || "Error deleting note");
-    }
-  }
-
-  // Add new mod
-  async function handleAddMod() {
-    const mod = newModName.trim();
-    if (!mod || mods[mod]) return;
-    if (!selectedGame) return;
-    try {
-      const newMod: ModInfo = {
-        status: "broken",
-        priority: "Medium",
-        log: "Newly added mod — please review.",
-        notes: [],
-      };
-      const res = await fetch(`/api/games/${selectedGame}/mods`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modName: mod, modInfo: newMod }),
-      });
-      if (!res.ok) throw new Error("Failed to add mod");
-      setMods((prev) => ({ ...prev, [mod]: newMod }));
-      setNewModName("");
-    } catch (err: any) {
-      alert(err.message || "Error adding mod");
+    } catch {
+      alert("Error adding note");
     }
   }
 
@@ -209,168 +155,187 @@ export default function DebuggerPage() {
     <main className="debugger">
       <header className="debugger-header">
         <h1 className="debugger-title">🛠️ Mod Debugger</h1>
-        {selectedGame ? (
+        {activeServer ? (
           <p className="debugger-subtitle">
-            Currently debugging: <b>{selectedGame.toUpperCase()}</b> server
+            Connected to <b>{activeServer}</b>
           </p>
         ) : (
-          <p className="debugger-subtitle error-message">
-            ❌ No game selected. Go to <b>Games</b> first.
-          </p>
+          <p className="debugger-subtitle">⚠️ No active server running.</p>
         )}
       </header>
 
       {error && <p className="error-message">{error}</p>}
+      {loading && <p>Loading mods...</p>}
 
-      {selectedGame && (
+      {activeServer && (
         <>
-          <div className="debugger-panel">
-            <input
-              type="text"
-              value={newModName}
-              onChange={(e) => setNewModName(e.target.value)}
-              placeholder="Enter new mod name..."
-              className="input-new-mod"
-            />
-            <button
-              className="btn-add-mod"
-              onClick={handleAddMod}
-              disabled={loading}
+          {/* Collapsible Mods */}
+          <section className="debugger-section">
+            <h2
+              className="section-title"
+              onClick={() => setShowMods(!showMods)}
             >
-              ➕ Add Mod
-            </button>
-          </div>
+              {showMods ? "▼" : "▶"} Mods
+            </h2>
+            {showMods && (
+              <>
+                {/* Filters */}
+                <section className="filters">
+                  <label>Status:</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) =>
+                      setStatusFilter(e.target.value as ModStatus | "")
+                    }
+                  >
+                    <option value="">All</option>
+                    <option value="broken">🔴 Broken</option>
+                    <option value="fixed">🟢 Fixed</option>
+                    <option value="needs_update">🟡 Needs Update</option>
+                    <option value="incompatible">🟣 Incompatible</option>
+                  </select>
 
-          <div className="mod-filter-buttons">
-            {TAGS.map((tag) => (
-              <button
-                key={tag.key}
-                className={`filter-button ${
-                  statusFilter === tag.key ? "active" : ""
-                }`}
-                onClick={() => setStatusFilter(tag.key as ModStatus | "")}
-              >
-                {tag.emoji} {tag.label}
-              </button>
-            ))}
-          </div>
+                  <label>Priority:</label>
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) =>
+                      setPriorityFilter(e.target.value as ModPriority | "")
+                    }
+                  >
+                    <option value="">All</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </section>
 
-          <div className="mod-filter-buttons">
-            {PRIORITIES.map((p) => (
-              <button
-                key={p.key}
-                className={`filter-button ${
-                  priorityFilter === p.key ? "active" : ""
-                }`}
-                onClick={() => setPriorityFilter(p.key as ModPriority | "")}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+                {/* Mods List */}
+                <ul className="mod-list">
+                  {filteredMods.length === 0 ? (
+                    <p className="mod-log empty">No mods match filters.</p>
+                  ) : (
+                    filteredMods.map(([mod, info]) => (
+                      <li key={mod} className={`mod-card tag-${info.status}`}>
+                        <div className="mod-card-header">
+                          <h3>{mod}</h3>
+                          <div className="quick-actions">
+                            <button
+                              onClick={() => updateModStatus(mod, "fixed")}
+                            >
+                              🟢 Fixed
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateModStatus(mod, "needs_update")
+                              }
+                            >
+                              🟡 Needs Update
+                            </button>
+                            <button
+                              onClick={() =>
+                                updateModStatus(mod, "incompatible")
+                              }
+                            >
+                              🟣 Incompatible
+                            </button>
+                          </div>
+                        </div>
 
-          {loading ? (
-            <p>Loading mods...</p>
-          ) : filteredMods.length === 0 ? (
-            <p className="mod-log empty">No mods match filters.</p>
-          ) : (
-            <>
-              <h2 className="section-heading">
-                {statusFilter || priorityFilter ? "Filtered Mods" : "All Mods"}
-              </h2>
-              <ul className="mod-list">
-                {filteredMods.map(([mod, info]) => (
-                  <li key={mod} className={`mod-card tag-${info.status}`}>
-                    <div className="mod-card-header">
-                      <h3 className="mod-name">{mod}</h3>
-                      <select
-                        value={info.status}
-                        onChange={(e) =>
-                          updateModStatus(mod, e.target.value as ModStatus)
-                        }
-                        className="mod-tag-select"
-                      >
-                        {TAGS.filter((t) => t.key).map((tag) => (
-                          <option key={tag.key} value={tag.key}>
-                            {tag.emoji} {tag.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        <p className="mod-log">{info.log}</p>
 
-                    <div className="priority-row">
-                      <label className="priority-label">Priority:</label>
-                      <select
-                        value={info.priority}
-                        onChange={(e) =>
-                          updateModPriority(mod, e.target.value as ModPriority)
-                        }
-                        className={`priority-select priority-${info.priority.toLowerCase()}`}
-                      >
-                        {PRIORITIES.filter((p) => p.key).map((p) => (
-                          <option key={p.key} value={p.key}>
-                            {p.label}
-                          </option>
-                        ))}
-                      </select>
-                      <span
-                        className={`priority-badge priority-${info.priority.toLowerCase()}`}
-                      >
-                        {info.priority}
-                      </span>
-                    </div>
+                        <div className="priority-row">
+                          <label>Priority:</label>
+                          <select
+                            value={info.priority}
+                            onChange={(e) =>
+                              updateModPriority(
+                                mod,
+                                e.target.value as ModPriority
+                              )
+                            }
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                          </select>
+                        </div>
 
-                    <p className="mod-log">{info.log}</p>
+                        <div className="notes-section">
+                          <textarea
+                            rows={2}
+                            value={noteInputs[mod] || ""}
+                            onChange={(e) =>
+                              setNoteInputs((prev) => ({
+                                ...prev,
+                                [mod]: e.target.value,
+                              }))
+                            }
+                            placeholder="Add a quick note..."
+                          />
+                          <button onClick={() => addNote(mod)}>Add Note</button>
+                          <div className="notes-list">
+                            {info.notes.length === 0 ? (
+                              <p className="empty">No notes yet.</p>
+                            ) : (
+                              info.notes.map((note) => (
+                                <div key={note.id} className="note-item">
+                                  <p>{note.text}</p>
+                                  <small>
+                                    — {note.author},{" "}
+                                    {new Date(note.date).toLocaleString()}
+                                  </small>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </>
+            )}
+          </section>
 
-                    <div className="notes-section">
-                      <h4>Notes</h4>
-                      <textarea
-                        rows={3}
-                        value={noteInputs[mod] || ""}
-                        onChange={(e) =>
-                          setNoteInputs((prev) => ({
-                            ...prev,
-                            [mod]: e.target.value,
-                          }))
-                        }
-                        placeholder="Add a note..."
-                        className="note-input"
-                      />
-                      <button
-                        onClick={() => addNote(mod)}
-                        className="btn-add-note"
-                        disabled={loading}
-                      >
-                        Add Note
-                      </button>
+          {/* Collapsible Logs */}
+          <section className="debugger-section">
+            <h2
+              className="section-title"
+              onClick={() => setShowLogs(!showLogs)}
+            >
+              {showLogs ? "▼" : "▶"} Logs
+            </h2>
+            {showLogs && (
+              <div className="log-box">
+                <p>[12:01:22] Starting server...</p>
+                <p>[12:01:23] Loading mods...</p>
+                <p>[12:01:24] Mod "Better Zombies" failed to load.</p>
+                <p>[12:01:25] Server running on port 27015.</p>
+              </div>
+            )}
+          </section>
 
-                      <div className="notes-list">
-                        {info.notes.length === 0 ? (
-                          <p className="empty">No notes yet.</p>
-                        ) : (
-                          info.notes.map((note) => (
-                            <div key={note.id} className="note-item">
-                              <p>{note.text}</p>
-                              <small>
-                                — {note.author},{" "}
-                                {new Date(note.date).toLocaleString()}
-                              </small>
-                              <button
-                                onClick={() => deleteNote(mod, note.id)}
-                                className="btn-delete-note"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          {/* Collapsible Notes */}
+          <section className="debugger-section">
+            <h2
+              className="section-title"
+              onClick={() => setShowNotes(!showNotes)}
+            >
+              {showNotes ? "▼" : "▶"} Notes
+            </h2>
+            {showNotes && (
+              <div className="notes-list global-notes">
+                <div className="note-item">
+                  <p>
+                    This is a global note example just to demo collapsibles.
+                  </p>
+                  <small>— System, {new Date().toLocaleString()}</small>
+                </div>
+              </div>
+            )}
+          </section>
         </>
       )}
     </main>
