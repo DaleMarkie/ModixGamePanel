@@ -12,19 +12,33 @@ if (fs.existsSync(requirementsFile)) {
     const venvPath = path.join(backendPath, "venv");
     if (!fs.existsSync(venvPath)) {
       console.log("📦 Creating virtual environment...");
-      execSync("python3 -m venv venv || python -m venv venv", { cwd: backendPath, stdio: "inherit" });
+      execSync("python3 -m venv venv || python -m venv venv", {
+        cwd: backendPath,
+        stdio: "inherit",
+      });
     }
 
     console.log("📥 Installing backend dependencies...");
-    const pip = process.platform === "win32"
-      ? "venv\\Scripts\\pip"
-      : "venv/bin/pip";
-    execSync(`${pip} install -r requirements.txt`, { cwd: backendPath, stdio: "inherit" });
+    const pip =
+      process.platform === "win32" ? "venv\\Scripts\\pip" : "venv/bin/pip";
 
-    // Save python path for later use
-    const pythonPath = process.platform === "win32"
-      ? "backend\\venv\\Scripts\\python"
-      : "backend/venv/bin/python";
+    try {
+      execSync(`${pip} install -r requirements.txt`, {
+        cwd: backendPath,
+        stdio: "inherit",
+      });
+    } catch (err) {
+      console.warn("⚠️ Pip failed, retrying without SSL verify...");
+      execSync(
+        `${pip} install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org -r requirements.txt`,
+        { cwd: backendPath, stdio: "inherit" }
+      );
+    }
+
+    const pythonPath =
+      process.platform === "win32"
+        ? "backend\\venv\\Scripts\\python"
+        : "backend/venv/bin/python";
     fs.writeFileSync(path.join(__dirname, "../.backendrc"), pythonPath);
 
     console.log("✅ Backend setup completed!");

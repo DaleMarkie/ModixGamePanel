@@ -1,4 +1,4 @@
-#!/mnt/c/Users/rhyke/Documents/Modix/modix-panel/venv/bin/python3
+#!/project/workspace/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
