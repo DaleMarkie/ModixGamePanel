@@ -14,15 +14,12 @@ import {
   FaUpload,
   FaTrash,
   FaFolderPlus,
-  FaChevronLeft,
-  FaChevronRight as FaChevronRightIcon,
   FaTimes,
 } from "react-icons/fa";
 import "./filebrowser.css";
 
 function FileNode({ node, level = 0, onFileSelect, selectedFile }) {
   const [open, setOpen] = useState(false);
-
   const isSelected = selectedFile?.path === node.path;
 
   const toggleOpen = () => {
@@ -37,9 +34,7 @@ function FileNode({ node, level = 0, onFileSelect, selectedFile }) {
         style={{ paddingLeft: 12 + level * 16 }}
         onClick={toggleOpen}
         tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") toggleOpen();
-        }}
+        onKeyDown={(e) => e.key === "Enter" && toggleOpen()}
         role="treeitem"
         aria-expanded={node.type === "folder" ? open : undefined}
         aria-selected={isSelected}
@@ -65,8 +60,7 @@ function FileNode({ node, level = 0, onFileSelect, selectedFile }) {
         <span className="node-name">{node.name}</span>
       </div>
       {open &&
-        node.children &&
-        node.children.map((child) => (
+        node.children?.map((child) => (
           <FileNode
             key={child.path}
             node={child}
@@ -79,70 +73,68 @@ function FileNode({ node, level = 0, onFileSelect, selectedFile }) {
   );
 }
 
-// Helper function to escape RegExp special chars
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export default function FileBrowser() {
-  const exampleTree = [
-    {
-      name: "server",
-      type: "folder",
-      path: "/server",
-      children: [
-        { name: "server.ini", type: "file", path: "/server/server.ini" },
-        {
-          name: "mods",
-          type: "folder",
-          path: "/server/mods",
-          children: [
-            { name: "mod1.txt", type: "file", path: "/server/mods/mod1.txt" },
-            { name: "mod2.txt", type: "file", path: "/server/mods/mod2.txt" },
-          ],
-        },
-      ],
-    },
-    { name: "config.lua", type: "file", path: "/config.lua" },
-    { name: "readme.md", type: "file", path: "/readme.md" },
-  ];
-
-  const [treeData, setTreeData] = useState(exampleTree);
+  const [treeData, setTreeData] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState("");
-  const [loadingFile, setLoadingFile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAsc, setSortAsc] = useState(true);
 
-  // Editor search state
   const [editorSearchTerm, setEditorSearchTerm] = useState("");
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [matchIndices, setMatchIndices] = useState([]);
-
   const textareaRef = useRef(null);
   const overlayRef = useRef(null);
 
-  const fetchFileContent = useCallback(async (path) => {
-    setLoadingFile(true);
+  // figure out which game is selected
+  const selectedGame = localStorage.getItem("selectedGame") || "pz";
+  const API_BASE =
+    selectedGame === "rimworld"
+      ? "http://localhost:2010/api/rimworld"
+      : "http://localhost:2010/api/projectzomboid";
+
+  // fetch file tree
+  const fetchTree = useCallback(async () => {
     try {
-      // Assuming your backend API endpoint to get file content looks like this:
-      // You may need to adjust URL & method to your API
-      const response = await fetch(
-        `/api/files/content?path=${encodeURIComponent(path)}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch file content");
-      const data = await response.json(); // assuming JSON { content: "file contents..." }
-      setFileContent(data.content || "// No content for this file.");
+      const response = await fetch(`${API_BASE}/files`);
+      if (!response.ok) throw new Error("Failed to fetch file tree");
+      const data = await response.json();
+      setTreeData(data);
     } catch (error) {
-      console.error("Error loading file:", error);
-      setFileContent("// Error loading file content.");
-    } finally {
-      setLoadingFile(false);
-      setEditorSearchTerm("");
-      setCurrentMatchIndex(0);
-      setMatchIndices([]);
+      console.error("Error loading tree:", error);
+      setTreeData([]);
     }
-  }, []);
+  }, [API_BASE]);
+
+  // fetch file content
+  const fetchFileContent = useCallback(
+    async (path) => {
+      try {
+        const response = await fetch(
+          `${API_BASE}/files/content?path=${encodeURIComponent(path)}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch file content");
+        const data = await response.json();
+        setFileContent(data.content || "// No content for this file.");
+      } catch (error) {
+        console.error("Error loading file:", error);
+        setFileContent("// Error loading file content.");
+      } finally {
+        setEditorSearchTerm("");
+        setCurrentMatchIndex(0);
+        setMatchIndices([]);
+      }
+    },
+    [API_BASE]
+  );
+
+  useEffect(() => {
+    fetchTree();
+  }, [fetchTree]);
 
   useEffect(() => {
     if (selectedFile?.type === "file") {
@@ -155,7 +147,6 @@ export default function FileBrowser() {
     }
   }, [selectedFile, fetchFileContent]);
 
-  // Compute match indices for the editor search
   useEffect(() => {
     if (!editorSearchTerm) {
       setMatchIndices([]);
@@ -163,17 +154,16 @@ export default function FileBrowser() {
       return;
     }
     const regex = new RegExp(escapeRegExp(editorSearchTerm), "gi");
-    let matches = [];
+    const matches = [];
     let match;
     while ((match = regex.exec(fileContent)) !== null) {
       matches.push({ start: match.index, end: regex.lastIndex });
-      if (match.index === regex.lastIndex) regex.lastIndex++; // avoid zero-length loop
+      if (match.index === regex.lastIndex) regex.lastIndex++;
     }
     setMatchIndices(matches);
     setCurrentMatchIndex(matches.length ? 0 : -1);
   }, [editorSearchTerm, fileContent]);
 
-  // Scroll textarea to current match on change
   useEffect(() => {
     if (
       currentMatchIndex >= 0 &&
@@ -181,66 +171,44 @@ export default function FileBrowser() {
       textareaRef.current
     ) {
       const { start } = matchIndices[currentMatchIndex];
-      // Move cursor to start of match
       textareaRef.current.selectionStart = start;
       textareaRef.current.selectionEnd = start + editorSearchTerm.length;
       textareaRef.current.focus();
-      // Scroll to caret position
-      const textarea = textareaRef.current;
-      const linesBefore = fileContent.slice(0, start).split("\n").length - 1;
-      const lineHeight = 20; // approx line height px, adjust if needed
-      textarea.scrollTop = linesBefore * lineHeight;
     }
-  }, [currentMatchIndex, matchIndices, editorSearchTerm, fileContent]);
+  }, [currentMatchIndex, matchIndices, editorSearchTerm]);
 
-  // Highlight matches for overlay, injecting <mark> tags
-  const getHighlightedContent = () => {
-    if (!editorSearchTerm) {
-      return fileContent;
-    }
-    let result = "";
-    let lastIndex = 0;
-    matchIndices.forEach(({ start, end }, idx) => {
-      // Append non-matched part
-      result += escapeHtml(fileContent.slice(lastIndex, start));
-      // Highlight matched part
-      if (idx === currentMatchIndex) {
-        result += `<mark class="current-match">${escapeHtml(
-          fileContent.slice(start, end)
-        )}</mark>`;
-      } else {
-        result += `<mark>${escapeHtml(fileContent.slice(start, end))}</mark>`;
-      }
-      lastIndex = end;
-    });
-    // Append remainder
-    result += escapeHtml(fileContent.slice(lastIndex));
-    return result;
-  };
-
-  // Escape html entities for safe injection
   function escapeHtml(text) {
     return text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+      .replace(/>/g, "&gt;");
   }
 
-  // Filter and sort tree same as before
+  const getHighlightedContent = () => {
+    if (!editorSearchTerm) return escapeHtml(fileContent);
+    let result = "";
+    let lastIndex = 0;
+    matchIndices.forEach(({ start, end }, idx) => {
+      result += escapeHtml(fileContent.slice(lastIndex, start));
+      result += `<mark class="${
+        idx === currentMatchIndex ? "current-match" : ""
+      }">${escapeHtml(fileContent.slice(start, end))}</mark>`;
+      lastIndex = end;
+    });
+    result += escapeHtml(fileContent.slice(lastIndex));
+    return result;
+  };
+
   const filterAndSortTree = (nodes) => {
     if (!nodes) return [];
     let filtered = nodes
       .map((node) => {
         if (node.type === "folder" && node.children) {
           const filteredChildren = filterAndSortTree(node.children);
-          if (filteredChildren.length > 0) {
+          if (filteredChildren.length > 0)
             return { ...node, children: filteredChildren };
-          }
-          if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+          if (node.name.toLowerCase().includes(searchTerm.toLowerCase()))
             return { ...node, children: [] };
-          }
           return null;
         } else {
           return node.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -255,194 +223,29 @@ export default function FileBrowser() {
       if (a.name.toLowerCase() > b.name.toLowerCase()) return sortAsc ? 1 : -1;
       return 0;
     });
-
     return filtered;
   };
 
-  // All other file operations (addNewNode, deleteSelected, handleImport, findNodeAndParent, generateUniqueName)
-  // ... Keep same as your original code
-
-  // We must copy those helper functions here for completeness
-
-  function findNodeAndParent(path, nodes = treeData, parent = null) {
-    for (let i = 0; i < nodes.length; i++) {
-      if (nodes[i].path === path) {
-        return { node: nodes[i], index: i, parent };
-      }
-      if (nodes[i].type === "folder" && nodes[i].children) {
-        const found = findNodeAndParent(path, nodes[i].children, nodes[i]);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  function generateUniqueName(baseName, children, ext = "") {
-    let name = baseName + ext;
-    let counter = 1;
-    const existingNames = children.map((c) => c.name);
-    while (existingNames.includes(name)) {
-      name = `${baseName} (${counter})${ext}`;
-      counter++;
-    }
-    return name;
-  }
-
-  const addNewNode = (type) => {
-    let parentNode = null;
-    if (selectedFile?.type === "folder") {
-      parentNode = selectedFile;
-    } else if (selectedFile?.type === "file") {
-      const found = findNodeAndParent(selectedFile.path);
-      if (found && found.parent) parentNode = found.parent;
-    }
-
-    setTreeData((oldTree) => {
-      const newTree = JSON.parse(JSON.stringify(oldTree)); // deep copy
-
-      const children = parentNode
-        ? (function getChildren() {
-            function findNodeByPath(nodes, path) {
-              for (let node of nodes) {
-                if (node.path === path) return node;
-                if (node.type === "folder" && node.children) {
-                  const res = findNodeByPath(node.children, path);
-                  if (res) return res;
-                }
-              }
-              return null;
-            }
-            const node = findNodeByPath(newTree, parentNode.path);
-            if (!node.children) node.children = [];
-            return node.children;
-          })()
-        : newTree;
-
-      if (type === "file") {
-        const baseName = "newfile";
-        const name = generateUniqueName(baseName, children, ".txt");
-        const newPath = parentNode ? parentNode.path + "/" + name : "/" + name;
-        children.push({ name, type: "file", path: newPath });
-        setSelectedFile({ name, type: "file", path: newPath });
-      } else if (type === "folder") {
-        const baseName = "newfolder";
-        const name = generateUniqueName(baseName, children);
-        const newPath = parentNode ? parentNode.path + "/" + name : "/" + name;
-        children.push({ name, type: "folder", path: newPath, children: [] });
-        setSelectedFile({ name, type: "folder", path: newPath });
-      }
-
-      return newTree;
-    });
-  };
-
-  const deleteSelected = () => {
-    if (!selectedFile) return;
-
-    if (
-      !window.confirm(
-        `Are you sure you want to delete "${selectedFile.name}"? This cannot be undone!`
-      )
-    )
-      return;
-
-    setTreeData((oldTree) => {
-      const newTree = JSON.parse(JSON.stringify(oldTree)); // deep copy
-
-      function removeNode(path, nodes) {
-        for (let i = 0; i < nodes.length; i++) {
-          if (nodes[i].path === path) {
-            nodes.splice(i, 1);
-            return true;
-          }
-          if (nodes[i].type === "folder" && nodes[i].children) {
-            if (removeNode(path, nodes[i].children)) return true;
-          }
-        }
-        return false;
-      }
-
-      removeNode(selectedFile.path, newTree);
-      return newTree;
-    });
-
-    setSelectedFile(null);
-  };
-
-  const handleImport = (e) => {
-    const files = e.target.files;
-    if (!files.length) return;
-
-    let parentNode = null;
-    if (selectedFile?.type === "folder") {
-      parentNode = selectedFile;
-    } else if (selectedFile?.type === "file") {
-      const found = findNodeAndParent(selectedFile.path);
-      if (found && found.parent) parentNode = found.parent;
-    }
-
-    setTreeData((oldTree) => {
-      const newTree = JSON.parse(JSON.stringify(oldTree)); // deep copy
-
-      const children = parentNode
-        ? (function getChildren() {
-            function findNodeByPath(nodes, path) {
-              for (let node of nodes) {
-                if (node.path === path) return node;
-                if (node.type === "folder" && node.children) {
-                  const res = findNodeByPath(node.children, path);
-                  if (res) return res;
-                }
-              }
-              return null;
-            }
-            const node = findNodeByPath(newTree, parentNode.path);
-            if (!node.children) node.children = [];
-            return node.children;
-          })()
-        : newTree;
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const name = generateUniqueName(file.name, children);
-        const newPath = parentNode ? parentNode.path + "/" + name : "/" + name;
-        children.push({ name, type: "file", path: newPath });
-      }
-
-      return newTree;
-    });
-
-    e.target.value = null;
-  };
-
-  const filteredTree = filterAndSortTree(treeData);
-
-  // Save file function (just alert here, you should replace with real save)
   const saveFile = () => {
     alert(
       `Saving file "${selectedFile.name}" with content:\n\n${fileContent.slice(
         0,
         200
-      )}${fileContent.length > 200 ? "..." : ""}`
-    );
-    // TODO: Add real backend save integration here
-  };
-
-  // Move to next match
-  const goToNextMatch = () => {
-    if (matchIndices.length === 0) return;
-    setCurrentMatchIndex((idx) => (idx + 1) % matchIndices.length);
-  };
-
-  // Move to previous match
-  const goToPrevMatch = () => {
-    if (matchIndices.length === 0) return;
-    setCurrentMatchIndex((idx) =>
-      idx === 0 ? matchIndices.length - 1 : idx - 1
+      )}...`
     );
   };
 
-  // Sync scroll of overlay to textarea
+  const goToNextMatch = () =>
+    setCurrentMatchIndex((i) =>
+      matchIndices.length ? (i + 1) % matchIndices.length : i
+    );
+  const goToPrevMatch = () =>
+    setCurrentMatchIndex((i) =>
+      matchIndices.length
+        ? (i - 1 + matchIndices.length) % matchIndices.length
+        : i
+    );
+
   const onScroll = (e) => {
     if (overlayRef.current) {
       overlayRef.current.scrollTop = e.target.scrollTop;
@@ -450,77 +253,25 @@ export default function FileBrowser() {
     }
   };
 
+  const filteredTree = filterAndSortTree(treeData);
+
   return (
     <div className="filemanager-container">
-      <aside className="file-tree" role="tree" aria-label="File manager tree">
+      <aside className="file-tree">
         <header className="file-tree-header">
-          <h2>📁 File Manager</h2>
-
-          <div className="file-tree-buttons">
-            <button
-              onClick={() => addNewNode("file")}
-              title="Create New File"
-              aria-label="Create New File"
-              className="btn"
-            >
-              <FaPlus /> New File
-            </button>
-            <button
-              onClick={() => addNewNode("folder")}
-              title="Create New Folder"
-              aria-label="Create New Folder"
-              className="btn"
-            >
-              <FaFolderPlus /> New Folder
-            </button>
-
-            <label
-              htmlFor="import-file"
-              className="btn btn-import"
-              title="Import File"
-            >
-              <FaUpload /> Import
-            </label>
-            <input
-              type="file"
-              id="import-file"
-              onChange={handleImport}
-              multiple
-              style={{ display: "none" }}
-            />
-
-            <button
-              onClick={deleteSelected}
-              title="Delete Selected"
-              aria-label="Delete Selected"
-              className="btn btn-delete"
-              disabled={!selectedFile}
-            >
-              <FaTrash /> Delete
-            </button>
-          </div>
-
+          <h2>📁 File Manager ({selectedGame})</h2>
           <div className="file-tree-controls">
             <input
-              type="search"
-              aria-label="Search files and folders"
               placeholder="Search files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              spellCheck={false}
             />
-            <button
-              className="btn-sort"
-              title={`Sort files ${sortAsc ? "descending" : "ascending"}`}
-              aria-pressed={sortAsc}
-              onClick={() => setSortAsc(!sortAsc)}
-            >
+            <button onClick={() => setSortAsc(!sortAsc)}>
               {sortAsc ? <FaSortAlphaDown /> : <FaSortAlphaUp />}
             </button>
           </div>
         </header>
-
-        <div className="file-tree-list" role="tree">
+        <div className="file-tree-list">
           {filteredTree.length > 0 ? (
             filteredTree.map((node) => (
               <FileNode
@@ -542,73 +293,40 @@ export default function FileBrowser() {
             <>
               <header className="editor-header">
                 <h3>{selectedFile.name}</h3>
-                <button onClick={saveFile} className="btn btn-save">
-                  Save
-                </button>
+                <button onClick={saveFile}>💾 Save</button>
               </header>
 
               <section className="editor-search-bar">
-                <FaSearch className="search-icon" />
+                <FaSearch />
                 <input
-                  type="search"
-                  aria-label="Search in file"
                   placeholder="Search in file..."
                   value={editorSearchTerm}
                   onChange={(e) => setEditorSearchTerm(e.target.value)}
-                  spellCheck={false}
                 />
-                <button
-                  onClick={goToPrevMatch}
-                  disabled={matchIndices.length === 0}
-                  aria-label="Previous match"
-                  className="btn-nav"
-                >
-                  ◀
-                </button>
-                <button
-                  onClick={goToNextMatch}
-                  disabled={matchIndices.length === 0}
-                  aria-label="Next match"
-                  className="btn-nav"
-                >
-                  ▶
-                </button>
-                <span className="match-counter" aria-live="polite">
+                <button onClick={goToPrevMatch}>◀</button>
+                <button onClick={goToNextMatch}>▶</button>
+                <span>
                   {matchIndices.length > 0
                     ? `${currentMatchIndex + 1} / ${matchIndices.length}`
                     : "0 / 0"}
                 </span>
-                <button
-                  onClick={() => {
-                    setEditorSearchTerm("");
-                    setCurrentMatchIndex(0);
-                    textareaRef.current?.focus();
-                  }}
-                  aria-label="Clear search"
-                  className="btn-clear-search"
-                >
+                <button onClick={() => setEditorSearchTerm("")}>
                   <FaTimes />
                 </button>
               </section>
 
-              <div
-                className="editor-wrapper"
-                aria-label="Code editor with search highlights"
-              >
+              <div className="editor-wrapper">
                 <pre
                   className="editor-overlay"
                   ref={overlayRef}
-                  aria-hidden="true"
                   dangerouslySetInnerHTML={{ __html: getHighlightedContent() }}
                 />
                 <textarea
                   ref={textareaRef}
                   className="editor-textarea"
-                  spellCheck={false}
                   value={fileContent}
                   onChange={(e) => setFileContent(e.target.value)}
                   onScroll={onScroll}
-                  aria-label={`Editing file content: ${selectedFile.name}`}
                 />
               </div>
             </>

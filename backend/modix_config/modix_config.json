@@ -20,7 +20,8 @@
         "terminal_access",
         "modmanager_access",
         "workshop_manage",
-        "modmanager_access"
+        "modmanager_access",
+        "filebrowser_file_view"
       ]
     }
   ],
