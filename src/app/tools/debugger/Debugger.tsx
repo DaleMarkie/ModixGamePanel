@@ -22,11 +22,6 @@ interface ModInfo {
 
 type ModData = Record<string, ModInfo>;
 
-interface Container {
-  id: string;
-  name: string;
-}
-
 const TAGS = [
   { key: "", label: "All", emoji: "📦" },
   { key: "broken", label: "Broken", emoji: "🔴" },
@@ -44,8 +39,7 @@ const PRIORITIES = [
 ];
 
 export default function DebuggerPage() {
-  const [containers, setContainers] = useState<Container[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<string>("");
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [mods, setMods] = useState<ModData>({});
   const [statusFilter, setStatusFilter] = useState<ModStatus | "">("");
   const [priorityFilter, setPriorityFilter] = useState<ModPriority | "">("");
@@ -54,25 +48,15 @@ export default function DebuggerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load containers from API on mount
+  // Load selected game from localStorage
   useEffect(() => {
-    async function fetchContainers() {
-      try {
-        setError(null);
-        const res = await fetch("/api/containers");
-        if (!res.ok) throw new Error("Failed to fetch containers");
-        const data: Container[] = await res.json();
-        setContainers(data);
-      } catch (err: any) {
-        setError(err.message || "Unknown error fetching containers");
-      }
-    }
-    fetchContainers();
+    const stored = localStorage.getItem("selectedGame");
+    if (stored) setSelectedGame(stored);
   }, []);
 
-  // Load mods for selected container
+  // Load mods for selected game
   useEffect(() => {
-    if (!selectedContainer) {
+    if (!selectedGame) {
       setMods({});
       return;
     }
@@ -81,7 +65,7 @@ export default function DebuggerPage() {
       try {
         setError(null);
         setLoading(true);
-        const res = await fetch(`/api/containers/${selectedContainer}/mods`);
+        const res = await fetch(`/api/games/${selectedGame}/mods`);
         if (!res.ok) throw new Error("Failed to fetch mods");
         const data: ModData = await res.json();
         setMods(data);
@@ -93,18 +77,16 @@ export default function DebuggerPage() {
       }
     }
     fetchMods();
-  }, [selectedContainer]);
+  }, [selectedGame]);
 
   // Update mod status
   async function updateModStatus(modName: string, newStatus: ModStatus) {
-    if (!selectedContainer) return;
+    if (!selectedGame) return;
     try {
       const mod = mods[modName];
       const updatedMod = { ...mod, status: newStatus };
       const res = await fetch(
-        `/api/containers/${selectedContainer}/mods/${encodeURIComponent(
-          modName
-        )}`,
+        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -120,14 +102,12 @@ export default function DebuggerPage() {
 
   // Update mod priority
   async function updateModPriority(modName: string, newPriority: ModPriority) {
-    if (!selectedContainer) return;
+    if (!selectedGame) return;
     try {
       const mod = mods[modName];
       const updatedMod = { ...mod, priority: newPriority };
       const res = await fetch(
-        `/api/containers/${selectedContainer}/mods/${encodeURIComponent(
-          modName
-        )}`,
+        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -144,16 +124,11 @@ export default function DebuggerPage() {
   // Add note
   async function addNote(modName: string) {
     const text = noteInputs[modName]?.trim();
-    if (!text || !selectedContainer) return;
+    if (!text || !selectedGame) return;
     try {
-      const newNote = {
-        text,
-        author: "Staff",
-      };
+      const newNote = { text, author: "Staff" };
       const res = await fetch(
-        `/api/containers/${selectedContainer}/mods/${encodeURIComponent(
-          modName
-        )}/notes`,
+        `/api/games/${selectedGame}/mods/${encodeURIComponent(modName)}/notes`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -177,10 +152,10 @@ export default function DebuggerPage() {
 
   // Delete note
   async function deleteNote(modName: string, noteId: number) {
-    if (!selectedContainer) return;
+    if (!selectedGame) return;
     try {
       const res = await fetch(
-        `/api/containers/${selectedContainer}/mods/${encodeURIComponent(
+        `/api/games/${selectedGame}/mods/${encodeURIComponent(
           modName
         )}/notes/${noteId}`,
         { method: "DELETE" }
@@ -202,7 +177,7 @@ export default function DebuggerPage() {
   async function handleAddMod() {
     const mod = newModName.trim();
     if (!mod || mods[mod]) return;
-    if (!selectedContainer) return;
+    if (!selectedGame) return;
     try {
       const newMod: ModInfo = {
         status: "broken",
@@ -210,7 +185,7 @@ export default function DebuggerPage() {
         log: "Newly added mod — please review.",
         notes: [],
       };
-      const res = await fetch(`/api/containers/${selectedContainer}/mods`, {
+      const res = await fetch(`/api/games/${selectedGame}/mods`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ modName: mod, modInfo: newMod }),
@@ -234,35 +209,20 @@ export default function DebuggerPage() {
     <main className="debugger">
       <header className="debugger-header">
         <h1 className="debugger-title">🛠️ Mod Debugger</h1>
-        <p className="debugger-subtitle">
-          Select a container, filter mods by status/priority, add notes, or
-          manually track mods.
-        </p>
+        {selectedGame ? (
+          <p className="debugger-subtitle">
+            Currently debugging: <b>{selectedGame.toUpperCase()}</b> server
+          </p>
+        ) : (
+          <p className="debugger-subtitle error-message">
+            ❌ No game selected. Go to <b>Games</b> first.
+          </p>
+        )}
       </header>
 
       {error && <p className="error-message">{error}</p>}
 
-      <section className="debugger-panel">
-        <label htmlFor="container-select" className="input-label">
-          🎮 Select Container
-        </label>
-        <select
-          id="container-select"
-          value={selectedContainer}
-          onChange={(e) => setSelectedContainer(e.target.value)}
-          className="select-dropdown"
-          disabled={containers.length === 0}
-        >
-          <option value="">-- Choose a server --</option>
-          {containers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      {selectedContainer && (
+      {selectedGame && (
         <>
           <div className="debugger-panel">
             <input

@@ -76,7 +76,7 @@ export const navLinks = [
     href: "/settings",
     submenu: [
       { label: "⚙️ General Settings", href: "/server/serversettings" },
-      { label: "🧑‍⚖️ User Permissions", href: "/server/rbac" },
+      { label: "🧑‍⚖️ User Permissions", href: "/RBAC" },
       { label: "🗄️ Backup Server", href: "/server/backup" },
     ],
   },
