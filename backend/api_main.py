@@ -3,10 +3,11 @@ import sys
 import os
 import shutil
 import subprocess
+import socket
 from typing import Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 # === Project root path fix ===
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,33 +20,32 @@ from backend.API.Core.module_api import router as module_api_router
 from backend.API.Core.auth import auth_router
 from backend.API.Core.steam_search_player_api import router as steam_search_router
 
-
-# === Game Specific APIs ===
+# === Game Specific APIs (raw routers) ===
 from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api import router as projectzomboid_terminal_router
 from backend.API.Core.pz_server_api import router as projectzomboid_server_router   # server control
 from backend.API.Core.dayz_server_api import router as dayz_server_router
 
-
 from backend.backend_module_loader import register_modules
+
 
 # ---------------------------
 # FastAPI App
 # ---------------------------
-app = FastAPI()
+app = FastAPI(title="Game Server Backend")
 
-# === Core Routers ===
 # === Core Routers ===
 app.include_router(docker_api_router, prefix="/api")
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(container_manager_router, prefix="/api")
 app.include_router(module_api_router, prefix="/api")
-app.include_router(steam_search_router, prefix="/api")   # <-- add this
-
+app.include_router(steam_search_router, prefix="/api")
 
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
-app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")
-app.include_router(dayz_server_router, prefix="/api/dayz")
+
+# ⚡️ We will wrap these instead of directly exposing them
+# app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")
+# app.include_router(dayz_server_router, prefix="/api/dayz")
 
 register_modules(app)
 
@@ -58,12 +58,98 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ---------------------------
+# Error Codes
+# ---------------------------
+ERROR_CODES = {
+    "NET_001": "Could not reach backend API",
+    "NET_002": "CORS blocked request",
+    "GAME_001": "Unknown game selected",
+    "GAME_002": "Game files missing or corrupted",
+    "GAME_003": "Server process crashed",
+    "BACKEND_001": "Backend crashed or not responding",
+    "PORT_004": "Port already in use",
+}
+
+def error_response(code: str, http_status: int = 500, detail: Optional[str] = None):
+    """Return a structured JSON error with code + message."""
+    return JSONResponse(
+        status_code=http_status,
+        content={
+            "success": False,
+            "code": code,
+            "message": ERROR_CODES.get(code, "Unknown error"),
+            "detail": detail,
+        },
+    )
+
+
+# ---------------------------
+# Health & Diagnostics Endpoints
+# ---------------------------
+@app.get("/health")
+def health_check():
+    return {"success": True, "status": "ok"}
+
+@app.get("/check-port")
+def check_port(port: int):
+    """Check if a port is already bound on localhost."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        in_use = s.connect_ex(("127.0.0.1", port)) == 0
+    return {"port": port, "inUse": in_use}
+
+
+# ---------------------------
+# Game Server Wrappers
+# ---------------------------
+def check_port_in_use(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+@app.post("/api/projectzomboid/start")
+async def start_pz_server(request: Request):
+    try:
+        data = await request.json()
+        port = data.get("port", 16261)
+
+        # port check
+        if check_port_in_use(port):
+            return error_response("PORT_004", 409, f"Port {port} already in use")
+
+        # call underlying router
+        return await projectzomboid_server_router.routes[0].endpoint(request)
+    except FileNotFoundError as e:
+        return error_response("GAME_002", 404, str(e))
+    except subprocess.SubprocessError as e:
+        return error_response("GAME_003", 500, f"Server crashed: {e}")
+    except Exception as e:
+        return error_response("BACKEND_001", 500, str(e))
+
+@app.post("/api/dayz/start")
+async def start_dayz_server(request: Request):
+    try:
+        data = await request.json()
+        port = data.get("port", 2302)
+
+        # port check
+        if check_port_in_use(port):
+            return error_response("PORT_004", 409, f"Port {port} already in use")
+
+        # call underlying router
+        return await dayz_server_router.routes[0].endpoint(request)
+    except FileNotFoundError as e:
+        return error_response("GAME_002", 404, str(e))
+    except subprocess.SubprocessError as e:
+        return error_response("GAME_003", 500, f"Server crashed: {e}")
+    except Exception as e:
+        return error_response("BACKEND_001", 500, str(e))
+
+
 # ---------------------------
 # Project Zomboid Mods API
 # ---------------------------
-STEAM_WORKSHOP_DIR = os.path.expanduser(
-    "~/Zomboid/steamapps/workshop/content/108600"
-)
+STEAM_WORKSHOP_DIR = os.path.expanduser("~/Zomboid/steamapps/workshop/content/108600")
 
 def read_mod_name_from_info(mod_dir: str) -> str:
     info_file = os.path.join(mod_dir, "mod.info")
@@ -94,7 +180,7 @@ def read_mod_name_from_info(mod_dir: str) -> str:
 @app.get("/api/mods")
 def list_mods():
     if not os.path.exists(STEAM_WORKSHOP_DIR):
-        raise HTTPException(status_code=404, detail="Workshop folder not found.")
+        return error_response("GAME_002", 404, "Workshop folder not found.")
 
     mods = []
     for entry in os.scandir(STEAM_WORKSHOP_DIR):
@@ -110,44 +196,44 @@ def list_mods():
                 "name": mod_name,
                 "path": os.path.abspath(entry.path),
                 "poster": f"/api/mods/{entry.name}/poster" if poster_path else None,
-                "enabled": True,  # TODO: real enable/disable tracking
+                "enabled": True,
             })
 
-    return {"mods": mods}
+    return {"success": True, "mods": mods}
 
 @app.get("/api/mods/{mod_id}/poster")
 def get_mod_poster(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
     if not os.path.exists(mod_path):
-        raise HTTPException(status_code=404, detail="Mod not found.")
+        return error_response("GAME_002", 404, "Mod not found.")
     for root, _, files in os.walk(mod_path):
         if "poster.png" in files:
             return FileResponse(os.path.join(root, "poster.png"))
-    raise HTTPException(status_code=404, detail="Poster not found.")
+    return error_response("GAME_002", 404, "Poster not found.")
 
 @app.post("/api/mods/{mod_id}/toggle")
 def toggle_mod(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
     if not os.path.exists(mod_path):
-        raise HTTPException(status_code=404, detail="Mod not found.")
-    return {"status": "ok", "message": f"Mod {mod_id} toggled"}
+        return error_response("GAME_002", 404, "Mod not found.")
+    return {"success": True, "status": "ok", "message": f"Mod {mod_id} toggled"}
 
 @app.delete("/api/mods/{mod_id}")
 def delete_mod(mod_id: str):
     mod_path = os.path.join(STEAM_WORKSHOP_DIR, mod_id)
     if not os.path.exists(mod_path):
-        raise HTTPException(status_code=404, detail="Mod not found.")
+        return error_response("GAME_002", 404, "Mod not found.")
     try:
         shutil.rmtree(mod_path)
-        return {"status": "ok", "message": f"Mod {mod_id} deleted"}
+        return {"success": True, "status": "ok", "message": f"Mod {mod_id} deleted"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return error_response("BACKEND_001", 500, str(e))
 
 @app.post("/api/mods/open")
 def open_mod_folder(data: dict):
     path: Optional[str] = data.get("path")
     if not path or not os.path.exists(path):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        return error_response("GAME_002", 400, "Invalid path")
     try:
         if sys.platform.startswith("linux"):
             subprocess.Popen(["xdg-open", path])
@@ -156,10 +242,11 @@ def open_mod_folder(data: dict):
         elif sys.platform == "darwin":
             subprocess.Popen(["open", path])
         else:
-            raise HTTPException(status_code=500, detail="Unsupported OS")
-        return {"status": "ok", "message": f"Opened {path}"}
+            return error_response("BACKEND_001", 500, "Unsupported OS")
+        return {"success": True, "status": "ok", "message": f"Opened {path}"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return error_response("BACKEND_001", 500, str(e))
+
 
 # ---------------------------
 # Startup Hooks
@@ -169,6 +256,7 @@ def on_startup():
     init_db()
     create_base_users_from_config()
     register_module_permissions()
+
 
 # ---------------------------
 # Entrypoint

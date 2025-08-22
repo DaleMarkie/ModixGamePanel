@@ -5,6 +5,7 @@ set -euo pipefail
 STEAMCMD_DIR="$HOME/steamcmd"
 GAME_DIR="$(dirname "$(realpath "$0")")"
 STEAMCMD="$STEAMCMD_DIR/steamcmd.sh"
+LOG_DIR="$GAME_DIR/logs"
 
 # === Detect game (first arg or default to PZ) ===
 GAME="${1:-projectzomboid}"
@@ -15,6 +16,7 @@ GAME="${1:-projectzomboid}"
 # 2 = Missing dependency
 # 3 = Update failed
 # 4 = Launch failed
+# 5 = Port already in use
 
 # === Ensure SteamCMD Installed ===
 if [ ! -f "$STEAMCMD" ]; then
@@ -27,31 +29,84 @@ if [ ! -f "$STEAMCMD" ]; then
   fi
 fi
 
+# === Logging ===
+mkdir -p "$LOG_DIR"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+LOG_FILE="$LOG_DIR/${GAME}_${TIMESTAMP}.log"
+
+# Create/Update symlink to latest log
+ln -sfn "$LOG_FILE" "$LOG_DIR/${GAME}_latest.log"
+
+# Rotate logs: keep only last 10 per game
+find "$LOG_DIR" -type f -name "${GAME}_*.log" | sort -r | tail -n +11 | xargs -r rm -f
+
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "[INFO] === Starting $GAME ==="
+echo "[INFO] Logs will be saved to $LOG_FILE"
+
+# === Graceful shutdown handling ===
+SERVER_PID=""
+cleanup() {
+  if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "[INFO] Caught termination signal, shutting down $GAME (PID $SERVER_PID)..."
+    kill "$SERVER_PID"
+    wait "$SERVER_PID"
+  fi
+  echo "[INFO] Exiting."
+}
+trap cleanup SIGINT SIGTERM
+
+# === Port check function ===
+check_port() {
+  local port=$1
+  if command -v ss >/dev/null 2>&1; then
+    if ss -ltn | grep -q ":$port "; then
+      echo "[ERROR] Port $port is already in use!"
+      exit 5
+    fi
+  elif command -v netstat >/dev/null 2>&1; then
+    if netstat -tuln | grep -q ":$port "; then
+      echo "[ERROR] Port $port is already in use!"
+      exit 5
+    fi
+  else
+    echo "[WARN] Neither ss nor netstat available, skipping port check."
+  fi
+}
+
 # === Game-specific logic ===
 case "$GAME" in
   projectzomboid)
+    PORT=16261
+    check_port "$PORT"
+
     echo "[INFO] Updating Project Zomboid Dedicated Server..."
     if ! "$STEAMCMD" +login anonymous +force_install_dir "$GAME_DIR" +app_update 380870 validate +quit; then
       echo "[ERROR] Failed to update Project Zomboid server."
       exit 3
     fi
-    echo "[INFO] Starting Project Zomboid server..."
+    echo "[INFO] Starting Project Zomboid server on port $PORT..."
     cd "$GAME_DIR" || { echo "[ERROR] Cannot cd into $GAME_DIR"; exit 4; }
-    exec ./start-server.sh -nosteam || { echo "[ERROR] Failed to launch Project Zomboid server."; exit 4; }
+    ./start-server.sh -nosteam &
+    SERVER_PID=$!
+    wait "$SERVER_PID" || { echo "[ERROR] Failed to launch Project Zomboid server."; exit 4; }
     ;;
 
   dayz)
+    PORT=2301
+    check_port "$PORT"
+
     echo "[INFO] Updating DayZ Dedicated Server..."
     if ! "$STEAMCMD" +login anonymous +force_install_dir "$GAME_DIR" +app_update 223350 validate +quit; then
       echo "[ERROR] Failed to update DayZ server."
       exit 3
     fi
-    echo "[INFO] Starting DayZ server..."
+    echo "[INFO] Starting DayZ server on port $PORT..."
     cd "$GAME_DIR" || { echo "[ERROR] Cannot cd into $GAME_DIR"; exit 4; }
-    exec ./DayZServer -config=serverDZ.cfg -port=2301 -profiles=profiles -dologs -adminlog -netlog -freezecheck || {
-      echo "[ERROR] Failed to launch DayZ server."
-      exit 4
-    }
+    ./DayZServer -config=serverDZ.cfg -port=$PORT -profiles=profiles -dologs -adminlog -netlog -freezecheck &
+    SERVER_PID=$!
+    wait "$SERVER_PID" || { echo "[ERROR] Failed to launch DayZ server."; exit 4; }
     ;;
 
   rimworld)

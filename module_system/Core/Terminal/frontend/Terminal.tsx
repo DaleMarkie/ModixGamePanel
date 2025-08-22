@@ -25,6 +25,31 @@ const getApiBase = () => {
   }
 };
 
+// --- Error helpers ---
+const ERROR_DETAILS: Record<number, string> = {
+  1: "Unknown game selected. Check your config or the game argument.",
+  2: "Missing dependency. SteamCMD or required files are not installed.",
+  3: "Update failed. Could not update the server via SteamCMD.",
+  4: "Launch failed. The server binary/script failed to start.",
+  5: "Port already in use. Another process is bound to the required port.",
+};
+
+const getDetailedError = (msg: string): string => {
+  if (msg.includes("Failed to fetch")) {
+    return "[Error] Could not reach backend API (possible causes: backend not running, wrong port, firewall, or CORS misconfiguration).";
+  }
+  if (msg.includes("ECONNREFUSED")) {
+    return "[Error] Connection refused. Backend service is offline or crashed.";
+  }
+  if (msg.includes("CORS")) {
+    return "[Error] CORS policy blocked request. Check backend headers.";
+  }
+  if (msg.includes("timeout")) {
+    return "[Error] Request timed out. Backend may be hung or overloaded.";
+  }
+  return `[Error] ${msg}`;
+};
+
 const Terminal: React.FC = () => {
   const [status, setStatus] = useState("Please start the server");
   const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>(() => {
@@ -104,8 +129,12 @@ const Terminal: React.FC = () => {
       setStatus(
         data.status === "running" ? "Server is running" : "Server stopped"
       );
-    } catch {
-      addLog("[Error] Failed to fetch server stats", "system", false);
+    } catch (err: any) {
+      addLog(
+        getDetailedError(err.message || "Failed to fetch server stats"),
+        "system",
+        false
+      );
     }
   };
 
@@ -121,8 +150,12 @@ const Terminal: React.FC = () => {
       } else {
         addLog("[Error] Backend responded but not OK.", "system", false);
       }
-    } catch {
-      addLog("[Error] Could not reach backend API.", "system", false);
+    } catch (err: any) {
+      addLog(
+        getDetailedError(err.message || "Could not reach backend API"),
+        "system",
+        false
+      );
     }
   };
 
@@ -147,9 +180,13 @@ const Terminal: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const msg = `[Error] ${
-          errorData.error || errorData.detail || "Could not start server."
-        }`;
+        const code = errorData.code as number | undefined;
+        const detail =
+          (code && ERROR_DETAILS[code]) ||
+          errorData.error ||
+          errorData.detail ||
+          "Could not start server.";
+        const msg = `[Error] ${detail}`;
         addLog(msg, "server");
         addLog(msg, "system");
         setStatus("Failed to start server.");
@@ -173,7 +210,7 @@ const Terminal: React.FC = () => {
       };
 
       es.onerror = () => {
-        addLog("[Error] Server stream error or lost.", "server");
+        addLog("[Error] Server stream error or lost connection.", "server");
         setStatus("Connection lost.");
         setIsServerRunning(false);
         eventSourceRef.current?.close();
@@ -182,8 +219,8 @@ const Terminal: React.FC = () => {
 
       setStatus("Server is running");
       setIsServerRunning(true);
-    } catch (err) {
-      const msg = `[Error] Failed to contact backend: ${String(err)}`;
+    } catch (err: any) {
+      const msg = getDetailedError(String(err));
       addLog(msg, "server");
       addLog(msg, "system");
       setStatus("Failed to start server.");
@@ -200,14 +237,20 @@ const Terminal: React.FC = () => {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        addLog(`[Error] ${err.error || "Command failed"}`, "system");
+        const code = err.code as number | undefined;
+        const detail =
+          (code && ERROR_DETAILS[code]) || err.error || "Command failed";
+        addLog(`[Error] ${detail}`, "system");
         return;
       }
 
       const data = await res.json();
       if (data.output) addLog(data.output, "system", false);
-    } catch {
-      addLog("[Error] Failed to send command to server.", "system");
+    } catch (err: any) {
+      addLog(
+        getDetailedError(err.message || "Failed to send command"),
+        "system"
+      );
     }
   };
 
@@ -231,8 +274,11 @@ const Terminal: React.FC = () => {
           addLog(`[System] Server ${lc}ped.`, "server");
           setStatus(`Server ${lc}ped.`);
           setIsServerRunning(false);
-        } catch {
-          addLog(`[Error] Failed to ${lc} server.`, "system");
+        } catch (err: any) {
+          addLog(
+            getDetailedError(err.message || `Failed to ${lc} server.`),
+            "system"
+          );
         }
         return;
       case "restart":
@@ -242,8 +288,11 @@ const Terminal: React.FC = () => {
         try {
           await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
           addLog("[System] Server shutdown completed.", "system");
-        } catch {
-          addLog("[Error] Restart failed during shutdown.", "system");
+        } catch (err: any) {
+          addLog(
+            getDetailedError(err.message || "Restart failed during shutdown"),
+            "system"
+          );
         }
         setTimeout(startServerStream, 1500);
         return;
