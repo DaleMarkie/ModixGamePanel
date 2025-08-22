@@ -75,11 +75,7 @@ const defaultData: ServerData = {
     swapTotal: "Loading...",
     swapUsed: "Loading...",
   },
-  disk: {
-    total: "Loading...",
-    root: "Loading...",
-    data: "Loading...",
-  },
+  disk: { total: "Loading...", root: "Loading...", data: "Loading..." },
   network: {
     primaryIP: "Loading...",
     publicIP: "Loading...",
@@ -132,7 +128,6 @@ const InfoItem = ({
   tooltip: string;
 }) => {
   const [visible, setVisible] = useState(false);
-
   return (
     <div
       className="flex justify-between items-start py-1 border-b border-zinc-800 cursor-help relative group"
@@ -145,13 +140,11 @@ const InfoItem = ({
       <span className="text-zinc-100 text-right max-w-[60%] truncate">
         {value}
       </span>
-
       {visible && (
         <div
           id={`tooltip-${label.replace(/\s+/g, "-").toLowerCase()}`}
           role="tooltip"
           className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 max-w-xs whitespace-normal rounded bg-zinc-900 px-4 py-2 text-sm text-white shadow-lg z-50 select-none pointer-events-none"
-          style={{ pointerEvents: "none" }}
         >
           {tooltip}
         </div>
@@ -180,7 +173,6 @@ const Performance = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Replace with your real backend API URL
     fetch("http://localhost:2010/api/server-info")
       .then(async (res) => {
         if (!res.ok) throw new Error(`API error: ${res.statusText}`);
@@ -195,9 +187,9 @@ const Performance = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-10 text-zinc-100">
+    <div className="performance-dashboard px-6 py-10 text-zinc-100">
       <header className="mb-10">
-        <h1 className="text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">
           🖥️ Server Specs Dashboard
         </h1>
         <p className="text-zinc-400 mt-2">
@@ -212,6 +204,7 @@ const Performance = () => {
       )}
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {/* CPU */}
         <Card title="🧠 CPU">
           <InfoItem
             label="Model"
@@ -240,6 +233,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Memory */}
         <Card title="💾 Memory">
           <InfoItem
             label="Total RAM"
@@ -263,6 +257,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Disk */}
         <Card title="🗃️ Disk">
           <InfoItem
             label="Total Disk"
@@ -281,6 +276,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Network */}
         <Card title="🌐 Network">
           <InfoItem
             label="Primary IP"
@@ -304,6 +300,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* OS */}
         <Card title="⚙️ Operating System">
           <InfoItem
             label="OS"
@@ -332,6 +329,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Docker */}
         <Card title="🐳 Docker">
           <InfoItem
             label="Running In Docker"
@@ -355,6 +353,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Modix */}
         <Card title="🚀 Modix">
           <InfoItem
             label="Version"
@@ -388,6 +387,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* GPU */}
         <Card title="🎮 GPU">
           <InfoItem
             label="Model"
@@ -411,6 +411,7 @@ const Performance = () => {
           />
         </Card>
 
+        {/* Extra */}
         <Card title="📦 Extra Info">
           <InfoItem
             label="Timezone"
@@ -439,7 +440,7 @@ const Performance = () => {
           />
         </Card>
       </div>
-    </main>
+    </div>
   );
 };
 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import Performance from "@/app/tools/performance/Performance"; // ✅ import here
+
 import "./terminal.css";
 
 interface ServerStats {
@@ -362,6 +364,9 @@ const Terminal: React.FC = () => {
           Copy Logs
         </button>
       </form>
+
+      {/* ✅ Performance Monitor goes here */}
+      <Performance />
     </div>
   );
 };
