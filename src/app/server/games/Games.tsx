@@ -1,30 +1,29 @@
-// frontend/src/pages/Games.jsx
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import "./Games.css";
 
 const gamesList = [
   {
     name: "Project Zomboid",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "projectzomboid", // must match backend route
+    id: "projectzomboid",
     canHost: true,
     specs: {
-      cpu: "Intel i5 or better",
-      ram: "8GB",
-      storage: "5GB",
-      os: "Windows/Linux 🐧",
+      cpu: { label: "CPU: 4+ cores", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 5 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
     },
   },
   {
     name: "RimWorld",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
-    id: "rimworld", // must match backend route
+    id: "rimworld",
     canHost: true,
     specs: {
-      cpu: "2.6 GHz Quad-Core",
-      ram: "8GB",
-      storage: "2GB",
-      os: "Windows/Linux/macOS",
+      cpu: { label: "CPU: 2.6 GHz Quad-Core", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 2 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
     },
   },
 ];
@@ -55,40 +54,83 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => {
   );
 };
 
-const GameBanner = ({ game, onSelect }) => {
+const GameBanner = ({ game, onSelect, activeGame, onStop }) => {
   const isDisabled = !game.canHost;
+  const isActive = activeGame === game.id;
+
   return (
-    <button
-      type="button"
-      className={`game-banner ${isDisabled ? "disabled" : ""}`}
-      onClick={() => !isDisabled && onSelect(game)}
-      aria-disabled={isDisabled}
-      tabIndex={isDisabled ? -1 : 0}
+    <div
+      className={`game-banner ${isDisabled ? "disabled" : ""} ${
+        isActive ? "active" : ""
+      }`}
     >
       <img src={game.icon} alt={`${game.name} banner`} />
       <div className="banner-overlay">
-        <h3>{game.name}</h3>
-        <button
-          disabled={isDisabled}
-          className="host-btn"
-          type="button"
-          tabIndex={-1}
-        >
-          {isDisabled ? "🚫 Unavailable" : "➕ Create Server"}
-        </button>
+        <h3>
+          {game.name}{" "}
+          {isActive && <span className="status-badge">🟢 Running</span>}
+        </h3>
+
+        <div className="requirements">
+          <h4>
+            Server Requirements <span className="linux-tag">Linux 🐧</span>
+          </h4>
+          <div className="tags">
+            {Object.entries(game.specs).map(([key, spec]) => (
+              <span
+                key={key}
+                className={`tag ${spec.ok ? "ok" : "fail"}`}
+              >
+                {spec.label} {spec.ok ? "✅" : "❌"}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {!isActive ? (
+          <button
+            disabled={isDisabled}
+            className="host-btn"
+            type="button"
+            onClick={() => !isDisabled && onSelect(game)}
+          >
+            {isDisabled ? "🚫 Unavailable" : "➕ Create Server"}
+          </button>
+        ) : (
+          <button
+            className="stop-btn"
+            type="button"
+            onClick={() => onStop(game)}
+          >
+            🛑 Stop Server
+          </button>
+        )}
       </div>
-    </button>
+    </div>
   );
 };
 
 const Games = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeGame, setActiveGame] = useState(null);
+
+  // Load active game from localStorage (or API later)
+  useEffect(() => {
+    const stored = localStorage.getItem("activeGame");
+    if (stored) setActiveGame(stored);
+  }, []);
 
   const handleSelect = useCallback((game) => {
-    localStorage.setItem("selectedGame", game.id);
+    localStorage.setItem("activeGame", game.id);
+    setActiveGame(game.id);
     console.log("Selected game:", game.name);
-    // optionally redirect to terminal page
     window.location.href = "/terminal";
+  }, []);
+
+  const handleStop = useCallback((game) => {
+    localStorage.removeItem("activeGame");
+    setActiveGame(null);
+    console.log("Stopped server for:", game.name);
   }, []);
 
   const filteredGames = gamesList.filter((game) =>
@@ -104,7 +146,13 @@ const Games = () => {
       >
         {filteredGames.length ? (
           filteredGames.map((game) => (
-            <GameBanner key={game.id} game={game} onSelect={handleSelect} />
+            <GameBanner
+              key={game.id}
+              game={game}
+              onSelect={handleSelect}
+              onStop={handleStop}
+              activeGame={activeGame}
+            />
           ))
         ) : (
           <p className="no-games-msg" role="alert">

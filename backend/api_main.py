@@ -23,6 +23,8 @@ from backend.API.Core.steam_search_player_api import router as steam_search_rout
 # === Game Specific APIs ===
 from module_system.Core.Terminal.backend.games.projectzomboid.terminal_api import router as projectzomboid_terminal_router
 from backend.API.Core.pz_server_api import router as projectzomboid_server_router   # server control
+from backend.API.Core.dayz_server_api import router as dayz_server_router
+
 
 from backend.backend_module_loader import register_modules
 
@@ -43,6 +45,7 @@ app.include_router(steam_search_router, prefix="/api")   # <-- add this
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
 app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")
+app.include_router(dayz_server_router, prefix="/api/dayz")
 
 register_modules(app)
 
