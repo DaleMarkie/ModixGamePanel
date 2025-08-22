@@ -3,7 +3,7 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Register from "./Register"; // <-- Correct import
+import Register from "./register"; // <-- Correct import
 
 export default function RegisterPage() {
   return (

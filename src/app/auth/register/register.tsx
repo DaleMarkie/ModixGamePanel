@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import "./register.css"; // Adjust path if necessary
 
 const Register = () => {
@@ -41,7 +42,6 @@ const Register = () => {
     }
 
     try {
-
       // Call the internal Next.js API route for registration
       const response = await fetch("/api/auth/register", {
         method: "POST",

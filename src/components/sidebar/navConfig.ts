@@ -7,7 +7,7 @@ export const navLinks = [
         label: "🖥️ Server Management",
         href: "/dashboard/servers",
         submenu: [
-          { label: "🖥️ My Servers", href: "/auth/myservers" },
+          { label: "🖥️ My Servers", href: "/server/games" },
           { label: "🎟️ Support Tickets", href: "/auth/support/tickets" },
         ],
       },
@@ -78,7 +78,7 @@ export const navLinks = [
       { label: "🔍 Player Search", href: "/playermanager/search" },
       { label: "💬 Chat Logs", href: "/discord/logs/chat" },
       { label: "👥 Player Join/Leave Logs", href: "/discord/logs/player" },
-      
+
       {
         label: "⛔ Player Records",
         href: "/players/records",
