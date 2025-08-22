@@ -4,12 +4,9 @@ export const navLinks = [
     href: "/dashboard",
     submenu: [
       {
-        label: "🖥️ Server Management",
-        href: "/dashboard/servers",
-        submenu: [
-          { label: "🖥️ My Servers", href: "/server/games" },
-          { label: "🎟️ Support Tickets", href: "/auth/support/tickets" },
-        ],
+        label: "💻 My Servers",
+        href: "/server/games",
+        submenu: [],
       },
       {
         label: "👤 User Profile",
@@ -23,18 +20,7 @@ export const navLinks = [
       },
     ],
   },
-  {
-    label: "🎮 Server & Game Config",
-    href: "/settings",
-    submenu: [
-      { label: "⚙️ General Settings", href: "/server/serversettings" },
-      { label: "🧑‍⚖️ User Permissions", href: "/server/rbac" },
-      { label: "🗃️ Game Library", href: "/server/games" },
-      { label: "🩺 Modix Health", href: "/server/ModixHealth" },
-      { label: "🧬 Update Modix Core", href: "/server/updater" },
-      { label: "🗄️ Backup Server", href: "/server/backup" },
-    ],
-  },
+  ,
   {
     label: "💻 Terminal",
     href: "/terminal",
@@ -44,14 +30,9 @@ export const navLinks = [
     href: "/modmanager",
     submenu: [
       { label: "📦 My Mods", href: "/modmanager" },
-      {
-        label: "🛍️ Steam Workshop",
-        href: "/workshop",
-        submenu: [
-          { label: "🔥 Browse Workshop", href: "/workshop" },
-          { label: "🆕 Steam Collections", href: "/mods/steamparser" },
-        ],
-      },
+      { label: "🔥 Workshop", href: "/workshop" },
+      { label: "🆕 Steam Collections", href: "/mods/steamparser" },
+
       {
         label: "🛠️ Mod Tools",
         href: "/modtoolss",
@@ -59,7 +40,7 @@ export const navLinks = [
           { label: "📊 Mod Performance", href: "/tools/performance" },
           { label: "🧪 Mod Debugger", href: "/tools/debugger" },
           { label: "📊 Load Order Editor", href: "/tools/ordereditor" },
-          { label: "🛠️ Mod Updaters", href: "/modupdater" },
+          { label: "🛠️ Updates", href: "/modupdater" },
         ],
       },
     ],
@@ -88,6 +69,15 @@ export const navLinks = [
           { label: "📊 Player Stats", href: "/playermanager/stats" },
         ],
       },
+    ],
+  },
+  {
+    label: "🎮 Game Config",
+    href: "/settings",
+    submenu: [
+      { label: "⚙️ General Settings", href: "/server/serversettings" },
+      { label: "🧑‍⚖️ User Permissions", href: "/server/rbac" },
+      { label: "🗄️ Backup Server", href: "/server/backup" },
     ],
   },
   {
@@ -154,6 +144,8 @@ export const navLinks = [
       { label: "🌍 Language & Region", href: "/settings/locale" },
       { label: "🛡️ Security Preferences", href: "/settings/security" },
       { label: "🎨 Theme Customization", href: "/settings/themesettings" },
+      { label: "🩺 Modix Health", href: "/server/ModixHealth" },
+      { label: "🧬 Update Modix", href: "/server/updater" },
     ],
   },
   {

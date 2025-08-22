@@ -21,7 +21,8 @@
         "modmanager_access",
         "workshop_manage",
         "modmanager_access",
-        "filebrowser_file_view"
+        "filebrowser_file_view",
+        "discordwebhooks_manage"
       ]
     }
   ],
