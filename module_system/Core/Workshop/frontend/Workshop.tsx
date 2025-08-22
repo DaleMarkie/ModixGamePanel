@@ -67,11 +67,21 @@ const ExportModal = ({ modIds, onClose, listName }) => {
   );
 };
 
+// --- Game to AppID map ---
+const GAME_APPIDS = {
+  projectzomboid: 108600,
+  rimworld: 294100,
+};
+
 export default function WorkshopPage() {
   const [input, setInput] = useState("zomboid");
   const [mods, setMods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // --- NEW: detect selected game ---
+  const selectedGame = localStorage.getItem("selectedGame") || "projectzomboid";
+  const appid = GAME_APPIDS[selectedGame] || 108600;
 
   const [favorites, setFavorites] = useState(() =>
     JSON.parse(localStorage.getItem("pz_favorites") || "[]")
@@ -123,10 +133,8 @@ export default function WorkshopPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Detect if input looks like a Steam Workshop Collection ID (digits only)
   const isCollectionId = (text) => /^\d{6,}$/.test(text.trim());
 
-  // fetchMods wrapped with useCallback so we can call it in useEffect safely
   const fetchMods = useCallback(async () => {
     const query = input.trim();
     if (!query)
@@ -139,7 +147,7 @@ export default function WorkshopPage() {
 
     const url = isCollectionId(query)
       ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-      : `https://steamcommunity.com/workshop/browse/?appid=108600&searchtext=${encodeURIComponent(
+      : `https://steamcommunity.com/workshop/browse/?appid=${appid}&searchtext=${encodeURIComponent(
           query
         )}&browsesort=trend`;
 
@@ -201,9 +209,8 @@ export default function WorkshopPage() {
     } finally {
       setLoading(false);
     }
-  }, [input]);
+  }, [input, appid]);
 
-  // Run fetchMods on mount to load mods by default
   useEffect(() => {
     fetchMods();
   }, [fetchMods]);
@@ -272,7 +279,12 @@ export default function WorkshopPage() {
   return (
     <div className="workshop-container">
       <div className="workshop-header-container">
-        <h1 className="workshop-title">Project Zomboid Workshop</h1>
+        {/* --- Dynamic title based on game --- */}
+        <h1 className="workshop-title">
+          {selectedGame === "rimworld"
+            ? "RimWorld Workshop"
+            : "Project Zomboid Workshop"}
+        </h1>
         <p className="workshop-subtitle">
           Easily discover and organize your favorite mods by creating custom
           modlists, assigning color codes, exporting mod IDs, and streamlining

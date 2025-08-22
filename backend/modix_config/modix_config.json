@@ -18,7 +18,8 @@
       "permissions": [
         "modix_dashboard_access",
         "terminal_access",
-        "modmanager_access"
+        "modmanager_access",
+        "workshop_manage"
       ]
     }
   ],
