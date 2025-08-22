@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import Performance from "@/app/tools/performance/Performance"; // ✅ import here
-
 import "./terminal.css";
 
 interface ServerStats {
@@ -12,6 +10,11 @@ interface ServerStats {
 }
 
 type TabType = "server" | "system";
+
+interface ServerOptions {
+  os: "linux" | "windows";
+  customPath?: string;
+}
 
 const MAX_LOGS = 500;
 
@@ -43,6 +46,10 @@ const Terminal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [isServerRunning, setIsServerRunning] = useState(false);
+  const [serverOptions, setServerOptions] = useState<ServerOptions>({
+    os: "linux",
+    customPath: "",
+  });
   const [selectedGame, setSelectedGame] = useState<string>(
     localStorage.getItem("selectedGame") || "pz"
   );
@@ -146,6 +153,7 @@ const Terminal: React.FC = () => {
       const response = await fetch(`${API_BASE}/start-server`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(serverOptions),
       });
 
       if (!response.ok) {
@@ -285,6 +293,30 @@ const Terminal: React.FC = () => {
           ● {status} <strong>({selectedGame})</strong>
         </div>
         <div className="controls">
+          <select
+            value={serverOptions.os}
+            onChange={(e) =>
+              setServerOptions({
+                ...serverOptions,
+                os: e.target.value as "linux" | "windows",
+              })
+            }
+          >
+            <option value="linux">Linux</option>
+            <option value="windows">Windows</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Custom server path (optional)"
+            value={serverOptions.customPath}
+            onChange={(e) =>
+              setServerOptions({
+                ...serverOptions,
+                customPath: e.target.value,
+              })
+            }
+          />
+
           {/* --- Controls --- */}
           <button onClick={startServerStream} disabled={isServerRunning}>
             Start
@@ -364,9 +396,6 @@ const Terminal: React.FC = () => {
           Copy Logs
         </button>
       </form>
-
-      {/* ✅ Performance Monitor goes here */}
-      <Performance />
     </div>
   );
 };

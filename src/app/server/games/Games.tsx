@@ -5,7 +5,7 @@ const gamesList = [
   {
     name: "Project Zomboid",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "projectzomboid",
+    id: "pz", // 👈 must match Terminal.tsx
     canHost: true,
     specs: {
       cpu: { label: "CPU: 4+ cores", ok: true },
@@ -17,7 +17,7 @@ const gamesList = [
   {
     name: "RimWorld",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
-    id: "rimworld",
+    id: "rimworld", // 👈 must match Terminal.tsx
     canHost: true,
     specs: {
       cpu: { label: "CPU: 2.6 GHz Quad-Core", ok: true },
@@ -77,10 +77,7 @@ const GameBanner = ({ game, onSelect, activeGame, onStop }) => {
           </h4>
           <div className="tags">
             {Object.entries(game.specs).map(([key, spec]) => (
-              <span
-                key={key}
-                className={`tag ${spec.ok ? "ok" : "fail"}`}
-              >
+              <span key={key} className={`tag ${spec.ok ? "ok" : "fail"}`}>
                 {spec.label} {spec.ok ? "✅" : "❌"}
               </span>
             ))}
@@ -116,19 +113,23 @@ const Games = () => {
 
   // Load active game from localStorage (or API later)
   useEffect(() => {
-    const stored = localStorage.getItem("activeGame");
+    const stored = localStorage.getItem("selectedGame"); // 👈 changed from activeGame
     if (stored) setActiveGame(stored);
   }, []);
 
   const handleSelect = useCallback((game) => {
-    localStorage.setItem("activeGame", game.id);
+    localStorage.setItem("selectedGame", game.id); // 👈 must be "pz" or "rimworld"
     setActiveGame(game.id);
+
+    // Let Terminal know immediately
+    window.dispatchEvent(new Event("storage"));
+
     console.log("Selected game:", game.name);
     window.location.href = "/terminal";
   }, []);
 
   const handleStop = useCallback((game) => {
-    localStorage.removeItem("activeGame");
+    localStorage.removeItem("selectedGame");
     setActiveGame(null);
     console.log("Stopped server for:", game.name);
   }, []);
