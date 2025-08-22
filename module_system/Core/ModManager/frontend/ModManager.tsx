@@ -13,11 +13,17 @@ const ModManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // detect which game user selected from Games.jsx
+  const selectedGame = localStorage.getItem("selectedGame") || "projectzomboid";
+
   const loadMods = async () => {
     setLoading(true);
     setError(null);
     try {
-      const list = await modService.fetchMods();
+      const list =
+        selectedGame === "rimworld"
+          ? await modService.fetchRimWorldMods()
+          : await modService.fetchMods(); // PZ default
       setMods(list);
       setAllMods(list);
     } catch (err) {
@@ -31,7 +37,10 @@ const ModManager: React.FC = () => {
 
   const loadOrder = async () => {
     try {
-      const list = await modService.loadPZOrder();
+      const list =
+        selectedGame === "rimworld"
+          ? await modService.loadRWOrder()
+          : await modService.loadPZOrder();
       setMods(list);
       setAllMods(list);
     } catch (err) {
@@ -41,7 +50,9 @@ const ModManager: React.FC = () => {
 
   const selectModDir = async () => {
     const newDir = prompt(
-      "Enter your Project Zomboid Workshop Mods folder path:"
+      `Enter your ${
+        selectedGame === "rimworld" ? "RimWorld" : "Project Zomboid"
+      } Workshop Mods folder path:`
     );
     if (!newDir) return;
 
@@ -49,7 +60,7 @@ const ModManager: React.FC = () => {
       const res = await fetch(`${API_BASE}/mods/set-dir`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: newDir }),
+        body: JSON.stringify({ path: newDir, game: selectedGame }),
       });
       if (!res.ok) {
         throw new Error(await res.text());
@@ -76,7 +87,7 @@ const ModManager: React.FC = () => {
 
   useEffect(() => {
     loadMods();
-  }, []);
+  }, [selectedGame]);
 
   const enabledMods = mods.filter((m) => m.enabled);
   const disabledMods = mods.filter((m) => !m.enabled);
@@ -93,7 +104,11 @@ const ModManager: React.FC = () => {
             />
           </div>
           <div className="header-center">
-            <h1>Workshop Mods</h1>
+            <h1>
+              {selectedGame === "rimworld"
+                ? "RimWorld Workshop Mods"
+                : "Project Zomboid Workshop Mods"}
+            </h1>
           </div>
           <div className="header-right">
             <input

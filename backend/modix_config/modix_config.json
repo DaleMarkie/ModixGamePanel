@@ -19,7 +19,8 @@
         "modix_dashboard_access",
         "terminal_access",
         "modmanager_access",
-        "workshop_manage"
+        "workshop_manage",
+        "modmanager_access"
       ]
     }
   ],
