@@ -1,330 +1,211 @@
 :root {
-  --bg-color: #121212;
-  --card-bg: #1f1f1f;
-  --border-color: #333;
-  --text-color: #ddd;
-  --text-muted: #999;
-  --primary-color: #047b24; /* changed from green to blue */
-  --error-color: #f75c5c;
-  --button-bg: #2e2e2e;
-  --button-hover-bg: #3c3c3c;
+  --bg-color: #0f1117;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-color: #e5e7eb;
+  --text-muted: #9ca3af;
+  --primary-color: #3b82f6;
+  --error-color: #ef4444;
+  --button-bg: rgba(255, 255, 255, 0.08);
+  --button-hover-bg: rgba(255, 255, 255, 0.15);
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 body,
 html,
 .myaccount-container {
-  background-color: var(--bg-color);
+  background: linear-gradient(160deg, #0f1117, #1a1c23);
   color: var(--text-color);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", sans-serif;
   min-height: 100vh;
-  margin: 0;
-  padding: 1.25rem 2rem; /* smaller padding */
-  box-sizing: border-box;
+  padding: 2rem;
 }
 
+/* Header */
 .myaccount-container h1 {
-  font-weight: 700;
-  font-size: 1.8rem; /* smaller font */
-  margin-bottom: 1.25rem;
-  color: var(--primary-color);
-  user-select: none;
-}
-
-.status-message {
-  font-size: 1rem; /* smaller font */
-  color: var(--text-muted);
-  user-select: none;
-}
-
-.status-message.not-logged-in a.login-link,
-.status-message.not-logged-in a.signup-link {
-  color: var(--primary-color);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.status-message.not-logged-in a.login-link:hover,
-.status-message.not-logged-in a.signup-link:hover {
-  color: #60a5fa; /* lighter blue */
-}
-
-/* PROFILE CARD */
-.profile-card {
-  background-color: var(--card-bg);
-  border-radius: 12px;
-  padding: 1rem 1.5rem; /* smaller padding */
-  display: flex;
-  align-items: center;
-  gap: 1.25rem; /* smaller gap */
-  margin-bottom: 1.75rem;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7);
-}
-
-.avatar {
-  width: 64px; /* smaller */
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--primary-color);
-}
-
-.profile-details {
-  flex: 1;
-  user-select: text;
-}
-
-.profile-details h2 {
-  margin: 0;
-  font-size: 1.3rem; /* smaller */
-  color: var(--primary-color);
-}
-
-.username {
-  font-size: 0.9rem; /* smaller */
-  color: var(--text-muted);
-  margin-top: 0.1rem;
-}
-
-.email {
-  font-size: 0.85rem; /* smaller */
-  margin-top: 0.2rem;
-  color: var(--text-color);
-  word-break: break-word;
-}
-
-.meta {
-  margin-top: 0.75rem;
-  display: flex;
-  gap: 1.5rem; /* smaller */
-  font-size: 0.8rem; /* smaller */
-  color: var(--text-muted);
-}
-
-.logout-btn {
-  background-color: var(--button-bg);
-  color: var(--primary-color);
-  border: none;
-  padding: 0.45rem 1rem; /* smaller */
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.logout-btn:hover {
-  background-color: var(--button-hover-bg);
-}
-
-/* ROLES & PERMISSIONS SECTION */
-.license-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 1.25rem 1.75rem; /* smaller */
-  margin-bottom: 1.75rem;
-  color: var(--text-color);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
-}
-
-.license-card h3 {
-  margin-top: 0;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: var(--primary-color);
-  font-size: 1.3rem; /* smaller */
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 0.2rem;
-  user-select: none;
 }
 
-.license-card h4 {
-  margin-bottom: 0.8rem;
-  font-weight: 600;
-  font-size: 1rem; /* smaller */
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.tab {
+  background: var(--button-bg);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
   color: var(--text-color);
-  user-select: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.tab.active {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.tab:hover {
+  background: var(--button-hover-bg);
 }
 
-.roles-section,
-.direct-permissions-section,
-.role-permissions-section {
-  margin-bottom: 1.5rem; /* smaller */
+/* Profile Card */
+.profile-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  box-shadow: var(--shadow);
 }
-
-/* Scrollable list cards for each sub-section */
-.roles-list,
-.direct-permissions-list,
-.role-permissions-list {
-  background-color: #292929;
-  border-radius: 8px;
-  padding: 0.7rem 1rem; /* smaller */
-  border: 1px solid #444;
-  max-height: 160px; /* smaller */
-  overflow-y: auto;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
 }
-
-.roles-list::-webkit-scrollbar,
-.direct-permissions-list::-webkit-scrollbar,
-.role-permissions-list::-webkit-scrollbar {
-  width: 6px; /* thinner scrollbar */
+.profile-details h2 {
+  margin: 0;
+  color: var(--primary-color);
 }
-
-.roles-list::-webkit-scrollbar-thumb,
-.direct-permissions-list::-webkit-scrollbar-thumb,
-.role-permissions-list::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 10px;
-}
-
-.roles-list li,
-.direct-permissions-list li,
-.role-permissions-list li {
-  padding: 0.3rem 0; /* smaller */
-  border-bottom: 1px solid #3a3a3a;
-  font-size: 0.9rem; /* smaller */
+.username {
   color: var(--text-muted);
-  transition: color 0.2s ease;
-  word-break: break-word;
-  user-select: text;
+}
+.meta {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 1rem;
+}
+.logout-btn {
+  margin-left: auto;
+  background: var(--button-bg);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  color: var(--primary-color);
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background: var(--button-hover-bg);
 }
 
-.roles-list li:last-child,
-.direct-permissions-list li:last-child,
-.role-permissions-list li:last-child {
+/* Generic Card */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+.card h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+/* Lists */
+.card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+.card li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.card li:last-child {
   border-bottom: none;
 }
 
-.roles-list li:hover,
-.direct-permissions-list li:hover,
-.role-permissions-list li:hover {
-  color: var(--primary-color);
-  cursor: default;
+/* Backups */
+.backup-actions {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.backup-actions button {
+  background: var(--button-bg);
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text-color);
+}
+.backup-actions button:hover {
+  background: var(--button-hover-bg);
 }
 
-/* SETTINGS CARD */
-.settings-card {
-  background-color: var(--card-bg);
-  border-radius: 10px;
-  padding: 1rem 1.5rem; /* smaller */
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
-  user-select: none;
-}
-
-.settings-card h3 {
-  color: var(--primary-color);
-  margin-bottom: 1rem;
-  font-weight: 700;
-  font-size: 1.2rem; /* smaller */
-  user-select: none;
-}
-
-.settings-form .form-group {
-  margin-bottom: 1rem;
-  user-select: text;
-}
-
+/* Settings */
 .settings-form label {
   display: block;
-  margin-bottom: 0.3rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.settings-form input[type="text"],
-.settings-form input[type="email"] {
-  width: 100%;
-  padding: 0.4rem 0.6rem; /* smaller */
-  background-color: #222;
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 0.9rem; /* smaller */
-  outline-offset: 2px;
-  outline-color: var(--primary-color);
-  transition: border-color 0.25s ease;
-}
-
-.settings-form input[type="text"]:focus,
-.settings-form input[type="email"]:focus {
-  border-color: var(--primary-color);
-}
-
-.save-btn {
-  background-color: var(--button-bg);
-  color: var(--primary-color);
-  padding: 0.5rem 1.25rem; /* smaller */
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-}
-
-.save-btn:hover {
-  background-color: var(--button-hover-bg);
-}
-.delete-account-section {
-  user-select: none;
-  width: 100%;
-  background-color: #000000; /* pure black background */
-  padding: 1.5rem 2rem;
-  border-radius: 8px;
-  box-sizing: border-box;
-  color: #ffffff; /* pure white text */
-  font-weight: 600;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.delete-account-section h3 {
-  margin: 0;
-  font-weight: 700;
-  font-size: 1.3rem;
-  user-select: none;
-}
-
-.delete-account-section p {
-  margin: 0;
-  line-height: 1.4;
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  user-select: none;
 }
-
-.delete-account-btn {
-  background-color: #b91c1c; /* solid dark red */
-  color: #ffffff; /* white text */
+.settings-form input {
+  width: 100%;
+  padding: 0.5rem;
+  background: #1f2129;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+.save-btn {
+  background: var(--primary-color);
   border: none;
-  padding: 0.65rem 1.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  color: #fff;
   cursor: pointer;
-  transition: background-color 0.25s ease;
-  user-select: none;
-  white-space: nowrap;
-  align-self: flex-start;
-  box-shadow: none;
+}
+.save-btn:hover {
+  opacity: 0.9;
 }
 
-.delete-account-btn:hover,
-.delete-account-btn:focus-visible {
-  background-color: #d83434; /* brighter red on hover */
-  outline: none;
+/* Danger Zone */
+.danger-zone {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid var(--error-color);
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-top: 2rem;
+}
+.delete-account-btn {
+  background: var(--error-color);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  color: #fff;
+  cursor: pointer;
+}
+.delete-account-btn:hover {
+  background: #dc2626;
+}
+.subscription-card {
+  background: linear-gradient(
+    145deg,
+    rgba(59, 130, 246, 0.15),
+    rgba(59, 130, 246, 0.05)
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-.delete-account-btn:active {
-  background-color: #9c1717;
+.sub-actions {
+  margin-top: 1rem;
 }
 
-.delete-account-btn:disabled {
-  background-color: #800000;
+.upgrade-btn {
+  background: var(--primary-color);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  color: #fff;
   cursor: not-allowed;
-  color: #ccc;
+  opacity: 0.6;
 }
