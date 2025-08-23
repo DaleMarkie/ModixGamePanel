@@ -9,7 +9,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showSocialPopup, setShowSocialPopup] = useState(false);
 
   const router = useRouter();
 
@@ -52,17 +51,6 @@ const Login = () => {
     }
   };
 
-  const handleSignUp = () => {
-    router.push("/signup");
-  };
-
-  const handleSocialClick = () => {
-    setShowSocialPopup(true);
-    setTimeout(() => {
-      setShowSocialPopup(false);
-    }, 3000);
-  };
-
   return (
     <div className="container">
       <aside className="left-panel">
@@ -91,6 +79,14 @@ const Login = () => {
       <main className="right-panel" role="main" aria-label="Login form">
         <form onSubmit={handleLogin} className="login-form" noValidate>
           <h2 className="form-title">Sign In</h2>
+
+          {/* Demo credentials note */}
+          <div className="demo-credentials">
+            <span className="label">💡 Demo credentials:</span>
+            <span className="values">
+              Username: <strong>test1</strong>, Password: <strong>test1</strong>
+            </span>
+          </div>
 
           <label htmlFor="username" className="input-label">
             Username
@@ -133,52 +129,6 @@ const Login = () => {
           >
             Forgot password?
           </button>
-
-          <div className="signup-prompt">
-            New here?{" "}
-            <button
-              type="button"
-              onClick={handleSignUp}
-              className="btn-signup"
-            >
-              Create an account
-            </button>
-          </div>
-
-          <div className="social-login-container">
-            <span>Or sign in with</span>
-            <div className="social-buttons">
-              <button
-                type="button"
-                className="social-btn discord"
-                onClick={handleSocialClick}
-              >
-                Discord
-              </button>
-              <button
-                type="button"
-                className="social-btn steam"
-                onClick={handleSocialClick}
-              >
-                Steam
-              </button>
-              <button
-                type="button"
-                className="social-btn facebook"
-                onClick={handleSocialClick}
-              >
-                Facebook
-              </button>
-            </div>
-            {showSocialPopup && (
-              <div className="social-popup">
-                <strong>🚧 Feature coming soon!</strong>
-                <br />
-                Social login is not yet available. Please use standard login
-                for now.
-              </div>
-            )}
-          </div>
 
           <footer className="footer">Modix Game Panel &copy; 2025</footer>
         </form>

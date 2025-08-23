@@ -164,3 +164,24 @@
   text-align: center;
   color: #6b7280;
 }
+.demo-credentials {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f4ff; /* soft blue background */
+  border: 1px solid #c3d1ff; /* subtle border */
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #1a202c;
+}
+
+.demo-credentials .label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.demo-credentials .values strong {
+  color: #2b6cb0; /* nice blue for emphasis */
+}

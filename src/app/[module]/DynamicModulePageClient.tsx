@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { hasPermission } from "@/utils/hasPermission";
 import { authFetch } from "@/utils/authFetch";
@@ -13,113 +14,57 @@ function Forbidden({
   userPerms: string[];
   moduleDisplayName?: string;
 }) {
+  const copyDebugInfo = () => {
+    navigator.clipboard.writeText(
+      `Required: ${JSON.stringify(requiredPerms)}\nUser: ${JSON.stringify(
+        userPerms
+      )}`
+    );
+    alert("Debug info copied!");
+  };
+
   return (
-    <div
-      style={{
-        maxWidth: 520,
-        margin: "48px auto",
-        padding: 32,
-        backgroundColor: "#0a0d08",
-        borderRadius: 14,
-        color: "#d7e8c3",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        boxShadow: "0 8px 24px rgba(8, 40, 12, 0.9)",
-        lineHeight: 1.65,
-        textAlign: "center",
-        userSelect: "none",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: 34,
-          fontWeight: 900,
-          marginBottom: 20,
-          color: "#fff",
-          textShadow: "none",
-        }}
-      >
-        403 Forbidden
-      </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-950 via-gray-900 to-black px-4">
+      <div className="relative w-full max-w-lg bg-gray-900/80 backdrop-blur-lg border border-green-800 rounded-3xl shadow-2xl p-10 text-center">
+        {/* Glowing Title */}
+        <h1 className="text-6xl font-extrabold mb-6 text-green-400 drop-shadow-lg animate-pulse">
+          403
+        </h1>
+        <h2 className="text-2xl font-bold mb-4 text-white">Access Denied</h2>
+        <p className="text-green-200 mb-6">
+          You do not have permission to access{" "}
+          <span className="font-semibold text-green-400">
+            {moduleDisplayName || "this module"}
+          </span>
+          .
+        </p>
 
-      <p style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
-        Sorry, you don’t have permission to access{" "}
-        <span style={{ color: "#2f6b2f", fontWeight: "bold" }}>
-          {moduleDisplayName || "this module"}
-        </span>
-        .
-      </p>
+        {/* Debug Info Box */}
+        <div className="bg-gray-800/70 border border-green-700 rounded-xl p-4 text-left font-mono text-sm text-green-200 mb-8 shadow-inner overflow-auto max-h-36">
+          <strong className="text-green-400 block mb-1">Debug Info:</strong>
+          Required: <code>{JSON.stringify(requiredPerms)}</code>
+          <br />
+          Your Permissions: <code>{JSON.stringify(userPerms)}</code>
+        </div>
 
-      <p style={{ fontSize: 16, color: "#9cb87f", marginBottom: 28 }}>
-        Please login or contact your administrator if you believe this is an
-        error.
-      </p>
+        {/* Buttons */}
+        <div className="flex justify-center gap-4 flex-wrap">
+          <button
+            onClick={() => (window.location.href = "/auth/login")}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-xl"
+          >
+            Login
+          </button>
+          <button
+            onClick={copyDebugInfo}
+            className="bg-gradient-to-r from-green-800 to-green-900 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-2xl font-bold shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-xl"
+          >
+            Copy Debug Info
+          </button>
+        </div>
 
-      <div
-        style={{
-          backgroundColor: "#1e3315",
-          padding: 18,
-          borderRadius: 12,
-          fontFamily: "'Courier New', Courier, monospace",
-          fontSize: 13,
-          color: "#b5cca0",
-          textAlign: "left",
-          maxHeight: 140,
-          overflowY: "auto",
-          boxShadow: "inset 0 0 8px #2e4a1e",
-          marginBottom: 32,
-          userSelect: "text",
-        }}
-      >
-        <strong
-          style={{
-            color: "#aec788",
-            fontSize: 14,
-            marginBottom: 6,
-            display: "block",
-          }}
-        >
-          Debug Information:
-        </strong>
-        Required Permissions: <code>{JSON.stringify(requiredPerms)}</code>
-        <br />
-        Your Permissions: <code>{JSON.stringify(userPerms)}</code>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          onClick={() => (window.location.href = "/login")}
-          style={{
-            backgroundColor: "#2f6b2f",
-            color: "#f0f7e6",
-            border: "none",
-            borderRadius: 8,
-            padding: "8px 24px",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(47, 107, 47, 0.8)",
-            transition: "background-color 0.3s ease, transform 0.15s ease",
-            userSelect: "none",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#3c8e3c";
-            e.currentTarget.style.transform = "scale(1.05)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#2f6b2f";
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-          aria-label="Login"
-        >
-          Login
-        </button>
+        {/* Optional subtle background glow */}
+        <div className="absolute inset-0 rounded-3xl bg-green-500/10 blur-3xl pointer-events-none"></div>
       </div>
     </div>
   );
@@ -136,22 +81,21 @@ export default function DynamicModulePageClient({
   requiredPerms: string[];
   moduleDisplayName?: string;
 }) {
-  const [userPerms, setUserPerms] = useState<string[] | null>(null);
+  const [userPerms, setUserPerms] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchPerms() {
       try {
         const res = await authFetch("/api/auth/me");
-        const data = await res.json();
-        // Combine direct and role permissions
-        const direct = (data.direct_permissions || []).map(
-          (p: any) => p.permission
+        const data: any = await res.json();
+        const perms = Array.from(
+          new Set([
+            ...(data.direct_permissions || []).map((p: any) => p.permission),
+            ...(data.role_permissions || []).map((p: any) => p.permission),
+          ])
         );
-        const role = (data.role_permissions || []).map(
-          (p: any) => p.permission
-        );
-        setUserPerms(Array.from(new Set([...direct, ...role])));
+        setUserPerms(perms);
       } catch {
         setUserPerms([]);
       } finally {
@@ -161,31 +105,34 @@ export default function DynamicModulePageClient({
     fetchPerms();
   }, [moduleParam]);
 
-  if (loading) return <div>Loading...</div>;
-  // If no permissions required, allow any logged-in user
-  if (requiredPerms.length === 0) {
-    if (userPerms !== null) {
-      return <DynamicModuleClient entry={entry} />;
-    } else {
-      // Not logged in
-      return (
-        <Forbidden
-          requiredPerms={requiredPerms}
-          userPerms={[]}
-          moduleDisplayName={moduleDisplayName}
-        />
-      );
-    }
-  }
-  // If permissions required, check them
-  if (!hasPermission({ permissions: userPerms }, requiredPerms)) {
+  if (loading)
     return (
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-gray-950 via-gray-900 to-black text-green-400 text-lg animate-pulse">
+        Loading Module...
+      </div>
+    );
+
+  if (requiredPerms.length === 0) {
+    return userPerms.length > 0 ? (
+      <DynamicModuleClient entry={entry} />
+    ) : (
       <Forbidden
         requiredPerms={requiredPerms}
-        userPerms={userPerms || []}
+        userPerms={[]}
         moduleDisplayName={moduleDisplayName}
       />
     );
   }
+
+  if (!hasPermission({ permissions: userPerms }, requiredPerms)) {
+    return (
+      <Forbidden
+        requiredPerms={requiredPerms}
+        userPerms={userPerms}
+        moduleDisplayName={moduleDisplayName}
+      />
+    );
+  }
+
   return <DynamicModuleClient entry={entry} />;
 }

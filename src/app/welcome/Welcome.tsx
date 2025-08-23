@@ -39,41 +39,6 @@ export default function InstalledPage() {
         }}
       />
 
-      {/* Warning Banner */}
-      <div className="relative z-10 max-w-3xl mx-auto bg-yellow-900 bg-opacity-90 border border-yellow-600 rounded-lg p-5 mb-6 flex items-start gap-4 shadow-lg">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.68-3.02L13.7 7a2 2 0 00-3.4 0L3.4 15.98A2 2 0 005.07 19z"
-          />
-        </svg>
-        <p className="text-yellow-100 text-left text-sm md:text-base leading-relaxed font-semibold">
-          ⚠️ <span className="underline">Warning:</span> You are using an{" "}
-          <em>unstable</em> release (v1.1.2) of Modix. We strongly recommend
-          running it only on a <strong>test server</strong> or development
-          environment. This version may contain bugs, glitches, or unexpected
-          issues as we continue refining the platform.
-          <br />
-          <br />
-          Your feedback is invaluable — if you encounter any problems, please
-          report them on our Discord community. Thank you for supporting Modix
-          and helping us improve!
-          <br />
-          <br />
-          Enjoy exploring Modix,
-          <br />
-          The Modix Team
-        </p>
-      </div>
-
       {/* Main Content */}
       <div className="relative z-10 w-full max-w-6xl space-y-20">
         {/* Hero Section */}
@@ -102,52 +67,47 @@ export default function InstalledPage() {
           <FeatureCard
             icon={<FaTerminal className="text-green-400" />}
             title="Live Terminal"
-            description="Stream logs and run commands in real-time inside your Dockerized server container."
+            description="Interact with your servers in real-time: view logs, execute commands, and troubleshoot instantly from anywhere."
           />
           <FeatureCard
             icon={<FaFolderOpen className="text-yellow-400" />}
             title="File Manager"
-            description="Upload, edit, delete or browse all files — instantly connected to your server’s filesystem."
+            description="Browse, upload, edit, and organize server files seamlessly — directly connected to your server's filesystem."
           />
           <FeatureCard
             icon={<FaUsers className="text-blue-400" />}
             title="Player Manager"
-            description="Track and manage connected players. Kick, ban, or view Steam profiles directly."
+            description="Monitor and manage connected players: kick, ban, or inspect profiles with full Steam integration."
           />
           <FeatureCard
             icon={<FaPuzzlePiece className="text-pink-400" />}
             title="Mod & Workshop Manager"
-            description="Install, remove, or reorder mods. Full support for Steam Workshop and custom uploads."
+            description="Install, update, or remove mods effortlessly. Supports Steam Workshop mods, custom uploads, and manages load order automatically — Modix keeps your server modded safely and reliably."
           />
           <FeatureCard
             icon={<FaCogs className="text-orange-400" />}
             title="Server Settings"
-            description="Adjust your config via a powerful live schema UI with collapsible categories and validation."
+            description="Adjust configuration in real-time with an intuitive schema-driven UI. Collapsible categories and validation make misconfigurations nearly impossible."
           />
           <FeatureCard
             icon={<FaLink className="text-cyan-400" />}
             title="Webhook Alerts"
-            description="Get real-time alerts for crashes, events, or bans via Discord webhooks and automation."
+            description="Receive instant notifications for server events, crashes, or player actions through Discord webhooks and automation pipelines."
           />
           <FeatureCard
             icon={<FaShieldAlt className="text-red-500" />}
             title="DDoS Monitor"
-            description="Track unusual inbound traffic and potential attacks with real-time server protection stats."
+            description="Protect your servers with real-time traffic monitoring, alerting on unusual activity or potential attacks."
           />
           <FeatureCard
             icon={<FaChartLine className="text-teal-400" />}
             title="Performance Dashboard"
-            description="Live stats on CPU, RAM, network, I/O, uptime and more — across all running containers."
+            description="View live CPU, RAM, network, disk I/O, uptime, and more for all running servers — Modix gives you complete observability."
           />
           <FeatureCard
             icon={<FaBug className="text-rose-400" />}
             title="Mod Debugger"
-            description="See broken mods, outdated dependencies, or load-order conflicts. Auto-suggest fixes."
-          />
-          <FeatureCard
-            icon={<SiDocker className="text-blue-400" />}
-            title="Docker-Powered Infrastructure"
-            description="Modix runs natively inside Docker, ensuring isolated, portable environments for each game server with robust container lifecycle control."
+            description="Automatically detect broken mods, outdated dependencies, or load-order conflicts. Modix provides actionable suggestions to fix issues without downtime."
           />
         </section>
 
@@ -207,52 +167,6 @@ export default function InstalledPage() {
               className="bg-[#171a21] hover:bg-[#0f1114]"
             />
           </div>
-        </section>
-
-        {/* Upcoming Features Section */}
-        <section className="max-w-3xl mx-auto bg-gradient-to-br from-gray-850 to-gray-900 rounded-xl p-10 shadow-md border border-gray-700">
-          <h2 className="text-5xl font-bold text-white mb-6 tracking-tight">
-            Modix Changelog
-          </h2>
-          <p className="text-gray-300 text-lg mb-8 leading-relaxed font-medium">
-            Stay up to date with the latest improvements, fixes, and new
-            features. We’re always working to make Modix better — here’s what’s
-            new:
-          </p>
-
-          <ul className="space-y-5">
-            {["test"].map((item, idx) => (
-              <li key={idx} className="flex items-start gap-4 text-gray-400">
-                <svg
-                  className="w-6 h-6 mt-1 flex-shrink-0 text-cyan-500"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-md font-semibold leading-snug">
-                  {item}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-10 text-sm italic text-gray-500 max-w-md mx-auto text-center">
-            Stay tuned and join our{" "}
-            <a
-              href="https://discord.gg/EwWZUSR9tM"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
-            >
-              Discord
-            </a>{" "}
-            to give feedback and test beta features!
-          </p>
         </section>
       </div>
     </main>
