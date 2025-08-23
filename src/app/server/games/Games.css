@@ -155,43 +155,79 @@
   color: #fecaca;
 }
 
-/* Buttons */
-.host-btn,
-.stop-btn {
-  display: inline-block;
-  width: 100%;
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
+/* 🔘 Unified Buttons */
+button {
+  font-family: inherit;
   font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
   border: none;
-  transition: background 0.15s ease;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  width: 100%;
 }
 
+/* ✅ Start Button */
 .host-btn.start {
-  background: #005818;
+  background: linear-gradient(135deg, #166534, #22c55e);
   color: #fff;
 }
-
 .host-btn.start:hover {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
+}
+.host-btn.start:disabled {
+  background: #3f3f46;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
+/* 🛑 Stop Button */
 .stop-btn.stop {
-  background: #dc2626;
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
   color: #fff;
 }
-
 .stop-btn.stop:hover {
-  background: #b91c1c;
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+}
+.stop-btn.stop:disabled {
+  background: #3f3f46;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-.host-btn:disabled,
-.stop-btn:disabled {
-  background: #444;
+/* 🖥 Terminal Button */
+.terminal-btn {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+}
+.terminal-btn:hover {
+  background: linear-gradient(135deg, #115e59, #0d9488);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.4);
+}
+.terminal-btn:active {
+  transform: scale(0.96);
+}
+.terminal-btn:disabled {
+  background: #3f3f46;
+  color: #999;
   cursor: not-allowed;
-  opacity: 0.7;
+  box-shadow: none;
+}
+
+/* Buttons container */
+.server-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Disabled cards */
@@ -206,6 +242,7 @@
   font-size: 0.85rem;
   color: #999;
 }
+
 /* Compact Fancy Page Header */
 .page-header.fancy {
   text-align: center;
@@ -241,6 +278,8 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
+
+/* Disabled button */
 .disabled-btn {
   display: inline-block;
   width: 100%;
@@ -254,6 +293,7 @@
   border: none;
   opacity: 0.8;
 }
+
 /* Page Header */
 .page-header {
   text-align: center;
@@ -293,12 +333,13 @@
 .page-description span {
   display: block;
 }
+
 /* 🚧 Coming Soon label */
 .coming-soon-label {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(1, 68, 12, 0.9); /* orange with transparency */
+  background: rgba(1, 68, 12, 0.9);
   color: #fff;
   font-weight: bold;
   font-size: 0.85rem;
@@ -307,11 +348,11 @@
   z-index: 5;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  pointer-events: none; /* stops blocking button clicks */
+  pointer-events: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Make sure banners have relative positioning so the label is anchored */
+/* Ensure banners anchor label properly */
 .game-banner {
   position: relative;
 }
