@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./terminal.css";
+import Performance from "src/app/tools/performance/Performance";
 
 interface ServerStats {
   ramUsed?: number;
@@ -9,7 +10,7 @@ interface ServerStats {
   uptime?: string;
 }
 
-type TabType = "server" | "system";
+type TabType = "server" | "system" | "chat" | "connections";
 
 const MAX_LOGS = 500;
 
@@ -54,12 +55,13 @@ const Terminal: React.FC = () => {
   const [status, setStatus] = useState("Please start the server");
   const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>(() => {
     const saved = localStorage.getItem("pz-logs-tabs");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          server: ["[System] Server terminal ready."],
-          system: ["[System] System terminal ready."],
-        };
+    const parsed = saved ? JSON.parse(saved) : {};
+    return {
+      server: parsed.server || ["[System] Server terminal ready."],
+      system: parsed.system || ["[System] System terminal ready."],
+      chat: parsed.chat || ["[System] Chat logs ready."],
+      connections: parsed.connections || ["[System] Connections log ready."],
+    };
   });
   const [activeTab, setActiveTab] = useState<TabType>("server");
   const [command, setCommand] = useState("");
@@ -95,8 +97,19 @@ const Terminal: React.FC = () => {
         [tab]: [...prev[tab], formatted].slice(-MAX_LOGS),
       };
 
+      // Mirror errors into system
       if (tab === "server" && text.startsWith("[Error]")) {
         updated.system = [...prev.system, formatted].slice(-MAX_LOGS);
+      }
+
+      // Capture chat logs
+      if (tab === "server" && text.includes("[CHAT]")) {
+        updated.chat = [...prev.chat, formatted].slice(-MAX_LOGS);
+      }
+
+      // Capture connection logs
+      if (tab === "server" && text.includes("[CONNECTION]")) {
+        updated.connections = [...prev.connections, formatted].slice(-MAX_LOGS);
       }
 
       return saveLogs(updated);
@@ -167,143 +180,10 @@ const Terminal: React.FC = () => {
     return () => clearInterval(interval);
   }, [API_BASE]);
 
-  const startServerStream = async () => {
-    eventSourceRef.current?.close();
-
-    setStatus("Starting server...");
-    addLog(`[System] Starting ${selectedGame} server...`, "server");
-
-    try {
-      const response = await fetch(`${API_BASE}/start-server`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const code = errorData.code as number | undefined;
-        const detail =
-          (code && ERROR_DETAILS[code]) ||
-          errorData.error ||
-          errorData.detail ||
-          "Could not start server.";
-        const msg = `[Error] ${detail}`;
-        addLog(msg, "server");
-        addLog(msg, "system");
-        setStatus("Failed to start server.");
-        setIsServerRunning(false);
-        return;
-      }
-
-      const es = new EventSource(`${API_BASE}/server-logs-stream`);
-      eventSourceRef.current = es;
-
-      es.onmessage = (e) => {
-        if (e.data === "[Process finished]") {
-          addLog("[System] Server process finished.", "server");
-          setStatus("Server stopped.");
-          setIsServerRunning(false);
-          es.close();
-          eventSourceRef.current = null;
-        } else {
-          addLog(e.data, "server", false);
-        }
-      };
-
-      es.onerror = () => {
-        addLog("[Error] Server stream error or lost connection.", "server");
-        setStatus("Connection lost.");
-        setIsServerRunning(false);
-        eventSourceRef.current?.close();
-        eventSourceRef.current = null;
-      };
-
-      setStatus("Server is running");
-      setIsServerRunning(true);
-    } catch (err: any) {
-      const msg = getDetailedError(String(err));
-      addLog(msg, "server");
-      addLog(msg, "system");
-      setStatus("Failed to start server.");
-    }
-  };
-
-  const sendBackendCommand = async (cmd: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/send-command`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: cmd }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const code = err.code as number | undefined;
-        const detail =
-          (code && ERROR_DETAILS[code]) || err.error || "Command failed";
-        addLog(`[Error] ${detail}`, "system");
-        return;
-      }
-
-      const data = await res.json();
-      if (data.output) addLog(data.output, "system", false);
-    } catch (err: any) {
-      addLog(
-        getDetailedError(err.message || "Failed to send command"),
-        "system"
-      );
-    }
-  };
-
-  // --- Commands ---
-  const handleCommand = async (cmd: string) => {
-    const lc = cmd.toLowerCase();
-    addLog(`> ${cmd}`, "system", true);
-
-    switch (lc) {
-      case "start":
-        return isServerRunning
-          ? addLog("[System] Server already running.", "system")
-          : startServerStream();
-      case "stop":
-      case "shutdown":
-        if (!isServerRunning)
-          return addLog("[System] Server is not running.", "system");
-        eventSourceRef.current?.close();
-        try {
-          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-          addLog(`[System] Server ${lc}ped.`, "server");
-          setStatus(`Server ${lc}ped.`);
-          setIsServerRunning(false);
-        } catch (err: any) {
-          addLog(
-            getDetailedError(err.message || `Failed to ${lc} server.`),
-            "system"
-          );
-        }
-        return;
-      case "restart":
-        addLog("[System] Restarting server...", "system");
-        setStatus("Restarting server...");
-        eventSourceRef.current?.close();
-        try {
-          await fetch(`${API_BASE}/shutdown-server`, { method: "POST" });
-          addLog("[System] Server shutdown completed.", "system");
-        } catch (err: any) {
-          addLog(
-            getDetailedError(err.message || "Restart failed during shutdown"),
-            "system"
-          );
-        }
-        setTimeout(startServerStream, 1500);
-        return;
-      default:
-        return sendBackendCommand(cmd);
-    }
-  };
-
   const submitCommand = (e: React.FormEvent) => {
     e.preventDefault();
     if (!command.trim()) return;
+    // @ts-ignore
     handleCommand(command.trim());
     setCommand("");
   };
@@ -318,9 +198,10 @@ const Terminal: React.FC = () => {
       () => alert("Failed to copy logs.")
     );
 
-  const filteredLogs = logsByTab[activeTab].filter((log) =>
-    log.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLogs =
+    logsByTab[activeTab]?.filter((log) =>
+      log.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   // --- Render ---
   return (
@@ -331,28 +212,10 @@ const Terminal: React.FC = () => {
           ● {status} <strong>({selectedGame})</strong>
         </div>
         <div className="controls">
-          {/* --- Controls --- */}
-          <button onClick={startServerStream} disabled={isServerRunning}>
-            Start
-          </button>
-          <button
-            onClick={() => handleCommand("restart")}
-            disabled={!isServerRunning}
-          >
-            Restart
-          </button>
-          <button
-            onClick={() => handleCommand("stop")}
-            disabled={!isServerRunning}
-          >
-            Stop
-          </button>
-          <button
-            onClick={() => handleCommand("shutdown")}
-            disabled={!isServerRunning}
-          >
-            Shutdown
-          </button>
+          <button disabled={isServerRunning}>Start</button>
+          <button disabled={!isServerRunning}>Restart</button>
+          <button disabled={!isServerRunning}>Stop</button>
+          <button disabled={!isServerRunning}>Shutdown</button>
           <input
             className="log-search"
             type="text"
@@ -365,15 +228,23 @@ const Terminal: React.FC = () => {
 
       {/* Tabs */}
       <div className="terminal-tabs">
-        {(["system", "server"] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === "server" ? "Server" : "System"}
-          </button>
-        ))}
+        {(["system", "server", "chat", "connections"] as TabType[]).map(
+          (tab) => (
+            <button
+              key={tab}
+              className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === "server"
+                ? "Server"
+                : tab === "system"
+                ? "System"
+                : tab === "chat"
+                ? "Chat Logs"
+                : "Connections"}
+            </button>
+          )
+        )}
       </div>
 
       {/* Logs */}
@@ -394,22 +265,27 @@ const Terminal: React.FC = () => {
         )}
       </div>
 
-      {/* Command Input */}
-      <form onSubmit={submitCommand} className="command-form">
-        <input
-          type="text"
-          value={command}
-          onChange={(e) => setCommand(e.target.value)}
-          placeholder="Type command here..."
-        />
-        <button type="submit">Send</button>
-        <button type="button" onClick={handleClear}>
-          Clear
-        </button>
-        <button type="button" onClick={handleCopyLogs}>
-          Copy Logs
-        </button>
-      </form>
+      {/* Command Input (hidden only on Chat & Connections tabs) */}
+      {activeTab !== "chat" && activeTab !== "connections" && (
+        <form onSubmit={submitCommand} className="command-form">
+          <input
+            type="text"
+            value={command}
+            onChange={(e) => setCommand(e.target.value)}
+            placeholder="Type command here..."
+          />
+          <button type="submit">Send</button>
+          <button type="button" onClick={handleClear}>
+            Clear
+          </button>
+          <button type="button" onClick={handleCopyLogs}>
+            Copy Logs
+          </button>
+        </form>
+      )}
+
+      {/* Performance always below */}
+      <Performance />
     </div>
   );
 };

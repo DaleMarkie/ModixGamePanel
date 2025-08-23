@@ -11,6 +11,7 @@ type Game = {
   icon: string;
   id: string;
   canHost: boolean;
+  comingSoon: boolean;
   specs: {
     cpu: GameSpec;
     ram: GameSpec;
@@ -25,6 +26,7 @@ const gamesList: Game[] = [
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
     id: "pz",
     canHost: true,
+    comingSoon: false,
     specs: {
       cpu: { label: "CPU: 4+ cores", ok: true },
       ram: { label: "RAM: 8 GB", ok: true },
@@ -37,10 +39,206 @@ const gamesList: Game[] = [
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
     id: "rimworld",
     canHost: true,
+    comingSoon: false,
     specs: {
       cpu: { label: "CPU: 2.6 GHz Quad-Core", ok: true },
       ram: { label: "RAM: 8 GB", ok: true },
       storage: { label: "Storage: 2 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "DayZ",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
+    id: "dayz",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: 4-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 16 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Rust",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+    id: "rust",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.4 GHz", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 20 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Minecraft",
+    icon: "https://cdn2.steamgriddb.com/file/sgdb-cdn/thumb/b8a5a1763dff9c51f7b4.png",
+    id: "minecraft",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Dual-Core 2.6 GHz", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 4 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "FiveM",
+    icon: "https://fivem.net/favicon.ico",
+    id: "fivem",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 20 GB (depends on mods)", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "RedM",
+    icon: "https://redm.net/favicon.ico",
+    id: "redm",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 30 GB (depends on mods)", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "ARK: Survival Evolved",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+    id: "ark",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8 GB (16 GB recommended)", ok: true },
+      storage: { label: "Storage: 60 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "The Isle",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/376210/header.jpg",
+    id: "theisle",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.2 GHz", ok: true },
+      ram: { label: "RAM: 8 GB (16 GB recommended)", ok: true },
+      storage: { label: "Storage: 25 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Arma 3",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
+    id: "arma3",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8–16 GB", ok: true },
+      storage: { label: "Storage: 40 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Squad",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
+    id: "squad",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.2 GHz", ok: true },
+      ram: { label: "RAM: 16 GB", ok: true },
+      storage: { label: "Storage: 55 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Palworld",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/1623730/header.jpg",
+    id: "palworld",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 16 GB", ok: true },
+      storage: { label: "Storage: 40 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Satisfactory",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
+    id: "satisfactory",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8–16 GB", ok: true },
+      storage: { label: "Storage: 20 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Terraria",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/105600/header.jpg",
+    id: "terraria",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: 2.0 GHz Dual-Core", ok: true },
+      ram: { label: "RAM: 4 GB", ok: true },
+      storage: { label: "Storage: 1 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Factorio",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/427520/header.jpg",
+    id: "factorio",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Dual-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 4 GB", ok: true },
+      storage: { label: "Storage: 2 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Conan Exiles",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/440900/header.jpg",
+    id: "conanexiles",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.0 GHz", ok: true },
+      ram: { label: "RAM: 8–16 GB", ok: true },
+      storage: { label: "Storage: 50 GB", ok: true },
+      os: { label: "Linux only 🐧", ok: true },
+    },
+  },
+  {
+    name: "Mount & Blade II: Bannerlord",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/261550/header.jpg",
+    id: "bannerlord",
+    canHost: true,
+    comingSoon: true,
+    specs: {
+      cpu: { label: "CPU: Quad-Core 3.2 GHz", ok: true },
+      ram: { label: "RAM: 8–16 GB", ok: true },
+      storage: { label: "Storage: 60 GB", ok: true },
       os: { label: "Linux only 🐧", ok: true },
     },
   },
@@ -135,6 +333,11 @@ const GameBanner: React.FC<{
   const isActive = activeGame === game.id;
   const anotherRunning = activeGame && !isActive;
 
+  // Find the active game's name if something else is running
+  const activeGameName = activeGame
+    ? gamesList.find((g) => g.id === activeGame)?.name
+    : null;
+
   return (
     <div
       className={`game-banner ${anotherRunning ? "disabled" : ""} ${
@@ -142,6 +345,11 @@ const GameBanner: React.FC<{
       }`}
     >
       <img src={game.icon} alt={`${game.name} banner`} />
+
+      {/* 🚧 Coming Soon Label */}
+      {game.comingSoon && (
+        <span className="coming-soon-label">🚧 Coming Soon</span>
+      )}
 
       <div className="banner-overlay">
         <h3>
@@ -173,13 +381,17 @@ const GameBanner: React.FC<{
 
         {!isActive ? (
           <button
-            disabled={loading || !!anotherRunning}
+            disabled={loading || !!anotherRunning || game.comingSoon}
             className="host-btn start"
             type="button"
-            onClick={() => !anotherRunning && onSelect(game)}
+            onClick={() =>
+              !anotherRunning && !game.comingSoon && onSelect(game)
+            }
           >
-            {anotherRunning
-              ? "🚫 Unavailable (Another server running)"
+            {game.comingSoon
+              ? "🚧 Not Available"
+              : anotherRunning && activeGameName
+              ? `🚫 Unavailable (${activeGameName} is running)`
               : loading
               ? "⏳ Starting..."
               : "➕ Start Server"}
