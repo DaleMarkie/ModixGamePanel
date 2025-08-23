@@ -1,84 +1,113 @@
-/* General wrapper to limit max width and padding */
+/* ========= GENERAL WRAPPER ========= */
 .fancy-wrapper {
   max-width: 1200px;
-  margin: 1rem auto;
-  padding: 0 1rem;
+  margin: 1.5rem auto;
+  padding: 1.2rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 14px; /* smaller base font */
-  color: #ddd;
-  background-color: #1b1b1b;
-  border-radius: 8px;
+  font-size: 14px;
+  color: #e0e0e0;
+  background: linear-gradient(160deg, #1b1b1b, #141414);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
-/* Header styles */
+/* ========= HEADER ========= */
+.fancy-header {
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.8rem;
+  margin-bottom: 1rem;
+}
+
 .fancy-header h1 {
-  font-size: 1.2rem; /* smaller heading */
-  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.4rem;
   font-weight: 600;
+  background: linear-gradient(90deg, #1db954, #00aaff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
+/* search box */
 .search-input {
   font-size: 0.9rem;
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid #444;
   background: #222;
   color: #eee;
   width: 100%;
-  max-width: 300px;
-  margin-top: 0.3rem;
+  max-width: 320px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Category header button */
+.search-input:focus {
+  border-color: #1db954;
+  outline: none;
+  box-shadow: 0 0 6px #1db95444;
+}
+
+/* ========= CATEGORY HEADER ========= */
 .category-header {
   font-size: 0.95rem;
   font-weight: 600;
-  padding: 6px 10px;
+  padding: 8px 12px;
   background: #222;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   color: #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.2rem;
+  transition: background 0.2s, transform 0.15s;
 }
 
 .category-header:hover {
-  background: #333;
+  background: #2c2c2c;
+  transform: translateY(-1px);
 }
 
-/* Save button smaller */
-.save-button {
-  font-size: 0.9rem;
-  padding: 6px 14px;
-  border-radius: 5px;
-  background-color: #1db954;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  min-width: 120px;
-  transition: background-color 0.2s ease;
+.category-header:active {
+  transform: translateY(0);
 }
 
-.save-button:hover:not(:disabled) {
-  background-color: #17a44f;
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  transition: transform 0.2s ease;
 }
 
-.save-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.arrow-icon.collapsed {
+  transform: rotate(-90deg);
 }
 
-/* Setting labels and inputs */
+/* ========= CATEGORY DESCRIPTION ========= */
+.category-desc {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin: 0.3rem 0 0.6rem 4px;
+  padding-left: 4px;
+  border-left: 2px solid #333;
+}
+
+/* ========= SETTINGS ========= */
 .setting-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 6px 0;
   font-size: 0.9rem;
-  gap: 10px;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #1e1e1e;
+  transition: background 0.2s;
+}
+
+.setting-item:hover {
+  background: #262626;
 }
 
 .setting-label {
@@ -86,39 +115,101 @@
   white-space: nowrap;
 }
 
+/* text/number inputs */
 .setting-item input[type="text"],
 .setting-item input[type="number"] {
-  flex: 0 0 120px;
+  flex: 0 0 140px;
   padding: 4px 8px;
   font-size: 0.85rem;
-  border-radius: 4px;
+  border-radius: 5px;
   border: 1px solid #444;
   background: #222;
   color: #eee;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.setting-item input[type="text"]:focus,
+.setting-item input[type="number"]:focus {
+  border-color: #1db954;
+  outline: none;
+  box-shadow: 0 0 6px #1db95444;
+}
+
+/* checkbox */
 .setting-item input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  accent-color: #1db954;
 }
 
-/* Category description */
-.category-desc {
-  font-size: 0.8rem;
-  color: #aaa;
-  margin: 0.2rem 0 0.8rem 4px;
+/* ========= FOOTER ========= */
+.save-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Footer message */
+/* Save button */
+.save-button {
+  font-size: 0.95rem;
+  padding: 7px 16px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1db954, #18a84b);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  min-width: 130px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1ed760, #19b54f);
+  transform: translateY(-1px);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .save-message {
-  margin-left: 1rem;
   font-size: 0.85rem;
   color: #1db954;
+  font-weight: 500;
 }
 
-/* Arrow icon smaller */
-.arrow-icon {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2;
+/* ========= GAME-SPECIFIC THEMES ========= */
+
+/* Project Zomboid: gray-blue */
+.fancy-wrapper.zomboid .category-header {
+  background: #23313a;
+}
+.fancy-wrapper.zomboid .category-header:hover {
+  background: #2d3f4a;
+}
+.fancy-wrapper.zomboid .save-button {
+  background: linear-gradient(135deg, #4da6ff, #357ab8);
+}
+
+/* RimWorld: dusty steel */
+.fancy-wrapper.rimworld .category-header {
+  background: #2b2b32;
+}
+.fancy-wrapper.rimworld .category-header:hover {
+  background: #35353f;
+}
+.fancy-wrapper.rimworld .save-button {
+  background: linear-gradient(135deg, #9999aa, #6e6e80);
+}
+
+/* Minecraft: green-gold */
+.fancy-wrapper.minecraft .category-header {
+  background: #24321c;
+}
+.fancy-wrapper.minecraft .category-header:hover {
+  background: #2d3e25;
+}
+.fancy-wrapper.minecraft .save-button {
+  background: linear-gradient(135deg, #34d058, #28a745);
 }

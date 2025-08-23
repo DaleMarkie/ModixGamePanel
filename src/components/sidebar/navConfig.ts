@@ -80,7 +80,7 @@ export const navLinks = [
     label: "🎮 Game Config",
     href: "/settings",
     submenu: [
-      { label: "⚙️ General Settings", href: "/server/serversettings" },
+      { label: "⚙️ General Settings", href: "/server/ServerSettings" },
       { label: "🧑‍⚖️ User Permissions", href: "/RBAC" },
       { label: "🗄️ Backup Server", href: "/server/backup" },
     ],
