@@ -4,6 +4,11 @@ export const navLinks = [
     href: "/dashboard",
     submenu: [
       {
+        label: "View All",
+        href: "/dashboard",
+        submenu: [],
+      },
+      {
         label: "💻 My Servers",
         href: "/server/games",
         submenu: [],
