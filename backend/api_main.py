@@ -4,10 +4,11 @@ import os
 import shutil
 import subprocess
 import socket
+import asyncio
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 # === Project root path fix ===
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,10 +27,7 @@ from backend.API.Core.pz_server_api import router as projectzomboid_server_route
 from backend.API.Core.dayz_server_api import router as dayz_server_router
 
 from backend.API.Core.mod_debugger_api import router as mod_debugger_router
-
-
 from backend.backend_module_loader import register_modules
-
 
 # ---------------------------
 # FastAPI App
@@ -44,11 +42,9 @@ app.include_router(module_api_router, prefix="/api")
 app.include_router(steam_search_router, prefix="/api")
 app.include_router(mod_debugger_router, prefix="/api/debugger")
 
-
 # === Project Zomboid APIs ===
 app.include_router(projectzomboid_terminal_router, prefix="/api/terminal/projectzomboid")
-
-# ⚡️ We will wrap these instead of directly exposing them
+# ⚡️ We wrap the server routers manually
 # app.include_router(projectzomboid_server_router, prefix="/api/projectzomboid")
 # app.include_router(dayz_server_router, prefix="/api/dayz")
 
@@ -62,7 +58,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ---------------------------
 # Error Codes
@@ -89,7 +84,6 @@ def error_response(code: str, http_status: int = 500, detail: Optional[str] = No
         },
     )
 
-
 # ---------------------------
 # Health & Diagnostics Endpoints
 # ---------------------------
@@ -104,44 +98,111 @@ def check_port(port: int):
         in_use = s.connect_ex(("127.0.0.1", port)) == 0
     return {"port": port, "inUse": in_use}
 
+# ---------------------------
+# Global Server Process + Log Queue
+# ---------------------------
+running_process = None
+log_queue: asyncio.Queue = asyncio.Queue()
 
-# ---------------------------
-# Game Server Wrappers
-# ---------------------------
 def check_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
 
+# ---------------------------
+# Project Zomboid Server Start/Stop + SSE
+# ---------------------------
 @app.post("/api/projectzomboid/start")
 async def start_pz_server(request: Request):
+    global running_process
+    if running_process:
+        return error_response("BACKEND_001", 400, "Server already running")
+
     try:
         data = await request.json()
+        os_type = data.get("os", "linux")
         port = data.get("port", 16261)
 
-        # port check
         if check_port_in_use(port):
             return error_response("PORT_004", 409, f"Port {port} already in use")
 
-        # call underlying router
-        return await projectzomboid_server_router.routes[0].endpoint(request)
-    except FileNotFoundError as e:
-        return error_response("GAME_002", 404, str(e))
-    except subprocess.SubprocessError as e:
-        return error_response("GAME_003", 500, f"Server crashed: {e}")
+        # determine script path
+        if os_type == "linux":
+            script_path = os.path.abspath("backend/gamefiles/projectzomboid/linux/server.sh")
+            cmd = ["bash", script_path]
+        elif os_type == "windows":
+            script_path = os.path.abspath("backend/gamefiles/projectzomboid/windows/server.bat")
+            cmd = ["cmd.exe", "/c", script_path]
+        else:
+            return error_response("BACKEND_001", 400, "Invalid OS type")
+
+        if not os.path.exists(script_path):
+            return error_response("GAME_002", 404, f"Server script not found at {script_path}")
+
+        # start process
+        running_process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+
+        # stream logs asynchronously
+        asyncio.create_task(stream_subprocess_output(running_process.stdout, "OUT"))
+        asyncio.create_task(stream_subprocess_output(running_process.stderr, "ERR"))
+        asyncio.create_task(monitor_process_exit(running_process))
+
+        return {"status": "running", "message": "Server started successfully"}
+
     except Exception as e:
+        running_process = None
         return error_response("BACKEND_001", 500, str(e))
 
+@app.post("/api/projectzomboid/stop")
+async def stop_pz_server():
+    global running_process
+    if not running_process:
+        return {"status": "stopped", "message": "Server is not running"}
+
+    running_process.terminate()
+    running_process = None
+    await log_queue.put("[SYSTEM] Server stopped manually")
+    return {"status": "stopped", "message": "Server terminated"}
+
+async def stream_subprocess_output(stream, prefix: str):
+    loop = asyncio.get_event_loop()
+    while True:
+        line = await loop.run_in_executor(None, stream.readline)
+        if not line:
+            break
+        await log_queue.put(f"[{prefix}] {line.strip()}")
+
+async def monitor_process_exit(process):
+    global running_process
+    await asyncio.get_event_loop().run_in_executor(None, process.wait)
+    await log_queue.put("[SYSTEM] Server stopped")
+    running_process = None
+
+@app.get("/api/projectzomboid/terminal/log-stream")
+async def terminal_log_stream():
+    async def event_generator():
+        while True:
+            log = await log_queue.get()
+            yield f"data: {log}\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+# ---------------------------
+# DayZ Server Wrapper (unchanged, you can add similar logic if needed)
+# ---------------------------
 @app.post("/api/dayz/start")
 async def start_dayz_server(request: Request):
     try:
         data = await request.json()
         port = data.get("port", 2302)
 
-        # port check
         if check_port_in_use(port):
             return error_response("PORT_004", 409, f"Port {port} already in use")
 
-        # call underlying router
         return await dayz_server_router.routes[0].endpoint(request)
     except FileNotFoundError as e:
         return error_response("GAME_002", 404, str(e))
@@ -150,9 +211,8 @@ async def start_dayz_server(request: Request):
     except Exception as e:
         return error_response("BACKEND_001", 500, str(e))
 
-
 # ---------------------------
-# Project Zomboid Mods API
+# Mods API (unchanged)
 # ---------------------------
 STEAM_WORKSHOP_DIR = os.path.expanduser("~/Zomboid/steamapps/workshop/content/108600")
 
@@ -252,7 +312,6 @@ def open_mod_folder(data: dict):
     except Exception as e:
         return error_response("BACKEND_001", 500, str(e))
 
-
 # ---------------------------
 # Startup Hooks
 # ---------------------------
@@ -261,7 +320,6 @@ def on_startup():
     init_db()
     create_base_users_from_config()
     register_module_permissions()
-
 
 # ---------------------------
 # Entrypoint

@@ -125,22 +125,6 @@ export const navLinks = [
     ],
   },
   {
-    label: "🌐 Community Plugins",
-    href: "/communityplugins",
-    submenu: [
-      { label: "🧩 Browse Plugins", href: "/communityplugins" },
-      {
-        label: "⚙️ Manage Plugins",
-        href: "/communityplugins",
-        badge: { text: "Inactive", color: "gray" },
-      },
-      {
-        label: "📢 Plugin Announcements",
-        href: "/communityplugins",
-      },
-    ],
-  },
-  {
     label: "⚙️ Settings",
     href: "/platform-settings", // <-- renamed href to avoid clash
     submenu: [

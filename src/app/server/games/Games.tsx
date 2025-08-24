@@ -1,23 +1,16 @@
+"use client";
+
 import React, { useState, useCallback, useEffect } from "react";
 import "./Games.css";
 
-type GameSpec = {
-  label: string;
-  ok: boolean;
-};
-
+type GameSpec = { label: string; ok: boolean };
 type Game = {
   name: string;
   icon: string;
   id: string;
   canHost: boolean;
   comingSoon: boolean;
-  specs: {
-    cpu: GameSpec;
-    ram: GameSpec;
-    storage: GameSpec;
-    os: GameSpec;
-  };
+  specs: { cpu: GameSpec; ram: GameSpec; storage: GameSpec };
 };
 
 const gamesList: Game[] = [
@@ -31,103 +24,29 @@ const gamesList: Game[] = [
       cpu: { label: "CPU: 4+ cores", ok: true },
       ram: { label: "RAM: 8 GB", ok: true },
       storage: { label: "Storage: 5 GB", ok: true },
-      os: { label: "Linux only 🐧", ok: true },
     },
   },
   {
-    name: "RimWorld",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
-    id: "rimworld",
+    name: "Project Zomboid",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
+    id: "pz-win",
     canHost: true,
     comingSoon: false,
     specs: {
-      cpu: { label: "CPU: 2.6 GHz Quad-Core", ok: true },
+      cpu: { label: "CPU: 4+ cores", ok: true },
       ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 2 GB", ok: true },
-      os: { label: "Linux only 🐧", ok: true },
+      storage: { label: "Storage: 5 GB", ok: true },
     },
   },
-  // ... rest unchanged
 ];
 
-// 🔍 Search Bar
-const SearchBar: React.FC<{
-  searchTerm: string;
-  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ searchTerm, setSearchTerm }) => {
-  const clearSearch = () => setSearchTerm("");
-
-  return (
-    <div className="search-bar-wrapper">
-      <input
-        aria-label="Search games"
-        type="text"
-        className="search-bar"
-        placeholder="🔍 Search games..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      {searchTerm && (
-        <button
-          aria-label="Clear search"
-          onClick={clearSearch}
-          className="clear-search"
-          type="button"
-        >
-          ✕
-        </button>
-      )}
-    </div>
-  );
+const formatDuration = (ms: number) => {
+  const s = Math.floor(ms / 1000) % 60;
+  const m = Math.floor(ms / 60000) % 60;
+  const h = Math.floor(ms / 3600000);
+  return `${h ? h + "h " : ""}${m ? m + "m " : ""}${s}s`;
 };
 
-// 🎛️ Filter Bar
-const FilterBar: React.FC<{
-  filters: Record<string, boolean>;
-  setFilters: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-}> = ({ filters, setFilters }) => {
-  const toggleFilter = (key: string) =>
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  const filterOptions = [
-    { key: "linuxOnly", label: "🐧 Linux Only" },
-    { key: "ram8gb", label: "💾 RAM ≥ 8GB" },
-    { key: "canHost", label: "🌐 Can Host" },
-  ];
-
-  return (
-    <div className="filters-bar">
-      {filterOptions.map(({ key, label }) => (
-        <button
-          key={key}
-          type="button"
-          className={`filter-btn ${filters[key] ? "active" : ""}`}
-          onClick={() => toggleFilter(key)}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-// ⏱ Format uptime duration
-const formatDuration = (ms: number): string => {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return [
-    hours > 0 ? `${hours}h` : null,
-    minutes > 0 ? `${minutes}m` : null,
-    `${seconds}s`,
-  ]
-    .filter(Boolean)
-    .join(" ");
-};
-
-// 🎮 Game Banner
 const GameBanner: React.FC<{
   game: Game;
   onSelect: (game: Game) => void;
@@ -140,83 +59,53 @@ const GameBanner: React.FC<{
   const isActive = activeGame === game.id;
   const anotherRunning = activeGame && !isActive;
 
-  const activeGameName = activeGame
-    ? gamesList.find((g) => g.id === activeGame)?.name
-    : null;
-
   return (
     <div
       className={`game-banner ${anotherRunning ? "disabled" : ""} ${
         isActive ? "active" : ""
       }`}
     >
-      <img src={game.icon} alt={`${game.name} banner`} />
-
-      {/* 🚧 Coming Soon Label */}
-      {game.comingSoon && (
-        <span className="coming-soon-label">🚧 Coming Soon</span>
-      )}
-
+      <img src={game.icon} alt={game.name} />
       <div className="banner-overlay">
         <h3>
           {game.name}
-          {status === "running" && isActive && (
-            <span className="status-badge running">
-              🟢 Running ({formatDuration(uptime)})
+          {isActive && (
+            <span className={`status-badge ${status}`}>
+              {status === "running"
+                ? `🟢 Running (${formatDuration(uptime)})`
+                : "🔴 Stopped"}
             </span>
-          )}
-          {status === "stopped" && isActive && (
-            <span className="status-badge stopped">🔴 Stopped</span>
           )}
         </h3>
 
-        {isActive && status === "running" && (
-          <div className="running-overlay">🔥 {game.name} Server LIVE</div>
-        )}
-
-        {/* ✅ Always show requirements */}
         <div className="requirements always-visible">
           <h4>Server Requirements</h4>
-          <div className="tags">
-            {Object.entries(game.specs).map(([key, spec]) => (
-              <span key={key} className={`tag ${spec.ok ? "ok" : "fail"}`}>
-                {spec.label} {spec.ok ? "✅" : "❌"}
-              </span>
-            ))}
-          </div>
+          {Object.values(game.specs).map((spec, i) => (
+            <span key={i} className={`tag ${spec.ok ? "ok" : "fail"}`}>
+              {spec.label} {spec.ok ? "✅" : "❌"}
+            </span>
+          ))}
         </div>
 
         {!isActive ? (
           <button
-            disabled={loading || !!anotherRunning || game.comingSoon}
+            disabled={loading || anotherRunning || game.comingSoon}
             className="host-btn start"
-            type="button"
-            onClick={() =>
-              !anotherRunning && !game.comingSoon && onSelect(game)
-            }
+            onClick={() => onSelect(game)}
           >
-            {game.comingSoon
-              ? "🚧 Not Available"
-              : anotherRunning && activeGameName
-              ? `🚫 Unavailable (${activeGameName} is running)`
-              : loading
-              ? "⏳ Starting..."
-              : "➕ Start Server"}
+            {loading ? "⏳ Starting..." : "➕ Start Server"}
           </button>
         ) : (
           <div className="server-actions">
             <button
               disabled={loading}
               className="stop-btn stop"
-              type="button"
               onClick={() => onStop(game)}
             >
               {loading ? "⏳ Stopping..." : "🛑 Stop Server"}
             </button>
-
             <button
               className="terminal-btn"
-              type="button"
               onClick={() => (window.location.href = "/terminal")}
             >
               🖥️ View Terminal
@@ -228,178 +117,95 @@ const GameBanner: React.FC<{
   );
 };
 
-// 📌 Main Component
 const Games: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    linuxOnly: false,
-    ram8gb: false,
-    canHost: false,
-  });
-
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [status, setStatus] = useState("stopped");
   const [loading, setLoading] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [uptime, setUptime] = useState(0);
-  const [lastUptime, setLastUptime] = useState<number | null>(null);
 
-  // Restore state
   useEffect(() => {
     const storedGame = localStorage.getItem("selectedGame");
-    const storedStart = localStorage.getItem("serverStartTime");
-    const storedLast = localStorage.getItem("serverLastUptime");
-
+    const storedTime = localStorage.getItem("serverStartTime");
     if (storedGame) setActiveGame(storedGame);
-
-    const checkServer = async () => {
-      if (storedGame) {
-        try {
-          const res = await fetch(`/api/server-status?game=${storedGame}`);
-          const data = await res.json();
-
-          if (data.status === "running" && storedStart) {
-            setStatus("running");
-            setStartTime(Number(storedStart));
-            setLastUptime(null);
-          } else if (data.status === "stopped" && storedLast) {
-            setStatus("stopped");
-            setLastUptime(Number(storedLast));
-            setStartTime(null);
-          }
-        } catch (err) {
-          console.error("Failed to restore server status:", err);
-        }
-      }
-    };
-
-    checkServer();
+    if (storedTime) setStartTime(Number(storedTime));
   }, []);
 
-  // Update uptime every second
   useEffect(() => {
     if (status === "running" && startTime) {
-      const timer = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        setUptime(elapsed);
-      }, 1000);
-      return () => clearInterval(timer);
+      const interval = setInterval(
+        () => setUptime(Date.now() - startTime),
+        1000
+      );
+      return () => clearInterval(interval);
     }
   }, [status, startTime]);
 
-  const startServer = async (gameId: string) => {
-    try {
-      setLoading(true);
-      await fetch(`/api/start-server?game=${gameId}`, { method: "POST" });
-      setStatus("running");
-      const now = Date.now();
-      setStartTime(now);
-      setUptime(0);
-      setLastUptime(null);
-      localStorage.setItem("selectedGame", gameId);
-      localStorage.setItem("serverStartTime", now.toString());
-      localStorage.removeItem("serverLastUptime");
-      console.log("[INFO] Backend started server:", gameId);
-    } catch (err) {
-      console.error(`[ERROR] Failed to start ${gameId}:`, err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const stopServer = async (gameId: string) => {
-    try {
-      setLoading(true);
-      await fetch(`/api/stop-server?game=${gameId}`, { method: "POST" });
-      setStatus("stopped");
-      if (startTime) {
-        const finalUptime = Date.now() - startTime;
-        setLastUptime(finalUptime);
-        localStorage.setItem("serverLastUptime", finalUptime.toString());
-      }
-      localStorage.removeItem("serverStartTime");
-      localStorage.removeItem("selectedGame");
-      setActiveGame(null);
-      setStartTime(null);
-      console.log("[INFO] Backend stopped server:", gameId);
-    } catch (err) {
-      console.error(`[ERROR] Failed to stop ${gameId}:`, err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelect = useCallback(
+  const startServer = useCallback(
     async (game: Game) => {
-      if (activeGame && activeGame !== game.id) {
-        console.warn("Another server is running, cannot start a new one.");
-        return;
+      if (activeGame && activeGame !== game.id) return;
+      setLoading(true);
+      try {
+        await fetch("/api/start-server", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId: game.id }),
+        });
+        setStatus("running");
+        const now = Date.now();
+        setStartTime(now);
+        localStorage.setItem("selectedGame", game.id);
+        localStorage.setItem("serverStartTime", now.toString());
+        setActiveGame(game.id);
+        window.location.href = "/terminal";
+      } catch (err) {
+        console.error(err);
+        alert("Failed to start server. Check backend logs.");
+      } finally {
+        setLoading(false);
       }
-      await startServer(game.id);
-      setActiveGame(game.id);
-      window.dispatchEvent(new Event("storage"));
-      window.location.href = "/terminal";
     },
     [activeGame]
   );
 
-  const handleStop = useCallback(async (game: Game) => {
-    await stopServer(game.id);
+  const stopServer = useCallback(async (game: Game) => {
+    setLoading(true);
+    try {
+      await fetch("/api/stop-server", { method: "POST" });
+      setStatus("stopped");
+      setActiveGame(null);
+      setStartTime(null);
+      localStorage.removeItem("selectedGame");
+      localStorage.removeItem("serverStartTime");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to stop server. Check backend logs.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
-
-  // Search + filters
-  const filteredGames = gamesList.filter((game) => {
-    const matchesSearch = game.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesLinux =
-      !filters.linuxOnly || game.specs.os.label.includes("Linux");
-    const matchesRam = !filters.ram8gb || game.specs.ram.label.includes("8 GB");
-    const matchesHost = !filters.canHost || game.canHost;
-    return matchesSearch && matchesLinux && matchesRam && matchesHost;
-  });
 
   return (
     <main className="games-hosting-page">
       <header className="page-header fancy">
         <h1 className="page-title">🚀 My Servers</h1>
         <p className="page-description">
-          Manage and host your game servers with ease.
-          <br />
-          Start or stop servers, track uptime in real-time, and filter by system
-          requirements.
-          <strong>
-            {" "}
-            ⚠️ Only one server can run at a time on this demo server.{" "}
-          </strong>
+          Start/stop Project Zomboid servers. Only one server runs at a time.
         </p>
       </header>
-
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <FilterBar filters={filters} setFilters={setFilters} />
-
-      <section
-        className="game-banner-list"
-        aria-label="Available games to host"
-      >
-        {filteredGames.length ? (
-          filteredGames.map((game) => (
-            <GameBanner
-              key={game.id}
-              game={game}
-              onSelect={handleSelect}
-              onStop={handleStop}
-              activeGame={activeGame}
-              status={status}
-              loading={loading}
-              uptime={status === "running" ? uptime : lastUptime || 0}
-            />
-          ))
-        ) : (
-          <p className="no-games-msg" role="alert">
-            ❌ No games match your search/filters.
-          </p>
-        )}
+      <section className="game-banner-list">
+        {gamesList.map((game) => (
+          <GameBanner
+            key={game.id}
+            game={game}
+            onSelect={startServer}
+            onStop={stopServer}
+            activeGame={activeGame}
+            status={status}
+            loading={loading}
+            uptime={uptime}
+          />
+        ))}
       </section>
     </main>
   );

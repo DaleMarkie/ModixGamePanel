@@ -1,25 +1,24 @@
-const { spawn } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const { spawn } = require('child_process');
 
-const backendPath = path.join(__dirname, "../backend");
-const pythonPathFile = path.join(__dirname, "../.backendrc");
+let pythonPath;
 
-if (!fs.existsSync(pythonPathFile)) {
-  console.error(
-    "❌ Backend Python path not found. Run `npm run setup-backend` first."
-  );
-  process.exit(1);
+// Try to read custom python path from .backendrc
+try {
+  pythonPath = fs.readFileSync('.backendrc', 'utf8').trim();
+} catch {
+  // Default Python based on OS
+  pythonPath = process.platform === 'win32' ? 'py' : 'python3';
 }
 
-const python = fs.readFileSync(pythonPathFile, "utf8").trim();
+try {
+  const child = spawn(pythonPath, ['backend/api_main.py'], {
+    stdio: 'inherit',
+    env: { ...process.env, PYTHONPATH: 'backend' },
+    shell: process.platform === 'win32', // required on Windows
+  });
 
-const backendProcess = spawn(python, ["backend/api_main.py"], {
-  stdio: "inherit",
-  cwd: backendPath,
-  shell: true,
-});
-
-backendProcess.on("close", (code) => {
-  console.log(`Backend exited with code ${code}`);
-});
+  child.on('exit', (code) => process.exit(code));
+} catch (e) {
+  console.error('Backend failed to start:', e);
+}

@@ -1,221 +1,157 @@
-import React, { useState, useEffect, useRef } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import "./terminal.css";
 import Performance from "src/app/tools/performance/Performance";
 
-interface ServerStats {
-  ramUsed?: number;
-  ramTotal?: number;
-  cpu?: number;
-  status?: string;
-  uptime?: string;
-}
-
 type TabType = "server" | "system" | "chat" | "connections";
-
 const MAX_LOGS = 500;
 
-// --- Helper to resolve API base per selected game ---
-const getApiBase = () => {
-  const selectedGame = localStorage.getItem("selectedGame") || "pz";
-  switch (selectedGame) {
-    case "rimworld":
-      return "http://localhost:2010/api/rimworld";
-    case "pz":
-    default:
-      return "http://localhost:2010/api/projectzomboid";
-  }
-};
-
-// --- Error helpers ---
-const ERROR_DETAILS: Record<number, string> = {
-  1: "Unknown game selected. Check your config or the game argument.",
-  2: "Missing dependency. SteamCMD or required files are not installed.",
-  3: "Update failed. Could not update the server via SteamCMD.",
-  4: "Launch failed. The server binary/script failed to start.",
-  5: "Port already in use. Another process is bound to the required port.",
-};
-
-const getDetailedError = (msg: string): string => {
-  if (msg.includes("Failed to fetch")) {
-    return "[Error] Could not reach backend API (possible causes: backend not running, wrong port, firewall, or CORS misconfiguration).";
-  }
-  if (msg.includes("ECONNREFUSED")) {
-    return "[Error] Connection refused. Backend service is offline or crashed.";
-  }
-  if (msg.includes("CORS")) {
-    return "[Error] CORS policy blocked request. Check backend headers.";
-  }
-  if (msg.includes("timeout")) {
-    return "[Error] Request timed out. Backend may be hung or overloaded.";
-  }
-  return `[Error] ${msg}`;
-};
-
 const Terminal: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState("Please start the server");
-  const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>(() => {
-    const saved = localStorage.getItem("pz-logs-tabs");
-    const parsed = saved ? JSON.parse(saved) : {};
-    return {
-      server: parsed.server || ["[System] Server terminal ready."],
-      system: parsed.system || ["[System] System terminal ready."],
-      chat: parsed.chat || ["[System] Chat logs ready."],
-      connections: parsed.connections || ["[System] Connections log ready."],
-    };
+  const [isServerRunning, setIsServerRunning] = useState(false);
+  const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>({
+    server: ["[System] Server terminal ready."],
+    system: ["[System] System terminal ready."],
+    chat: ["[System] Chat logs ready."],
+    connections: ["[System] Connections log ready."],
   });
   const [activeTab, setActiveTab] = useState<TabType>("server");
-  const [command, setCommand] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [serverStats, setServerStats] = useState<ServerStats | null>(null);
-  const [isServerRunning, setIsServerRunning] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<string>(
-    localStorage.getItem("selectedGame") || "pz"
-  );
+  const [command, setCommand] = useState("");
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
-  const eventSourceRef = useRef<EventSource | null>(null);
+  useEffect(() => {
+    setMounted(true);
+    const storedGame = localStorage.getItem("selectedGame");
+    if (storedGame) setSelectedGameId(storedGame);
+  }, []);
 
-  const API_BASE = getApiBase();
+  const API_BASE =
+    mounted && selectedGameId
+      ? `http://localhost:2010/api/${selectedGameId}`
+      : "";
 
-  // --- Helpers ---
   const saveLogs = (updated: Record<TabType, string[]>) => {
-    localStorage.setItem("pz-logs-tabs", JSON.stringify(updated));
+    if (mounted) localStorage.setItem("logs-tabs", JSON.stringify(updated));
     return updated;
   };
 
-  const addLog = (
-    text: string,
-    tab: TabType = "server",
-    includeTimestamp = true
-  ) => {
-    const formatted = includeTimestamp
-      ? `[${new Date().toLocaleTimeString()}] ${text}`
-      : text;
-
+  const addLog = (text: string, tab: TabType = "server") => {
+    const formatted = `[${new Date().toLocaleTimeString()}] ${text}`;
     setLogsByTab((prev) => {
       const updated = {
         ...prev,
         [tab]: [...prev[tab], formatted].slice(-MAX_LOGS),
       };
-
-      // Mirror errors into system
-      if (tab === "server" && text.startsWith("[Error]")) {
-        updated.system = [...prev.system, formatted].slice(-MAX_LOGS);
-      }
-
-      // Capture chat logs
-      if (tab === "server" && text.includes("[CHAT]")) {
-        updated.chat = [...prev.chat, formatted].slice(-MAX_LOGS);
-      }
-
-      // Capture connection logs
-      if (tab === "server" && text.includes("[CONNECTION]")) {
-        updated.connections = [...prev.connections, formatted].slice(-MAX_LOGS);
-      }
-
       return saveLogs(updated);
     });
   };
 
-  const parseLog = (log: string) => {
-    const match = log.match(/^(\[[0-9: ]+[APM]*\])?\s*(\[[^\]]+\])?(.*)$/i);
-    if (!match) return { timestamp: "", tag: "", rest: log };
-    const [, timestamp, tag, rest] = match;
-    return { timestamp: timestamp || "", tag: tag || "", rest: rest || "" };
-  };
-
-  const getTagClass = (tag: string) => {
-    const t = tag.toLowerCase();
-    if (!t) return "log-default";
-    if (t.includes("error")) return "log-error";
-    if (t.includes("system")) return "log-system";
-    if (tag.trim().startsWith(">")) return "log-command";
-    return "log-default";
-  };
-
-  // --- API calls ---
-  const fetchStats = async () => {
+  const fetchStatus = async () => {
+    if (!API_BASE) return;
     try {
-      const res = await fetch(`${API_BASE}/server-stats`);
+      const res = await fetch(`${API_BASE}/server-status`);
       const data = await res.json();
-      setServerStats(data);
       setIsServerRunning(data.status === "running");
       setStatus(
         data.status === "running" ? "Server is running" : "Server stopped"
       );
     } catch (err: any) {
-      addLog(
-        getDetailedError(err.message || "Failed to fetch server stats"),
-        "system",
-        false
-      );
-    }
-  };
-
-  const testBackend = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/ping`);
-      if (res.ok) {
-        addLog(
-          `[System] Backend for ${selectedGame} is online.`,
-          "system",
-          false
-        );
-      } else {
-        addLog("[Error] Backend responded but not OK.", "system", false);
-      }
-    } catch (err: any) {
-      addLog(
-        getDetailedError(err.message || "Could not reach backend API"),
-        "system",
-        false
-      );
+      addLog(`[Error] Failed to fetch server status: ${err.message}`, "system");
+      setIsServerRunning(false);
+      setStatus("Server status unknown");
     }
   };
 
   useEffect(() => {
-    setSelectedGame(localStorage.getItem("selectedGame") || "pz");
-    testBackend();
-    fetchStats();
-    const interval = setInterval(fetchStats, 10000);
+    if (!API_BASE) return;
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
   }, [API_BASE]);
 
-  const submitCommand = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!command.trim()) return;
-    // @ts-ignore
-    handleCommand(command.trim());
-    setCommand("");
+  const startServer = async () => {
+    if (!API_BASE) return;
+    try {
+      const res = await fetch(`${API_BASE}/start`, { method: "POST" });
+      const data = await res.json();
+      if (data.error) addLog(`[Error] ${data.error}`, "system");
+      if (data.message) addLog(`[Info] ${data.message}`, "system");
+      fetchStatus();
+    } catch (err: any) {
+      addLog(`[Error] Failed to start server: ${err.message}`, "system");
+    }
   };
 
-  const handleClear = () => {
-    setLogsByTab((prev) => saveLogs({ ...prev, [activeTab]: [] }));
+  const stopServer = async () => {
+    if (!API_BASE) return;
+    try {
+      const res = await fetch(`${API_BASE}/stop`, { method: "POST" });
+      const data = await res.json();
+      if (data.error) addLog(`[Error] ${data.error}`, "system");
+      if (data.message) addLog(`[Info] ${data.message}`, "system");
+      fetchStatus();
+    } catch (err: any) {
+      addLog(`[Error] Failed to stop server: ${err.message}`, "system");
+    }
   };
 
-  const handleCopyLogs = () =>
-    navigator.clipboard.writeText(logsByTab[activeTab].join("\n")).then(
-      () => alert("Logs copied!"),
-      () => alert("Failed to copy logs.")
-    );
+  const sendCommand = async () => {
+    if (!command.trim() || !API_BASE) return;
+    try {
+      const res = await fetch(`${API_BASE}/send-command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command }),
+      });
+      const data = await res.json();
+      if (data.error) addLog(`[Error] ${data.error}`, "system");
+      if (data.message) addLog(`[Info] ${data.message}`, "system");
+      setCommand("");
+    } catch (err: any) {
+      addLog(`[Error] Failed to send command: ${err.message}`, "system");
+    }
+  };
+
+  const copyLogs = () => {
+    const allLogs = logsByTab[activeTab].join("\n");
+    navigator.clipboard
+      .writeText(allLogs)
+      .then(() => addLog("Logs copied to clipboard", "system"))
+      .catch(() => addLog("Failed to copy logs", "system"));
+  };
+
+  const clearLogs = () => {
+    setLogsByTab((prev) => {
+      const updated = { ...prev, [activeTab]: [] };
+      saveLogs(updated);
+      return updated;
+    });
+    addLog("Logs cleared", "system");
+  };
+
+  if (!mounted || !selectedGameId) return <p>Loading terminal...</p>;
 
   const filteredLogs =
     logsByTab[activeTab]?.filter((log) =>
       log.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
-  // --- Render ---
   return (
     <div className="terminal-layout">
-      {/* Header */}
       <header className="terminal-header-box">
         <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>
-          ● {status} <strong>({selectedGame})</strong>
+          ● {status} <strong>({selectedGameId})</strong>
         </div>
         <div className="controls">
-          <button disabled={isServerRunning}>Start</button>
-          <button disabled={!isServerRunning}>Restart</button>
-          <button disabled={!isServerRunning}>Stop</button>
-          <button disabled={!isServerRunning}>Shutdown</button>
+          <button disabled={isServerRunning} onClick={startServer}>
+            Start
+          </button>
+          <button disabled={!isServerRunning} onClick={stopServer}>
+            Stop
+          </button>
           <input
             className="log-search"
             type="text"
@@ -226,7 +162,6 @@ const Terminal: React.FC = () => {
         </div>
       </header>
 
-      {/* Tabs */}
       <div className="terminal-tabs">
         {(["system", "server", "chat", "connections"] as TabType[]).map(
           (tab) => (
@@ -235,56 +170,40 @@ const Terminal: React.FC = () => {
               className={`tab-btn ${activeTab === tab ? "active" : ""}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === "server"
-                ? "Server"
-                : tab === "system"
-                ? "System"
-                : tab === "chat"
-                ? "Chat Logs"
-                : "Connections"}
+              {tab}
             </button>
           )
         )}
       </div>
 
-      {/* Logs */}
+      <div className="log-controls">
+        <button onClick={copyLogs}>Copy Logs</button>
+        <button onClick={clearLogs}>Clear Logs</button>
+      </div>
+
       <div className="terminal-logs">
         {filteredLogs.length ? (
-          filteredLogs.map((log, index) => {
-            const { timestamp, tag, rest } = parseLog(log);
-            return (
-              <pre key={index} className="terminal-log">
-                {timestamp && <span className="log-default">{timestamp} </span>}
-                {tag && <span className={getTagClass(tag)}>{tag}</span>}
-                <span className="log-default">{rest}</span>
-              </pre>
-            );
-          })
+          filteredLogs.map((log, i) => (
+            <pre key={i} className="terminal-log">
+              {log}
+            </pre>
+          ))
         ) : (
-          <p className="terminal-log no-results">No matching logs found.</p>
+          <div className="terminal-log no-results">No logs found</div>
         )}
       </div>
 
-      {/* Command Input (hidden only on Chat & Connections tabs) */}
-      {activeTab !== "chat" && activeTab !== "connections" && (
-        <form onSubmit={submitCommand} className="command-form">
-          <input
-            type="text"
-            value={command}
-            onChange={(e) => setCommand(e.target.value)}
-            placeholder="Type command here..."
-          />
-          <button type="submit">Send</button>
-          <button type="button" onClick={handleClear}>
-            Clear
-          </button>
-          <button type="button" onClick={handleCopyLogs}>
-            Copy Logs
-          </button>
-        </form>
-      )}
+      <div className="command-form">
+        <input
+          type="text"
+          placeholder="Enter command..."
+          value={command}
+          onChange={(e) => setCommand(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendCommand()}
+        />
+        <button onClick={sendCommand}>Send</button>
+      </div>
 
-      {/* Performance always below */}
       <Performance />
     </div>
   );

@@ -1,15 +1,14 @@
-/* --- Wrapper for Sidebar + Terminal --- */
+/* --- Terminal Wrapper --- */
 .terminal-wrapper {
-  display: flex; /* ✅ fix: was display: fixed */
+  display: flex;
   flex: 1;
-  width: 100vw; /* ✅ 1111vw was making everything huge */
+  width: 100vw;
   height: 100vh;
   margin: 0;
   padding: 0;
   border-radius: 0;
   overflow: hidden;
   background: #121212;
-  border: none;
   font-family: "JetBrains Mono", monospace;
 }
 
@@ -55,7 +54,7 @@
   cursor: not-allowed;
 }
 
-/* --- Terminal Section --- */
+/* --- Terminal Layout --- */
 .terminal-layout {
   flex: 1;
   background: #121212;
@@ -90,7 +89,7 @@
   color: #f44336;
 }
 
-/* Controls */
+/* Header controls */
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -128,9 +127,41 @@
   width: 150px;
 }
 
+/* Tabs */
+.terminal-tabs {
+  display: flex;
+  flex-direction: row;
+  background: #1b1b1b;
+  border-bottom: 2px solid #2a2a2a;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: #2a2a2a;
+  color: #ccc;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-align: center;
+}
+
+.tab-btn:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.tab-btn.active {
+  background: #01891c;
+  color: #fff;
+  font-weight: 600;
+}
+
 /* Logs */
 .terminal-logs {
-  max-height: 320px;
+  flex: 1;
   background: #0f0f0f;
   padding: 10px;
   overflow-y: auto;
@@ -145,42 +176,35 @@
   white-space: pre-wrap;
 }
 
-/* Colour-coded spans inside log lines */
 .log-default {
   color: #dddddd;
 }
-
 .log-timestamp {
   color: #888888;
 }
-
 .log-command {
   color: #4fc3f7;
   font-weight: 600;
 }
-
 .log-system {
   color: #4caf50;
   font-weight: 500;
 }
-
 .log-install {
   color: #ffb74d;
   font-style: italic;
 }
-
 .log-error {
   color: #ffeb3b;
   font-weight: 700;
 }
-
 .terminal-log.no-results {
   color: #777;
   text-align: center;
   padding: 10px;
 }
 
-/* Command Form */
+/* --- Command Form --- */
 .command-form {
   display: flex;
   gap: 6px;
@@ -209,73 +233,46 @@
   color: #f5f5f5;
   border: 1px solid #1a5a2f;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   font-size: 13px;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.command-form button:hover {
+.command-form button:hover:not(:disabled) {
   background: #166c35;
 }
 
-/* Popup Overlay */
-.popup-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 50;
+.command-form button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.popup-box {
-  background: #121212;
+/* --- Log controls (Copy / Clear) --- */
+.log-controls {
+  display: flex;
+  gap: 6px;
+  background: #181818;
+  padding: 8px 10px;
+  border-bottom: 1px solid #222;
+}
+
+.log-controls button {
+  background: #0f3d1d;
   color: #f5f5f5;
-  padding: 20px;
-  border-radius: 10px;
-  width: 500px;
-  max-height: 75vh;
-  overflow-y: auto;
-  border: 1px solid #2c2c2c;
-}
-/* Tabs container: force row layout */
-.terminal-tabs {
-  display: flex;
-  flex-direction: row; /* force horizontal */
-  justify-content: flex-start;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  background: #1b1b1b;
-  border-bottom: 2px solid #2a2a2a;
-}
-
-/* Tab buttons: no gaps, look professional */
-.tab-btn {
-  flex: 1; /* each tab same width */
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 0; /* square edges so they connect */
-  background: #2a2a2a;
-  color: #ccc;
-  font-size: 0.95rem;
-  font-weight: 500;
+  border: 1px solid #1a5a2f;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
+  transition: 0.2s ease;
 }
 
-.tab-btn:hover {
-  background: #3a3a3a;
-  color: #fff;
+.log-controls button:hover:not(:disabled) {
+  background: #166c35;
 }
 
-/* Active tab highlight */
-.tab-btn.active {
-  background: #01891c;
-  color: #fff;
-  font-weight: 600;
+.log-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
