@@ -1,56 +1,68 @@
 #!/usr/bin/env node
+/**
+ * 🚀 Modix Advanced Installer v4
+ * Fully silent cross-platform installer with background launch
+ */
 
-const { execSync, spawnSync } = require("child_process");
+const { execSync, spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const inquirer = require("inquirer");
-const net = require("net");
 const os = require("os");
+const net = require("net");
 const https = require("https");
-const { createWriteStream } = require("fs");
 
-// ------------------- Utility Functions -------------------
+// --- Load inquirer ---
+let inquirer;
+try {
+  inquirer = require("inquirer");
+} catch {
+  console.log("📦 Installing missing dependency: inquirer");
+  execSync("npm install inquirer", { stdio: "inherit", shell: true });
+  inquirer = require("inquirer");
+}
+
+// ------------------- Helpers -------------------
+function log(step, msg) {
+  const icons = { info: "🔹", ok: "✅", warn: "⚠️", err: "❌", run: "⚡" };
+  console.log(`${icons[step] || "•"} ${msg}`);
+}
+
 async function getFreePort(defaultPort) {
   let port = defaultPort;
-  let free = false;
-  while (!free) {
-    free = await new Promise((resolve) => {
+  while (true) {
+    const free = await new Promise((resolve) => {
       const tester = net
         .createServer()
         .once("error", () => resolve(false))
-        .once("listening", function () {
+        .once("listening", () => {
           tester.once("close", () => resolve(true)).close();
         })
         .listen(port);
     });
-    if (!free) port++;
+    if (free) return port;
+    port++;
   }
-  return port;
 }
 
 function checkCommand(cmd, versionArg = "--version") {
   try {
-    execSync(`${cmd} ${versionArg}`, { stdio: "ignore" });
-    return true;
+    return execSync(`${cmd} ${versionArg}`, {
+      stdio: ["ignore", "pipe", "ignore"],
+      shell: true,
+    })
+      .toString()
+      .trim();
   } catch {
-    return false;
+    return null;
   }
-}
-
-function installNodePackages(packages) {
-  console.log(`📦 Installing missing Node packages: ${packages.join(", ")}`);
-  execSync(`npm install ${packages.join(" ")}`, {
-    stdio: "inherit",
-    shell: true,
-  });
 }
 
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
-    const file = createWriteStream(dest);
+    const file = fs.createWriteStream(dest);
     https
-      .get(url, (response) => {
-        response.pipe(file);
+      .get(url, (res) => {
+        res.pipe(file);
         file.on("finish", () => file.close(resolve));
       })
       .on("error", (err) => {
@@ -60,213 +72,166 @@ function downloadFile(url, dest) {
   });
 }
 
-// ------------------- Auto-install Windows -------------------
+function installNodePackages(packages) {
+  log("run", `Installing Node packages: ${packages.join(", ")}`);
+  execSync(`npm install ${packages.join(" ")}`, {
+    stdio: "inherit",
+    shell: true,
+  });
+}
+
 async function installPythonWindows() {
-  console.log("⬇️ Downloading Python installer...");
-  const pythonUrl =
+  log("info", "Downloading Python installer...");
+  const url =
     "https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe";
-  const installerPath = path.join(os.tmpdir(), "python_installer.exe");
-  await downloadFile(pythonUrl, installerPath);
-  console.log("⚡ Running Python installer...");
-  spawnSync(installerPath, ["/quiet", "InstallAllUsers=1", "PrependPath=1"], {
+  const dest = path.join(os.tmpdir(), "python_installer.exe");
+  await downloadFile(url, dest);
+  log("run", "Running Python installer silently...");
+  spawn(dest, ["/quiet", "InstallAllUsers=1", "PrependPath=1"], {
     stdio: "inherit",
   });
 }
 
 async function installNodeWindows() {
-  console.log("⬇️ Downloading Node.js installer...");
-  const nodeUrl = "https://nodejs.org/dist/v20.5.0/node-v20.5.0-x64.msi";
-  const installerPath = path.join(os.tmpdir(), "node_installer.msi");
-  await downloadFile(nodeUrl, installerPath);
-  console.log("⚡ Running Node.js installer...");
-  spawnSync("msiexec", ["/i", installerPath, "/quiet", "/norestart"], {
-    stdio: "inherit",
-  });
+  log("info", "Downloading Node.js installer...");
+  const url = "https://nodejs.org/dist/v20.5.0/node-v20.5.0-x64.msi";
+  const dest = path.join(os.tmpdir(), "node_installer.msi");
+  await downloadFile(url, dest);
+  log("run", "Running Node.js installer silently...");
+  spawn("msiexec", ["/i", dest, "/quiet", "/norestart"], { stdio: "inherit" });
 }
 
 // ------------------- Dependency Checks -------------------
 async function checkAndInstallDependencies() {
-  // --- Python 3 ---
-  let pythonCmd = null;
-  if (checkCommand("python3")) pythonCmd = "python3";
-  else if (checkCommand("py -3")) pythonCmd = "py -3";
-  else if (checkCommand("python")) pythonCmd = "python";
-
+  let pythonCmd =
+    checkCommand("python3") ||
+    checkCommand("py -3") ||
+    checkCommand("python") ||
+    null;
+  if (!pythonCmd && process.platform === "win32") {
+    await installPythonWindows();
+    pythonCmd =
+      checkCommand("python3") ||
+      checkCommand("py -3") ||
+      checkCommand("python");
+  }
   if (!pythonCmd) {
-    if (process.platform === "win32") {
-      const { installPy } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "installPy",
-          message: "Python 3 missing. Install now?",
-          default: true,
-        },
-      ]);
-      if (installPy) await installPythonWindows();
-      if (checkCommand("python3")) pythonCmd = "python3";
-      else if (checkCommand("py -3")) pythonCmd = "py -3";
-      else if (checkCommand("python")) pythonCmd = "python";
-      if (!pythonCmd) {
-        console.error("❌ Python installation failed.");
-        process.exit(1);
-      }
-    } else {
-      console.error(
-        "❌ Python 3 is missing. Install with: sudo apt install python3 python3-venv python3-pip (Linux) or brew install python3 (macOS)"
-      );
-      process.exit(1);
-    }
+    log("err", "Python not found");
+    process.exit(1);
   }
-  console.log(`✅ Found Python: ${pythonCmd}`);
+  log("ok", `Found Python: ${pythonCmd}`);
 
-  // --- Node.js & npm ---
   if (!checkCommand("node") || !checkCommand("npm")) {
-    if (process.platform === "win32") {
-      const { installNode } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "installNode",
-          message: "Node.js missing. Install now?",
-          default: true,
-        },
-      ]);
-      if (installNode) await installNodeWindows();
-      if (!checkCommand("node") || !checkCommand("npm")) {
-        console.error("❌ Node installation failed.");
-        process.exit(1);
-      }
-    } else {
-      console.error(
-        "❌ Node.js/npm missing. Install with: sudo apt install nodejs npm (Linux) or brew install node (macOS)"
-      );
+    if (process.platform === "win32") await installNodeWindows();
+    if (!checkCommand("node") || !checkCommand("npm")) {
+      log("err", "Node/npm not found");
       process.exit(1);
     }
   }
-  console.log(`✅ Found Node.js: ${execSync("node -v").toString().trim()}`);
-  console.log(`✅ Found npm: ${execSync("npm -v").toString().trim()}`);
+  log(
+    "ok",
+    `Node.js: ${checkCommand("node", "-v")}, npm: ${checkCommand("npm", "-v")}`
+  );
 
-  // --- Node Packages ---
-  const missingPackages = [];
-  try {
-    require.resolve("inquirer");
-  } catch {
-    missingPackages.push("inquirer");
-  }
-  try {
-    require.resolve("cross-env");
-  } catch {
-    missingPackages.push("cross-env");
-  }
-
-  if (missingPackages.length > 0) {
-    const { installPkgs } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "installPkgs",
-        message: `Missing Node packages: ${missingPackages.join(
-          ", "
-        )}. Install now?`,
-        default: true,
-      },
-    ]);
-    if (installPkgs) installNodePackages(missingPackages);
-    else {
-      console.error("❌ Required Node packages missing. Exiting.");
-      process.exit(1);
+  const required = ["inquirer", "cross-env"];
+  const missing = required.filter((pkg) => {
+    try {
+      require.resolve(pkg);
+      return false;
+    } catch {
+      return true;
     }
-  }
+  });
+  if (missing.length > 0) installNodePackages(missing);
 }
 
 // ------------------- Main Installer -------------------
 (async () => {
-  console.log("🚀 Welcome to the Modix Installer");
+  console.log("\n🚀 Modix Installer v4\n");
 
   await checkAndInstallDependencies();
-
-  const { userOS } = await inquirer.prompt([
-    {
-      type: "list",
-      name: "userOS",
-      message: "Select your operating system:",
-      choices: ["Windows", "Linux/macOS"],
-    },
-  ]);
-  console.log(`✅ Selected OS: ${userOS}`);
 
   const backendDir = path.join(__dirname, "../backend");
   const venvDir = path.join(backendDir, "venv");
   const requirementsFile = path.join(backendDir, "requirements.txt");
   const nodeModulesDir = path.join(__dirname, "../node_modules");
 
-  const { confirmVenv } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirmVenv",
-      message: "Setup Python backend venv?",
-      default: true,
-    },
-  ]);
+  // --- Backend ---
+  if (fs.existsSync(venvDir))
+    fs.rmSync(venvDir, { recursive: true, force: true });
+  log("run", "Creating Python virtual environment...");
+  execSync(
+    `${
+      process.platform === "win32" ? "py -3" : "python3"
+    } -m venv "${venvDir}"`,
+    { stdio: "inherit", shell: true }
+  );
+  const pythonVenv =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python3");
+  log("run", "Installing backend dependencies...");
+  execSync(`"${pythonVenv}" -m pip install --upgrade pip`, {
+    stdio: "inherit",
+    shell: true,
+  });
+  execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, {
+    stdio: "inherit",
+    shell: true,
+  });
+  log("ok", "Backend ready");
 
-  if (confirmVenv) {
-    if (fs.existsSync(venvDir))
-      fs.rmSync(venvDir, { recursive: true, force: true });
-    console.log("🐍 Creating Python virtual environment...");
-    execSync(
-      `${
-        process.platform === "win32" ? "py -3" : "python3"
-      } -m venv "${venvDir}"`,
-      { stdio: "inherit", shell: true }
-    );
-    const pythonVenv =
-      process.platform === "win32"
-        ? path.join(venvDir, "Scripts", "python.exe")
-        : path.join(venvDir, "bin", "python3");
-    console.log("🔹 Installing backend Python dependencies...");
-    execSync(`"${pythonVenv}" -m pip install --upgrade pip`, {
-      stdio: "inherit",
-      shell: true,
-    });
-    execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, {
-      stdio: "inherit",
-      shell: true,
-    });
-    console.log("✅ Backend dependencies installed.");
+  // --- Frontend ---
+  if (!fs.existsSync(nodeModulesDir)) {
+    log("run", "Installing frontend dependencies...");
+    execSync("npm ci", { stdio: "inherit", shell: true });
+    log("ok", "Frontend ready");
   }
 
-  const { confirmNode } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirmNode",
-      message: "Install Node frontend dependencies?",
-      default: true,
-    },
-  ]);
-  if (confirmNode && !fs.existsSync(nodeModulesDir)) {
-    console.log("📦 Installing Node frontend dependencies...");
-    execSync("npm install", { stdio: "inherit", shell: true });
-  }
-
+  // --- Ports & .env ---
   const frontendPort = await getFreePort(3000);
   const backendPort = await getFreePort(2010);
-  console.log(`✅ Frontend: ${frontendPort}, Backend: ${backendPort}`);
+  fs.writeFileSync(
+    path.join(__dirname, "../.env"),
+    `PORT=${frontendPort}\nAPI_PORT=${backendPort}\n`
+  );
+  log("ok", `Frontend: ${frontendPort}, Backend: ${backendPort}`);
 
-  const { confirmLaunch } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirmLaunch",
-      message: "Launch Modix now?",
-      default: true,
-    },
-  ]);
-  if (confirmLaunch) {
-    console.log("🚀 Launching frontend + backend...");
-    execSync(
-      `npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev`,
-      { stdio: "inherit", shell: true }
+  // --- Launch in background ---
+  log("run", "Launching Modix in background...");
+  if (process.platform === "win32") {
+    spawn(
+      "cmd.exe",
+      [
+        "/c",
+        `start npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev`,
+      ],
+      { detached: true }
     );
   } else {
-    console.log(
-      `⚠️ Installation complete. Run \`npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\` to start later.`
+    spawn(
+      "sh",
+      [
+        "-c",
+        `npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev &`,
+      ],
+      { detached: true }
     );
   }
+
+  // --- Desktop Shortcut (Windows) ---
+  if (process.platform === "win32") {
+    const shortcut = path.join(os.homedir(), "Desktop", "Modix.lnk");
+    const script = path.join(__dirname, "launch_modix.bat");
+    fs.writeFileSync(
+      script,
+      `@echo off\nnpx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\n`
+    );
+    execSync(
+      `powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('${shortcut}');$s.TargetPath='${script}';$s.Save()"`
+    );
+    log("ok", "Desktop shortcut created");
+  }
+
+  log("ok", "Installation complete. Modix is running!");
 })();
