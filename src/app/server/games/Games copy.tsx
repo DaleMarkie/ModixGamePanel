@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import "./Games.css";
 
 type GameSpec = { label: string; ok: boolean };
@@ -21,7 +21,7 @@ const gamesList: Game[] = [
     id: "pz-linux",
     os: "linux",
     canHost: true,
-    comingSoon: true,
+    comingSoon: false,
     specs: {
       cpu: { label: "CPU: 4+ cores", ok: true },
       ram: { label: "RAM: 8 GB", ok: true },
@@ -50,45 +50,6 @@ const formatDuration = (ms: number) => {
   return `${h ? h + "h " : ""}${m ? m + "m " : ""}${s}s`;
 };
 
-// Modal popup component
-const FilePickerModal: React.FC<{
-  visible: boolean;
-  onSelect: (fileName: string) => void;
-  onClose: () => void;
-}> = ({ visible, onSelect, onClose }) => {
-  const [fileName, setFileName] = useState("");
-
-  if (!visible) return null;
-
-  const handleSelect = () => {
-    if (!fileName) return alert("Please enter batch file name");
-    onSelect(fileName);
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Select Project Zomboid Batch File</h2>
-        <p>Enter the filename of your `.bat` file to start the server:</p>
-        <input
-          type="text"
-          placeholder="e.g. start-pz-server.bat"
-          value={fileName}
-          onChange={(e) => setFileName(e.target.value)}
-        />
-        <div className="modal-buttons">
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="confirm-btn" onClick={handleSelect}>
-            Start Server
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const GameBanner: React.FC<{
   game: Game;
   onSelect: (game: Game) => void;
@@ -111,10 +72,7 @@ const GameBanner: React.FC<{
       <div className="banner-overlay">
         <h3>
           {game.name} ({game.os.toUpperCase()})
-          {game.comingSoon && (
-            <span className="coming-soon">🚧 Coming Soon</span>
-          )}
-          {isActive && !game.comingSoon && (
+          {isActive && (
             <span className={`status-badge ${status}`}>
               {status === "running"
                 ? `🟢 Running (${formatDuration(uptime)})`
@@ -149,10 +107,13 @@ const GameBanner: React.FC<{
             >
               {loading ? "⏳ Stopping..." : "🛑 Stop Server"}
             </button>
+
             {status === "running" && (
               <button
                 className="terminal-btn"
-                onClick={() => (window.location.href = "/terminal")}
+                onClick={() =>
+                  (window.location.href = `/terminal?gameId=${game.id}&os=${game.os}`)
+                }
               >
                 🖥️ View Terminal
               </button>
@@ -170,8 +131,6 @@ const Games: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [uptime, setUptime] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [pendingGame, setPendingGame] = useState<Game | null>(null);
 
   useEffect(() => {
     const storedGame = localStorage.getItem("selectedGame");
@@ -193,52 +152,33 @@ const Games: React.FC = () => {
   const startServer = useCallback(
     async (game: Game) => {
       if (activeGame && activeGame !== game.id) return;
-      setPendingGame(game);
-      setShowModal(true);
+      setLoading(true);
+      try {
+        await fetch("/api/start-server", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId: game.id, os: game.os }),
+        });
+        setStatus("running");
+        const now = Date.now();
+        setStartTime(now);
+        localStorage.setItem("selectedGame", game.id);
+        localStorage.setItem("serverStartTime", now.toString());
+        setActiveGame(game.id);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to start server. Check backend logs.");
+      } finally {
+        setLoading(false);
+      }
     },
     [activeGame]
   );
 
-  const confirmStart = async (batchFileName: string) => {
-    if (!pendingGame) return;
-    setLoading(true);
-    setShowModal(false);
-
-    try {
-      const res = await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/start-server",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchFile: batchFileName }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to start server");
-      setStatus("running");
-      const now = Date.now();
-      setStartTime(now);
-      localStorage.setItem("selectedGame", pendingGame.id);
-      localStorage.setItem("serverStartTime", now.toString());
-      setActiveGame(pendingGame.id);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to start server. Check backend logs.");
-    } finally {
-      setLoading(false);
-      setPendingGame(null);
-    }
-  };
-
-  const stopServer = useCallback(async () => {
+  const stopServer = useCallback(async (game: Game) => {
     setLoading(true);
     try {
-      await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/stop-server",
-        {
-          method: "POST",
-        }
-      );
+      await fetch("/api/stop-server", { method: "POST" });
       setStatus("stopped");
       setActiveGame(null);
       setStartTime(null);
@@ -278,12 +218,6 @@ const Games: React.FC = () => {
           ))}
         </div>
       </section>
-
-      <FilePickerModal
-        visible={showModal}
-        onSelect={confirmStart}
-        onClose={() => setShowModal(false)}
-      />
     </main>
   );
 };

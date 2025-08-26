@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./terminal.css";
 
 interface LogEntry {
@@ -8,19 +8,30 @@ interface LogEntry {
   type: "info" | "error" | "system";
 }
 
-const Terminal: React.FC = () => {
+interface TerminalProps {
+  gameId: string;
+  os: string;
+}
+
+const Terminal: React.FC<TerminalProps> = ({ gameId, os }) => {
   const [status, setStatus] = useState("stopped");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [command, setCommand] = useState("");
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  const API_BASE = "http://localhost:2010/api/terminal/projectzomboid";
+  const API_BASE = `/api/terminal/projectzomboid/${gameId}/${os}`;
+  const isLinuxComingSoon = os === "linux";
 
   const appendLog = (text: string, type: LogEntry["type"] = "system") => {
     setLogs((prev) => [...prev, { text, type }].slice(-500));
   };
 
   const fetchStatus = async () => {
+    if (isLinuxComingSoon) {
+      setStatus("coming-soon");
+      return;
+    }
     try {
       const res = await fetch(`${API_BASE}/status`);
       const data = await res.json();
@@ -38,7 +49,12 @@ const Terminal: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isLinuxComingSoon) return;
+
+    // SSE log stream
     const evtSource = new EventSource(`${API_BASE}/log-stream`);
+    eventSourceRef.current = evtSource;
+
     evtSource.onmessage = (e) => {
       if (!e.data) return;
       appendLog(e.data, "info");
@@ -48,15 +64,16 @@ const Terminal: React.FC = () => {
       evtSource.close();
     };
     return () => evtSource.close();
-  }, []);
+  }, [gameId, os]);
 
   const startServer = async () => {
+    if (isLinuxComingSoon) {
+      appendLog(`[INFO] Linux server is coming soon. Cannot start.`, "system");
+      return;
+    }
     appendLog(`[INFO] Attempting to start server...`);
     try {
-      const res = await fetch(`${API_BASE}/start-server`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(`${API_BASE}/start-server`, { method: "POST" });
       const data = await res.json();
       if (!res.ok || data.success === false) {
         appendLog(`[ERROR] Failed to start server: ${data.message}`, "error");
@@ -70,6 +87,10 @@ const Terminal: React.FC = () => {
   };
 
   const stopServer = async () => {
+    if (isLinuxComingSoon) {
+      appendLog(`[INFO] Linux server is coming soon. Cannot stop.`, "system");
+      return;
+    }
     appendLog(`[INFO] Attempting to stop server...`);
     try {
       const res = await fetch(`${API_BASE}/stop-server`, { method: "POST" });
@@ -85,6 +106,33 @@ const Terminal: React.FC = () => {
     }
   };
 
+  const sendCommand = async () => {
+    if (isLinuxComingSoon) {
+      appendLog(`[INFO] Linux server is coming soon. Commands are disabled.`, "system");
+      setCommand("");
+      return;
+    }
+    if (!command.trim()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        appendLog(`[ERROR] Command failed: ${data.message}`, "error");
+      } else {
+        appendLog(`[CMD] ${command}`, "system");
+      }
+    } catch (err: any) {
+      appendLog(`[ERROR] Exception sending command: ${err.message}`, "error");
+    }
+
+    setCommand("");
+  };
+
   const filteredLogs = logs.filter((log) =>
     log.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -92,12 +140,14 @@ const Terminal: React.FC = () => {
   return (
     <div className="terminal-layout">
       <header className="terminal-header-box">
-        <div className={`status ${status}`}>● Server: {status}</div>
+        <div className={`status ${status}`}>
+          ● Server: {isLinuxComingSoon ? "Coming Soon 🚧" : status}
+        </div>
         <div className="controls">
-          <button disabled={status === "running"} onClick={startServer}>
+          <button disabled={status === "running" || isLinuxComingSoon} onClick={startServer}>
             Start Server
           </button>
-          <button disabled={status !== "running"} onClick={stopServer}>
+          <button disabled={status !== "running" || isLinuxComingSoon} onClick={stopServer}>
             Stop Server
           </button>
           <input
@@ -123,9 +173,10 @@ const Terminal: React.FC = () => {
           placeholder="Enter command..."
           value={command}
           onChange={(e) => setCommand(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && console.log(command)}
+          onKeyDown={(e) => e.key === "Enter" && sendCommand()}
+          disabled={isLinuxComingSoon}
         />
-        <button onClick={() => console.log(command)}>Send</button>
+        <button onClick={sendCommand} disabled={isLinuxComingSoon}>Send</button>
       </div>
     </div>
   );
