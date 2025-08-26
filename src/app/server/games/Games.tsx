@@ -26,18 +26,6 @@ const gamesList: Game[] = [
       storage: { label: "Storage: 5 GB", ok: true },
     },
   },
-  {
-    name: "Project Zomboid",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz-win",
-    canHost: true,
-    comingSoon: false,
-    specs: {
-      cpu: { label: "CPU: 4+ cores", ok: true },
-      ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 5 GB", ok: true },
-    },
-  },
 ];
 
 const formatDuration = (ms: number) => {
@@ -104,12 +92,14 @@ const GameBanner: React.FC<{
             >
               {loading ? "⏳ Stopping..." : "🛑 Stop Server"}
             </button>
-            <button
-              className="terminal-btn"
-              onClick={() => (window.location.href = "/terminal")}
-            >
-              🖥️ View Terminal
-            </button>
+            {status === "running" && (
+              <button
+                className="terminal-btn"
+                onClick={() => (window.location.href = "/terminal")}
+              >
+                🖥️ View Terminal
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -157,7 +147,7 @@ const Games: React.FC = () => {
         localStorage.setItem("selectedGame", game.id);
         localStorage.setItem("serverStartTime", now.toString());
         setActiveGame(game.id);
-        window.location.href = "/terminal";
+        // ✅ Removed auto-redirect
       } catch (err) {
         console.error(err);
         alert("Failed to start server. Check backend logs.");
