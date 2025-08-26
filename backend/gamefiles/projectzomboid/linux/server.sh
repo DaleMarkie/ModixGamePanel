@@ -1,5 +1,9 @@
 #!/bin/bash
-echo "Launching Project Zomboid (Linux)..."
-sleep 2
-echo "Project Zomboid server running on Linux"
-tail -f /dev/null
+# Project Zomboid server startup script (Linux)
+# Default SteamCMD installation path: ~/Steam/steamapps/common/ProjectZomboid
+
+# Change to server directory
+cd ~/Steam/steamapps/common/ProjectZomboid
+
+# Run the server
+./start-server.sh -servername MyServer -port 16261

@@ -8,6 +8,7 @@ type Game = {
   name: string;
   icon: string;
   id: string;
+  os: "linux" | "windows";
   canHost: boolean;
   comingSoon: boolean;
   specs: { cpu: GameSpec; ram: GameSpec; storage: GameSpec };
@@ -17,7 +18,21 @@ const gamesList: Game[] = [
   {
     name: "Project Zomboid",
     icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz",
+    id: "pz-linux",
+    os: "linux",
+    canHost: true,
+    comingSoon: false,
+    specs: {
+      cpu: { label: "CPU: 4+ cores", ok: true },
+      ram: { label: "RAM: 8 GB", ok: true },
+      storage: { label: "Storage: 5 GB", ok: true },
+    },
+  },
+  {
+    name: "Project Zomboid",
+    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
+    id: "pz-windows",
+    os: "windows",
     canHost: true,
     comingSoon: false,
     specs: {
@@ -56,7 +71,7 @@ const GameBanner: React.FC<{
       <img src={game.icon} alt={game.name} />
       <div className="banner-overlay">
         <h3>
-          {game.name}
+          {game.name} ({game.os.toUpperCase()})
           {isActive && (
             <span className={`status-badge ${status}`}>
               {status === "running"
@@ -139,7 +154,7 @@ const Games: React.FC = () => {
         await fetch("/api/start-server", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gameId: game.id }),
+          body: JSON.stringify({ gameId: game.id, os: game.os }),
         });
         setStatus("running");
         const now = Date.now();
@@ -147,7 +162,6 @@ const Games: React.FC = () => {
         localStorage.setItem("selectedGame", game.id);
         localStorage.setItem("serverStartTime", now.toString());
         setActiveGame(game.id);
-        // ✅ Removed auto-redirect
       } catch (err) {
         console.error(err);
         alert("Failed to start server. Check backend logs.");
@@ -183,19 +197,23 @@ const Games: React.FC = () => {
           Start/stop Project Zomboid servers. Only one server runs at a time.
         </p>
       </header>
-      <section className="game-banner-list">
-        {gamesList.map((game) => (
-          <GameBanner
-            key={game.id}
-            game={game}
-            onSelect={startServer}
-            onStop={stopServer}
-            activeGame={activeGame}
-            status={status}
-            loading={loading}
-            uptime={uptime}
-          />
-        ))}
+
+      <section className="category">
+        <h2>Project Zomboid</h2>
+        <div className="game-banner-list">
+          {gamesList.map((game) => (
+            <GameBanner
+              key={game.id}
+              game={game}
+              onSelect={startServer}
+              onStop={stopServer}
+              activeGame={activeGame}
+              status={status}
+              loading={loading}
+              uptime={uptime}
+            />
+          ))}
+        </div>
       </section>
     </main>
   );

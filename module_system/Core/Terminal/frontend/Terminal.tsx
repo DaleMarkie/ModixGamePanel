@@ -14,7 +14,7 @@ const Terminal: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [command, setCommand] = useState("");
 
-  const API_BASE = "http://localhost:2010";
+  const API_BASE = "http://localhost:2010/api/terminal/projectzomboid";
 
   const appendLog = (text: string, type: LogEntry["type"] = "system") => {
     setLogs((prev) => [...prev, { text, type }].slice(-500));
@@ -22,7 +22,7 @@ const Terminal: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`${API_BASE}/server-status`);
+      const res = await fetch(`${API_BASE}/status`);
       const data = await res.json();
       setStatus(data.status);
     } catch (err: any) {
@@ -41,8 +41,7 @@ const Terminal: React.FC = () => {
     const evtSource = new EventSource(`${API_BASE}/log-stream`);
     evtSource.onmessage = (e) => {
       if (!e.data) return;
-      const log: LogEntry = JSON.parse(e.data);
-      appendLog(log.text, log.type);
+      appendLog(e.data, "info");
     };
     evtSource.onerror = () => {
       appendLog("[ERROR] Lost connection to log stream.", "error");
@@ -51,25 +50,22 @@ const Terminal: React.FC = () => {
     return () => evtSource.close();
   }, []);
 
-  const startServer = async (os: "linux" | "windows") => {
-    appendLog(`[INFO] Attempting to start ${os} server...`);
+  const startServer = async () => {
+    appendLog(`[INFO] Attempting to start server...`);
     try {
-      const res = await fetch(`${API_BASE}/start-server?os=${os}`, {
+      const res = await fetch(`${API_BASE}/start-server`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
-      if (!res.ok || data.error)
-        appendLog(
-          `[ERROR] Failed to start ${os} server: ${data.error}`,
-          "error"
-        );
-      else appendLog(`[INFO] ${os} server started successfully`, "info");
+      if (!res.ok || data.success === false) {
+        appendLog(`[ERROR] Failed to start server: ${data.message}`, "error");
+      } else {
+        appendLog(`[INFO] Server started successfully`, "info");
+      }
       fetchStatus();
     } catch (err: any) {
-      appendLog(
-        `[ERROR] Exception starting ${os} server: ${err.message}`,
-        "error"
-      );
+      appendLog(`[ERROR] Exception starting server: ${err.message}`, "error");
     }
   };
 
@@ -78,9 +74,11 @@ const Terminal: React.FC = () => {
     try {
       const res = await fetch(`${API_BASE}/stop-server`, { method: "POST" });
       const data = await res.json();
-      if (!res.ok || data.error)
-        appendLog(`[ERROR] Failed to stop server: ${data.error}`, "error");
-      else appendLog(`[INFO] Server stopped successfully`, "system");
+      if (!res.ok || data.success === false) {
+        appendLog(`[ERROR] Failed to stop server: ${data.message}`, "error");
+      } else {
+        appendLog(`[INFO] Server stopped successfully`, "system");
+      }
       fetchStatus();
     } catch (err: any) {
       appendLog(`[ERROR] Exception stopping server: ${err.message}`, "error");
@@ -96,20 +94,11 @@ const Terminal: React.FC = () => {
       <header className="terminal-header-box">
         <div className={`status ${status}`}>● Server: {status}</div>
         <div className="controls">
-          <button
-            disabled={status === "running"}
-            onClick={() => startServer("linux")}
-          >
-            Start Linux
-          </button>
-          <button
-            disabled={status === "running"}
-            onClick={() => startServer("windows")}
-          >
-            Start Windows
+          <button disabled={status === "running"} onClick={startServer}>
+            Start Server
           </button>
           <button disabled={status !== "running"} onClick={stopServer}>
-            Stop
+            Stop Server
           </button>
           <input
             type="text"
