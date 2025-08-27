@@ -1,31 +1,164 @@
-const { spawn } = require("child_process");
+#!/usr/bin/env node
+/**
+ * 🚀 Modix Advanced Installer v1.1.2
+ * Supports Windows & Linux
+ */
+
+const { execSync, spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+const net = require("net");
 
-const backendDir = path.join(__dirname, "../backend");
-const venvDir = path.join(backendDir, "venv");
-const backendFile = path.join(backendDir, "api_main.py");
+(async () => {
+  const inquirer = (await import("inquirer")).default;
+  const VERSION = "v1.1.2";
 
-const backendPort = process.env.API_PORT || 2010;
+  if (!["win32", "linux"].includes(process.platform)) {
+    console.error("❌ Only Windows and Linux are supported.");
+    process.exit(1);
+  }
 
-let pythonPath = fs.existsSync(venvDir)
-  ? process.platform === "win32"
-    ? path.join(venvDir, "Scripts", "python.exe")
-    : path.join(venvDir, "bin", "python3")
-  : process.platform === "win32"
-  ? "py -3"
-  : "python3";
+  function log(step, msg) {
+    const icons = { info: "🔹", ok: "✅", run: "⚡" };
+    console.log(`${icons[step] || "•"} ${msg}`);
+  }
 
-console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`);
+  async function getFreePort(defaultPort) {
+    let port = defaultPort;
+    while (true) {
+      const free = await new Promise((resolve) => {
+        const tester = net
+          .createServer()
+          .once("error", () => resolve(false))
+          .once("listening", () => {
+            tester.once("close", () => resolve(true)).close();
+          })
+          .listen(port);
+      });
+      if (free) return port;
+      port++;
+    }
+  }
 
-const env = { ...process.env, PYTHONPATH: backendDir, API_PORT: backendPort };
+  function hashFile(file) {
+    try {
+      return fs.readFileSync(file, "utf8").trim();
+    } catch {
+      return null;
+    }
+  }
 
-const backendProcess = spawn(pythonPath, [backendFile], {
-  stdio: "inherit",
-  env,
-  shell: true,
-});
+  console.clear();
+  console.log(`\n🚀 Welcome to Modix Installer ${VERSION}\n`);
 
-backendProcess.on("exit", (code) =>
-  console.log(`Backend exited with code ${code}`)
-);
+  const backendDir = path.join(__dirname, "../backend");
+  const venvDir = path.join(backendDir, "venv");
+  const requirementsFile = path.join(backendDir, "requirements.txt");
+  const checksumFile = path.join(__dirname, "../.install_checksums.json");
+
+  const prevChecksums = fs.existsSync(checksumFile)
+    ? JSON.parse(fs.readFileSync(checksumFile, "utf8"))
+    : {};
+
+  // ------------------- Backend -------------------
+  const reqHash = hashFile(requirementsFile);
+  if (reqHash !== prevChecksums.requirements) {
+    if (fs.existsSync(venvDir))
+      fs.rmSync(venvDir, { recursive: true, force: true });
+    log("run", "Creating Python virtual environment...");
+    execSync(
+      `${
+        process.platform === "win32" ? "py -3" : "python3"
+      } -m venv "${venvDir}"`,
+      { stdio: "inherit", shell: true }
+    );
+    const pythonVenv =
+      process.platform === "win32"
+        ? path.join(venvDir, "Scripts", "python.exe")
+        : path.join(venvDir, "bin", "python3");
+    log("run", "Installing backend dependencies...");
+    execSync(`"${pythonVenv}" -m pip install --upgrade pip`, {
+      stdio: "inherit",
+      shell: true,
+    });
+    execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, {
+      stdio: "inherit",
+      shell: true,
+    });
+    log("ok", "Backend ready ✅");
+    prevChecksums.requirements = reqHash;
+  } else log("ok", "Backend up-to-date ✅");
+
+  // ------------------- Frontend -------------------
+  const pkgLock = hashFile(path.join(__dirname, "../package-lock.json"));
+  if (pkgLock !== prevChecksums.packageLock) {
+    log("run", "Installing frontend dependencies...");
+    execSync("npm ci", { stdio: "inherit", shell: true });
+    log("ok", "Frontend ready ✅");
+    prevChecksums.packageLock = pkgLock;
+  } else log("ok", "Frontend up-to-date ✅");
+
+  // ------------------- Ports & .env -------------------
+  const frontendPort = await getFreePort(3000);
+  const backendPort = await getFreePort(2010);
+  fs.writeFileSync(
+    path.join(__dirname, "../.env"),
+    `PORT=${frontendPort}\nAPI_PORT=${backendPort}\n`
+  );
+  log("ok", `Ports → Frontend:${frontendPort} | Backend:${backendPort}`);
+
+  // ------------------- Launcher Scripts -------------------
+  const pythonVenv =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python3");
+
+  if (process.platform === "win32") {
+    const launcherPath = path.join(__dirname, "../launch_modix.bat");
+    fs.writeFileSync(
+      launcherPath,
+      `@echo off\n` +
+        `echo 🚀 Starting Modix ${VERSION}...\n` +
+        `start "" "${pythonVenv}" -m uvicorn backend.main:app --host 127.0.0.1 --port ${backendPort}\n` +
+        `start "" npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\n`
+    );
+    const shortcut = path.join(os.homedir(), "Desktop", "Modix.lnk");
+    execSync(
+      `powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('${shortcut}');$s.TargetPath='${launcherPath}';$s.Save()"`
+    );
+    log("ok", "Windows launcher + Desktop shortcut created");
+  } else {
+    const launcherPath = path.join(__dirname, "../launch_modix.sh");
+    fs.writeFileSync(
+      launcherPath,
+      `#!/bin/bash\n` +
+        `echo "🚀 Starting Modix ${VERSION}..."\n` +
+        `"${pythonVenv}" -m uvicorn backend.main:app --host 127.0.0.1 --port ${backendPort} &\n` +
+        `npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\n`
+    );
+    fs.chmodSync(launcherPath, "755");
+    log("ok", `Linux launcher created: ${launcherPath}`);
+  }
+
+  fs.writeFileSync(checksumFile, JSON.stringify(prevChecksums, null, 2));
+
+  const { launch } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "launch",
+      message: `Launch Modix now?`,
+      default: true,
+    },
+  ]);
+
+  if (launch) {
+    log("run", "Launching Modix...");
+    const launcher =
+      process.platform === "win32"
+        ? spawn("cmd.exe", ["/c", "start launch_modix.bat"], { detached: true })
+        : spawn("sh", ["-c", "./launch_modix.sh &"], { detached: true });
+  }
+
+  console.log(`\n✅ Modix ${VERSION} installation complete\n`);
+})();
