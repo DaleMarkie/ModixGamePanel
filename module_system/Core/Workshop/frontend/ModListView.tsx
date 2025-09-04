@@ -2,32 +2,30 @@ import React, { useState, useMemo } from "react";
 import ModCard from "./ModCard"; // Your existing mod card component
 
 const ModListView = ({ mods }) => {
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter mods based on favorites and search term
+  // Filter mods based on search term only
   const filteredMods = useMemo(() => {
-    let filtered = mods;
+    if (!searchTerm.trim()) return mods;
 
-    if (showFavoritesOnly) {
-      filtered = filtered.filter((mod) => mod.favorite);
-    }
-
-    if (searchTerm.trim()) {
-      const lowerSearch = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (mod) =>
-          (mod.name && mod.name.toLowerCase().includes(lowerSearch)) ||
-          (mod.modId && mod.modId.toString().includes(lowerSearch))
-      );
-    }
-
-    return filtered;
-  }, [mods, showFavoritesOnly, searchTerm]);
+    const lowerSearch = searchTerm.toLowerCase();
+    return mods.filter(
+      (mod) =>
+        (mod.name && mod.name.toLowerCase().includes(lowerSearch)) ||
+        (mod.modId && mod.modId.toString().includes(lowerSearch))
+    );
+  }, [mods, searchTerm]);
 
   return (
-    <div style={{ padding: 20, color: "white", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
-      {/* Header with Title, Favorites Toggle and Search */}
+    <div
+      style={{
+        padding: 20,
+        color: "white",
+        fontFamily:
+          "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
+      {/* Header with Title and Search */}
       <div
         style={{
           display: "flex",
@@ -57,35 +55,20 @@ const ModListView = ({ mods }) => {
           }}
           aria-label="Search mods"
         />
-
-        <button
-          onClick={() => setShowFavoritesOnly((prev) => !prev)}
-          style={{
-            padding: "8px 18px",
-            backgroundColor: showFavoritesOnly ? "#1DB954" : "#333",
-            color: "white",
-            border: "none",
-            borderRadius: 8,
-            cursor: "pointer",
-            fontWeight: "600",
-            fontSize: 16,
-            transition: "background-color 0.25s ease",
-            userSelect: "none",
-            whiteSpace: "nowrap",
-          }}
-          aria-pressed={showFavoritesOnly}
-          title={showFavoritesOnly ? "Show all mods" : "Show favorites only"}
-        >
-          {showFavoritesOnly ? "Show All Mods" : "Show Favorites"}
-        </button>
       </div>
 
       {/* Empty State */}
       {filteredMods.length === 0 ? (
-        <p style={{ color: "#888", fontStyle: "italic", fontSize: 16, marginTop: 40, textAlign: "center" }}>
-          {showFavoritesOnly
-            ? "No favorite mods found."
-            : searchTerm
+        <p
+          style={{
+            color: "#888",
+            fontStyle: "italic",
+            fontSize: 16,
+            marginTop: 40,
+            textAlign: "center",
+          }}
+        >
+          {searchTerm
             ? "No mods match your search."
             : "No mods available."}
         </p>
@@ -101,12 +84,16 @@ const ModListView = ({ mods }) => {
             <ModCard
               key={mod.modId || mod.id}
               mod={mod}
-              onClick={() => console.log("View mod:", mod.modId || mod.id)}
+              onClick={() =>
+                console.log("View mod:", mod.modId || mod.id)
+              }
               onContextMenu={(e) => {
                 e.preventDefault();
                 console.log("Right-click mod:", mod.modId || mod.id);
               }}
-              onAdd={(modId) => console.log("Add to server:", modId)}
+              onAdd={(modId) =>
+                console.log("Add to server:", modId)
+              }
             />
           ))}
         </div>

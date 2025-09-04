@@ -18,13 +18,11 @@ const net = require("net");
 
   const VERSION = "v1.1.2";
 
-  // ------------------- OS Check -------------------
   if (!["win32", "linux"].includes(process.platform)) {
     console.error("❌ Modix Installer only supports Windows and Linux.");
     process.exit(1);
   }
 
-  // ------------------- Helpers -------------------
   function log(step, msg) {
     const icons = { info: "🔹", ok: "✅", warn: "⚠️", err: "❌", run: "⚡" };
     console.log(`${icons[step] || "•"} ${msg}`);
@@ -55,7 +53,6 @@ const net = require("net");
     }
   }
 
-  // ------------------- Banner -------------------
   console.clear();
   console.log("=================================================");
   console.log("         🚀 Welcome to Modix Installer          ");
@@ -67,7 +64,6 @@ const net = require("net");
   console.log(" Discord: https://discord.gg/chYMJTGn");
   console.log("=================================================\n");
 
-  // ------------------- Paths -------------------
   const backendDir = path.join(__dirname, "../backend");
   const venvDir = path.join(backendDir, "venv");
   const requirementsFile = path.join(backendDir, "requirements.txt");
@@ -77,17 +73,12 @@ const net = require("net");
     ? JSON.parse(fs.readFileSync(checksumFile, "utf8"))
     : {};
 
-  // ------------------- Backend setup -------------------
   const reqHash = hashFile(requirementsFile);
   if (reqHash !== prevChecksums.requirements) {
-    if (fs.existsSync(venvDir))
-      fs.rmSync(venvDir, { recursive: true, force: true });
-
+    if (fs.existsSync(venvDir)) fs.rmSync(venvDir, { recursive: true, force: true });
     log("run", "Creating Python virtual environment...");
     execSync(
-      `${
-        process.platform === "win32" ? "py -3" : "python3"
-      } -m venv "${venvDir}"`,
+      `${process.platform === "win32" ? "py -3" : "python3"} -m venv "${venvDir}"`,
       { stdio: "inherit", shell: true }
     );
 
@@ -97,21 +88,14 @@ const net = require("net");
         : path.join(venvDir, "bin", "python3");
 
     log("run", "Installing backend dependencies...");
-    execSync(`"${pythonVenv}" -m pip install --upgrade pip`, {
-      stdio: "inherit",
-      shell: true,
-    });
-    execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, {
-      stdio: "inherit",
-      shell: true,
-    });
+    execSync(`"${pythonVenv}" -m pip install --upgrade pip`, { stdio: "inherit", shell: true });
+    execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, { stdio: "inherit", shell: true });
     log("ok", "Backend setup complete ✅");
     prevChecksums.requirements = reqHash;
   } else {
     log("ok", "Backend already up-to-date ✅");
   }
 
-  // ------------------- Frontend setup -------------------
   const pkgLock = hashFile(path.join(__dirname, "../package-lock.json"));
   if (pkgLock !== prevChecksums.packageLock) {
     log("run", "Installing frontend dependencies...");
@@ -125,14 +109,14 @@ const net = require("net");
   // ------------------- Ports & .env -------------------
   const frontendPort = await getFreePort(3000);
   const backendPort = await getFreePort(2010);
+  const currentOS = process.platform; // "win32" or "linux"
+
   fs.writeFileSync(
     path.join(__dirname, "../.env"),
-    `PORT=${frontendPort}\nAPI_PORT=${backendPort}\n`
+    `PORT=${frontendPort}\nAPI_PORT=${backendPort}\nREACT_APP_OS=${currentOS}\n`
   );
-  log(
-    "ok",
-    `Environment ready → Frontend:${frontendPort} | Backend:${backendPort}`
-  );
+
+  log("ok", `Environment ready → Frontend:${frontendPort} | Backend:${backendPort} | OS:${currentOS}`);
 
   // ------------------- Launcher scripts -------------------
   const pythonVenv =
@@ -169,10 +153,8 @@ const net = require("net");
     log("ok", `Linux launcher created: ${launcherPath}`);
   }
 
-  // Save checksums
   fs.writeFileSync(checksumFile, JSON.stringify(prevChecksums, null, 2));
 
-  // ------------------- Final prompt -------------------
   const { launch } = await inquirer.prompt([
     {
       type: "confirm",

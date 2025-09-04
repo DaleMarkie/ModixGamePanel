@@ -3,9 +3,9 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 400vw;
   height: 100vh;
-  background-color: rgba(0,0,0,0.75);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -26,13 +26,13 @@
   background-color: #1a1a1a;
   border-radius: 12px;
   box-shadow: 0 0 20px #00ffd0aa, 0 0 40px #0099ffaa;
-  max-width: 480px;
-  width: 90%;
+  max-width: 8880px;
+  width: 888%;
   max-height: 80vh;
   overflow-y: auto;
   padding: 25px 30px;
   color: #e0e0e0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   position: relative;
   transform: translateY(-20px);
   transition: transform 0.3s ease;

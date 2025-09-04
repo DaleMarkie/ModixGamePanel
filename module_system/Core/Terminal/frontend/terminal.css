@@ -277,38 +277,19 @@
   cursor: not-allowed;
 }
 .terminal-layout {
-  background: #1e1e1e;
-  color: white;
-  font-family: monospace;
-  padding: 1rem;
-  height: 80vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 180vh;       /* fills screen */
+  overflow: hidden;    /* prevents page scroll */
 }
 
-.terminal-log {
-  margin: 0;
-  line-height: 1.2rem;
-}
-
-.log-search {
-  padding: 0.3rem 0.5rem;
-  margin-bottom: 0.5rem;
-  width: 100%;
-}
-
-.terminal-tabs {
-  margin-bottom: 0.5rem;
-}
-
-.tab-btn {
-  margin-right: 0.3rem;
-  padding: 0.2rem 0.5rem;
-  background: #333;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.tab-btn.active {
-  background: #555;
+.terminal-logs {
+  flex: 1;
+  background: #0f0f0f;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  border-bottom: 1px solid #222;
+  overflow-y: auto;   /* scroll inside logs */
+  overflow-x: hidden;
 }
