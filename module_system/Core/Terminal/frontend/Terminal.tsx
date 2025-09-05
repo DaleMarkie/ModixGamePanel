@@ -219,39 +219,54 @@ const Terminal: React.FC = () => {
 
   // --- Batch Prompt Modal ---
   if (showBatchPrompt) {
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Enter Project Zomboid .bat File</h2>
-          <input
-            type="text"
-            placeholder="C:\\Steam\\steamapps\\common\\Project Zomboid Dedicated Server\\ProjectZomboid64.bat"
-            value={batchFile}
-            onChange={(e) => setBatchFile(e.target.value)}
-          />
-          {recentBatches.length > 0 && (
-            <div className="recent-batches">
-              {recentBatches.map((file, idx) => (
-                <button key={file} className={`recent-btn ${idx === 0 ? "recent-btn-most-recent" : ""}`} onClick={() => setBatchFile(file)}>
-                  {file}
-                </button>
-              ))}
-            </div>
-          )}
-          <button
-            className="confirm-btn"
-            onClick={() => {
-              if (!batchFile) return alert("Batch file path required");
-              setShowBatchPrompt(false);
-              localStorage.setItem(SELECTED_BATCH_KEY, batchFile);
-            }}
-          >
-            Confirm
-          </button>
-        </div>
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Enter Project Zomboid .bat File</h2>
+
+        {/* Show currently selected batch if exists */}
+        {batchFile && (
+          <p className="current-batch">
+            <strong>Current Batch:</strong> {batchFile}
+          </p>
+        )}
+
+        <input
+          type="text"
+          placeholder="C:\\Steam\\steamapps\\common\\Project Zomboid Dedicated Server\\ProjectZomboid64.bat"
+          value={batchFile}
+          onChange={(e) => setBatchFile(e.target.value)}
+        />
+
+        {recentBatches.length > 0 && (
+          <div className="recent-batches">
+            <p>Recent Batches:</p>
+            {recentBatches.map((file, idx) => (
+              <button
+                key={file}
+                className={`recent-btn ${idx === 0 ? "recent-btn-most-recent" : ""}`}
+                onClick={() => setBatchFile(file)}
+              >
+                {file}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          className="confirm-btn"
+          onClick={() => {
+            if (!batchFile) return alert("Batch file path required");
+            setShowBatchPrompt(false);
+            localStorage.setItem(SELECTED_BATCH_KEY, batchFile);
+          }}
+        >
+          Confirm
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   // --- Password Prompt Modal ---
   if (pendingPasswordPrompt) {
@@ -275,13 +290,19 @@ const Terminal: React.FC = () => {
     <div className="terminal-layout">
       {/* Terminal Header */}
       <header className="terminal-header-box">
-        <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>● {status}</div>
-        <div className="controls">
-          <button onClick={startServer} disabled={status === "Starting..." || isServerRunning}>Start</button>
-          <button onClick={stopServer} disabled={!isServerRunning && status !== "Starting..."}>Stop</button>
-          <input type="text" placeholder="Search logs..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        </div>
-      </header>
+  <div className={`status ${status.toLowerCase().replace(/\s+/g, "-")}`}>● {status}</div>
+  <div className="controls">
+    <button onClick={startServer} disabled={status === "Starting..." || isServerRunning}>Start</button>
+    <button onClick={stopServer} disabled={!isServerRunning && status !== "Starting..."}>Stop</button>
+    <button onClick={() => setShowBatchPrompt(true)}>Change Batch</button> {/* NEW BUTTON */}
+    <input
+      type="text"
+      placeholder="Search logs..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+  </div>
+</header>
 
       {/* Tabs */}
       <div className="terminal-tabs">

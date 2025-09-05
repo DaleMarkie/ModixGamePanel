@@ -1,15 +1,29 @@
 "use client";
+
 import { useUser } from "../../UserContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./MyAccount.css";
 
+// Reusable Tab Button Component
+const TabButton = ({ label, active, onClick }) => (
+  <button
+    className={`tab ${active ? "active" : ""}`}
+    onClick={onClick}
+    aria-current={active ? "page" : undefined}
+  >
+    {label.charAt(0).toUpperCase() + label.slice(1)}
+  </button>
+);
+
 const MyAccount = () => {
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
-  const [tab, setTab] = useState("profile");
+
+  const [activeTab, setActiveTab] = useState("profile");
   const [activity, setActivity] = useState([]);
 
+  // Fetch user activity
   useEffect(() => {
     if (authenticated) {
       fetch("/api/account/activity", { credentials: "include" })
@@ -27,7 +41,10 @@ const MyAccount = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("⚠️ Really delete your account? This is permanent.")) return;
+    if (
+      !confirm("⚠️ Are you sure you want to permanently delete your account?")
+    )
+      return;
     await fetch("/api/account/delete", {
       method: "DELETE",
       credentials: "include",
@@ -39,7 +56,9 @@ const MyAccount = () => {
 
   if (loading) return <div className="loading">Loading account...</div>;
   if (!authenticated || !user)
-    return <div className="not-logged">Please log in first.</div>;
+    return (
+      <div className="not-logged">Please log in to access your account.</div>
+    );
 
   const avatar =
     user.avatar ||
@@ -47,35 +66,36 @@ const MyAccount = () => {
       user.name || user.username || "User"
     )}`;
 
+  const tabs = [
+    "profile",
+    "security",
+    "games",
+    "backups",
+    "activity",
+    "subscription",
+    "settings",
+  ];
+
   return (
     <div className="myaccount-container">
       <h1>⚙️ My Account</h1>
 
       {/* Navigation Tabs */}
-      <div className="tabs">
-        {[
-          "profile",
-          "security",
-          "games",
-          "backups",
-          "activity",
-          "subscription",
-          "settings",
-        ].map((t) => (
-          <button
-            key={t}
-            className={tab === t ? "tab active" : "tab"}
-            onClick={() => setTab(t)}
-          >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </button>
+      <nav className="tabs" aria-label="Account navigation">
+        {tabs.map((tab) => (
+          <TabButton
+            key={tab}
+            label={tab}
+            active={activeTab === tab}
+            onClick={() => setActiveTab(tab)}
+          />
         ))}
-      </div>
+      </nav>
 
       {/* Profile Tab */}
-      {tab === "profile" && (
-        <div className="profile-card">
-          <img src={avatar} alt="Avatar" className="avatar" />
+      {activeTab === "profile" && (
+        <section className="profile-card">
+          <img src={avatar} alt="User Avatar" className="avatar" />
           <div className="profile-details">
             <h2>{user.name || user.username}</h2>
             <p className="username">@{user.username}</p>
@@ -88,27 +108,27 @@ const MyAccount = () => {
             </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
-            Log out
+            Log Out
           </button>
-        </div>
+        </section>
       )}
 
       {/* Security Tab */}
-      {tab === "security" && (
-        <div className="card">
+      {activeTab === "security" && (
+        <section className="card">
           <h3>🔐 Security</h3>
           <ul>
             <li>2FA: {user.tfa_enabled ? "Enabled" : "Disabled"}</li>
-            <li>Last Login: {user.last_login}</li>
+            <li>Last Login: {new Date(user.last_login).toLocaleString()}</li>
             <li>Active Sessions: {user.sessions?.length || 0}</li>
           </ul>
-          <button>Manage Sessions</button>
-        </div>
+          <button className="manage-sessions-btn">Manage Sessions</button>
+        </section>
       )}
 
       {/* Games Tab */}
-      {tab === "games" && (
-        <div className="card">
+      {activeTab === "games" && (
+        <section className="card">
           <h3>🎮 Your Games</h3>
           {user.games?.length ? (
             <ul>
@@ -119,14 +139,14 @@ const MyAccount = () => {
               ))}
             </ul>
           ) : (
-            <p>No games linked yet.</p>
+            <p>No linked games.</p>
           )}
-        </div>
+        </section>
       )}
 
       {/* Backups Tab */}
-      {tab === "backups" && (
-        <div className="card">
+      {activeTab === "backups" && (
+        <section className="card">
           <h3>💾 Backups</h3>
           {user.backups?.length ? (
             <ul>
@@ -143,12 +163,12 @@ const MyAccount = () => {
           ) : (
             <p>No backups available.</p>
           )}
-        </div>
+        </section>
       )}
 
       {/* Activity Tab */}
-      {tab === "activity" && (
-        <div className="card">
+      {activeTab === "activity" && (
+        <section className="card">
           <h3>📜 Recent Activity</h3>
           {activity.length ? (
             <ul>
@@ -161,12 +181,12 @@ const MyAccount = () => {
           ) : (
             <p>No recent activity.</p>
           )}
-        </div>
+        </section>
       )}
 
       {/* Subscription Tab */}
-      {tab === "subscription" && (
-        <div className="card subscription-card">
+      {activeTab === "subscription" && (
+        <section className="card subscription-card">
           <h3>📦 Subscription</h3>
           <p>
             <strong>Plan:</strong> Personal Use License
@@ -175,21 +195,19 @@ const MyAccount = () => {
             <strong>Status:</strong> Active ✅
           </p>
           <p>
-            All users currently have access under a{" "}
-            <em>Personal Use License</em>. This license allows unlimited use of
-            the service for non-commercial purposes.
+            This license allows unlimited non-commercial use of the service.
           </p>
           <div className="sub-actions">
-            <button disabled className="upgrade-btn">
+            <button className="upgrade-btn" disabled>
               Upgrade (Coming Soon)
             </button>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Settings Tab */}
-      {tab === "settings" && (
-        <div className="card">
+      {activeTab === "settings" && (
+        <section className="card">
           <h3>⚙️ Settings</h3>
           <form className="settings-form">
             <label>
@@ -200,19 +218,19 @@ const MyAccount = () => {
               Email
               <input type="email" defaultValue={user.email || ""} />
             </label>
-            <button className="save-btn">Save</button>
+            <button className="save-btn">Save Changes</button>
           </form>
-        </div>
+        </section>
       )}
 
       {/* Danger Zone */}
-      <div className="danger-zone">
+      <section className="danger-zone">
         <h3>⚠️ Danger Zone</h3>
-        <p>Deleting your account is permanent. This action cannot be undone.</p>
+        <p>Deleting your account is permanent and cannot be undone.</p>
         <button className="delete-account-btn" onClick={handleDeleteAccount}>
           Delete My Account
         </button>
-      </div>
+      </section>
     </div>
   );
 };

@@ -31,26 +31,9 @@ export const navLinks = [
     href: "/terminal",
   },
   {
-    label: "🧰 Mods",
-    href: "/modmanager",
-    submenu: [
-      { label: "📦 My Mods", href: "/modmanager" },
-      { label: "🔥 Workshop", href: "/workshop" },
-
-      {
-        label: "🛠️ Mod Tools",
-        href: "/modtoolss",
-        submenu: [
-          { label: "📊 Mod Performance", href: "/tools/performance" },
-          { label: "🧪 Mod Debugger", href: "/tools/debugger" },
-          { label: "📊 Load Order Editor", href: "/tools/ordereditor" },
-          { label: "🛠️ Updates", href: "/modupdater" },
-          { label: "🆕 Steam Parser", href: "/mods/steamparser" },
-        ],
-      },
-    ],
+    label: "📦 Mod Manager",
+    href: "/workshop",
   },
-
   {
     label: "🗂️ File Manager",
     href: "/FileBrowser",
