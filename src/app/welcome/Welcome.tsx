@@ -1,13 +1,9 @@
 "use client";
-import React from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import {
   FaDiscord,
   FaCoffee,
   FaCheckCircle,
-  FaGamepad,
-  FaBookOpen,
-  FaLifeRing,
   FaYoutube,
   FaSteam,
   FaTerminal,
@@ -20,9 +16,53 @@ import {
   FaChartLine,
   FaLink,
 } from "react-icons/fa";
-import { SiDocker } from "react-icons/si";
+
+import "./Welcome.css";
 
 export default function InstalledPage() {
+  const [username, setUsername] = useState("test1");
+  const [password, setPassword] = useState("test1");
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const params = new URLSearchParams();
+      params.append("grant_type", "password");
+      params.append("username", username);
+      params.append("password", password);
+      params.append("scope", "");
+      params.append("client_id", "string");
+      params.append("client_secret", "********");
+
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        credentials: "include",
+        body: params.toString(),
+      });
+
+      const result: { token?: string; message?: string } =
+        await response.json();
+
+      if (response.ok) {
+        if (result.token) {
+          localStorage.setItem("token", result.token);
+        }
+        window.location.href = "/auth/myaccount";
+      } else {
+        setError(result.message || "Invalid username or password.");
+      }
+    } catch {
+      setError("Server error. Please try again later.");
+    }
+  };
+
   return (
     <main className="relative min-h-screen bg-[#121212] text-gray-200 px-6 py-12 font-sans flex flex-col items-center justify-center text-center space-y-16 overflow-hidden">
       {/* Background */}
@@ -60,6 +100,46 @@ export default function InstalledPage() {
           <p className="text-sm text-gray-500 italic">
             v1.1.2 — Unstable Release
           </p>
+
+          {/* Quick Login Box */}
+          <div className="mt-6 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-lg p-6 max-w-sm mx-auto text-left">
+            <h2 className="text-lg font-semibold text-white mb-4 text-center">
+              🔐 Quick Login
+            </h2>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-2 rounded bg-[#121212] border border-gray-600 text-white focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded bg-[#121212] border border-gray-600 text-white focus:outline-none focus:border-green-500"
+                />
+              </div>
+              {error && (
+                <div className="text-red-500 text-sm text-center">{error}</div>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded transition"
+              >
+                🚀 Log In
+              </button>
+            </form>
+          </div>
         </section>
 
         {/* Feature Grid */}
@@ -109,31 +189,6 @@ export default function InstalledPage() {
             title="Mod Debugger"
             description="Automatically detect broken mods, outdated dependencies, or load-order conflicts. Modix provides actionable suggestions to fix issues without downtime."
           />
-        </section>
-
-        {/* Action Buttons */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-xl mx-auto">
-          <Link
-            href="/auth/login"
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
-          >
-            <FaGamepad />
-            Login
-          </Link>
-          <Link
-            href="/auth/signup"
-            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
-          >
-            <FaLifeRing />
-            Sign Up
-          </Link>
-          <Link
-            href="/recover"
-            className="border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
-          >
-            <FaBookOpen />
-            Recover
-          </Link>
         </section>
 
         {/* Community Section */}
