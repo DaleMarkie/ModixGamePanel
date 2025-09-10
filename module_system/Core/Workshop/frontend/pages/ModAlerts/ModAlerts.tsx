@@ -1,94 +1,76 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
-import "./ModAlerts.css";
+
 interface ModAlert {
   id: string;
   modName: string;
   message: string;
-  type: "info" | "warning" | "error";
-  timestamp: string; // ISO string
-  link?: string;
+  type: "error" | "warning" | "info";
+  timestamp: string;
 }
 
-const alertColors: Record<ModAlert["type"], string> = {
-  info: "#2f86eb",
-  warning: "#f5a623",
-  error: "#e53935",
-};
-
-export default function ModAlerts() {
+export default function ModAlertsPage() {
   const [alerts, setAlerts] = useState<ModAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAlerts = async () => {
+    try {
+      const res = await fetch("/api/projectzomboid/mod-alerts");
+      const data = await res.json();
+      setAlerts(data.alerts || []);
+    } catch (err) {
+      console.error("Failed to fetch mod alerts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO: Replace this with dynamic alerts from Workshop or server
-    const sampleAlerts: ModAlert[] = [
-      {
-        id: "1",
-        modName: "Better Zombies",
-        message: "This mod conflicts with 'Zombie Enhancer'.",
-        type: "warning",
-        timestamp: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        modName: "Survivor Tools",
-        message: "New update available (v0.9.8).",
-        type: "info",
-        timestamp: new Date(Date.now() - 3600 * 1000).toISOString(),
-        link: "https://steamcommunity.com/sharedfiles/filedetails/?id=654321",
-      },
-      {
-        id: "3",
-        modName: "Apocalypse Sounds",
-        message: "Mod failed to load due to missing dependency.",
-        type: "error",
-        timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-      },
-    ];
-
-    setAlerts(sampleAlerts);
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000); // refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
+  const typeColors: Record<string, string> = {
+    error: "bg-red-700 text-white",
+    warning: "bg-yellow-600 text-black",
+    info: "bg-blue-600 text-white",
+  };
+
   return (
-    <div style={{ padding: "20px", maxHeight: "400px", overflowY: "auto" }}>
-      <h2>Mod Alerts</h2>
-      {alerts.length === 0 ? (
-        <p>No alerts currently.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {alerts.map((alert) => (
-            <li
-              key={alert.id}
-              style={{
-                backgroundColor: alertColors[alert.type] + "20",
-                borderLeft: `5px solid ${alertColors[alert.type]}`,
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "5px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <strong>{alert.modName}</strong>
-                <small>{new Date(alert.timestamp).toLocaleString()}</small>
-              </div>
-              <p style={{ margin: "5px 0" }}>
-                {alert.message}{" "}
-                {alert.link && (
-                  <a
-                    href={alert.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: alertColors[alert.type], textDecoration: "underline" }}
-                  >
-                    Details
-                  </a>
-                )}
-              </p>
-            </li>
-          ))}
-        </ul>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">🔔 Mod Alerts</h1>
+      {loading && <p>Loading alerts…</p>}
+      {!loading && alerts.length === 0 && (
+        <p className="text-gray-400">No mod issues detected. ✅</p>
       )}
+      <div className="flex flex-col gap-3">
+        {alerts.map((alert) => (
+          <div
+            key={alert.id}
+            className={`p-3 rounded shadow ${
+              typeColors[alert.type]
+            } transition-all hover:scale-[1.02]`}
+          >
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-semibold">{alert.modName}</span>
+              <span className="text-sm opacity-70">
+                {new Date(alert.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            <p className="text-sm">{alert.message}</p>
+            {alert.id === "workshop_path_missing" && (
+              <p className="mt-1 text-xs text-gray-200">
+                ⚠️ Mod alerts cannot fully check mods because the Steam Workshop
+                folder for Project Zomboid is missing. Make sure it exists at:{" "}
+                <code className="bg-black px-1 rounded">
+                  {alert.message.split(" at ")[1]}
+                </code>
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
