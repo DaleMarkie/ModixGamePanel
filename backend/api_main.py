@@ -388,6 +388,54 @@ async def get_mod_alerts():
 
 
 # ---------------------------
+# Game Server Ports Checker
+# ---------------------------
+DEFAULT_GAME_PORTS = {
+    "Project Zomboid": 16261,
+    "DayZ": 2302,
+    "RimWorld": 27015,
+}
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """Check if a TCP port is open on the given host."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (socket.timeout, ConnectionRefusedError, OSError):
+        return False
+
+@app.get("/api/server/game-ports")
+async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
+    """
+    Check default game server ports (Project Zomboid, DayZ, RimWorld) 
+    and optionally custom ports.
+    Query params:
+    - host: IP or hostname to check (default 127.0.0.1)
+    - custom_ports: comma-separated ports, e.g., ?custom_ports=27016,27017
+    """
+    results = []
+
+    # Check default game ports
+    for game, port in DEFAULT_GAME_PORTS.items():
+        status = "open" if is_port_open(host, port) else "closed"
+        results.append({"name": game, "port": port, "status": status})
+
+    # Check custom ports if provided
+    if custom_ports:
+        for p in custom_ports.split(","):
+            try:
+                port = int(p.strip())
+                status = "open" if is_port_open(host, port) else "closed"
+                results.append({"name": f"Custom Port {port}", "port": port, "status": status})
+            except ValueError:
+                continue
+
+    return JSONResponse({"servers": results})
+
+
+
+
+# ---------------------------
 # Startup Hooks
 # ---------------------------
 @app.on_event("startup")
