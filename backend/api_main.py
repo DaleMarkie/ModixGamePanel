@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import configparser
 from datetime import datetime
+import psutil
+
 
 # === Project root path fix ===
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,6 +27,9 @@ from backend.API.Core.steam_search_player_api import router as steam_search_rout
 from backend.API.Core.mod_debugger_api import router as mod_debugger_router
 from backend.backend_module_loader import register_modules
 
+from backend.ddos_api import router as ddos_router
+from backend.ddos_api import set_server_status
+
 # ---------------------------
 # FastAPI App
 # ---------------------------
@@ -35,6 +40,7 @@ app.include_router(auth_router, prefix="/api/auth")
 app.include_router(module_api_router, prefix="/api")
 app.include_router(steam_search_router, prefix="/api")
 app.include_router(mod_debugger_router, prefix="/api/debugger")
+app.include_router(ddos_router)
 
 # === Project Zomboid APIs ===
 
@@ -147,9 +153,13 @@ async def start_pz_server(request: Request):
         asyncio.create_task(stream_subprocess_output(running_process.stderr, "ERR"))
         asyncio.create_task(monitor_process_exit(running_process))
 
+        # Update DDoS API server status
+        set_server_status("running")
+
         return {"status": "running", "message": "Server started successfully"}
     except Exception as e:
         running_process = None
+        set_server_status("stopped")
         return error_response("BACKEND_001", 500, str(e))
 
 @app.post("/api/projectzomboid/stop")
@@ -160,7 +170,12 @@ async def stop_pz_server():
 
     running_process.terminate()
     running_process = None
+
     await log_queue.put("[SYSTEM] Server stopped manually")
+
+    # Update DDoS API server status
+    set_server_status("stopped")
+
     return {"status": "stopped", "message": "Server terminated"}
 
 @app.get("/api/projectzomboid/terminal/log-stream")
@@ -431,8 +446,6 @@ async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
                 continue
 
     return JSONResponse({"servers": results})
-
-
 
 
 # ---------------------------
