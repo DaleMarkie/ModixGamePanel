@@ -325,7 +325,7 @@ const Dashboard2 = () => {
 
   const handleModuleClick = (name: string) => {
     const routes: Record<string, string> = {
-      "My Servers": "/auth/myservers",
+      "My Servers": "/server/games",
       "My Account": "/auth/myaccount",
       "My License": "/license",
       "My Support Tickets": "/support",

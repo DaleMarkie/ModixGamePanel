@@ -1,0 +1,137 @@
+/* 🌑 Full Fancy Dark Theme */
+
+.steam-manager {
+  background-color: #0b0c0f;
+  color: #ffffff;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  padding: 1rem;
+}
+
+.steam-input,
+.steam-select,
+.steam-textarea {
+  background-color: #111415;
+  color: #ffffff;
+  border: 1px solid #1f3a2f;
+  border-radius: 6px;
+  padding: 0.5rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.steam-input:focus,
+.steam-select:focus,
+.steam-textarea:focus {
+  border-color: #2ecc71;
+  box-shadow: 0 0 8px #2ecc71a0;
+  outline: none;
+}
+
+.steam-button {
+  background-color: #1f3a2f;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.steam-button:hover {
+  background-color: #27ae60;
+}
+
+.steam-player-result {
+  background-color: #111415;
+  border: 1px solid #1f3a2f;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  margin-top: 1rem;
+}
+
+.avatar {
+  border: 2px solid #2ecc71;
+  border-radius: 50%;
+}
+
+.profile-link {
+  color: #2ecc71;
+  text-decoration: none;
+}
+
+.profile-link:hover {
+  text-decoration: underline;
+}
+
+.player-name {
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.player-info {
+  color: #ffffff;
+}
+
+.steam-id-info,
+.ban-info {
+  color: #ffffff;
+  margin-top: 0.5rem;
+}
+
+.notes-section {
+  background-color: #1f3a2f;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  color: #ffffff;
+}
+
+.error-text {
+  color: #e74c3c;
+}
+
+.steam-select option {
+  background-color: #111415;
+  color: #ffffff;
+}
+
+.steam-textarea::placeholder,
+.steam-input::placeholder {
+  color: #aaaaaa;
+}
+.notes-feed {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.note-card {
+  background-color: #1f3a2f;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #2ecc71;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+}
+
+.note-status {
+  font-weight: bold;
+}
+
+.note-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.note-text {
+  color: #ffffff;
+}
