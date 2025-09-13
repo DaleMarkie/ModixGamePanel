@@ -4,9 +4,11 @@ import { useUser } from "../../UserContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./MyAccount.css";
+import Subscriptions from "../subscriptions/subscriptions";
+import Activity from "../activity/Activity"; // adjust based on actual folder
 
-// Reusable Tab Button Component
-const TabButton = ({ label, active, onClick }) => (
+
+const TabButton = ({ label, active, onClick }: any) => (
   <button
     className={`tab ${active ? "active" : ""}`}
     onClick={onClick}
@@ -21,17 +23,6 @@ const MyAccount = () => {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("profile");
-  const [activity, setActivity] = useState([]);
-
-  // Fetch user activity
-  useEffect(() => {
-    if (authenticated) {
-      fetch("/api/account/activity", { credentials: "include" })
-        .then((res) => res.json())
-        .then(setActivity)
-        .catch(() => setActivity([]));
-    }
-  }, [authenticated]);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -41,58 +32,30 @@ const MyAccount = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (
-      !confirm("⚠️ Are you sure you want to permanently delete your account?")
-    )
-      return;
-    await fetch("/api/account/delete", {
-      method: "DELETE",
-      credentials: "include",
-    });
+    if (!confirm("⚠️ Are you sure you want to permanently delete your account?")) return;
+    await fetch("/api/account/delete", { method: "DELETE", credentials: "include" });
     localStorage.clear();
     refresh();
     router.push("/");
   };
 
   if (loading) return <div className="loading">Loading account...</div>;
-  if (!authenticated || !user)
-    return (
-      <div className="not-logged">Please log in to access your account.</div>
-    );
+  if (!authenticated || !user) return <div className="not-logged">Please log in to access your account.</div>;
 
-  const avatar =
-    user.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      user.name || user.username || "User"
-    )}`;
+  const avatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username || "User")}`;
 
-  const tabs = [
-    "profile",
-    "security",
-    "games",
-    "backups",
-    "activity",
-    "subscription",
-    "settings",
-  ];
+  const tabs = ["profile", "security", "games", "backups", "activity", "subscription", "settings"];
 
   return (
     <div className="myaccount-container">
       <h1>⚙️ My Account</h1>
 
-      {/* Navigation Tabs */}
       <nav className="tabs" aria-label="Account navigation">
         {tabs.map((tab) => (
-          <TabButton
-            key={tab}
-            label={tab}
-            active={activeTab === tab}
-            onClick={() => setActiveTab(tab)}
-          />
+          <TabButton key={tab} label={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} />
         ))}
       </nav>
 
-      {/* Profile Tab */}
       {activeTab === "profile" && (
         <section className="profile-card">
           <img src={avatar} alt="User Avatar" className="avatar" />
@@ -101,19 +64,14 @@ const MyAccount = () => {
             <p className="username">@{user.username}</p>
             <p className="email">{user.email}</p>
             <div className="meta">
-              <span>
-                Joined: {new Date(user.created_at).toLocaleDateString()}
-              </span>
+              <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
               <span>Status: {user.active ? "Active ✅" : "Inactive ❌"}</span>
             </div>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            Log Out
-          </button>
+          <button className="logout-btn" onClick={handleLogout}>Log Out</button>
         </section>
       )}
 
-      {/* Security Tab */}
       {activeTab === "security" && (
         <section className="card">
           <h3>🔐 Security</h3>
@@ -126,31 +84,21 @@ const MyAccount = () => {
         </section>
       )}
 
-      {/* Games Tab */}
       {activeTab === "games" && (
         <section className="card">
           <h3>🎮 Your Games</h3>
           {user.games?.length ? (
-            <ul>
-              {user.games.map((g) => (
-                <li key={g.id}>
-                  {g.title} — Level {g.level}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No linked games.</p>
-          )}
+            <ul>{user.games.map((g: any) => <li key={g.id}>{g.title} — Level {g.level}</li>)}</ul>
+          ) : (<p>No linked games.</p>)}
         </section>
       )}
 
-      {/* Backups Tab */}
       {activeTab === "backups" && (
         <section className="card">
           <h3>💾 Backups</h3>
           {user.backups?.length ? (
             <ul>
-              {user.backups.map((b) => (
+              {user.backups.map((b: any) => (
                 <li key={b.id}>
                   {b.game} — {new Date(b.date).toLocaleString()}
                   <div className="backup-actions">
@@ -160,52 +108,15 @@ const MyAccount = () => {
                 </li>
               ))}
             </ul>
-          ) : (
-            <p>No backups available.</p>
-          )}
+          ) : (<p>No backups available.</p>)}
         </section>
       )}
 
-      {/* Activity Tab */}
-      {activeTab === "activity" && (
-        <section className="card">
-          <h3>📜 Recent Activity</h3>
-          {activity.length ? (
-            <ul>
-              {activity.map((a, i) => (
-                <li key={i}>
-                  {a.action} — {new Date(a.timestamp).toLocaleString()}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No recent activity.</p>
-          )}
-        </section>
-      )}
+      {/* ✅ Correct Activity Tab */}
+      {activeTab === "activity" && <Activity />}
 
-      {/* Subscription Tab */}
-      {activeTab === "subscription" && (
-        <section className="card subscription-card">
-          <h3>📦 Subscription</h3>
-          <p>
-            <strong>Plan:</strong> Personal Use License
-          </p>
-          <p>
-            <strong>Status:</strong> Active ✅
-          </p>
-          <p>
-            This license allows unlimited non-commercial use of the service.
-          </p>
-          <div className="sub-actions">
-            <button className="upgrade-btn" disabled>
-              Upgrade (Coming Soon)
-            </button>
-          </div>
-        </section>
-      )}
+      {activeTab === "subscription" && <Subscriptions />}
 
-      {/* Settings Tab */}
       {activeTab === "settings" && (
         <section className="card">
           <h3>⚙️ Settings</h3>
@@ -223,13 +134,10 @@ const MyAccount = () => {
         </section>
       )}
 
-      {/* Danger Zone */}
       <section className="danger-zone">
         <h3>⚠️ Danger Zone</h3>
         <p>Deleting your account is permanent and cannot be undone.</p>
-        <button className="delete-account-btn" onClick={handleDeleteAccount}>
-          Delete My Account
-        </button>
+        <button className="delete-account-btn" onClick={handleDeleteAccount}>Delete My Account</button>
       </section>
     </div>
   );

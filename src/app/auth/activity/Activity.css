@@ -1,0 +1,49 @@
+.activity-card {
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 20px;
+  color: #ddd;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.activity-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  color: #00c8ff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.logs-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.logs-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.logs-container li {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #252525;
+  border-left: 3px solid #00c8ff;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.logs-container li:hover {
+  background: #2e2e2e;
+}
+
+.log-time {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.log-user {
+  font-weight: bold;
+  color: #fff;
+}

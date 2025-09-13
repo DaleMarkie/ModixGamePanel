@@ -43,6 +43,7 @@ app.include_router(mod_debugger_router, prefix="/api/debugger")
 app.include_router(ddos_router)
 app.include_router(steam_search_router, prefix="/api")
 
+
 # === Project Zomboid APIs ===
 
 register_modules(app)
@@ -439,6 +440,7 @@ async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
                 continue
 
     return JSONResponse({"servers": results})
+
 
 
 # ---------------------------
