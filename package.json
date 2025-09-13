@@ -21,6 +21,7 @@
     "@headlessui/react": "^2.2.6",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
+    "framer-motion": "^12.23.12",
     "inquirer": "^8.2.7",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",

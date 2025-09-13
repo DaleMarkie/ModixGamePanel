@@ -441,6 +441,100 @@ async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
 
     return JSONResponse({"servers": results})
 
+# ---------------------------
+# Project Zomboid Players Endpoint (Real Connected + Historical)
+# ---------------------------
+from fastapi import BackgroundTasks
+import json
+import os
+from datetime import datetime
+import asyncio
+import re
+
+# File to store historical players
+PLAYERS_FILE = os.path.join(os.path.expanduser("~"), "Zomboid", "Server", "players.json")
+os.makedirs(os.path.dirname(PLAYERS_FILE), exist_ok=True)
+
+# Load existing historical players
+if os.path.isfile(PLAYERS_FILE):
+    with open(PLAYERS_FILE, "r", encoding="utf-8") as f:
+        historical_players = json.load(f)
+else:
+    historical_players = {}  # keyed by player id
+
+def save_historical_players():
+    with open(PLAYERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(historical_players, f, indent=2)
+
+def track_player(name: str):
+    """Add or update a player in historical list"""
+    player_id = name.lower().replace(" ", "_")  # crude unique ID
+    now = datetime.utcnow().isoformat() + "Z"
+    historical_players[player_id] = {
+        "id": player_id,
+        "name": name,
+        "lastSeen": now
+    }
+    save_historical_players()
+
+async def parse_connected_players(timeout: float = 2.0):
+    """
+    Parse connected players from running_process log_queue.
+    Adjust the regex depending on your PZ server output.
+    Example PZ output line:
+      "id=1, steamid=76561198123456789, name=Bob"
+    """
+    connected = []
+
+    if not running_process:
+        return connected
+
+    # Send "players" command
+    try:
+        if running_process.stdin:
+            running_process.stdin.write("players\n")
+            running_process.stdin.flush()
+    except Exception:
+        return connected
+
+    start = datetime.now()
+    while (datetime.now() - start).total_seconds() < timeout:
+        try:
+            log = log_queue.get_nowait()
+            # Only parse lines that look like player info
+            if re.search(r"id=\d+.*name=", log, re.IGNORECASE):
+                # Parse "key=value" pairs
+                player_data = {}
+                for part in log.split(","):
+                    if "=" in part:
+                        k, v = part.strip().split("=", 1)
+                        player_data[k.strip()] = v.strip()
+
+                if "name" in player_data:
+                    connected.append({
+                        "id": player_data.get("id", "0"),
+                        "name": player_data["name"],
+                        "server": "PZ Server 1",
+                        "lastSeen": datetime.utcnow().isoformat() + "Z"
+                    })
+                    track_player(player_data["name"])
+        except asyncio.QueueEmpty:
+            await asyncio.sleep(0.05)
+
+    return connected
+
+@app.get("/api/projectzomboid/players")
+async def get_pz_players():
+    """
+    Returns currently connected players + all historical players.
+    """
+    connected_players = await parse_connected_players()
+
+    return {
+        "status": "online" if running_process else "offline",
+        "connected": connected_players,
+        "historical": list(historical_players.values())
+    }
 
 
 # ---------------------------
