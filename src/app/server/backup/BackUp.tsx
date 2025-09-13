@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import "./BackUp.css";
 
-const formatDate = (isoString) => {
+const formatDate = (isoString: string) => {
   try {
     const date = new Date(isoString);
     return new Intl.DateTimeFormat("en-GB", {
@@ -16,7 +18,15 @@ const formatDate = (isoString) => {
   }
 };
 
-const Modal = React.memo(
+const Modal: React.FC<{
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  confirmClass?: string;
+}> = React.memo(
   ({
     title,
     message,
@@ -27,7 +37,7 @@ const Modal = React.memo(
     confirmClass = "",
   }) => {
     useEffect(() => {
-      const onKeyDown = (e) => {
+      const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") onCancel();
       };
       document.addEventListener("keydown", onKeyDown);
@@ -41,7 +51,6 @@ const Modal = React.memo(
         aria-modal="true"
         aria-labelledby="modal-title"
         onClick={onCancel}
-        tabIndex={-1}
       >
         <div
           className="modal"
@@ -69,9 +78,19 @@ const Modal = React.memo(
   }
 );
 
-const BackUp = () => {
-  const [backups, setBackups] = useState([]);
-  const [modal, setModal] = useState({
+interface Backup {
+  id: string;
+  name: string;
+  date: string;
+}
+
+const BackUp: React.FC = () => {
+  const [backups, setBackups] = useState<Backup[]>([]);
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    type: "restore" | "delete" | null;
+    backup: Backup | null;
+  }>({
     isOpen: false,
     type: null,
     backup: null,
@@ -79,37 +98,34 @@ const BackUp = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch backups from backend Docker API on mount
-  useEffect(() => {
-    fetchBackups();
-  }, []);
-
-  const fetchBackups = async () => {
+  const fetchBackups = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/docker/backups"); // Your backend API
+      const res = await fetch("/api/docker/backups");
       if (!res.ok) throw new Error("Failed to fetch backups");
-      const data = await res.json();
+      const data: Backup[] = await res.json();
       setBackups(data);
-    } catch (err) {
+    } catch (err: any) {
       alert("Error loading backups: " + err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBackups();
+  }, [fetchBackups]);
 
   const createBackup = useCallback(async () => {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/docker/backups/create", {
-        method: "POST",
-      });
+      const res = await fetch("/api/docker/backups/create", { method: "POST" });
       if (!res.ok) throw new Error("Failed to create backup");
-      const newBackup = await res.json();
+      const newBackup: Backup = await res.json();
       setBackups((prev) => [newBackup, ...prev]);
       alert("Backup created successfully!");
-    } catch (err) {
+    } catch (err: any) {
       alert("Error creating backup: " + err.message);
     } finally {
       setLoading(false);
@@ -117,9 +133,12 @@ const BackUp = () => {
     }
   }, [loading]);
 
-  const openModal = useCallback((type, backup) => {
-    setModal({ isOpen: true, type, backup });
-  }, []);
+  const openModal = useCallback(
+    (type: "restore" | "delete", backup: Backup) => {
+      setModal({ isOpen: true, type, backup });
+    },
+    []
+  );
 
   const closeModal = useCallback(() => {
     setModal({ isOpen: false, type: null, backup: null });
@@ -131,13 +150,11 @@ const BackUp = () => {
     try {
       const res = await fetch(
         `/api/docker/backups/restore/${modal.backup.id}`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       );
       if (!res.ok) throw new Error("Failed to restore backup");
       alert(`Restored from backup: ${modal.backup.name}`);
-    } catch (err) {
+    } catch (err: any) {
       alert("Error restoring backup: " + err.message);
     } finally {
       setLoading(false);
@@ -153,9 +170,9 @@ const BackUp = () => {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete backup");
-      setBackups((prev) => prev.filter((b) => b.id !== modal.backup.id));
+      setBackups((prev) => prev.filter((b) => b.id !== modal.backup!.id));
       alert(`Deleted backup: ${modal.backup.name}`);
-    } catch (err) {
+    } catch (err: any) {
       alert("Error deleting backup: " + err.message);
     } finally {
       setLoading(false);
@@ -163,26 +180,19 @@ const BackUp = () => {
     }
   }, [modal.backup, closeModal]);
 
-  const handleExport = useCallback((backup) => {
-    // You can expand this to download backup or trigger export on backend
-    alert(`Exporting backup: ${backup.name} (functionality not implemented)`);
-  }, []);
-
-  // Filter backups based on search term (case-insensitive)
   const filteredBackups = useMemo(() => {
     if (!searchTerm.trim()) return backups;
-    const lowerSearch = searchTerm.toLowerCase();
+    const lower = searchTerm.toLowerCase();
     return backups.filter(
       (b) =>
-        b.name.toLowerCase().includes(lowerSearch) ||
-        b.date.toLowerCase().includes(lowerSearch)
+        b.name.toLowerCase().includes(lower) ||
+        b.date.toLowerCase().includes(lower)
     );
-  }, [searchTerm, backups]);
+  }, [backups, searchTerm]);
 
   return (
     <main className="backup-page" role="main" aria-labelledby="page-title">
       <h1 id="page-title">Server Backups</h1>
-
       <p className="backup-description">
         Manage your server backups. Backups are created, restored, and deleted
         via your Docker containers.
@@ -211,15 +221,9 @@ const BackUp = () => {
       {loading && backups.length === 0 ? (
         <p>Loading backups...</p>
       ) : filteredBackups.length === 0 ? (
-        <p>
-          No backups found. Try adjusting your search or create a new backup!
-        </p>
+        <p>No backups found. Adjust search or create a new backup!</p>
       ) : (
-        <ul
-          className="backup-list"
-          aria-live="polite"
-          aria-relevant="additions removals"
-        >
+        <ul className="backup-list" aria-live="polite">
           {filteredBackups.map((backup) => (
             <li key={backup.id} className="backup-item">
               <span className="backup-name">{backup.name}</span>
@@ -229,26 +233,23 @@ const BackUp = () => {
               <div className="backup-actions">
                 <button
                   onClick={() => openModal("restore", backup)}
-                  aria-label={`Restore from ${backup.name}`}
                   disabled={loading}
                 >
-                  <span aria-hidden="true">🔄</span> Restore
+                  🔄 Restore
                 </button>
                 <button
-                  onClick={() => handleExport(backup)}
-                  aria-label={`Export ${backup.name}`}
+                  onClick={() => alert("Export not implemented")}
                   className="export-btn"
                   disabled={loading}
                 >
-                  <span aria-hidden="true">📤</span> Export
+                  📤 Export
                 </button>
                 <button
                   onClick={() => openModal("delete", backup)}
-                  aria-label={`Delete ${backup.name}`}
                   className="delete-btn"
                   disabled={loading}
                 >
-                  <span aria-hidden="true">🗑️</span> Delete
+                  🗑️ Delete
                 </button>
               </div>
             </li>

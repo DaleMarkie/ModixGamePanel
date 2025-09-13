@@ -447,6 +447,207 @@ async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
 
     return JSONResponse({"servers": results})
 
+# ---------------------------
+# Project Zomboid Chat Logs
+# ---------------------------
+import os
+import re
+from datetime import datetime
+from fastapi import Query
+from fastapi.responses import JSONResponse
+
+@app.get("/api/projectzomboid/chatlogs")
+async def get_chat_logs(
+    since: str = Query(None),           # ISO timestamp for incremental fetch
+    player: str = Query(None),          # filter by player name
+    commands_only: bool = Query(False), # only show commands (starting with /)
+    chat_type: str = Query(None)        # filter by chat type: Global, Faction, Private
+):
+    """
+    Fetch and parse Project Zomboid chat logs.
+    Reads from ~/Zomboid/Server/chat.txt
+    Expected line format:
+    2025-09-13 15:30:21 [PlayerName] message here
+
+    Optional filters:
+      - since: ISO timestamp to get only new messages
+      - player: filter by player name
+      - commands_only: only messages starting with '/'
+      - chat_type: filter by chat type (Global, Faction, Private)
+    """
+    chat_file = os.path.join(get_pz_server_folder(), "chat.txt")
+    logs = []
+
+    if not os.path.exists(chat_file):
+        return JSONResponse({"logs": [], "message": "No chat.txt file found"})
+
+    try:
+        with open(chat_file, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+
+                match = re.match(
+                    r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+\[(.*?)\]\s+(.*)$",
+                    line
+                )
+                if not match:
+                    continue
+
+                timestamp_str, player_name, message = match.groups()
+
+                # Filter by 'since'
+                if since:
+                    try:
+                        log_time = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                        since_time = datetime.fromisoformat(since)
+                        if log_time <= since_time:
+                            continue
+                    except Exception:
+                        pass
+
+                # Filter by player
+                if player and player.lower() not in player_name.lower():
+                    continue
+
+                # Filter commands only
+                if commands_only and not message.startswith("/"):
+                    continue
+
+                # Detect chat type (simple heuristic)
+                chat_type_detected = "Global"
+                if message.startswith("/f ") or "[Faction]" in message:
+                    chat_type_detected = "Faction"
+                elif message.startswith("/w ") or "[Private]" in message:
+                    chat_type_detected = "Private"
+
+                # Filter chat type
+                if chat_type and chat_type.lower() != chat_type_detected.lower():
+                    continue
+
+                logs.append({
+                    "timestamp": timestamp_str,
+                    "player": player_name,
+                    "message": message,
+                    "chat_type": chat_type_detected
+                })
+
+    except Exception as e:
+        return JSONResponse({"error": f"Error reading chat logs: {str(e)}"}, status_code=500)
+
+    return JSONResponse({"logs": logs})
+
+
+
+# ---------------------------
+# Project Zomboid Players (All + Banned)
+# ---------------------------
+
+from typing import List, Dict
+
+# === In-memory storage (replace with DB/log parsing for live data) ===
+ALL_PLAYERS: List[Dict] = [
+    {"name": "Alice", "steamid": "1234567890", "lastSeen": "2025-09-12 18:33:00"},
+    {"name": "Bob", "steamid": "9876543210", "lastSeen": "2025-09-12 20:10:00"},
+    {"name": "Charlie", "steamid": "5555555555", "lastSeen": "2025-09-11 22:45:00"},
+]
+
+BANNED_PLAYERS: List[Dict] = [
+    {"player": "TrollGuy", "message": "Griefing", "timestamp": "2025-09-10 14:21:00"},
+    {"player": "Spammer99", "message": "Chat spam", "timestamp": "2025-09-08 09:15:00"},
+]
+
+def read_all_players() -> List[Dict]:
+    """Return list of all known players"""
+    return ALL_PLAYERS
+
+def read_banned_players() -> List[Dict]:
+    """Return list of banned players"""
+    return BANNED_PLAYERS
+
+def write_ban(player: str, reason: str) -> Dict:
+    """Ban a player and remove from ALL_PLAYERS"""
+    entry = {
+        "player": player,
+        "message": reason,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    BANNED_PLAYERS.append(entry)
+    global ALL_PLAYERS
+    ALL_PLAYERS = [p for p in ALL_PLAYERS if p["name"] != player]
+    return entry
+
+def remove_ban(player: str) -> bool:
+    """Unban a player"""
+    global BANNED_PLAYERS
+    before_count = len(BANNED_PLAYERS)
+    BANNED_PLAYERS = [p for p in BANNED_PLAYERS if p["player"] != player]
+    return len(BANNED_PLAYERS) < before_count
+
+# === Endpoints ===
+@app.get("/api/projectzomboid/players")
+async def api_get_all_players():
+    return JSONResponse({"players": read_all_players()})
+
+@app.get("/api/projectzomboid/banned")
+async def api_get_banned_players():
+    return JSONResponse({"banned": read_banned_players()})
+
+@app.post("/api/projectzomboid/ban")
+async def api_ban_player(request: Request):
+    data = await request.json()
+    player = data.get("player")
+    reason = data.get("reason", "No reason provided")
+
+    if not player:
+        return error_response("GAME_001", 400, "Player name required")
+
+    banned_entry = write_ban(player, reason)
+    return JSONResponse({"status": "success", "banned": banned_entry})
+
+@app.post("/api/projectzomboid/unban")
+async def api_unban_player(request: Request):
+    data = await request.json()
+    player = data.get("player")
+
+    if not player:
+        return error_response("GAME_001", 400, "Player name required")
+
+    removed = remove_ban(player)
+    if not removed:
+        return error_response("GAME_002", 404, f"Player {player} not found in ban list")
+
+    return JSONResponse({"status": "success", "unbanned": player})
+
+
+# ---------------------------
+# Project Zomboid Online Players
+# ---------------------------
+
+ONLINE_PLAYERS: List[Dict] = [
+    # Dummy example; replace with live log parsing
+    {"name": "Alice", "steamid": "1234567890", "connectedSince": "2025-09-13 14:00:00"},
+    {"name": "Charlie", "steamid": "5555555555", "connectedSince": "2025-09-13 14:15:00"},
+]
+
+def read_online_players() -> List[Dict]:
+    """
+    Return currently online players.
+    TODO: Integrate with Project Zomboid server logs or RCON for live data.
+    """
+    # For demo, filter ALL_PLAYERS by those in ONLINE_PLAYERS names
+    online_names = {p["name"] for p in ONLINE_PLAYERS}
+    return [p for p in ALL_PLAYERS if p["name"] in online_names]
+
+@app.get("/api/projectzomboid/players/online")
+async def api_get_online_players():
+    """
+    Get currently connected / online players.
+    """
+    players = read_online_players()
+    return JSONResponse({"onlinePlayers": players})
+
 
 # ---------------------------
 # Startup Hooks

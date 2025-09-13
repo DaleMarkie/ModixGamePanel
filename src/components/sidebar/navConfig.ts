@@ -45,18 +45,16 @@ export const navLinks = [
       { label: "🧍 All PLayers", href: "/PlayerManagement/AllPlayers" },
       { label: "🔍 Player Search", href: "/steamplayermanager" },
       { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-      { label: "⛔ Player Banned", href: "/PlayerManagement/bans" },
-      { label: "📝 Player Notes", href: "/PlayerManagement/notes" },
-      { label: "📊 Player Stats", href: "/PlayerManagement/stats" },
+      { label: "⛔ Players Banned", href: "/PlayerManagement/PlayerBanned" },
     ],
   },
   {
     label: "🎮 Game Config",
     href: "/settings",
     submenu: [
-      { label: "⚙️ General Settings", href: "/server/ServerSettings" },
-      { label: "🧑‍⚖️ User Permissions", href: "/RBAC" },
       { label: "🗄️ Backup Server", href: "/server/backup" },
+      { label: "⚙️ General Settings", href: "/server/ServerSettings" },
+      { label: "🧑 User Permissions", href: "/RBAC" },
     ],
   },
   {
@@ -83,17 +81,10 @@ export const navLinks = [
         label: "📊 Monitoring",
         href: "/tools/monitoring",
         submenu: [
-          { label: "📈 Performance Stats", href: "/tools/performance" },
+          { label: "📈 Your Server Stats", href: "/tools/performance" },
           { label: "🌐 Port Checker", href: "/tools/portcheck" },
           { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-        ],
-      },
-      {
-        label: "🛡️ Security",
-        href: "/tools/security",
-        submenu: [
           { label: "🧮 Firewall Manager", href: "/tools/firewallmanager" },
-          // You can add more security tools here if needed
         ],
       },
     ],
@@ -103,9 +94,6 @@ export const navLinks = [
     href: "/platform-settings", // <-- renamed href to avoid clash
     submenu: [
       { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
-      { label: "📜 Audit Logs", href: "/settings/audit" },
-      { label: "🌍 Language & Region", href: "/settings/locale" },
-      { label: "🛡️ Security Preferences", href: "/settings/security" },
       { label: "🎨 Theme Customization", href: "/settings/themesettings" },
       { label: "🩺 Modix Health", href: "/server/ModixHealth" },
       { label: "🧬 Update Modix", href: "/server/updater" },
