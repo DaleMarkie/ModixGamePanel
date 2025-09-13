@@ -41,8 +41,6 @@ app.include_router(module_api_router, prefix="/api")
 app.include_router(steam_search_router, prefix="/api")
 app.include_router(mod_debugger_router, prefix="/api/debugger")
 app.include_router(ddos_router)
-app.include_router(steam_search_router, prefix="/api")
-
 
 # === Project Zomboid APIs ===
 
@@ -189,23 +187,56 @@ async def terminal_log_stream():
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # ---------------------------
-# Saved INIs (global)
+# Project Zomboid Settings
 # ---------------------------
-SAVED_INI_FILE = os.path.join(get_pz_server_folder(), "saved_inis.json")
-os.makedirs(os.path.dirname(SAVED_INI_FILE), exist_ok=True)
-if os.path.isfile(SAVED_INI_FILE):
-    with open(SAVED_INI_FILE, "r", encoding="utf-8") as f:
-        saved_inis = json.load(f)
-else:
-    saved_inis = []
+def get_pz_server_folder() -> str:
+    home = os.path.expanduser("~")
+    return os.path.join(home, "Zomboid", "Server")
 
-def save_saved_inis():
-    with open(SAVED_INI_FILE, "w", encoding="utf-8") as f:
-        json.dump(saved_inis, f, indent=2)
+def resolve_ini_path(ini_name: str) -> str:
+    folder = get_pz_server_folder()
+    return os.path.join(folder, ini_name)
 
-# ---------------------------
-# Save Project Zomboid Settings (updated)
-# ---------------------------
+def cast_value(value: str) -> Any:
+    if isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
+        return value
+    v = str(value).strip()
+    low = v.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    try:
+        if "." in v:
+            return float(v)
+        return int(v)
+    except ValueError:
+        return v
+
+@app.get("/api/projectzomboid/settings/list")
+async def list_pz_ini_files():
+    folder = get_pz_server_folder()
+    if not os.path.isdir(folder):
+        return JSONResponse(content={"folder": folder, "files": []})
+    files = [f for f in os.listdir(folder) if f.lower().endswith(".ini")]
+    return JSONResponse(content={"folder": folder, "files": files})
+
+@app.get("/api/projectzomboid/settings")
+async def get_pz_server_settings(ini: str = Query("servertest.ini", description="INI filename inside ~/Zomboid/Server")):
+    ini_path = resolve_ini_path(ini)
+    if not os.path.isfile(ini_path):
+        return error_response("GAME_002", 404, f"INI not found: {ini_path}")
+
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(ini_path, encoding="utf-8")
+
+    result: Dict[str, Dict[str, Any]] = {}
+    for section in config.sections():
+        result[section] = {}
+        for key, value in config.items(section):
+            result[section][key] = cast_value(value)
+
+    return JSONResponse(content={"folder": get_pz_server_folder(), "ini": ini, "settings": result})
+
 @app.post("/api/projectzomboid/settings")
 async def save_pz_server_settings(request: Request):
     data = await request.json()
@@ -229,45 +260,20 @@ async def save_pz_server_settings(request: Request):
         except Exception:
             pass
 
-    # Load INI
     config = configparser.ConfigParser()
     config.optionxform = str
     config.read(ini_path, encoding="utf-8")
 
-    # Apply updates
     for section, kv in (updates or {}).items():
         if not config.has_section(section):
             config.add_section(section)
         for key, value in (kv or {}).items():
             config.set(section, key, str(value))
 
-    # Save INI
     with open(ini_path, "w", encoding="utf-8") as f:
         config.write(f)
 
-    # --- Update saved INIs list ---
-    # Count mods if section exists
-    mods_count = 0
-    if config.has_section("Mods") and config.has_option("Mods", "Mods"):
-        mods_line = config.get("Mods", "Mods")
-        mods_count = len([m.strip() for m in mods_line.split(";") if m.strip()])
-
-    record = {
-        "ini": ini_name,
-        "path": ini_path,
-        "timestamp": datetime.now().isoformat(),
-        "mods_count": mods_count,
-    }
-
-    existing = next((x for x in saved_inis if x["ini"] == ini_name), None)
-    if existing:
-        existing.update(record)
-    else:
-        saved_inis.append(record)
-    save_saved_inis()
-
     return {"status": "success", "ini": ini_name, "path": ini_path}
-
 
 # ---------------------------
 # Modcards (in-memory storage)
@@ -440,101 +446,6 @@ async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
                 continue
 
     return JSONResponse({"servers": results})
-
-# ---------------------------
-# Project Zomboid Players Endpoint (Real Connected + Historical)
-# ---------------------------
-from fastapi import BackgroundTasks
-import json
-import os
-from datetime import datetime
-import asyncio
-import re
-
-# File to store historical players
-PLAYERS_FILE = os.path.join(os.path.expanduser("~"), "Zomboid", "Server", "players.json")
-os.makedirs(os.path.dirname(PLAYERS_FILE), exist_ok=True)
-
-# Load existing historical players
-if os.path.isfile(PLAYERS_FILE):
-    with open(PLAYERS_FILE, "r", encoding="utf-8") as f:
-        historical_players = json.load(f)
-else:
-    historical_players = {}  # keyed by player id
-
-def save_historical_players():
-    with open(PLAYERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(historical_players, f, indent=2)
-
-def track_player(name: str):
-    """Add or update a player in historical list"""
-    player_id = name.lower().replace(" ", "_")  # crude unique ID
-    now = datetime.utcnow().isoformat() + "Z"
-    historical_players[player_id] = {
-        "id": player_id,
-        "name": name,
-        "lastSeen": now
-    }
-    save_historical_players()
-
-async def parse_connected_players(timeout: float = 2.0):
-    """
-    Parse connected players from running_process log_queue.
-    Adjust the regex depending on your PZ server output.
-    Example PZ output line:
-      "id=1, steamid=76561198123456789, name=Bob"
-    """
-    connected = []
-
-    if not running_process:
-        return connected
-
-    # Send "players" command
-    try:
-        if running_process.stdin:
-            running_process.stdin.write("players\n")
-            running_process.stdin.flush()
-    except Exception:
-        return connected
-
-    start = datetime.now()
-    while (datetime.now() - start).total_seconds() < timeout:
-        try:
-            log = log_queue.get_nowait()
-            # Only parse lines that look like player info
-            if re.search(r"id=\d+.*name=", log, re.IGNORECASE):
-                # Parse "key=value" pairs
-                player_data = {}
-                for part in log.split(","):
-                    if "=" in part:
-                        k, v = part.strip().split("=", 1)
-                        player_data[k.strip()] = v.strip()
-
-                if "name" in player_data:
-                    connected.append({
-                        "id": player_data.get("id", "0"),
-                        "name": player_data["name"],
-                        "server": "PZ Server 1",
-                        "lastSeen": datetime.utcnow().isoformat() + "Z"
-                    })
-                    track_player(player_data["name"])
-        except asyncio.QueueEmpty:
-            await asyncio.sleep(0.05)
-
-    return connected
-
-@app.get("/api/projectzomboid/players")
-async def get_pz_players():
-    """
-    Returns currently connected players + all historical players.
-    """
-    connected_players = await parse_connected_players()
-
-    return {
-        "status": "online" if running_process else "offline",
-        "connected": connected_players,
-        "historical": list(historical_players.values())
-    }
 
 
 # ---------------------------
