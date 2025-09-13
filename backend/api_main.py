@@ -538,6 +538,101 @@ async def get_chat_logs(
 
     return JSONResponse({"logs": logs})
 
+# ---------------------------
+# Steam Player Search API
+# ---------------------------
+import os
+import requests
+from fastapi import APIRouter, Query
+from fastapi.responses import JSONResponse
+
+router = APIRouter(prefix="/api/steam")
+
+# In-memory store for notes (can later use a database)
+steam_notes_store = {}
+
+STEAM_API_BASE = "https://api.steampowered.com"
+
+@router.get("/search")
+async def search_steam_user(
+    key: str = Query(..., description="Your Steam Web API key"),
+    steamid: str = Query(None, description="SteamID64"),
+    vanityurl: str = Query(None, description="Vanity URL")
+):
+    """
+    Search for a Steam user by SteamID64 or Vanity URL.
+    Returns profile info, bans, and saved notes.
+    """
+    if not key or (not steamid and not vanityurl):
+        return JSONResponse({"success": False, "message": "Missing API key or SteamID/Vanity URL"}, status_code=400)
+
+    # Resolve vanity URL if provided
+    if vanityurl and not steamid:
+        try:
+            res = requests.get(f"{STEAM_API_BASE}/ISteamUser/ResolveVanityURL/v1/", params={
+                "key": key,
+                "vanityurl": vanityurl
+            }).json()
+            if res.get("response", {}).get("success") != 1:
+                return JSONResponse({"success": False, "message": "Vanity URL not found"}, status_code=404)
+            steamid = res["response"]["steamid"]
+        except Exception as e:
+            return JSONResponse({"success": False, "message": str(e)}, status_code=500)
+
+    # Fetch player summaries
+    try:
+        res = requests.get(f"{STEAM_API_BASE}/ISteamUser/GetPlayerSummaries/v2/", params={
+            "key": key,
+            "steamids": steamid
+        }).json()
+        players = res.get("response", {}).get("players", [])
+        if not players:
+            return JSONResponse({"success": False, "message": "Player not found"}, status_code=404)
+        profile = players[0]
+    except Exception as e:
+        return JSONResponse({"success": False, "message": f"Error fetching profile: {str(e)}"}, status_code=500)
+
+    # Fetch ban info
+    try:
+        res = requests.get(f"{STEAM_API_BASE}/ISteamUser/GetPlayerBans/v1/", params={
+            "key": key,
+            "steamids": steamid
+        }).json()
+        bans = res.get("players", [{}])[0]
+        ban_info = {
+            "VACBanned": bans.get("VACBanned", False),
+            "NumberOfGameBans": bans.get("NumberOfGameBans", 0),
+            "CommunityBanned": bans.get("CommunityBanned", False),
+            "DaysSinceLastBan": bans.get("DaysSinceLastBan", 0)
+        }
+    except Exception as e:
+        ban_info = {
+            "VACBanned": False,
+            "NumberOfGameBans": 0,
+            "CommunityBanned": False,
+            "DaysSinceLastBan": 0
+        }
+
+    # Retrieve saved notes
+    notes = steam_notes_store.get(steamid, [])
+
+    return JSONResponse({"success": True, "profile": profile, "bans": ban_info, "notes": notes})
+
+
+@router.post("/notes")
+async def add_note(
+    steamid: str,
+    text: str,
+    status: str
+):
+    """
+    Add a note for a Steam user.
+    Status can be: "Safe Player", "Low-Risk", "Medium-Risk", "High-Risk"
+    """
+    if steamid not in steam_notes_store:
+        steam_notes_store[steamid] = []
+    steam_notes_store[steamid].insert(0, {"text": text, "status": status, "timestamp": int(__import__("time").time() * 1000)})
+    return JSONResponse({"success": True, "notes": steam_notes_store[steamid]})
 
 
 # ---------------------------
