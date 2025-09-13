@@ -44,7 +44,7 @@ export const navLinks = [
     submenu: [
       { label: "🧍 All PLayers", href: "/playermanager/online" },
       { label: "🧍 Online", href: "/playermanager/offline" },
-      { label: "🔍 Player Search", href: "/playermanager/search" },
+      { label: "🔍 Player Search", href: "/steamplayermanager" },
       { label: "💬 Chat Logs", href: "/discord/logs/chat" },
       { label: "👥 Player Join/Leave Logs", href: "/discord/logs/player" },
 
