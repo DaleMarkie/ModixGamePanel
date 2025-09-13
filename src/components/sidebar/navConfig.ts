@@ -42,12 +42,12 @@ export const navLinks = [
     label: "👥 Player Management",
     href: "/players",
     submenu: [
-      { label: "🧍 All PLayers", href: "/PlayerManager/AllPlayers" },
+      { label: "🧍 All PLayers", href: "/PlayerManagement/AllPlayers" },
       { label: "🔍 Player Search", href: "/steamplayermanager" },
-      { label: "💬 Chat Logs", href: "/PlayerManager/ChatLogs" },
-      { label: "⛔ Player Banned", href: "/PlayerManager/bans" },
-      { label: "📝 Player Notes", href: "/PlayerManager/notes" },
-      { label: "📊 Player Stats", href: "/PlayerManager/stats" },
+      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
+      { label: "⛔ Player Banned", href: "/PlayerManagement/bans" },
+      { label: "📝 Player Notes", href: "/PlayerManagement/notes" },
+      { label: "📊 Player Stats", href: "/PlayerManagement/stats" },
     ],
   },
   {
