@@ -26,6 +26,7 @@ from backend.API.Core.steam_search_player_api import router as steam_search_rout
 from steam_notes_api import router as steam_notes_router
 from all_players_api import router as all_players_router
 from api_chatlogs import router as chatlogs_router
+from PlayersBannedAPI import router as players_banned_router
 
 
 # === Game Specific APIs (raw routers) ===
@@ -50,6 +51,7 @@ app.include_router(ddos_router)
 app.include_router(steam_notes_router)
 app.include_router(all_players_router)
 app.include_router(chatlogs_router)
+app.include_router(players_banned_router)
 
 # === Project Zomboid APIs ===
 
