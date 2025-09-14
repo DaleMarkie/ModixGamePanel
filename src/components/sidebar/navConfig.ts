@@ -18,7 +18,7 @@ export const navLinks = [
         href: "/dashboard/profile",
         submenu: [
           { label: "👤 Account Info", href: "/auth/myaccount" },
-          { label: "💳 Billing", href: "/billing" },
+          { label: "💳 Billing", href: "/auth/billing" },
           { label: "🔑 My License", href: "/auth/License" },
           { label: "⚙️ Settings", href: "/auth/mysettings" },
         ],
@@ -95,7 +95,6 @@ export const navLinks = [
     submenu: [
       { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
       { label: "🎨 Theme Customization", href: "/settings/themesettings" },
-      { label: "🩺 Modix Health", href: "/server/ModixHealth" },
       { label: "🧬 Update Modix", href: "/server/updater" },
     ],
   },

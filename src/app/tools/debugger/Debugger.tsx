@@ -36,47 +36,50 @@ export default function DebuggerPage() {
   const [showLogs, setShowLogs] = useState(true);
   const [showNotes, setShowNotes] = useState(true);
 
-  // Detect active server
+  // Fetch active server
   useEffect(() => {
     async function fetchActiveServer() {
       try {
-        setError(null);
         const res = await fetch("/api/active-server");
-        if (!res.ok) throw new Error("Failed to fetch active server");
         const data = await res.json();
         setActiveServer(data.server || null);
       } catch (err: any) {
-        setError(err.message || "Unknown error fetching active server");
+        setError("Failed to detect active server");
       }
     }
     fetchActiveServer();
   }, []);
 
-  // Load mods when server is active
+  // Auto-refresh mods every 5 seconds
   useEffect(() => {
-    if (!activeServer) {
-      setMods({});
-      return;
-    }
-    async function fetchMods() {
+    if (!activeServer) return;
+
+    let isMounted = true;
+
+    const fetchMods = async () => {
       try {
-        setError(null);
         setLoading(true);
         const res = await fetch(`/api/servers/${activeServer}/mods`);
         if (!res.ok) throw new Error("Failed to fetch mods");
         const data: ModData = await res.json();
-        setMods(data);
+        if (isMounted) setMods(data);
       } catch (err: any) {
-        setError(err.message || "Unknown error fetching mods");
-        setMods({});
+        if (isMounted) setError(err.message || "Unknown error fetching mods");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
-    }
+    };
+
     fetchMods();
+    const interval = setInterval(fetchMods, 5000); // Refresh every 5 seconds
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [activeServer]);
 
-  // Update mod status quickly
+  // Update mod status
   async function updateModStatus(modName: string, newStatus: ModStatus) {
     if (!activeServer) return;
     try {
@@ -165,7 +168,7 @@ export default function DebuggerPage() {
       </header>
 
       {error && <p className="error-message">{error}</p>}
-      {loading && <p>Loading mods...</p>}
+      {loading && <p className="loading-text">Loading mods...</p>}
 
       {activeServer && (
         <>
@@ -309,15 +312,12 @@ export default function DebuggerPage() {
             </h2>
             {showLogs && (
               <div className="log-box">
-                <p>[12:01:22] Starting server...</p>
-                <p>[12:01:23] Loading mods...</p>
-                <p>[12:01:24] Mod "Better Zombies" failed to load.</p>
-                <p>[12:01:25] Server running on port 27015.</p>
+                <p>[Auto-refresh every 5s]</p>
               </div>
             )}
           </section>
 
-          {/* Collapsible Notes */}
+          {/* Collapsible Global Notes */}
           <section className="debugger-section">
             <h2
               className="section-title"
@@ -328,9 +328,7 @@ export default function DebuggerPage() {
             {showNotes && (
               <div className="notes-list global-notes">
                 <div className="note-item">
-                  <p>
-                    This is a global note example just to demo collapsibles.
-                  </p>
+                  <p>System-wide notes appear here.</p>
                   <small>— System, {new Date().toLocaleString()}</small>
                 </div>
               </div>
