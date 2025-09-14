@@ -22,7 +22,9 @@ from backend.API.Core.database import init_db, create_base_users_from_config, re
 from backend.API.Core.module_api import router as module_api_router
 from backend.API.Core.auth import auth_router
 from backend.API.Core.steam_search_player_api import router as steam_search_router
+# === Player Management ===
 from steam_notes_api import router as steam_notes_router
+from all_players_api import router as all_players_router
 
 # === Game Specific APIs (raw routers) ===
 from backend.API.Core.mod_debugger_api import router as mod_debugger_router
@@ -42,7 +44,10 @@ app.include_router(module_api_router, prefix="/api")
 app.include_router(steam_search_router, prefix="/api")
 app.include_router(mod_debugger_router, prefix="/api/debugger")
 app.include_router(ddos_router)
+# === Player Management ===
 app.include_router(steam_notes_router)
+app.include_router(all_players_router)
+
 # === Project Zomboid APIs ===
 
 register_modules(app)
