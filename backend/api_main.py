@@ -635,40 +635,182 @@ async def update_user_details(request: Request):
 
     return JSONResponse({"success": True, "message": f"User '{username}' updated successfully", "user": user})
 
+from fastapi import Body
 
-@app.post("/api/modix/users/update")
-async def update_user_details(request: Request):
+# In-memory storage for demo, replace with DB
+ko_fi_licenses = {}
+
+@app.post("/api/kofi/webhook")
+async def kofi_webhook(payload: dict = Body(...)):
     """
-    Update a single user's details in MODIX_USERS.
-    JSON body: {"username": "...", "password": "...", "email": "...", "roles": [...], "permissions": [...]}
+    Ko-fi sends a POST request here whenever someone donates.
+    Payload example:
+    {
+        "id": "123456",
+        "from_name": "John Doe",
+        "message": "Great work!",
+        "amount": "5.00",
+        "currency": "USD",
+        "ko_fi_fee": "0.50",
+        "created_at": "2025-09-15T12:34:56Z",
+        "custom": "username:test1"
+    }
     """
     try:
-        data = await request.json()
-    except Exception:
-        return JSONResponse({"success": False, "message": "Invalid JSON"}, status_code=400)
+        # Extract username from the "custom" field
+        custom = payload.get("custom", "")
+        if not custom.startswith("username:"):
+            return {"success": False, "detail": "No username provided"}
+        username = custom.split("username:")[1]
 
+        # Mark the user as Pro
+        ko_fi_licenses[username] = {
+            "plan": "Pro",
+            "status": "Active",
+            "expires_at": None,
+            "amount": payload.get("amount"),
+            "currency": payload.get("currency"),
+            "transaction_id": payload.get("id")
+        }
+
+        return {"success": True, "message": f"User {username} upgraded to Pro"}
+    except Exception as e:
+        return {"success": False, "detail": str(e)}
+
+@app.post("/api/kofi/redeem")
+async def redeem_kofi(data: dict):
+    transaction_id = data.get("transaction_id")
     username = data.get("username")
-    if not username:
-        return JSONResponse({"success": False, "message": "Username is required"}, status_code=400)
 
+    # Check in ko_fi_licenses
+    license = ko_fi_licenses.get(username)
+    if not license or license["transaction_id"] != transaction_id:
+        return {"success": False, "detail": "Transaction not found or invalid"}
+
+    return {"success": True, "license": license}
+
+
+# ---------------------------
+# MODIX RBAC User Management API
+# ---------------------------
+
+from fastapi import Body, Path
+from fastapi.responses import JSONResponse
+
+MODIX_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "modix_config", "modix_config.json")
+
+def read_modix_config() -> dict:
+    if not os.path.isfile(MODIX_CONFIG_FILE):
+        return {}
+    with open(MODIX_CONFIG_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def write_modix_config(data: dict):
+    os.makedirs(os.path.dirname(MODIX_CONFIG_FILE), exist_ok=True)
+    with open(MODIX_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+@app.get("/api/rbac/users")
+async def list_users():
+    """Return all MODIX users."""
+    config = read_modix_config()
+    return config.get("MODIX_USERS", [])
+
+@app.post("/api/rbac/users")
+async def add_user(user: dict = Body(...)):
+    """
+    Add a new user.
+    JSON body:
+    {
+        "username": str,
+        "password": str,
+        "email": str,
+        "is_active": bool,
+        "roles": list[str],
+        "permissions": list[str]
+    }
+    """
     config = read_modix_config()
     users = config.get("MODIX_USERS", [])
 
-    # Find the user
-    user = next((u for u in users if u.get("username") == username), None)
-    if not user:
-        return JSONResponse({"success": False, "message": "User not found"}, status_code=404)
+    if any(u["username"] == user["username"] for u in users):
+        return JSONResponse({"success": False, "message": "Username already exists"}, status_code=400)
 
-    # Update only provided fields
-    for field in ["password", "email", "roles", "permissions"]:
-        if field in data:
-            user[field] = data[field]
-
-    # Save back
+    new_user = {
+        "username": user["username"],
+        "password": user["password"],
+        "email": user.get("email", ""),
+        "roles": user.get("roles", []),
+        "permissions": user.get("permissions", []),
+    }
+    users.append(new_user)
     config["MODIX_USERS"] = users
     write_modix_config(config)
 
-    return JSONResponse({"success": True, "message": f"User '{username}' updated", "user": user})
+    return {"success": True, "message": "User added", "user": new_user}
+
+@app.delete("/api/rbac/users/{username}")
+async def delete_user(username: str = Path(...)):
+    """Remove a user by username."""
+    config = read_modix_config()
+    users = config.get("MODIX_USERS", [])
+    users = [u for u in users if u["username"] != username]
+    config["MODIX_USERS"] = users
+    write_modix_config(config)
+    return {"success": True, "message": f"User '{username}' removed"}
+
+@app.post("/api/rbac/users/{username}/roles")
+async def add_role_to_user(username: str = Path(...), payload: dict = Body(...)):
+    """
+    Add a role to a user.
+    Body: { "role_name": "Moderator" }
+    """
+    role_name = payload.get("role_name")
+    if not role_name:
+        return JSONResponse({"success": False, "message": "role_name required"}, status_code=400)
+
+    config = read_modix_config()
+    users = config.get("MODIX_USERS", [])
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return JSONResponse({"success": False, "message": "User not found"}, status_code=404)
+
+    if role_name not in user.get("roles", []):
+        user.setdefault("roles", []).append(role_name)
+        write_modix_config(config)
+
+    return {"success": True, "message": f"Role '{role_name}' added to {username}", "user": user}
+
+@app.post("/api/rbac/users/{username}/permissions")
+async def add_permission_to_user(username: str = Path(...), payload: dict = Body(...)):
+    """
+    Toggle a permission for a user.
+    Body: { "permission": "terminal_access", "value": "allow" }
+    """
+    perm = payload.get("permission")
+    value = payload.get("value", "allow")
+
+    if not perm:
+        return JSONResponse({"success": False, "message": "permission required"}, status_code=400)
+
+    config = read_modix_config()
+    users = config.get("MODIX_USERS", [])
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return JSONResponse({"success": False, "message": "User not found"}, status_code=404)
+
+    perms = set(user.get("permissions", []))
+    if value == "allow":
+        perms.add(perm)
+    else:
+        perms.discard(perm)
+    user["permissions"] = list(perms)
+    write_modix_config(config)
+
+    return {"success": True, "message": f"Permission '{perm}' updated for {username}", "user": user}
+
+
+
 
 # ---------------------------
 # Startup Hooks

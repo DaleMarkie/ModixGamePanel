@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -61,10 +60,13 @@ type Role = {
 };
 
 type UserRole = { role: string; container_id?: number };
-type UserPermission = { permission: string; value: string; container_id?: number };
+type UserPermission = {
+  permission: string;
+  value: string;
+  container_id?: number;
+};
 
 // --- Component ---
-
 export default function RBACManager() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,9 @@ export default function RBACManager() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [allPermissions, setAllPermissions] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<Record<number, UserRole[]>>({});
-  const [userPerms, setUserPerms] = useState<Record<number, UserPermission[]>>({});
+  const [userPerms, setUserPerms] = useState<Record<number, UserPermission[]>>(
+    {}
+  );
   const [loadingRolesPerms, setLoadingRolesPerms] = useState(false);
 
   // Fetch users from backend
@@ -108,8 +112,7 @@ export default function RBACManager() {
       ]);
       setRoles(rolesData);
       setAllPermissions(permsData.permissions);
-    } catch (err) {
-      // ignore for now
+    } catch {
     } finally {
       setLoadingRolesPerms(false);
     }
@@ -122,11 +125,9 @@ export default function RBACManager() {
         apiHandler<UserRole[]>(`/api/rbac/users/${userId}/roles`),
         apiHandler<UserPermission[]>(`/api/rbac/users/${userId}/permissions`),
       ]);
-      setUserRoles(prev => ({ ...prev, [userId]: roles }));
-      setUserPerms(prev => ({ ...prev, [userId]: perms }));
-    } catch (err) {
-      // ignore for now
-    }
+      setUserRoles((prev) => ({ ...prev, [userId]: roles }));
+      setUserPerms((prev) => ({ ...prev, [userId]: perms }));
+    } catch {}
   };
 
   useEffect(() => {
@@ -135,8 +136,7 @@ export default function RBACManager() {
   }, []);
 
   useEffect(() => {
-    users.forEach(u => fetchUserRolesPerms(u.id));
-    // eslint-disable-next-line
+    users.forEach((u) => fetchUserRolesPerms(u.id));
   }, [users.length]);
 
   // Add new user
@@ -159,7 +159,13 @@ export default function RBACManager() {
           }),
         },
       });
-      setNewUser({ username: "", email: "", password: "", role: "Viewer", active: true });
+      setNewUser({
+        username: "",
+        email: "",
+        password: "",
+        role: "Viewer",
+        active: true,
+      });
       fetchUsers();
     } catch (err: any) {
       setError(err.message || "Failed to add user");
@@ -183,11 +189,14 @@ export default function RBACManager() {
   };
 
   // Toggle user role
-  const handleToggleRole = async (userId: number, roleName: string, hasRole: boolean) => {
+  const handleToggleRole = async (
+    userId: number,
+    roleName: string,
+    hasRole: boolean
+  ) => {
     setError(null);
     try {
       if (hasRole) {
-        // Remove role: not directly supported, so could be a custom endpoint; for now, skip
         alert("Role removal not implemented in backend");
       } else {
         await apiHandler(`/api/rbac/users/${userId}/roles`, {
@@ -205,14 +214,21 @@ export default function RBACManager() {
   };
 
   // Toggle user permission
-  const handleTogglePerm = async (userId: number, perm: string, hasPerm: boolean) => {
+  const handleTogglePerm = async (
+    userId: number,
+    perm: string,
+    hasPerm: boolean
+  ) => {
     setError(null);
     try {
       await apiHandler(`/api/rbac/users/${userId}/permissions`, {
         fetchInit: {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ permission: perm, value: hasPerm ? "deny" : "allow" }),
+          body: JSON.stringify({
+            permission: perm,
+            value: hasPerm ? "deny" : "allow",
+          }),
         },
       });
       fetchUserRolesPerms(userId);
@@ -228,12 +244,14 @@ export default function RBACManager() {
   return (
     <div style={container}>
       <h1 style={heading}>RBAC Panel</h1>
-      <p style={{ marginBottom: 24, fontSize: 14, color: "#bbb", maxWidth: 600 }}>
+      <p
+        style={{ marginBottom: 24, fontSize: 14, color: "#bbb", maxWidth: 600 }}
+      >
         Manage user access and permissions efficiently with this Role-Based
-        Access Control (RBAC) panel. View all users in the system below.
+        Access Control (RBAC) panel.
       </p>
 
-      {/* Global Search */}
+      {/* Search */}
       <input
         placeholder="Search users..."
         value={searchQuery}
@@ -241,13 +259,22 @@ export default function RBACManager() {
         style={{ ...inputSmall, marginBottom: 16 }}
       />
 
-      {/* Add User Form */}
-      <form onSubmit={handleAddUser} style={{ ...card, marginBottom: 24, display: "flex", gap: 12, alignItems: "center" }}>
+      {/* Add User */}
+      <form
+        onSubmit={handleAddUser}
+        style={{
+          ...card,
+          marginBottom: 24,
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+        }}
+      >
         <input
           type="text"
           placeholder="Username"
           value={newUser.username}
-          onChange={e => setNewUser({ ...newUser, username: e.target.value })}
+          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
           style={inputSmall}
           required
         />
@@ -255,7 +282,7 @@ export default function RBACManager() {
           type="email"
           placeholder="Email"
           value={newUser.email}
-          onChange={e => setNewUser({ ...newUser, email: e.target.value })}
+          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
           style={inputSmall}
           required
         />
@@ -263,16 +290,16 @@ export default function RBACManager() {
           type="password"
           placeholder="Password"
           value={newUser.password}
-          onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
           style={inputSmall}
           required
         />
         <select
           value={newUser.role}
-          onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+          onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
           style={inputSmall}
         >
-          {roles.map(r => (
+          {roles.map((r) => (
             <option key={r.name}>{r.name}</option>
           ))}
         </select>
@@ -281,11 +308,22 @@ export default function RBACManager() {
           <input
             type="checkbox"
             checked={newUser.active}
-            onChange={e => setNewUser({ ...newUser, active: e.target.checked })}
+            onChange={(e) =>
+              setNewUser({ ...newUser, active: e.target.checked })
+            }
             style={{ marginLeft: 6 }}
           />
         </label>
-        <button type="submit" disabled={adding} style={{ ...inputSmall, background: "#4CAF50", color: "#fff", cursor: adding ? "not-allowed" : "pointer" }}>
+        <button
+          type="submit"
+          disabled={adding}
+          style={{
+            ...inputSmall,
+            background: "#4CAF50",
+            color: "#fff",
+            cursor: adding ? "not-allowed" : "pointer",
+          }}
+        >
           {adding ? "Adding..." : "Add User"}
         </button>
       </form>
@@ -299,17 +337,33 @@ export default function RBACManager() {
           <div key={user.id} style={card}>
             <div style={cardHeader}>
               <strong style={{ fontSize: 16 }}>{user.username}</strong>
-              <span style={{ color: user.is_active ? "#4CAF50" : "#f44336", fontWeight: 600, marginLeft: 8 }}>
+              <span
+                style={{
+                  color: user.is_active ? "#4CAF50" : "#f44336",
+                  fontWeight: 600,
+                  marginLeft: 8,
+                }}
+              >
                 {user.is_active ? "Active" : "Inactive"}
               </span>
               <button
                 onClick={() => handleRemoveUser(user.id)}
-                style={{ marginLeft: "auto", background: "#f44336", color: "#fff", border: "none", borderRadius: 4, padding: "4px 10px", cursor: "pointer" }}
+                style={{
+                  marginLeft: "auto",
+                  background: "#f44336",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                }}
               >
                 Remove
               </button>
             </div>
-            <div style={{ fontSize: 14, color: "#bbb" }}>Email: {user.email}</div>
+            <div style={{ fontSize: 14, color: "#bbb" }}>
+              Email: {user.email}
+            </div>
 
             {/* Roles */}
             <div style={{ marginTop: 8 }}>
@@ -317,22 +371,27 @@ export default function RBACManager() {
               {loadingRolesPerms ? (
                 <span style={{ marginLeft: 8 }}>Loading...</span>
               ) : (
-                <>
-                  {roles.map(role => {
-                    const hasRole = (userRoles[user.id] || []).some(r => r.role === role.name);
-                    return (
-                      <label key={role.name} style={{ marginLeft: 12, fontWeight: 400 }}>
-                        <input
-                          type="checkbox"
-                          checked={hasRole}
-                          onChange={() => handleToggleRole(user.id, role.name, hasRole)}
-                          disabled={hasRole} // Only allow adding for now
-                        />
-                        {role.name}
-                      </label>
-                    );
-                  })}
-                </>
+                roles.map((role) => {
+                  const hasRole = (userRoles[user.id] || []).some(
+                    (r) => r.role === role.name
+                  );
+                  return (
+                    <label
+                      key={role.name}
+                      style={{ marginLeft: 12, fontWeight: 400 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={hasRole}
+                        onChange={() =>
+                          handleToggleRole(user.id, role.name, hasRole)
+                        }
+                        disabled={hasRole}
+                      />
+                      {role.name}
+                    </label>
+                  );
+                })
               )}
             </div>
 
@@ -342,27 +401,31 @@ export default function RBACManager() {
               {loadingRolesPerms ? (
                 <span style={{ marginLeft: 8 }}>Loading...</span>
               ) : (
-                <>
-                  {allPermissions.map(perm => {
-                    const hasPerm = (userPerms[user.id] || []).some(p => p.permission === perm && p.value === "allow");
-                    return (
-                      <label key={perm} style={{ marginLeft: 12, fontWeight: 400 }}>
-                        <input
-                          type="checkbox"
-                          checked={hasPerm}
-                          onChange={() => handleTogglePerm(user.id, perm, hasPerm)}
-                        />
-                        {perm}
-                      </label>
-                    );
-                  })}
-                </>
+                allPermissions.map((perm) => {
+                  const hasPerm = (userPerms[user.id] || []).some(
+                    (p) => p.permission === perm && p.value === "allow"
+                  );
+                  return (
+                    <label
+                      key={perm}
+                      style={{ marginLeft: 12, fontWeight: 400 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={hasPerm}
+                        onChange={() =>
+                          handleTogglePerm(user.id, perm, hasPerm)
+                        }
+                      />
+                      {perm}
+                    </label>
+                  );
+                })
               )}
             </div>
           </div>
         ))}
       </div>
-
     </div>
   );
 }

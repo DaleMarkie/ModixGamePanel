@@ -1,31 +1,13 @@
 export const navLinks = [
+  
+  {
+    label: "👤 Account Info",
+    href: "/auth/myaccount",
+  },
   {
     label: "📊 Dashboard",
     href: "/dashboard",
-    submenu: [
-      {
-        label: "View All",
-        href: "/dashboard",
-        submenu: [],
-      },
-      {
-        label: "💻 My Servers",
-        href: "/server/games",
-        submenu: [],
-      },
-      {
-        label: "👤 User Profile",
-        href: "/dashboard/profile",
-        submenu: [
-          { label: "👤 Account Info", href: "/auth/myaccount" },
-          { label: "💳 Billing", href: "/auth/billing" },
-          { label: "🔑 My License", href: "/auth/License" },
-          { label: "⚙️ Settings", href: "/auth/mysettings" },
-        ],
-      },
-    ],
   },
-  ,
   {
     label: "💻 Terminal",
     href: "/terminal",
@@ -98,15 +80,7 @@ export const navLinks = [
       { label: "🧬 Update Modix", href: "/server/updater" },
     ],
   },
-  {
-    label: "🆘 Support",
-    href: "/support",
-    submenu: [
-      { label: "📘 Documentation", href: "/support/docs" },
-      { label: "🎟️ My Tickets", href: "/support/mytickets" },
-      { label: "❓ FAQ", href: "/support/faq" },
-    ],
-  },
+
   {
     label: "🔐 Account",
     href: "/login",
