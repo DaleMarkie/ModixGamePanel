@@ -558,6 +558,117 @@ async def save_mod_file(request: Request):
         return error_response("BACKEND_001", 500, str(e))
 
 
+# ---------------------------
+# MODIX Config & Account Management
+# ---------------------------
+
+import json
+
+MODIX_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "modix_config", "modix_config.json")
+
+def read_modix_config() -> dict:
+    if not os.path.isfile(MODIX_CONFIG_FILE):
+        return {}
+    with open(MODIX_CONFIG_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def write_modix_config(data: dict):
+    os.makedirs(os.path.dirname(MODIX_CONFIG_FILE), exist_ok=True)
+    with open(MODIX_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+@app.get("/api/modix/config")
+async def get_modix_config():
+    """Return the full MODIX configuration from JSON file."""
+    config = read_modix_config()
+    return JSONResponse({"success": True, "config": config})
+
+@app.post("/api/modix/users/update")
+async def update_user_details(request: Request):
+    """
+    Update a single user's details in MODIX_USERS.
+    JSON body:
+    {
+      "username": "...",
+      "oldPassword": "...",   # required if changing password
+      "newPassword": "...",   # optional
+      "email": "...",         # optional
+      "roles": [...],         # optional
+      "permissions": [...]    # optional
+    }
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "message": "Invalid JSON"}, status_code=400)
+
+    username = data.get("username")
+    if not username:
+        return JSONResponse({"success": False, "message": "Username is required"}, status_code=400)
+
+    config = read_modix_config()
+    users = config.get("MODIX_USERS", [])
+
+    # Find the user
+    user = next((u for u in users if u.get("username") == username), None)
+    if not user:
+        return JSONResponse({"success": False, "message": "User not found"}, status_code=404)
+
+    # Password update
+    old_password = data.get("oldPassword")
+    new_password = data.get("newPassword")
+    if new_password:
+        if not old_password:
+            return JSONResponse({"success": False, "message": "Current password required to change password"}, status_code=400)
+        if old_password != user.get("password"):
+            return JSONResponse({"success": False, "message": "Current password is incorrect"}, status_code=400)
+        user["password"] = new_password
+
+    # Update other fields
+    for field in ["email", "roles", "permissions"]:
+        if field in data:
+            user[field] = data[field]
+
+    # Save back
+    config["MODIX_USERS"] = users
+    write_modix_config(config)
+
+    return JSONResponse({"success": True, "message": f"User '{username}' updated successfully", "user": user})
+
+
+@app.post("/api/modix/users/update")
+async def update_user_details(request: Request):
+    """
+    Update a single user's details in MODIX_USERS.
+    JSON body: {"username": "...", "password": "...", "email": "...", "roles": [...], "permissions": [...]}
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "message": "Invalid JSON"}, status_code=400)
+
+    username = data.get("username")
+    if not username:
+        return JSONResponse({"success": False, "message": "Username is required"}, status_code=400)
+
+    config = read_modix_config()
+    users = config.get("MODIX_USERS", [])
+
+    # Find the user
+    user = next((u for u in users if u.get("username") == username), None)
+    if not user:
+        return JSONResponse({"success": False, "message": "User not found"}, status_code=404)
+
+    # Update only provided fields
+    for field in ["password", "email", "roles", "permissions"]:
+        if field in data:
+            user[field] = data[field]
+
+    # Save back
+    config["MODIX_USERS"] = users
+    write_modix_config(config)
+
+    return JSONResponse({"success": True, "message": f"User '{username}' updated", "user": user})
 
 # ---------------------------
 # Startup Hooks

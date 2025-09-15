@@ -1,382 +1,229 @@
-/* MyAccount.css - Premium Dark Theme */
-
-/* Root Container */
+/* ======================= GENERAL ======================= */
 .myaccount-container {
-  max-width: 1100px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  color: #e5e7eb;
-  font-family: "Inter", sans-serif;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+  background-color: #1e1e1e;
+  border-radius: 12px;
 }
 
-/* Loading & Not Logged */
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #76c043;
+}
+
+.card,
+.dashboard-card {
+  background-color: #2b2b2b;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
 .loading,
 .not-logged {
   text-align: center;
   font-size: 1.2rem;
-  color: #9ca3af;
-  padding: 2rem 0;
+  padding: 40px 0;
+  color: #ff5555;
 }
 
-/* Tabs Navigation */
+/* ======================= TABS ======================= */
 .tabs {
   display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
   justify-content: center;
 }
 
 .tab {
-  background: linear-gradient(145deg, #1f2937, #111827);
-  color: #e5e7eb;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.75rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background-color: #333;
+  color: #e0e0e0;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.25s ease-in-out;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  border: none;
+  transition: all 0.2s ease;
 }
 
 .tab.active {
-  background: #2563eb;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.6);
+  background-color: #76c043;
+  color: #1e1e1e;
 }
 
-/* Cards & Sections */
-.card,
-.profile-card,
-.subscription-card {
-  background: #111827;
-  padding: 1.75rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+/* ======================= DASHBOARD ======================= */
+.dashboard-user-info {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  opacity: 0;
-  animation: fadeIn 0.4s forwards;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-/* Profile Card */
-/* Profile Card Styling */
-.profile-card {
-  background: #111827;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.profile-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.8);
-}
-
-.profile-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.avatar {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #2563eb;
-  transition: transform 0.3s;
-}
-
-.avatar:hover {
-  transform: scale(1.05);
-}
-
-.profile-info .profile-name {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.profile-info .profile-username {
-  color: #9ca3af;
-  font-size: 1rem;
-}
-
-.profile-info .profile-email {
-  color: #d1d5db;
-  font-size: 0.95rem;
-}
-
-.profile-meta {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.9rem;
-  color: #9ca3af;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-weight: 500;
-  font-size: 0.85rem;
+.dashboard-user-info h2 {
   color: #fff;
 }
 
-.status-badge.active {
-  background: #16a34a; /* green */
-}
-
-.status-badge.inactive {
-  background: #b91c1c; /* red */
-}
-
 .logout-btn {
-  background: #ef4444;
-  color: #ffffff;
+  background-color: #ff5555;
   border: none;
-  padding: 0.65rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #fff;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
-  background: #b91c1c;
+  background-color: #ff7777;
+}
+
+/* ======================= NEWS ======================= */
+.dashboard-news h3 {
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.news-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.news-card {
+  background-color: #3a3a3a;
+  padding: 15px;
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.news-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.meta {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.85rem;
-  color: #9ca3af;
-  justify-content: center;
-}
-
-.logout-btn {
-  background: #ef4444;
-  color: #ffffff;
-  border: none;
-  padding: 0.65rem 1.3rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s, transform 0.2s;
-}
-
-.logout-btn:hover {
-  background: #b91c1c;
-  transform: translateY(-2px);
-}
-
-/* Card Lists */
-.card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.card li {
-  background: linear-gradient(145deg, #1f2937, #111827);
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+.news-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease-in-out;
+  margin-bottom: 10px;
 }
 
-.card li:hover {
-  background: #1e40af12;
-  transform: translateX(2px);
+.news-title {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #76c043;
 }
 
-/* Buttons inside cards */
-.backup-actions button,
-.manage-sessions-btn,
-.save-btn,
-.upgrade-btn {
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  padding: 0.45rem 0.9rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
+.news-date {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.news-body p {
+  margin: 0;
+  color: #ddd;
+}
+
+.news-footer {
+  margin-top: 10px;
+}
+
+.news-link {
+  color: #76c043;
+  text-decoration: underline;
   font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s;
 }
 
-.backup-actions button:hover,
-.manage-sessions-btn:hover,
-.save-btn:hover,
-.upgrade-btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
+.no-news {
+  text-align: center;
+  color: #ccc;
 }
 
-.upgrade-btn[disabled] {
-  background: #6b7280;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* Forms */
+/* ======================= SETTINGS FORM ======================= */
 .settings-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 15px;
 }
 
 .settings-form label {
   display: flex;
   flex-direction: column;
-  font-size: 0.95rem;
-  color: #d1d5db;
+  font-weight: 500;
 }
 
 .settings-form input {
-  margin-top: 0.3rem;
-  padding: 0.55rem 0.9rem;
-  border-radius: 0.75rem;
-  border: 1px solid #374151;
-  background: #1f2937;
-  color: #e5e7eb;
-  transition: all 0.3s;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1e1e1e;
+  color: #fff;
+  margin-top: 5px;
 }
 
-.settings-form input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
-  outline: none;
+.save-btn {
+  background-color: #76c043;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #1e1e1e;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
 }
 
-/* Danger Zone */
+.save-btn:hover {
+  background-color: #5fa032;
+}
+
+/* ======================= DANGER ZONE ======================= */
 .danger-zone {
-  background: linear-gradient(145deg, #1f2937, #111827);
-  padding: 1.75rem;
-  border-radius: 1rem;
+  background-color: #2b1b1b;
+  padding: 15px;
+  border-radius: 10px;
   text-align: center;
-  color: #f87171;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  color: #ff5555;
 }
 
 .delete-account-btn {
-  background: #b91c1c;
-  color: #ffffff;
+  background-color: #ff5555;
   border: none;
-  padding: 0.65rem 1.3rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #fff;
   cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 1rem;
+  margin-top: 10px;
 }
 
 .delete-account-btn:hover {
-  background: #7f1d1d;
-  transform: translateY(-2px);
+  background-color: #ff7777;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ======================= SECURITY & OTHER CARDS ======================= */
+.card ul {
+  list-style: none;
+  padding-left: 0;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .profile-card,
-  .card,
-  .subscription-card {
-    padding: 1.25rem;
-  }
-
-  .tabs {
-    justify-content: center;
-  }
-
-  .meta {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-}
-/* License Redeem */
-.license-redeem {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+.card li {
+  padding: 5px 0;
+  color: #ddd;
 }
 
-.license-redeem input {
-  flex: 1 1 250px;
-  padding: 0.55rem 0.9rem;
-  border-radius: 0.75rem;
-  border: 1px solid #374151;
-  background: #1f2937;
-  color: #e5e7eb;
-  font-size: 0.95rem;
-  transition: all 0.3s;
-}
-
-.license-redeem input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
-  outline: none;
-}
-
-.license-redeem button {
-  background: #16a34a;
-  color: #ffffff;
+.manage-sessions-btn {
+  background-color: #76c043;
   border: none;
-  padding: 0.55rem 1rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #1e1e1e;
   cursor: pointer;
-  transition: all 0.3s;
+  margin-top: 10px;
 }
 
-.license-redeem button:hover {
-  background: #15803d;
-  transform: translateY(-2px);
-}
-
-.redeem-msg {
-  margin-top: 0.75rem;
-  text-align: center;
-  font-size: 0.95rem;
-  color: #facc15; /* yellow for info / success */
-  word-break: break-word;
+.manage-sessions-btn:hover {
+  background-color: #5fa032;
 }

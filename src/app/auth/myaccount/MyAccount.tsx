@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./MyAccount.css";
 import Subscriptions from "../subscriptions/subscriptions";
-import Activity from "../activity/Activity"; // adjust based on actual folder
-
+import Activity from "../activity/Activity"; // adjust path
 
 const TabButton = ({ label, active, onClick }: any) => (
   <button
@@ -22,7 +21,24 @@ const MyAccount = () => {
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [news, setNews] = useState<any[]>([]);
+
+  useEffect(() => {
+    // fetch news/change logs from backend
+    const fetchNews = async () => {
+      try {
+        const res = await fetch("/api/dashboard/news");
+        if (res.ok) {
+          const data = await res.json();
+          setNews(data.news || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch news", err);
+      }
+    };
+    fetchNews();
+  }, []);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -32,19 +48,32 @@ const MyAccount = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("⚠️ Are you sure you want to permanently delete your account?")) return;
-    await fetch("/api/account/delete", { method: "DELETE", credentials: "include" });
+    if (
+      !confirm("⚠️ Are you sure you want to permanently delete your account?")
+    )
+      return;
+    await fetch("/api/account/delete", {
+      method: "DELETE",
+      credentials: "include",
+    });
     localStorage.clear();
     refresh();
     router.push("/");
   };
 
   if (loading) return <div className="loading">Loading account...</div>;
-  if (!authenticated || !user) return <div className="not-logged">Please log in to access your account.</div>;
+  if (!authenticated || !user)
+    return (
+      <div className="not-logged">Please log in to access your account.</div>
+    );
 
-  const avatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username || "User")}`;
-
-  const tabs = ["profile", "security", "games", "backups", "activity", "subscription", "settings"];
+  const tabs = [
+    "dashboard",
+    "security",
+    "activity",
+    "subscription",
+    "settings",
+  ];
 
   return (
     <div className="myaccount-container">
@@ -52,26 +81,70 @@ const MyAccount = () => {
 
       <nav className="tabs" aria-label="Account navigation">
         {tabs.map((tab) => (
-          <TabButton key={tab} label={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} />
+          <TabButton
+            key={tab}
+            label={tab}
+            active={activeTab === tab}
+            onClick={() => setActiveTab(tab)}
+          />
         ))}
       </nav>
 
-      {activeTab === "profile" && (
-        <section className="profile-card">
-          <img src={avatar} alt="User Avatar" className="avatar" />
-          <div className="profile-details">
-            <h2>{user.name || user.username}</h2>
-            <p className="username">@{user.username}</p>
-            <p className="email">{user.email}</p>
-            <div className="meta">
-              <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
-              <span>Status: {user.active ? "Active ✅" : "Inactive ❌"}</span>
-            </div>
+      {/* ================== USER DASHBOARD ================== */}
+      {activeTab === "dashboard" && (
+        <section className="dashboard-card">
+          <div className="dashboard-user-info">
+            <h2>Welcome, {user.username}</h2>
+            <p>Email: {user.email}</p>
+            <p>Status: {user.active ? "Active ✅" : "Inactive ❌"}</p>
+            <span>
+              Joined: {new Date(user.created_at).toLocaleDateString()}
+            </span>
+            <button className="logout-btn" onClick={handleLogout}>
+              Log Out
+            </button>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>Log Out</button>
+
+          <div className="dashboard-news">
+            <h3>📢 Latest Announcements & Change Logs</h3>
+            {news.length ? (
+              <div className="news-cards">
+                {news.map((item, idx) => (
+                  <div key={idx} className="news-card">
+                    <div className="news-header">
+                      <strong className="news-title">{item.title}</strong>
+                      <span className="news-date">
+                        {new Date(item.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="news-body">
+                      <p>{item.description}</p>
+                    </div>
+                    {item.link && (
+                      <div className="news-footer">
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="news-link"
+                        >
+                          Read More
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-news">
+                <p>No news or updates available.</p>
+              </div>
+            )}
+          </div>
         </section>
       )}
 
+      {/* ================== SECURITY ================== */}
       {activeTab === "security" && (
         <section className="card">
           <h3>🔐 Security</h3>
@@ -84,52 +157,131 @@ const MyAccount = () => {
         </section>
       )}
 
-      {activeTab === "games" && (
-        <section className="card">
-          <h3>🎮 Your Games</h3>
-          {user.games?.length ? (
-            <ul>{user.games.map((g: any) => <li key={g.id}>{g.title} — Level {g.level}</li>)}</ul>
-          ) : (<p>No linked games.</p>)}
-        </section>
-      )}
-
-      {activeTab === "backups" && (
-        <section className="card">
-          <h3>💾 Backups</h3>
-          {user.backups?.length ? (
-            <ul>
-              {user.backups.map((b: any) => (
-                <li key={b.id}>
-                  {b.game} — {new Date(b.date).toLocaleString()}
-                  <div className="backup-actions">
-                    <button>Restore</button>
-                    <button>Download</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (<p>No backups available.</p>)}
-        </section>
-      )}
-
-      {/* ✅ Correct Activity Tab */}
+      {/* ================== ACTIVITY ================== */}
       {activeTab === "activity" && <Activity />}
 
+      {/* ================== SUBSCRIPTIONS ================== */}
       {activeTab === "subscription" && <Subscriptions />}
 
+      {/* ================== SETTINGS ================== */}
       {activeTab === "settings" && (
         <section className="card">
           <h3>⚙️ Settings</h3>
-          <form className="settings-form">
+          <form
+            className="settings-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+
+              const username = formData.get("username") as string;
+              const email = formData.get("email") as string;
+              const oldPassword = formData.get("oldPassword") as string;
+              const newPassword = formData.get("newPassword") as string;
+              const confirmPassword = formData.get("confirmPassword") as string;
+
+              // If changing password, validate old + confirm
+              if (newPassword) {
+                if (!oldPassword) {
+                  alert(
+                    "❌ You must enter your current password to set a new password."
+                  );
+                  return;
+                }
+                if (!confirmPassword) {
+                  alert("❌ You must confirm your new password.");
+                  return;
+                }
+                if (newPassword !== confirmPassword) {
+                  alert("❌ New passwords do not match!");
+                  return;
+                }
+              }
+
+              // Build payload
+              const payload: any = { username, email };
+              if (newPassword) {
+                payload.oldPassword = oldPassword;
+                payload.newPassword = newPassword;
+              }
+
+              try {
+                const res = await fetch("/api/modix/users/update", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify(payload),
+                });
+
+                const result = await res.json();
+                if (res.ok && result.success) {
+                  alert("✅ Account updated successfully!");
+                  refresh();
+                } else {
+                  alert(
+                    "❌ Failed to update: " +
+                      (result.message || "Unknown error")
+                  );
+                }
+              } catch (err) {
+                alert(
+                  "❌ Failed to update: " + (err as any).message ||
+                    "Unknown error"
+                );
+              }
+            }}
+          >
             <label>
-              Display Name
-              <input type="text" defaultValue={user.name || ""} />
+              Username
+              <input
+                type="text"
+                name="username"
+                defaultValue={user.username || ""}
+                required
+              />
             </label>
+
             <label>
               Email
-              <input type="email" defaultValue={user.email || ""} />
+              <input
+                type="email"
+                name="email"
+                defaultValue={user.email || ""}
+                required
+              />
             </label>
-            <button className="save-btn">Save Changes</button>
+
+            <hr />
+
+            <label>
+              Current Password
+              <input
+                type="password"
+                name="oldPassword"
+                placeholder="Enter current password to change it"
+              />
+            </label>
+
+            <label>
+              New Password
+              <input
+                type="password"
+                name="newPassword"
+                placeholder="••••••••"
+              />
+            </label>
+
+            <label>
+              Confirm New Password
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="••••••••"
+              />
+            </label>
+
+            <button className="save-btn" type="submit">
+              Save Changes
+            </button>
           </form>
         </section>
       )}
@@ -137,7 +289,9 @@ const MyAccount = () => {
       <section className="danger-zone">
         <h3>⚠️ Danger Zone</h3>
         <p>Deleting your account is permanent and cannot be undone.</p>
-        <button className="delete-account-btn" onClick={handleDeleteAccount}>Delete My Account</button>
+        <button className="delete-account-btn" onClick={handleDeleteAccount}>
+          Delete My Account
+        </button>
       </section>
     </div>
   );
