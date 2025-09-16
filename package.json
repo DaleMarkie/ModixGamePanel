@@ -21,6 +21,7 @@
     "@headlessui/react": "^2.2.6",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
+    "express": "^5.1.0",
     "framer-motion": "^12.23.12",
     "inquirer": "^8.2.7",
     "js-yaml": "^4.1.0",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/jsonwebtoken": "^9.0.10",

@@ -1,12 +1,12 @@
-import { spawn } from "child_process";
+import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import path from "path";
 import fs from "fs";
-import express from "express";
+import express, { Request, Response } from "express";
 
 const app = express();
 app.use(express.json());
 
-let runningProcess: any = null;
+let runningProcess: ChildProcessWithoutNullStreams | null = null;
 let activeGameId: string | null = null;
 
 // Map game IDs to server scripts
@@ -31,8 +31,8 @@ const getGameScript = (gameId: string) => {
 };
 
 // Start server
-app.post("/start-server", (req, res) => {
-  const gameId = req.body.gameId;
+app.post("/start-server", (req: Request, res: Response) => {
+  const gameId: string | undefined = req.body.gameId;
   if (!gameId) return res.status(400).json({ error: "gameId is required" });
 
   if (runningProcess)
@@ -46,15 +46,15 @@ app.post("/start-server", (req, res) => {
         ? spawn(shell, [scriptPath])
         : spawn(shell, ["/c", scriptPath]);
 
-    runningProcess.stdout.on("data", (data) => {
-      console.log(`[SERVER]: ${data}`);
+    runningProcess.stdout.on("data", (data: Buffer) => {
+      console.log(`[SERVER]: ${data.toString()}`);
     });
 
-    runningProcess.stderr.on("data", (data) => {
-      console.error(`[SERVER ERROR]: ${data}`);
+    runningProcess.stderr.on("data", (data: Buffer) => {
+      console.error(`[SERVER ERROR]: ${data.toString()}`);
     });
 
-    runningProcess.on("exit", (code) => {
+    runningProcess.on("exit", (code: number | null) => {
       console.log(`[SYSTEM] Server stopped with code ${code}`);
       runningProcess = null;
       activeGameId = null;
@@ -68,7 +68,7 @@ app.post("/start-server", (req, res) => {
 });
 
 // Stop server
-app.post("/stop-server", (req, res) => {
+app.post("/stop-server", (req: Request, res: Response) => {
   if (!runningProcess) {
     return res.status(400).json({ error: "Server is not running" });
   }
@@ -79,7 +79,7 @@ app.post("/stop-server", (req, res) => {
 });
 
 // Server status
-app.get("/server-status", (req, res) => {
+app.get("/server-status", (req: Request, res: Response) => {
   res.json({
     status: runningProcess ? "running" : "stopped",
     gameId: activeGameId,
@@ -87,7 +87,7 @@ app.get("/server-status", (req, res) => {
 });
 
 // Simple log stream (SSE)
-app.get("/log-stream", (req, res) => {
+app.get("/log-stream", (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
