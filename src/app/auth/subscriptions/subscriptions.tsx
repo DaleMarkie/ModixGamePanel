@@ -1,17 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import "./subscriptions.css";
 import { useUser } from "../../UserContext";
 
+// Define a type for the license info
+interface LicenseInfo {
+  plan: string;
+  expires_at?: string | null;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  icon: string;
+  bgColor: string;
+  borderColor: string;
+  popular?: boolean;
+  description: string;
+  perks: string[];
+  disabled?: boolean;
+}
+
 const Subscriptions = () => {
   const { user } = useUser();
-  const [license, setLicense] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [licenseInfo, setLicenseInfo] = useState(null);
+  const [license, setLicense] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [licenseInfo, setLicenseInfo] = useState<LicenseInfo | null>(null);
 
-  const plans = [
+  const plans: Plan[] = [
     {
       id: "personal",
       name: "Personal",
@@ -75,7 +93,7 @@ const Subscriptions = () => {
         );
         const data = await res.json();
         if (data.success) {
-          setLicenseInfo(data.license);
+          setLicenseInfo(data.license as LicenseInfo);
         } else {
           setLicenseInfo(null);
         }
@@ -109,7 +127,7 @@ const Subscriptions = () => {
       const data = await res.json();
 
       if (data.success) {
-        setLicenseInfo(data.license);
+        setLicenseInfo(data.license as LicenseInfo);
         setMessage(`License redeemed! Plan: ${data.license.plan}`);
         setLicense("");
       } else {
@@ -124,6 +142,10 @@ const Subscriptions = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setLicense(e.target.value.toUpperCase());
   };
 
   return (
@@ -205,7 +227,7 @@ const Subscriptions = () => {
           type="text"
           placeholder="Enter license code or Ko-fi transaction ID"
           value={license}
-          onChange={(e) => setLicense(e.target.value.toUpperCase())}
+          onChange={handleInputChange}
           className="license-input"
         />
         <button

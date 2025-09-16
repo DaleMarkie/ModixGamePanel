@@ -6,8 +6,9 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  ChangeEvent,
 } from "react";
-import ModCard from "./ModCard";
+import ModCard, { ModCardProps, Mod } from "./ModCard";
 import ModModal from "./ModModal";
 
 import InstalledModsPage from "./components/InstalledModsPage";
@@ -17,6 +18,8 @@ import LoadOrder from "./pages/LoadOrder/LoadOrder";
 import ModCreation from "./pages/ModCreation/ModCreation";
 import ModAlerts from "./pages/ModAlerts/ModAlerts";
 import PopupModal from "./PopupModal";
+import ModUpdates from "./pages/ModUpdates/ModUpdates";
+import ModDebugger from "./pages/ModDebugger/ModDebugger";
 
 import "./Workshop.css";
 
@@ -36,8 +39,13 @@ const GAME_ICONS: Record<string, string> = {
     "https://steamcdn-a.akamaihd.net/steam/apps/220200/header.jpg",
 };
 
-const ExportModal = ({ modIds, onClose }) => {
-  const textareaRef = useRef(null);
+interface ExportModalProps {
+  modIds: string[];
+  onClose: () => void;
+}
+
+const ExportModal: React.FC<ExportModalProps> = ({ modIds, onClose }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formattedIds = modIds.join(",");
 
   const fallbackCopy = () => {
@@ -82,7 +90,7 @@ const ExportModal = ({ modIds, onClose }) => {
   );
 };
 
-const GAME_APPIDS = {
+const GAME_APPIDS: Record<string, number> = {
   projectzomboid: 108600,
   rimworld: 294100,
   dayz: 221100,
@@ -93,51 +101,62 @@ const GAME_APPIDS = {
 };
 
 export default function WorkshopPage() {
-  const [input, setInput] = useState("");
-  const [mods, setMods] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [input, setInput] = useState<string>("");
+  const [mods, setMods] = useState<Mod[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const [selectedGame, setSelectedGame] = useState(
+  const [selectedGame, setSelectedGame] = useState<string>(
     localStorage.getItem("selectedGame") || "projectzomboid"
   );
   const appid = GAME_APPIDS[selectedGame] || 108600;
 
-  const [favorites, setFavorites] = useState(() =>
+  const [favorites, setFavorites] = useState<string[]>(() =>
     JSON.parse(localStorage.getItem(`${selectedGame}_favorites`) || "[]")
   );
-  const [modlists, setModlists] = useState(() =>
+  const [modlists, setModlists] = useState<Record<string, string[]>>(() =>
     JSON.parse(localStorage.getItem(`${selectedGame}_modlists`) || "{}")
   );
-  const [activeList, setActiveList] = useState("");
-  const [showListOnly, setShowListOnly] = useState(false);
+  const [activeList, setActiveList] = useState<string>("");
+  const [showListOnly, setShowListOnly] = useState<boolean>(false);
 
-  const [selectedMod, setSelectedMod] = useState(null);
-  const [showExport, setShowExport] = useState(false);
-  const [modColors, setModColors] = useState(() =>
+  const [selectedMod, setSelectedMod] = useState<Mod | null>(null);
+  const [showExport, setShowExport] = useState<boolean>(false);
+  const [modColors, setModColors] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem(`${selectedGame}_modColors`) || "{}")
   );
 
-  const [serverIniFile, setServerIniFile] = useState(null);
-  const [serverIniContent, setServerIniContent] = useState("");
-  const [installedMods, setInstalledMods] = useState([]);
+  const [serverIniFile, setServerIniFile] = useState<File | null>(null);
+  const [serverIniContent, setServerIniContent] = useState<string>("");
+  const [installedMods, setInstalledMods] = useState<string[]>([]);
 
-  const [popup, setPopup] = useState(null); // "updates", "logs", "alerts"
+  const [popup, setPopup] = useState<
+    | "updates"
+    | "logs"
+    | "alerts"
+    | "moddebugger"
+    | "modcreation"
+    | "loadorder"
+    | null
+  >(null);
 
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
   useEffect(() => {
     localStorage.setItem(
       `${selectedGame}_favorites`,
       JSON.stringify(favorites)
     );
   }, [favorites, selectedGame]);
+
   useEffect(() => {
     localStorage.setItem(`${selectedGame}_modlists`, JSON.stringify(modlists));
   }, [modlists, selectedGame]);
+
   useEffect(() => {
     localStorage.setItem(
       `${selectedGame}_modColors`,
@@ -145,7 +164,7 @@ export default function WorkshopPage() {
     );
   }, [modColors, selectedGame]);
 
-  const parseInstalledMods = (content) => {
+  const parseInstalledMods = (content: string) => {
     const line = content
       .split("\n")
       .find((l) => l.startsWith("WorkshopItems="));
@@ -157,7 +176,7 @@ export default function WorkshopPage() {
       .filter(Boolean);
   };
 
-  const updateServerIniContent = (modIds) => {
+  const updateServerIniContent = (modIds: string[]) => {
     let lines = serverIniContent.split("\n");
     let found = false;
     for (let i = 0; i < lines.length; i++) {
@@ -172,46 +191,47 @@ export default function WorkshopPage() {
     setInstalledMods(modIds);
   };
 
-  const addModToServer = (modId) => {
+  const addModToServer = (modId: string) => {
     if (!installedMods.includes(modId)) {
       const newInstalled = [...installedMods, modId];
       updateServerIniContent(newInstalled);
     }
   };
 
-  const fetchModInfo = async (modId) => {
+  const fetchModInfo = async (modId: string): Promise<Mod> => {
     try {
       const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`;
       const response = await fetch(`https://corsproxy.io/?${url}`);
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
 
-      // Title
       const title =
         doc.querySelector(".workshopItemTitle")?.textContent?.trim() ||
         `Mod ${modId}`;
 
-      // Preview Image
       let image =
-        doc.querySelector(".workshopItemPreviewImageMain img")?.src ||
-        doc.querySelector(".workshopItemPreviewImage img")?.src ||
+        (
+          doc.querySelector(
+            ".workshopItemPreviewImageMain img"
+          ) as HTMLImageElement
+        )?.src ||
+        (doc.querySelector(".workshopItemPreviewImage img") as HTMLImageElement)
+          ?.src ||
         "https://via.placeholder.com/260x140?text=No+Image";
 
-      // Last Updated Date
       const lastUpdateText =
         doc.querySelector(".detailsStatRight")?.textContent?.trim() || null;
+
       let lastUpdate: string | undefined;
       if (lastUpdateText) {
         const parsedDate = Date.parse(lastUpdateText);
         if (!isNaN(parsedDate)) lastUpdate = new Date(parsedDate).toISOString();
       }
 
-      // Version (try common selectors — some mods put it in description or changelog)
-      let version: string | undefined;
       const descriptionBlock =
         doc.querySelector(".workshopItemDescription")?.textContent || "";
       const versionMatch = descriptionBlock.match(/v?\d+(\.\d+)+/i);
-      if (versionMatch) version = versionMatch[0];
+      let version: string | undefined = versionMatch?.[0];
 
       return {
         modId,
@@ -219,7 +239,7 @@ export default function WorkshopPage() {
         image,
         lastUpdate,
         version,
-        description: descriptionBlock.slice(0, 300).trim(), // short preview
+        description: descriptionBlock.slice(0, 300).trim(),
       };
     } catch (err) {
       console.error("Failed to fetch mod info:", err);

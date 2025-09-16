@@ -1,10 +1,26 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./filebrowser.css";
 
+interface FileItem {
+  type: "file" | "folder";
+  name: string;
+  path: string;
+  children?: FileItem[];
+}
+
+interface Mod {
+  modId: string;
+  title: string;
+  version?: string;
+  files: FileItem[];
+}
+
 export default function WorkshopFileManager() {
-  const [mods, setMods] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [mods, setMods] = useState<Mod[]>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,7 +49,7 @@ export default function WorkshopFileManager() {
       } else {
         setMods(res.data.mods);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       if (err.response && err.response.data) {
         const { code, message, detail } = err.response.data;
@@ -57,7 +73,7 @@ export default function WorkshopFileManager() {
     fetchMods();
   }, []);
 
-  const fetchFileContent = async (filePath) => {
+  const fetchFileContent = async (filePath: string) => {
     try {
       setLoading(true);
       setError("");
@@ -92,7 +108,7 @@ export default function WorkshopFileManager() {
     }
   };
 
-  const renderTree = (items) =>
+  const renderTree = (items: FileItem[]): JSX.Element[] =>
     items.map((item) => {
       if (item.type === "folder") {
         return (

@@ -4,15 +4,23 @@ import React, { useEffect, useState } from "react";
 import { FaClock, FaFolderOpen, FaDownload } from "react-icons/fa";
 import "./ModUpdater.css";
 
-const ModUpdater = () => {
-  const [updatedMods, setUpdatedMods] = useState([]);
-  const [loading, setLoading] = useState(true);
+// Define the mod type
+interface Mod {
+  id: string | number;
+  name: string;
+  path: string;
+  lastUpdated: string;
+}
+
+const ModUpdater: React.FC = () => {
+  const [updatedMods, setUpdatedMods] = useState<Mod[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUpdatedMods = async () => {
       try {
         const response = await fetch("http://localhost:8000/mods/updated"); // Replace with your API host if needed
-        const data = await response.json();
+        const data: Mod[] = await response.json();
         setUpdatedMods(data);
       } catch (err) {
         console.error("Failed to fetch updated mods:", err);
@@ -25,7 +33,7 @@ const ModUpdater = () => {
     fetchUpdatedMods();
   }, []);
 
-  const backupAndUpdateMod = (mod) => {
+  const backupAndUpdateMod = (mod: Mod) => {
     alert(`Backing up and updating mod:\n${mod.name} (ID: ${mod.id})`);
   };
 
@@ -60,6 +68,10 @@ const ModUpdater = () => {
             else if (idx === 1) posClass = "middle-card";
             else if (idx === 2) posClass = "right-card";
 
+            const FolderIcon: JSX.Element = <FaFolderOpen />;
+            const DownloadIcon: JSX.Element = <FaDownload />;
+            const ClockIcon: JSX.Element = <FaClock className="icon" />;
+
             return (
               <article className={`mod-card ${posClass}`} key={mod.id}>
                 <div className="mod-header">
@@ -71,7 +83,7 @@ const ModUpdater = () => {
                       title="Open mod folder"
                       aria-label={`Open folder for ${mod.name}`}
                     >
-                      <FaFolderOpen />
+                      {FolderIcon}
                     </button>
                     <button
                       className="mod-backup-update"
@@ -79,7 +91,7 @@ const ModUpdater = () => {
                       title="Backup and update this mod"
                       aria-label={`Backup and update ${mod.name}`}
                     >
-                      <FaDownload />
+                      {DownloadIcon}
                       <span style={{ marginLeft: "0.3rem" }}>Update Mod</span>
                     </button>
                   </div>
@@ -89,7 +101,7 @@ const ModUpdater = () => {
                   <div className="mod-meta">
                     <span className="mod-id">ID: {mod.id}</span>
                     <span className="mod-updated">
-                      <FaClock className="icon" />
+                      {ClockIcon}
                       {mod.lastUpdated}
                     </span>
                   </div>
