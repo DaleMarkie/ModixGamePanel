@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./subscriptions.css";
 import { useUser } from "../../UserContext";
 
@@ -9,6 +9,7 @@ const Subscriptions = () => {
   const [license, setLicense] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [licenseInfo, setLicenseInfo] = useState(null);
 
   const plans = [
     {
@@ -18,7 +19,7 @@ const Subscriptions = () => {
       bgColor: "bg-green-900/70",
       borderColor: "border-green-500",
       description:
-        "Free user plan will always have full access to core features.",
+        "Free Plan gives full access to all core features of Modix: Game Panel — no hidden paywalls, no time limits, completely free.",
       perks: [
         "- Full access to core features",
         "- Discord Support",
@@ -32,7 +33,8 @@ const Subscriptions = () => {
       bgColor: "bg-blue-900/50",
       borderColor: "border-blue-500",
       popular: true,
-      description: "Unlock extra perks by donating.",
+      description:
+        "Upgrade to Pro for exclusive perks like custom themes, priority support, and early access to experimental features.",
       perks: [
         "- All Pro features",
         "- Special Discord roles & recognition",
@@ -48,7 +50,8 @@ const Subscriptions = () => {
       icon: "🏢",
       bgColor: "bg-purple-900/50",
       borderColor: "border-purple-500",
-      description: "For hosting providers. Coming soon!",
+      description:
+        "For businesses or communities — powerful tools, commercial licensing, and no branding.",
       perks: [
         "- All Hosting features",
         "- Special Discord roles & recognition",
@@ -62,6 +65,28 @@ const Subscriptions = () => {
     },
   ];
 
+  // Fetch current license info on load
+  useEffect(() => {
+    const fetchLicenseInfo = async () => {
+      if (!user) return;
+      try {
+        const res = await fetch(
+          `http://localhost:2010/api/kofi/redeem?username=${user.username}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          setLicenseInfo(data.license);
+        } else {
+          setLicenseInfo(null);
+        }
+      } catch (err) {
+        console.error("Error fetching license info:", err);
+        setLicenseInfo(null);
+      }
+    };
+    fetchLicenseInfo();
+  }, [user]);
+
   const handleRedeem = async () => {
     if (!license)
       return setMessage("Enter a license code or Ko-fi transaction ID.");
@@ -71,20 +96,20 @@ const Subscriptions = () => {
     setMessage("");
 
     try {
-      const res = await fetch(`http://localhost:2010/api/licenses/redeem`, {
+      const res = await fetch(`http://localhost:2010/api/kofi/redeem`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          code: license.toUpperCase(),
-          user: user.username,
-          ip: "127.0.0.1",
+          transaction_id: license.toUpperCase(),
+          username: user.username,
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
+        setLicenseInfo(data.license);
         setMessage(`License redeemed! Plan: ${data.license.plan}`);
         setLicense("");
       } else {
@@ -106,15 +131,33 @@ const Subscriptions = () => {
       <h3 className="text-3xl font-bold mb-2 text-center text-white">
         📦 Available Modix Plans
       </h3>
-      <p className="text-center text-green-200 mb-8">
-        Free user plan will always have full access to core features. Upgrade to Pro or Hosting for extra perks once available.
+      <p className="text-center text-green-200 mb-8 max-w-3xl mx-auto leading-relaxed">
+        With the <span className="font-semibold">Free Plan</span>, you’ll always
+        have full, unrestricted access to the essential core features of Modix:
+        Game Panel — no hidden paywalls, no time limits, and no pressure to
+        upgrade. It’s designed for every player and server owner to get started
+        and run smoothly, completely free.
+        <br />
+        <br />
+        Upgrade to <span className="font-semibold">Pro</span> for perks like
+        custom themes, priority support, early access to experimental features,
+        and special Discord recognition. The upcoming{" "}
+        <span className="font-semibold">Hosting Plan</span> will offer
+        commercial licensing, brand-free tools, and enterprise-level control.
+        <br />
+        <br />
+        Whether you stick with Free or upgrade later, you’ll always have a solid
+        foundation to build your game server dreams.{" "}
+        <span className="italic">– OV3RLORD - pz 💚</span>
       </p>
 
       <div className="grid md:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`${plan.bgColor} ${plan.borderColor} border-l-8 rounded-xl p-5 shadow-lg relative hover:scale-105 transition-transform ${
+            className={`${plan.bgColor} ${
+              plan.borderColor
+            } border-l-8 rounded-xl p-5 shadow-lg relative hover:scale-105 transition-transform ${
               plan.disabled ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
@@ -139,6 +182,25 @@ const Subscriptions = () => {
 
       {/* Redeem Section */}
       <div className="redeem-section mt-8 text-center">
+        <div className="mb-4 text-green-200">
+          <p>
+            <span className="font-semibold">Current License:</span>{" "}
+            {licenseInfo ? (
+              <>
+                {licenseInfo.plan}{" "}
+                {licenseInfo.expires_at && (
+                  <span className="text-green-400">
+                    (Expires:{" "}
+                    {new Date(licenseInfo.expires_at).toLocaleDateString()})
+                  </span>
+                )}
+              </>
+            ) : (
+              "Free"
+            )}
+          </p>
+        </div>
+
         <input
           type="text"
           placeholder="Enter license code or Ko-fi transaction ID"
@@ -164,25 +226,26 @@ const Subscriptions = () => {
           💚 All Donations Go Directly to Development
         </h4>
         <p className="text-green-100">
-          Your support helps Modix Game Panel bring amazing features, expand to other operating systems, and improve the platform for all users.
+          Your support helps Modix Game Panel bring amazing features, expand to
+          other platforms, and improve the experience for all users.
         </p>
 
         <div className="donation-policy text-left max-w-xl mx-auto space-y-2">
           <p className="flex items-start gap-2">
             <span className="text-green-400 text-xl">✅</span>
             <span>
-              <strong>No refund policy:</strong> All donations are final and go directly to supporting Modix development.
+              <strong>No refund policy:</strong> All donations are final.
             </span>
           </p>
           <p className="flex items-start gap-2">
             <span className="text-green-400 text-xl">✅</span>
             <span>
-              <strong>Cancel anytime:</strong> Pro or Hosting subscriptions last for the period you’ve supported and can be stopped at any time.
+              <strong>Cancel anytime:</strong> Pro or Hosting subscriptions last
+              for the period you’ve supported and can be stopped anytime.
             </span>
           </p>
         </div>
 
-        {/* External Links Buttons - Horizontal Row */}
         <div className="mt-8 flex justify-center gap-4 flex-wrap">
           <a
             href="https://ko-fi.com/modixgamepanel"
@@ -217,7 +280,6 @@ const Subscriptions = () => {
             🎮 Steam
           </a>
         </div>
-
       </div>
     </section>
   );

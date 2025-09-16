@@ -2,14 +2,15 @@
 import React, { useEffect, useState } from "react";
 import {
   FaDiscord,
-  FaCoffee,
   FaTrash,
-  FaEdit,
   FaSave,
   FaTimes,
 } from "react-icons/fa";
 
 export default function WebhookPage() {
+  // Replace with your real user plan (free / pro / host)
+  const user = { plan: "free" };
+
   const [webhookUrl, setWebhookUrl] = useState("");
   const [embed, setEmbed] = useState({
     title: "",
@@ -51,7 +52,6 @@ export default function WebhookPage() {
     }
   }, []);
 
-  // Save Webhook Helpers
   const saveWebhookToLocal = () => {
     if (!newWebhookName || !webhookUrl)
       return alert("Webhook name and URL required.");
@@ -82,7 +82,6 @@ export default function WebhookPage() {
     );
   };
 
-  // Embed fields helpers
   const updateField = (index, key, value) => {
     const newFields = [...embed.fields];
     newFields[index][key] = value;
@@ -99,18 +98,19 @@ export default function WebhookPage() {
     setEmbed({ ...embed, fields: newFields });
   };
 
-  // Payload builder
   const buildPayload = () => ({
     title: embed.title,
     description: embed.description,
     url: embed.url || undefined,
     color: parseInt(embed.color.replace("#", ""), 16),
-    footer: embed.footer ? { text: embed.footer } : undefined,
+    footer: {
+      text:
+        user.plan === "free" ? "Powered By Modix Game Panel" : embed.footer,
+    },
     timestamp: embed.timestamp ? new Date().toISOString() : undefined,
     fields: embed.fields.length ? embed.fields : undefined,
   });
 
-  // Send webhook
   const sendToWebhook = async (url: string) => {
     const embedPayload = buildPayload();
     try {
@@ -138,15 +138,11 @@ export default function WebhookPage() {
     for (const url of selectedWebhooks) await sendToWebhook(url);
   };
 
-  // Template Helpers
-
-  // Save new template or update existing if editing
   const saveTemplate = () => {
     const name = templateNameInput.trim();
     if (!name) return alert("Template name required.");
 
     if (isEditingTemplate && editingTemplateIndex !== null) {
-      // Editing mode: update existing
       const duplicate = savedTemplates.find(
         (t, i) =>
           t.name.toLowerCase() === name.toLowerCase() &&
@@ -159,7 +155,6 @@ export default function WebhookPage() {
       localStorage.setItem("modix_templates", JSON.stringify(updatedTemplates));
       cancelEditTemplate();
     } else {
-      // New template mode: prevent duplicate names
       const duplicate = savedTemplates.find(
         (t) => t.name.toLowerCase() === name.toLowerCase()
       );
@@ -171,7 +166,6 @@ export default function WebhookPage() {
     }
   };
 
-  // Load template to editor
   const loadTemplate = (templateEmbed, index) => {
     setEmbed({ ...templateEmbed });
     setTemplateNameInput(savedTemplates[index].name);
@@ -179,7 +173,6 @@ export default function WebhookPage() {
     setEditingTemplateIndex(index);
   };
 
-  // Delete template
   const deleteTemplate = (index) => {
     if (!confirm(`Delete template "${savedTemplates[index].name}"?`)) return;
     const updated = savedTemplates.filter((_, i) => i !== index);
@@ -189,15 +182,11 @@ export default function WebhookPage() {
       cancelEditTemplate();
   };
 
-  // Cancel editing template
   const cancelEditTemplate = () => {
     setIsEditingTemplate(false);
     setEditingTemplateIndex(null);
     setTemplateNameInput("");
   };
-
-  // Template Preview small box on hover (optional)
-  // You can add hover preview with more work, leaving that for later.
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white p-6 font-sans max-w-7xl mx-auto">
@@ -207,7 +196,7 @@ export default function WebhookPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="lg:col-span-1 bg-[#1a1a1c] p-4 rounded-xl space-y-8 sticky top-6 max-h-[90vh] overflow-y-auto">
-          {/* Webhooks */}
+          {/* Saved Webhooks */}
           <div>
             <h2 className="text-lg font-semibold mb-3 border-b border-[#444] pb-1 select-none">
               💾 Saved Webhooks
@@ -242,7 +231,6 @@ export default function WebhookPage() {
                 </div>
               ))}
             </div>
-            {/* Add New Webhook */}
             <div className="mt-4 space-y-2">
               <input
                 placeholder="Webhook Name"
@@ -284,30 +272,25 @@ export default function WebhookPage() {
                   <span className="truncate max-w-[12rem]" title={t.name}>
                     {t.name}
                   </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTemplate(i);
-                      }}
-                      title="Delete Template"
-                      className="text-red-500 hover:text-red-400 transition"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTemplate(i);
+                    }}
+                    title="Delete Template"
+                    className="text-red-500 hover:text-red-400 transition"
+                  >
+                    <FaTrash />
+                  </button>
                 </div>
               ))}
             </div>
-
-            {/* Template Save / Edit */}
             <div className="mt-4 space-y-2">
               <input
                 placeholder="Template Name"
                 value={templateNameInput}
                 onChange={(e) => setTemplateNameInput(e.target.value)}
                 className="w-full rounded-md p-2 bg-[#121212] border border-[#444] focus:outline-none focus:border-[#7289da] text-white text-sm"
-                disabled={false}
               />
               <div className="flex gap-2">
                 {isEditingTemplate ? (
@@ -331,7 +314,6 @@ export default function WebhookPage() {
                   <button
                     onClick={saveTemplate}
                     className="flex-1 bg-[#7289da] hover:bg-[#5a6fc6] transition rounded-md py-2 font-semibold flex justify-center items-center gap-2"
-                    title="Save New Template"
                   >
                     <FaSave /> Save Template
                   </button>
@@ -396,9 +378,20 @@ export default function WebhookPage() {
             {/* Footer */}
             <input
               placeholder="Footer text (optional)"
-              value={embed.footer}
-              onChange={(e) => setEmbed({ ...embed, footer: e.target.value })}
-              className="w-full rounded-md p-2 bg-[#121212] border border-[#444] focus:outline-none focus:border-[#7289da] text-white text-sm"
+              value={
+                user.plan === "free"
+                  ? "Powered By Modix Game Panel"
+                  : embed.footer
+              }
+              onChange={(e) => {
+                if (user.plan !== "free") {
+                  setEmbed({ ...embed, footer: e.target.value });
+                }
+              }}
+              className={`w-full rounded-md p-2 bg-[#121212] border border-[#444] focus:outline-none focus:border-[#7289da] text-white text-sm ${
+                user.plan === "free" ? "cursor-not-allowed opacity-60" : ""
+              }`}
+              disabled={user.plan === "free"}
             />
 
             {/* Fields */}
