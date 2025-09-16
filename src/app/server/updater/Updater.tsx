@@ -1,9 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, KeyboardEvent } from "react";
 import "./Updater.css";
 
-const fallbackChangelogs = [
+interface Changelog {
+  version: string;
+  date: string;
+  details: string[];
+  tags: string[];
+  unavailable?: boolean;
+}
+
+const fallbackChangelogs: Changelog[] = [
   {
     version: "v1.1.2",
     date: "2025-06-10",
@@ -23,7 +31,12 @@ const fallbackChangelogs = [
   },
 ];
 
-const Modal = ({
+interface ModalProps extends Changelog {
+  open: boolean;
+  onClose: () => void;
+}
+
+const Modal: React.FC<ModalProps> = ({
   open,
   onClose,
   version,
@@ -33,6 +46,7 @@ const Modal = ({
   unavailable,
 }) => {
   if (!open) return null;
+
   return (
     <div
       className="modal-overlay"
@@ -57,7 +71,7 @@ const Modal = ({
         {unavailable && <span className="badge-unavailable">Unavailable</span>}
 
         <div className="changelog-tags">
-          {tags?.map((tag, idx) => (
+          {tags?.map((tag: string, idx: number) => (
             <span key={idx} className="badge-tag">
               {tag}
             </span>
@@ -65,7 +79,7 @@ const Modal = ({
         </div>
 
         <ul id="modal-description">
-          {details.map((item, idx) => (
+          {details.map((item: string, idx: number) => (
             <li key={idx}>{item}</li>
           ))}
         </ul>
@@ -75,8 +89,8 @@ const Modal = ({
 };
 
 export default function Updater() {
-  const [modalData, setModalData] = useState(null);
-  const [changelogs, setChangelogs] = useState([]);
+  const [modalData, setModalData] = useState<Changelog | null>(null);
+  const [changelogs, setChangelogs] = useState<Changelog[]>([]);
   const [apiStatus, setApiStatus] = useState<"loading" | "connected" | "error">(
     "loading"
   );
@@ -93,7 +107,7 @@ export default function Updater() {
         if (!res.ok) throw new Error("Bad response code");
         return res.json();
       })
-      .then((data) => {
+      .then((data: Changelog[]) => {
         if (!Array.isArray(data)) throw new Error("Invalid response format");
         setChangelogs(data);
         setApiStatus("connected");
@@ -106,6 +120,15 @@ export default function Updater() {
 
     return () => clearTimeout(timeoutId);
   }, []);
+
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    changelog: Changelog
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      setModalData(changelog);
+    }
+  };
 
   return (
     <div className="updater-container">
@@ -127,37 +150,31 @@ export default function Updater() {
 
       <section className="changelog-section">
         <h2>Changelog</h2>
-        {changelogs.map(({ version, date, details, tags, unavailable }) => (
+        {changelogs.map((changelog) => (
           <div
-            key={version}
+            key={changelog.version}
             className="changelog-entry"
-            onClick={() =>
-              setModalData({ version, date, details, tags, unavailable })
-            }
+            onClick={() => setModalData(changelog)}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setModalData({ version, date, details, tags, unavailable });
-              }
-            }}
-            aria-label={`Open changelog details for ${version}`}
+            onKeyDown={(e) => handleKeyDown(e, changelog)}
+            aria-label={`Open changelog details for ${changelog.version}`}
           >
             <h3>
-              {version}
-              <span className="changelog-date">{date}</span>
+              {changelog.version}
+              <span className="changelog-date">{changelog.date}</span>
             </h3>
             <div className="changelog-tags">
-              {unavailable && (
+              {changelog.unavailable && (
                 <span className="badge-unavailable">Unavailable</span>
               )}
-              {tags?.map((tag, idx) => (
+              {changelog.tags?.map((tag: string, idx: number) => (
                 <span key={idx} className="badge-tag">
                   {tag}
                 </span>
               ))}
             </div>
-            <p>{details[0]}...</p>
+            <p>{changelog.details[0]}...</p>
           </div>
         ))}
       </section>
@@ -165,7 +182,7 @@ export default function Updater() {
       <Modal
         open={!!modalData}
         onClose={() => setModalData(null)}
-        {...modalData}
+        {...(modalData || {})}
       />
     </div>
   );

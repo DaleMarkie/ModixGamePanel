@@ -1,11 +1,22 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, MouseEvent } from "react";
 import Link from "next/link";
 import { FaDiscord, FaCoffee } from "react-icons/fa";
 import Games from "./Games";
 
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard" }, // fix here too
+// FIX: Define or import Workshop component
+const Workshop: React.FC = () => {
+  return <div>Workshop Component Placeholder</div>;
+};
+
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const navLinks: NavLink[] = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/terminal", label: "Terminal" },
   { href: "/filemanager", label: "FileManager" },
   { href: "/modmanager", label: "Mod Manager" },
@@ -14,13 +25,13 @@ const navLinks = [
 ];
 
 export default function Dashboard() {
-  const [panelName, setPanelName] = useState("MODIX");
-  const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
-  const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
-  const [backgroundImage, setBackgroundImage] = useState(
+  const [panelName, setPanelName] = useState<string>("MODIX");
+  const [headerBgColor, setHeaderBgColor] = useState<string>("#1f1f1f");
+  const [headerTextColor, setHeaderTextColor] = useState<string>("#ffffff");
+  const [backgroundImage, setBackgroundImage] = useState<string>(
     'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
   );
-  const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
+  const [gamesMenuOpen, setGamesMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const storedBg = localStorage.getItem("headerBgColor");
@@ -29,7 +40,19 @@ export default function Dashboard() {
     if (storedText) setHeaderTextColor(storedText);
   }, []);
 
-  // ...rest of your styles and JSX here, same as your code
+  const handleMouseEnter = (
+    e: MouseEvent<HTMLAnchorElement>,
+    color: string
+  ) => {
+    e.currentTarget.style.backgroundColor = color;
+  };
+
+  const handleMouseLeave = (
+    e: MouseEvent<HTMLAnchorElement>,
+    color: string
+  ) => {
+    e.currentTarget.style.backgroundColor = color;
+  };
 
   return (
     <div
@@ -98,11 +121,11 @@ export default function Dashboard() {
                 display: "flex",
                 alignItems: "center",
                 cursor: "default",
-                gap: 8, // space between logo and text
+                gap: 8,
               }}
             >
               <img
-                src="https://i.ibb.co/cMPwcn8/logo.png" // your logo URL here
+                src="https://i.ibb.co/cMPwcn8/logo.png"
                 alt="Modix Logo"
                 style={{ height: 50, objectFit: "contain" }}
               />
@@ -160,12 +183,8 @@ export default function Dashboard() {
                   textDecoration: "none",
                   transition: "all 0.2s ease-in-out",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#555")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#3d3d3d")
-                }
+                onMouseEnter={(e) => handleMouseEnter(e, "#555")}
+                onMouseLeave={(e) => handleMouseLeave(e, "#3d3d3d")}
               >
                 Login
               </Link>
@@ -218,7 +237,7 @@ export default function Dashboard() {
                   border: "1px solid transparent",
                 }}
               >
-                <FaDiscord size={16} />
+                <FaDiscord />
                 Discord
               </a>
 
@@ -243,143 +262,8 @@ export default function Dashboard() {
                   border: "1px solid transparent",
                 }}
               >
-                <FaCoffee size={16} />
+                <FaCoffee />
                 Ko-fi
-              </a>
-
-              {/* Added About */}
-              <a
-                href="/about"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                About
-              </a>
-
-              {/* Added Team */}
-              <a
-                href="/team"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Team
-              </a>
-
-              {/* Existing links in order */}
-              <a
-                href="/docs"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Docs
-              </a>
-
-              <a
-                href="/terms"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Terms of Service
-              </a>
-
-              <a
-                href="/privacy"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Privacy Policy
-              </a>
-
-              <a
-                href="/contact"
-                style={{
-                  color: "#eee",
-                  padding: "6px 10px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#333")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                Contact Us
               </a>
             </div>
           </footer>
