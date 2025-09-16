@@ -3,11 +3,11 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import MyTickets from "./MyTickets"; // <-- Correct import
+import MyTickets from "./MyTickets";
 
 export default function MyTicketsPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout panelName="MODIX">
       <MyTickets />
     </DashboardLayout>
   );

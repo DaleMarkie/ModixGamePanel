@@ -1,27 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import "./MyTickets.css"; // CSS import
+import "./MyTickets.css";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "../../UserContext";
 
+interface Ticket {
+  id: string;
+  subject: string;
+  status: string;
+  priority: string;
+  category: string;
+  page: string;
+  created: string;
+  updated: string;
+  userId: string; // strictly string
+}
+
 export default function MyTickets() {
   const { user, loading, authenticated } = useUser();
 
-  const [tickets, setTickets] = useState<
-    {
-      id: string;
-      subject: string;
-      status: string;
-      priority: string;
-      category: string;
-      page: string;
-      created: string;
-      updated: string;
-      userId: string; // associate with logged-in user
-    }[]
-  >([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
 
   const [newSubject, setNewSubject] = useState("");
   const [newPriority, setNewPriority] = useState("medium");
@@ -29,10 +29,9 @@ export default function MyTickets() {
   const [newPage, setNewPage] = useState("dashboard");
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    // Simulate fetching tickets for this user
-    const fetchedTickets = [
+    const fetchedTickets: Ticket[] = [
       {
         id: "TCK-001",
         subject: "Server won't start",
@@ -42,7 +41,7 @@ export default function MyTickets() {
         page: "dashboard",
         created: "2025-08-05",
         updated: "2025-08-08",
-        userId: user.id,
+        userId: String(user.id), // ✅ cast to string
       },
       {
         id: "TCK-002",
@@ -57,17 +56,16 @@ export default function MyTickets() {
       },
     ];
 
-    // Only show tickets belonging to current user
-    setTickets(fetchedTickets.filter((t) => t.userId === user.id));
+    setTickets(fetchedTickets.filter((t) => t.userId === String(user.id)));
   }, [user]);
 
   const handleCreateTicket = () => {
-    if (!newSubject.trim() || !user) {
+    if (!newSubject.trim() || !user?.id) {
       alert("Please enter a subject for your ticket.");
       return;
     }
 
-    const newTicket = {
+    const newTicket: Ticket = {
       id: `TCK-${(tickets.length + 1).toString().padStart(3, "0")}`,
       subject: newSubject,
       status: "open",
@@ -76,13 +74,11 @@ export default function MyTickets() {
       page: newPage,
       created: new Date().toISOString().slice(0, 10),
       updated: new Date().toISOString().slice(0, 10),
-      userId: user.id, // ✅ associate with logged-in user
+      userId: String(user.id), // ✅ cast to string
     };
 
-    // Add to local state (and optionally post to backend)
     setTickets((prev) => [newTicket, ...prev]);
 
-    // Reset form
     setNewSubject("");
     setNewPriority("medium");
     setNewCategory("general");
@@ -108,7 +104,6 @@ export default function MyTickets() {
         View and track your support requests with the Modix team.
       </p>
 
-      {/* New Ticket Form */}
       <div className="ticket-form">
         <h2>Create New Ticket</h2>
         <div className="form-row">
@@ -120,7 +115,6 @@ export default function MyTickets() {
           />
 
           <select
-            className="styled-select"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
           >
@@ -132,7 +126,6 @@ export default function MyTickets() {
           </select>
 
           <select
-            className="styled-select"
             value={newPriority}
             onChange={(e) => setNewPriority(e.target.value)}
           >
@@ -141,11 +134,7 @@ export default function MyTickets() {
             <option value="high">High Priority</option>
           </select>
 
-          <select
-            className="styled-select"
-            value={newPage}
-            onChange={(e) => setNewPage(e.target.value)}
-          >
+          <select value={newPage} onChange={(e) => setNewPage(e.target.value)}>
             <option value="dashboard">Dashboard</option>
             <option value="billing">Billing</option>
             <option value="settings">Settings</option>
@@ -158,7 +147,6 @@ export default function MyTickets() {
         </div>
       </div>
 
-      {/* Tickets Table */}
       <div className="ticket-table">
         <table>
           <thead>

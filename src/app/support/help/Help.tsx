@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Help.css";
 
-const faqItems = [
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+const faqItems: FaqItem[] = [
   {
     question: "What is Modix?",
     answer:
@@ -22,13 +27,13 @@ const faqItems = [
 ];
 
 export default function Help() {
-  const [modalContent, setModalContent] = useState(null);
-  const modalRef = useRef(null);
-  const lastFocusedElement = useRef(null);
+  const [modalContent, setModalContent] = useState<FaqItem | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const lastFocusedElement = useRef<HTMLElement | null>(null);
 
   // Close modal on ESC
   useEffect(() => {
-    const onKeyDown = (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setModalContent(null);
     };
     window.addEventListener("keydown", onKeyDown);
@@ -38,16 +43,19 @@ export default function Help() {
   // Manage focus trap & restore focus after modal closes
   useEffect(() => {
     if (modalContent) {
-      lastFocusedElement.current = document.activeElement;
+      lastFocusedElement.current = document.activeElement as HTMLElement | null;
       modalRef.current?.focus();
 
       // Simple focus trap: cycle focus within modal
       const focusableSelectors =
         'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
-      const focusableElements =
-        modalRef.current.querySelectorAll(focusableSelectors);
+      const focusableElements = modalRef.current
+        ? Array.from(
+            modalRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
+          )
+        : [];
 
-      const handleTab = (e) => {
+      const handleTab = (e: KeyboardEvent) => {
         if (e.key !== "Tab") return;
 
         const firstEl = focusableElements[0];
@@ -56,17 +64,17 @@ export default function Help() {
         if (e.shiftKey) {
           if (document.activeElement === firstEl) {
             e.preventDefault();
-            lastEl.focus();
+            lastEl?.focus();
           }
         } else {
           if (document.activeElement === lastEl) {
             e.preventDefault();
-            firstEl.focus();
+            firstEl?.focus();
           }
         }
       };
 
-      modalRef.current.addEventListener("keydown", handleTab);
+      modalRef.current?.addEventListener("keydown", handleTab);
       return () => modalRef.current?.removeEventListener("keydown", handleTab);
     } else {
       // Restore focus to last focused element before modal opened
@@ -189,7 +197,6 @@ export default function Help() {
               className="modal-close"
               onClick={() => setModalContent(null)}
               aria-label="Close modal"
-              autoFocus
               type="button"
             >
               Close

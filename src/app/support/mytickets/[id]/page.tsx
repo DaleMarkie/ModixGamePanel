@@ -3,6 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+interface Reply {
+  id: string;
+  author: string;
+  message: string;
+  created: string;
+}
+
 interface Ticket {
   id: string;
   subject: string;
@@ -14,30 +21,23 @@ interface Ticket {
   replies: Reply[];
 }
 
-interface Reply {
-  id: string;
-  author: string;
-  message: string;
-  created: string;
-}
-
 export default function TicketDetails() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
 
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [newReply, setNewReply] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fake fetch ticket data (replace with your API call)
   useEffect(() => {
     if (!id) return;
 
     setLoading(true);
     setError(null);
 
-    // MOCK data - you should fetch from backend here
+    // MOCK ticket fetch
     const mockTicket: Ticket = {
       id,
       subject: "Server won't start",
@@ -63,51 +63,42 @@ export default function TicketDetails() {
       ],
     };
 
-    // Simulate async fetch delay
     setTimeout(() => {
       setTicket(mockTicket);
       setLoading(false);
     }, 800);
   }, [id]);
 
-  // Add a new reply (mock)
   const handleReplySubmit = () => {
-    if (!newReply.trim()) return;
+    if (!newReply.trim() || !ticket) return;
 
     const reply: Reply = {
-      id: "r" + (ticket?.replies.length ?? 0 + 1),
+      id: "r" + (ticket.replies.length + 1),
       author: "User",
       message: newReply.trim(),
       created: new Date().toISOString().slice(0, 16).replace("T", " "),
     };
 
-    setTicket((prev) =>
-      prev
-        ? {
-            ...prev,
-            replies: [...prev.replies, reply],
-            updated: new Date().toISOString().slice(0, 10),
-            status: prev.status === "closed" ? "open" : prev.status,
-          }
-        : prev
-    );
+    setTicket({
+      ...ticket,
+      replies: [...ticket.replies, reply],
+      updated: new Date().toISOString().slice(0, 10),
+      status: ticket.status === "closed" ? "open" : ticket.status,
+    });
+
     setNewReply("");
   };
 
-  // Close the ticket
   const handleCloseTicket = () => {
-    setTicket((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: "closed",
-            updated: new Date().toISOString().slice(0, 10),
-          }
-        : prev
-    );
+    if (!ticket) return;
+    setTicket({
+      ...ticket,
+      status: "closed",
+      updated: new Date().toISOString().slice(0, 10),
+    });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: Ticket["status"]) => {
     const baseClasses =
       "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide select-none";
     switch (status) {
@@ -154,7 +145,7 @@ export default function TicketDetails() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: Ticket["priority"]) => {
     switch (priority) {
       case "low":
         return "text-green-400";
@@ -167,15 +158,14 @@ export default function TicketDetails() {
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <main className="p-6 text-gray-300 bg-[#121212] min-h-screen">
         <p>Loading ticket details...</p>
       </main>
     );
-  }
 
-  if (error || !ticket) {
+  if (error || !ticket)
     return (
       <main className="p-6 text-gray-300 bg-[#121212] min-h-screen">
         <p>Error loading ticket. Please try again.</p>
@@ -187,7 +177,6 @@ export default function TicketDetails() {
         </button>
       </main>
     );
-  }
 
   return (
     <main className="p-6 max-w-3xl mx-auto bg-gradient-to-br from-[#121212] via-[#1c1c1c] to-[#151515] rounded-lg shadow-lg min-h-screen text-gray-300 font-sans">
