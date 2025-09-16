@@ -31,7 +31,7 @@ const fallbackChangelogs: Changelog[] = [
   },
 ];
 
-interface ModalProps extends Changelog {
+interface ModalProps extends Partial<Changelog> {
   open: boolean;
   onClose: () => void;
 }
@@ -65,7 +65,8 @@ const Modal: React.FC<ModalProps> = ({
           ×
         </button>
         <h2 id="modal-title">
-          {version} <span className="changelog-date">({date})</span>
+          {version ?? "N/A"}{" "}
+          <span className="changelog-date">({date ?? "Unknown"})</span>
         </h2>
 
         {unavailable && <span className="badge-unavailable">Unavailable</span>}
@@ -79,9 +80,9 @@ const Modal: React.FC<ModalProps> = ({
         </div>
 
         <ul id="modal-description">
-          {details.map((item: string, idx: number) => (
+          {details?.map((item: string, idx: number) => (
             <li key={idx}>{item}</li>
-          ))}
+          )) || <li>No details available</li>}
         </ul>
       </div>
     </div>

@@ -6,10 +6,18 @@ import { useState, useEffect } from "react";
 import "./MyAccount.css";
 import Subscriptions from "../subscriptions/subscriptions";
 import Activity from "../activity/Activity";
-import Billing from "../../auth/billing/Billing";
 import MyTickets from "../../support/mytickets/MyTickets";
 
-const TabButton = ({ label, active, onClick }: any) => (
+// ---------------- TAB BUTTON ----------------
+const TabButton = ({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
   <button
     className={`tab ${active ? "active" : ""}`}
     onClick={onClick}
@@ -19,6 +27,7 @@ const TabButton = ({ label, active, onClick }: any) => (
   </button>
 );
 
+// ---------------- MY ACCOUNT ----------------
 const MyAccount = () => {
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
@@ -49,7 +58,10 @@ const MyAccount = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("⚠️ Are you sure you want to permanently delete your account?")) return;
+    if (
+      !confirm("⚠️ Are you sure you want to permanently delete your account?")
+    )
+      return;
     await fetch("/api/account/delete", {
       method: "DELETE",
       credentials: "include",
@@ -61,7 +73,9 @@ const MyAccount = () => {
 
   if (loading) return <div className="loading">Loading account...</div>;
   if (!authenticated || !user)
-    return <div className="not-logged">Please log in to access your account.</div>;
+    return (
+      <div className="not-logged">Please log in to access your account.</div>
+    );
 
   const tabs = [
     "📊 Dashboard",
@@ -77,6 +91,7 @@ const MyAccount = () => {
     <div className="myaccount-container">
       <h1>⚙️ My Account</h1>
 
+      {/* ---------------- TABS ---------------- */}
       <nav className="tabs" aria-label="Account navigation">
         {tabs.map((tab) => (
           <TabButton
@@ -88,14 +103,16 @@ const MyAccount = () => {
         ))}
       </nav>
 
-      {/* ================== USER DASHBOARD ================== */}
+      {/* ---------------- DASHBOARD ---------------- */}
       {activeTab === "📊 Dashboard" && (
         <section className="dashboard-card">
           <div className="dashboard-user-info">
             <h2>Welcome, {user.username}</h2>
-            <p>Email: {user.email}</p>
+            <p>Email: {user.email || "N/A"}</p>
             <p>Status: {user.active ? "Active ✅" : "Inactive ❌"}</p>
-            <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
+            <span>
+              Joined: {new Date(user.created_at).toLocaleDateString()}
+            </span>
             <button className="logout-btn" onClick={handleLogout}>
               Log Out
             </button>
@@ -140,7 +157,7 @@ const MyAccount = () => {
         </section>
       )}
 
-      {/* ================== SECURITY ================== */}
+      {/* ---------------- SECURITY ---------------- */}
       {activeTab === "🔐 Security" && (
         <section className="card">
           <h3>🔐 Security</h3>
@@ -153,29 +170,26 @@ const MyAccount = () => {
         </section>
       )}
 
-      {/* ================== ACTIVITY ================== */}
+      {/* ---------------- ACTIVITY ---------------- */}
       {activeTab === "📜 Activity" && <Activity />}
 
-      {/* ================== MY LICENSE ================== */}
+      {/* ---------------- MY LICENSE ---------------- */}
       {activeTab === "🪪 My License" && <Subscriptions />}
 
-
-      {/* ================== SETTINGS ================== */}
+      {/* ---------------- SETTINGS ---------------- */}
       {activeTab === "⚙️ Settings" && (
         <section className="card">
           <h3>⚙️ Settings</h3>
-          {/* existing settings form unchanged */}
+          {/* Settings form/components go here */}
         </section>
       )}
 
-      {/* ================== Support ================== */}
-{activeTab === "⚙️ Support" && (
-  <section className="card">
-    <MyTickets /> {/* ✅ loads your tickets component here */}
-  </section>
-)}
-
-      
+      {/* ---------------- SUPPORT ---------------- */}
+      {activeTab === "⚙️ Support" && (
+        <section className="card">
+          <MyTickets />
+        </section>
+      )}
     </div>
   );
 };

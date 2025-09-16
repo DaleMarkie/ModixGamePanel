@@ -3,12 +3,13 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import subscriptions from "./subscriptions"; // <-- Correct import
+import Subscriptions from "./subscriptions"; // ✅ PascalCase
 
-export default function subscriptionsPage() {
+export default function SubscriptionsPage() {
+  // ✅ PascalCase function name
   return (
     <DashboardLayout>
-      <subscriptions />
+      <Subscriptions /> {/* ✅ PascalCase usage */}
     </DashboardLayout>
   );
 }

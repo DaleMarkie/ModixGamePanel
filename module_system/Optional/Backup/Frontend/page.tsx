@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FaDiscord, FaCoffee } from "react-icons/fa";
-//import backup from "../backup/Backup";
+import {
+  FaDiscord as DiscordIcon,
+  FaCoffee as CoffeeIcon,
+} from "react-icons/fa";
+import Backup from "../backup/Backup"; // Make sure this path matches your file structure
 
 // Visible in top nav
 const navLinks = [
@@ -36,7 +39,9 @@ export default function Dashboard() {
     'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState([]);
+  const [filteredResults, setFilteredResults] = useState<
+    { label: string; href: string }[]
+  >([]);
 
   useEffect(() => {
     const storedBg = localStorage.getItem("headerBgColor");
@@ -232,7 +237,7 @@ export default function Dashboard() {
           </div>
 
           <main className="main-content" style={{ flexGrow: 1, marginTop: 20 }}>
-            <backup />
+            <Backup /> {/* ✅ Fixed capitalized component usage */}
           </main>
 
           <footer
@@ -256,11 +261,11 @@ export default function Dashboard() {
             </div>
 
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <FooterLink href="https://discord.gg/EwWZUSR9tM">
-                <FaDiscord size={16} /> Discord
+              <FooterLink href="https://discord.gg/EwWZUSR9t">
+                <DiscordIcon size={16} /> Discord
               </FooterLink>
               <FooterLink href="https://ko-fi.com/modixgamepanel">
-                <FaCoffee size={16} /> Ko-fi
+                <CoffeeIcon size={16} /> Ko-fi
               </FooterLink>
               <FooterLink href="/about">About</FooterLink>
               <FooterLink href="/team">Team</FooterLink>
@@ -276,7 +281,14 @@ export default function Dashboard() {
   );
 }
 
-function FooterLink({ href, children }) {
+// Type-safe FooterLink
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
     <a
       href={href}

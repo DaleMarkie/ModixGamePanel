@@ -20,10 +20,12 @@ interface ChatMessage {
 }
 
 interface ChatLogsProps {
-  serverIdentifier: string; // batchFile or unique server ID
+  serverIdentifier?: string; // Made optional
 }
 
-const ChatLogs: React.FC<ChatLogsProps> = ({ serverIdentifier }) => {
+const ChatLogs: React.FC<ChatLogsProps> = ({
+  serverIdentifier = "default-server",
+}) => {
   const [logs, setLogs] = useState<ChatMessage[]>([]);
   const [search, setSearch] = useState("");
   const [playerFilter, setPlayerFilter] = useState("");

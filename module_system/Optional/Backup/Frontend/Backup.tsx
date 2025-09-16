@@ -1,15 +1,28 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { FaDiscord, FaCoffee } from "react-icons/fa";
+// ✅ Fixed imports for React icons
+import { IconType } from "react-icons";
+import { FaDiscord as FaDiscordIcon, FaCoffee as FaCoffeeIcon } from "react-icons/fa";
+
+// Explicitly type them for JSX
+const FaDiscord: IconType = FaDiscordIcon;
+const FaCoffee: IconType = FaCoffeeIcon;
+
+interface Backup {
+  id: number;
+  name: string;
+  date: string;
+  size: string;
+}
 
 export default function BackupPage() {
-  const [backups, setBackups] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [backups, setBackups] = useState<Backup[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setLoading(true);
-    // Simulate backend API call
     setTimeout(() => {
       setBackups([
         { id: 1, name: "Backup_2025_06_01", date: "01/06/2025", size: "150MB" },
@@ -20,11 +33,12 @@ export default function BackupPage() {
   }, []);
 
   const handleCreateBackup = () => {
-    alert("Creating backup... (connect to Flask API here)");
+    alert("Creating backup... (connect to API here)");
   };
 
-  const handleRestore = (id) => {
+  const handleRestore = (id: number) => {
     const backup = backups.find((b) => b.id === id);
+    if (!backup) return;
     if (
       window.confirm(
         `Are you sure you want to restore "${backup.name}"? This will overwrite the current server state.`
@@ -34,25 +48,16 @@ export default function BackupPage() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     const backup = backups.find((b) => b.id === id);
-    if (
-      window.confirm(`Delete backup "${backup.name}"? This cannot be undone.`)
-    ) {
+    if (!backup) return;
+    if (window.confirm(`Delete backup "${backup.name}"? This cannot be undone.`)) {
       setBackups(backups.filter((b) => b.id !== id));
     }
   };
 
   return (
-    <div
-      className="backup-container"
-      style={{
-        backgroundColor: "#121212",
-        color: "#fff",
-        minHeight: "100vh",
-        padding: "20px",
-      }}
-    >
+    <div style={{ backgroundColor: "#121212", color: "#fff", minHeight: "100vh", padding: "20px" }}>
       <header
         style={{
           backgroundColor: "#1f1f1f",
@@ -64,9 +69,7 @@ export default function BackupPage() {
           alignItems: "center",
         }}
       >
-        <h1 style={{ fontSize: "1.8rem", fontWeight: 700 }}>
-          💾 Server Backups
-        </h1>
+        <h1 style={{ fontSize: "1.8rem", fontWeight: 700 }}>💾 Server Backups</h1>
         <nav style={{ display: "flex", gap: "12px" }}>
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/settings">Settings</Link>

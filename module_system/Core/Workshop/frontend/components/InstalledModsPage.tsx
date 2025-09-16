@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
-import ModCard from "../ModCard";
+import ModCard, { ModCardProps } from "../ModCard";
+
+interface Mod {
+  modId: string;
+  name: string;
+  // Add any other mod properties you need
+}
 
 interface InstalledModsPageProps {
   installedMods: string[];
-  mods: any[];
+  mods: Mod[];
   onAddToServer: (modId: string) => void;
   modColors: Record<string, string>;
-  setModColors: (colors: Record<string, string>) => void;
-  onClick: (mod: any) => void; // Must pass this
+  setModColors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onClick: (mod: Mod) => void; // Forward click
 }
 
 export default function InstalledModsPage({
@@ -18,10 +24,10 @@ export default function InstalledModsPage({
   setModColors,
   onClick,
 }: InstalledModsPageProps) {
-  const [installedModInfos, setInstalledModInfos] = useState<any[]>([]);
+  const [installedModInfos, setInstalledModInfos] = useState<Mod[]>([]);
 
   useEffect(() => {
-    const installed = mods.filter(mod => installedMods.includes(mod.modId));
+    const installed = mods.filter((mod) => installedMods.includes(mod.modId));
     setInstalledModInfos(installed);
   }, [installedMods, mods]);
 
@@ -29,16 +35,18 @@ export default function InstalledModsPage({
 
   return (
     <div className="mod-grid">
-      {installedModInfos.map(mod => (
+      {installedModInfos.map((mod) => (
         <ModCard
           key={mod.modId}
           mod={mod}
           inList={true}
           isInstalled={true}
-          onClick={() => onClick(mod)} // Forward click
+          onClick={() => onClick(mod)}
           onToggleInList={() => {}}
           onAddToServer={() => onAddToServer(mod.modId)}
-          onSetColor={color => setModColors(prev => ({ ...prev, [mod.modId]: color }))}
+          onSetColor={(color: string) =>
+            setModColors((prev) => ({ ...prev, [mod.modId]: color }))
+          }
         />
       ))}
     </div>
