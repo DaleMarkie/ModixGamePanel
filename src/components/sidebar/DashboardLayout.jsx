@@ -443,7 +443,7 @@ export default function DashboardLayout({ children }) {
             {sidebarOpen && <SidebarUserInfo />}
             {sidebarOpen && (
               <footer className="sidebar-footer" aria-hidden="true">
-                &copy; 2025 Modix Game Panel
+                &copy; 2024 - 2025 Modix Game Panel
               </footer>
             )}
           </aside>
