@@ -1,9 +1,7 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { apiHandler } from "../utils/apiHandler";
-
 
 interface ContainerContextType {
   selectedContainer: string;
@@ -16,7 +14,6 @@ interface ContainerContextType {
 
 const defaultContainer = "";
 
-
 const ContainerContext = createContext<ContainerContextType>({
   selectedContainer: defaultContainer,
   setSelectedContainer: () => {},
@@ -26,14 +23,19 @@ const ContainerContext = createContext<ContainerContextType>({
   refresh: () => {},
 });
 
-
-export const ContainerProvider = ({ children }: { children: React.ReactNode }) => {
-  const [selectedContainer, setSelectedContainerState] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("selectedContainer") || defaultContainer;
+export const ContainerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [selectedContainer, setSelectedContainerState] = useState<string>(
+    () => {
+      if (typeof window !== "undefined") {
+        return localStorage.getItem("selectedContainer") || defaultContainer;
+      }
+      return defaultContainer;
     }
-    return defaultContainer;
-  });
+  );
   const [containers, setContainers] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +45,16 @@ export const ContainerProvider = ({ children }: { children: React.ReactNode }) =
     setError(null);
     try {
       // You can adjust cacheTtlMs as needed
-      const data = await apiHandler<string[]>("/api/docker/containers", { cacheTtlMs: 60000 });
+      const data = await apiHandler<string[]>("/api/docker/containers", {
+        cacheTtlMs: 60000,
+      });
       setContainers(data);
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch containers");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Failed to fetch containers");
+      }
       setContainers([]);
     } finally {
       setLoading(false);
@@ -71,14 +79,16 @@ export const ContainerProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   return (
-    <ContainerContext.Provider value={{
-      selectedContainer,
-      setSelectedContainer,
-      containers,
-      loading,
-      error,
-      refresh: fetchContainers,
-    }}>
+    <ContainerContext.Provider
+      value={{
+        selectedContainer,
+        setSelectedContainer,
+        containers,
+        loading,
+        error,
+        refresh: fetchContainers,
+      }}
+    >
       {children}
     </ContainerContext.Provider>
   );

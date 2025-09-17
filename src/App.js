@@ -21,28 +21,23 @@ import MyAccount from "./components/core/dashboard/MyAccount/MyAccount";
 import RecoverAccount from "./components/core/dashboard/RecoverAccount/RecoverAccount";
 
 function App() {
-  const [panelName, setPanelName] = useState("MODIX");
+  const [panelName] = useState("MODIX");
   const [headerBgColor, setHeaderBgColor] = useState("#1f1f1f");
   const [headerTextColor, setHeaderTextColor] = useState("#ffffff");
-  const [backgroundImage, setBackgroundImage] = useState(
-    'url("https://images7.alphacoders.com/627/thumb-1920-627909.jpg")'
-  );
   const [gamesMenuOpen, setGamesMenuOpen] = useState(false);
   const [dynamicModules, setDynamicModules] = useState([]);
   const [moduleError, setModuleError] = useState(null);
   const [pageError, setPageError] = useState(null);
 
   useEffect(() => {
-    console.log("[Modix] App.js useEffect running: loading dynamic modules...");
     const storedBg = localStorage.getItem("headerBgColor");
     const storedText = localStorage.getItem("headerTextColor");
     if (storedBg) setHeaderBgColor(storedBg);
     if (storedText) setHeaderTextColor(storedText);
-    // Load dynamic modules from backend
+
     try {
       loadEnabledModules("/api")
         .then((modules) => {
-          console.log("[Modix] Dynamic modules loaded in App.js:", modules);
           setDynamicModules(modules);
           setModuleError(null);
         })
@@ -58,7 +53,6 @@ function App() {
 
   const appWrapperStyle = {
     backgroundColor: "#121212",
-    backgroundImage,
     backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center center",
@@ -158,6 +152,23 @@ function App() {
     cursor: "pointer",
   };
 
+  const footerLinkStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#444",
+    color: "#eee",
+    padding: "8px 14px",
+    borderRadius: 12,
+    textDecoration: "none",
+    fontWeight: 600,
+    fontSize: "1rem",
+    transition: "background-color 0.3s ease, color 0.3s ease",
+    userSelect: "none",
+    cursor: "pointer",
+    border: "1px solid transparent",
+  };
+
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/filemanager", label: "File Manager" },
@@ -185,7 +196,6 @@ function App() {
               zIndex: 2,
             }}
           >
-            // ...existing code...
             {/* Header */}
             <header style={headerStyle}>
               <div
@@ -213,7 +223,7 @@ function App() {
                     {label}
                   </Link>
                 ))}
-                {/* Dynamic module menu items and error handling for all pages/routes */}
+
                 {pageError ? (
                   <span style={{ color: "#ff4d4f", fontWeight: "bold" }}>
                     Error loading page: {pageError}
@@ -236,6 +246,7 @@ function App() {
                   )
                 )}
 
+                {/* Games submenu */}
                 <div
                   style={{
                     ...headerButtonStyle,
@@ -250,12 +261,6 @@ function App() {
                     <Link
                       to="/games"
                       style={submenuItemStyle}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#444")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
                       onClick={() => setGamesMenuOpen(false)}
                     >
                       All Games
@@ -263,12 +268,6 @@ function App() {
                     <Link
                       to="/myservers"
                       style={submenuItemStyle}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#444")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
                       onClick={() => setGamesMenuOpen(false)}
                     >
                       My Servers
@@ -276,36 +275,26 @@ function App() {
                   </div>
                 </div>
 
-                {/* ✅ Login Button */}
+                {/* Login */}
                 <Link
                   to="/login"
                   style={{
+                    ...headerButtonStyle,
                     backgroundColor: "#3d3d3d",
-                    color: "#fff",
-                    padding: "8px 16px",
-                    borderRadius: 8,
                     border: "1px solid #666",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    textDecoration: "none",
-                    transition: "all 0.2s ease-in-out",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#555")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#3d3d3d")
-                  }
                 >
                   Login
                 </Link>
               </nav>
             </header>
+
             {/* Warning Label */}
             <div style={warningLabelStyle}>
               ⚠️ Modix is still in development. Some features may not work as
               expected.
             </div>
+
             <main
               className="main-content"
               style={{ flexGrow: 1, marginTop: 20 }}
@@ -328,77 +317,43 @@ function App() {
                 <Route path="/myaccount" element={<MyAccount />} />
                 <Route path="/recoveraccount" element={<RecoverAccount />} />
 
-                {/* Dynamic module routes and error handling for all roots/pages */}
-                {pageError || moduleError
-                  ? null
-                  : dynamicModules.flatMap((mod) =>
-                      (mod.frontend?.routes || []).map((route) =>
-                        route.path && route.component ? (
-                          <Route
-                            key={mod.name + route.path}
-                            path={route.path}
-                            element={React.createElement(route.component)}
-                          />
-                        ) : null
-                      )
-                    )}
+                {!pageError &&
+                  !moduleError &&
+                  dynamicModules.flatMap((mod) =>
+                    (mod.frontend?.routes || []).map((route) =>
+                      route.path && route.component ? (
+                        <Route
+                          key={mod.name + route.path}
+                          path={route.path}
+                          element={React.createElement(route.component)}
+                        />
+                      ) : null
+                    )
+                  )}
               </Routes>
             </main>
+
             <footer style={footerStyle}>
               <div>
                 <span>© 2025 {panelName}</span> &nbsp;|&nbsp;{" "}
                 <span>Made with 💚 for Project Zomboid</span>
               </div>
-
               <div style={{ display: "flex", gap: 12 }}>
                 <a
                   href="https://discord.gg/EwWZUSR9tM"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    backgroundColor: "#444",
-                    color: "#eee",
-                    padding: "8px 14px",
-                    borderRadius: 12,
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    transition: "background-color 0.3s ease, color 0.3s ease",
-                    userSelect: "none",
-                    cursor: "pointer",
-                    border: "1px solid transparent",
-                  }}
+                  style={footerLinkStyle}
                 >
-                  <FaDiscord size={20} />
-                  Discord
+                  <FaDiscord size={20} /> Discord
                 </a>
-
                 <a
                   href="https://ko-fi.com/modixgamepanel"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    backgroundColor: "#444",
-                    color: "#eee",
-                    padding: "8px 14px",
-                    borderRadius: 12,
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    transition: "background-color 0.3s ease, color 0.3s ease",
-                    userSelect: "none",
-                    cursor: "pointer",
-                    border: "1px solid transparent",
-                  }}
+                  style={footerLinkStyle}
                 >
-                  <FaCoffee size={20} />
-                  Ko-fi
+                  <FaCoffee size={20} /> Ko-fi
                 </a>
               </div>
             </footer>
