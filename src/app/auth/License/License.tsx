@@ -20,12 +20,13 @@ export default function License() {
 
         <ul>
           <li>
-            You may use this software for **personal and non-commercial**
+            You may use this software for{" "}
+            <strong>personal and non-commercial</strong>
             purposes.
           </li>
           <li>
-            You may **not redistribute, resell, or sublicense** any part of the
-            software.
+            You may <strong>not redistribute, resell, or sublicense</strong> any
+            part of the software.
           </li>
           <li>
             Modifying the code for private use is allowed, but must not be
@@ -43,9 +44,9 @@ export default function License() {
 
         <h2>Liability Disclaimer</h2>
         <p>
-          This software is provided "as is", without any warranties. The Modix
-          team is not responsible for any damages or data loss resulting from
-          use of this software.
+          This software is provided &quot;as is&quot;, without any warranties.
+          The Modix team is not responsible for any damages or data loss
+          resulting from use of this software.
         </p>
 
         <h2>Contact & Permissions</h2>

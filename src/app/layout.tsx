@@ -1,5 +1,3 @@
-
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ModuleProvider } from "./ModuleContext";
@@ -16,8 +14,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body
@@ -30,9 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       >
         <ModuleProvider>
           <ContainerProvider>
-            <UserProvider>
-              {children}
-            </UserProvider>
+            <UserProvider>{children}</UserProvider>
           </ContainerProvider>
         </ModuleProvider>
       </body>

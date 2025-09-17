@@ -6,7 +6,7 @@ import {
   FaDiscord as DiscordIcon,
   FaCoffee as CoffeeIcon,
 } from "react-icons/fa";
-import Backup from "../backup/Backup"; // Make sure this path matches your file structure
+import Backup from "./Backup"; // Make sure this path matches your file structure
 
 // Visible in top nav
 const navLinks = [

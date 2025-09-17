@@ -17,7 +17,7 @@ interface Setting {
   max?: number;
   step?: number;
   valueType: ValueType;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface Category {
@@ -29,7 +29,7 @@ interface Category {
 interface GameSchema {
   folder: string;
   title: string;
-  defaults: Record<string, any>;
+  defaults: Record<string, string | number | boolean>;
   categories: Category[];
 }
 
@@ -181,9 +181,9 @@ export default function ServerSettingsFancy({ game }: ServerSettingsProps) {
     : "zomboid";
   const schema = settingsSchemas[safeGame];
 
-  const [settings, setSettings] = useState<Record<string, any>>(
-    schema.defaults
-  );
+  const [settings, setSettings] = useState<
+    Record<string, string | number | boolean>
+  >(schema.defaults);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
@@ -212,7 +212,7 @@ export default function ServerSettingsFancy({ game }: ServerSettingsProps) {
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement>,
-    type: string,
+    type: "text" | "number" | "checkbox",
     name: string
   ) => {
     let val: string | number | boolean;
@@ -279,7 +279,7 @@ export default function ServerSettingsFancy({ game }: ServerSettingsProps) {
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </button>
-                <p className="category-desc">{description}</p>
+                {description && <p className="category-desc">{description}</p>}
 
                 <div
                   className={`category-content ${
@@ -305,7 +305,7 @@ export default function ServerSettingsFancy({ game }: ServerSettingsProps) {
                         <input
                           type={type}
                           name={name}
-                          value={settings[name]}
+                          value={settings[name] as string | number}
                           onChange={(e) => handleChange(e, type, name)}
                           {...rest}
                         />

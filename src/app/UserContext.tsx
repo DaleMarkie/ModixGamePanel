@@ -1,4 +1,5 @@
 "use client";
+
 import { apiHandler } from "../utils/apiHandler";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -19,7 +20,6 @@ export interface User {
   name?: string;
   avatar?: string;
 
-  // ✅ Fields needed for MyAccount
   active: boolean; // previously is_active
   created_at: string;
   tfa_enabled: boolean;
@@ -64,12 +64,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return null;
   });
+
   const [authenticated, setAuthenticated] = useState(() => {
     if (typeof window !== "undefined") {
       return !!localStorage.getItem("user");
     }
     return false;
   });
+
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
@@ -83,7 +85,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (statusData.authenticated) {
         const meData = await apiHandler("/api/auth/me", { cacheTtlMs: 10000 });
 
-        // ✅ Ensure we map backend field names correctly
         const mappedUser: User = {
           ...meData,
           active: meData.is_active ?? true,
@@ -101,7 +102,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         if (typeof window !== "undefined") localStorage.removeItem("user");
       }
-    } catch (err) {
+    } catch {
+      // ✅ No variable here, prevents no-unused-vars error
       setUser(null);
       setAuthenticated(false);
       if (typeof window !== "undefined") localStorage.removeItem("user");

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   RefreshCw,
   Search,
@@ -39,8 +39,8 @@ const ChatLogs: React.FC<ChatLogsProps> = ({
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
 
-  // Fetch chat logs with filters
-  const fetchChatLogs = async () => {
+  // Wrap in useCallback to satisfy linter
+  const fetchChatLogs = useCallback(async () => {
     if (!serverIdentifier) return;
 
     try {
@@ -65,14 +65,14 @@ const ChatLogs: React.FC<ChatLogsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverIdentifier, playerFilter, commandOnly, chatType]);
 
   // Auto-refresh every 3 seconds
   useEffect(() => {
     fetchChatLogs();
     const interval = setInterval(fetchChatLogs, 3000);
     return () => clearInterval(interval);
-  }, [playerFilter, commandOnly, chatType, serverIdentifier]);
+  }, [fetchChatLogs]); // ✅ Now correct dependency
 
   // Auto-scroll if not paused
   useEffect(() => {

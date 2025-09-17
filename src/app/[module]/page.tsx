@@ -1,61 +1,75 @@
-
-
 // --- Server Component ---
 // Only this part runs on the server and can import Node modules
-import { getPermissionsForRoute } from "@/utils/permissionsLoader";
 import path from "path";
 import fs from "fs";
 import yaml from "js-yaml";
-const importMap = require("../moduleImportMap.js").importMap;
-
-// Make sure the file exists at the correct path, or update the import path if needed
 import DynamicModulePageClient from "./DynamicModulePageClient";
+import { importMap } from "../moduleImportMap.js"; // replaced require with import
 
-export default async function DynamicModulePage({ params }: { params: { module: string } }) {
-  const awaitedParams = await params;
-  const moduleParam = awaitedParams.module;
+interface ModuleYaml {
+  name?: string;
+  nickname?: string;
+  frontend?: {
+    routes?: Array<{
+      entry?: string;
+      permission?: string | string[];
+    }>;
+  };
+}
 
-  // Try to resolve the correct importMap key by reading module.yaml for the entry field
-let entry = null;
-let foundKey = null;
-let requiredPerms: string[] = [];
-let moduleDisplayName: string | null = null;
-let moduleNickname: string | null = null;
-  // Search all possible module roots
+export default async function DynamicModulePage({
+  params,
+}: {
+  params: { module: string };
+}) {
+  const moduleParam = params.module;
+
+  let entry: string | null = null;
+  let requiredPerms: string[] = [];
+  let moduleDisplayName: string | null = null;
+  let moduleNickname: string | null = null;
+
   const moduleRoots = [
     path.join(process.cwd(), "module_system", "Core"),
     path.join(process.cwd(), "module_system", "Optional"),
     path.join(process.cwd(), "module_system", "Game_Modules"),
   ];
+
   for (const root of moduleRoots) {
     try {
       const dirents = fs.readdirSync(root, { withFileTypes: true });
       for (const dirent of dirents) {
-        if (dirent.isDirectory() && dirent.name.toLowerCase() === moduleParam.toLowerCase()) {
+        if (
+          dirent.isDirectory() &&
+          dirent.name.toLowerCase() === moduleParam.toLowerCase()
+        ) {
           const yamlPath = path.join(root, dirent.name, "module.yaml");
           if (fs.existsSync(yamlPath)) {
             const yamlContent = fs.readFileSync(yamlPath, "utf8");
-            const parsed = yaml.load(yamlContent) as any;
-            if (parsed) {
-              if (parsed.name) moduleDisplayName = parsed.name;
-              if (parsed.nickname) moduleNickname = parsed.nickname;
-            }
-            if (parsed && parsed.frontend && parsed.frontend.routes && Array.isArray(parsed.frontend.routes)) {
-              for (const route of parsed.frontend.routes) {
+            const parsed = yaml.load(yamlContent) as ModuleYaml;
+
+            if (parsed?.name) moduleDisplayName = parsed.name;
+            if (parsed?.nickname) moduleNickname = parsed.nickname;
+
+            const routes = parsed?.frontend?.routes;
+            if (routes && Array.isArray(routes)) {
+              for (const route of routes) {
                 if (route.entry && importMap[route.entry]) {
                   entry = route.entry;
-                  foundKey = entry;
-                  // Extract permission(s) from the matched route, or auto-generate if missing
-                  const base = (moduleNickname || moduleDisplayName || moduleParam).toLowerCase();
+                  // Extract permissions
+                  const base = (
+                    moduleNickname ||
+                    moduleDisplayName ||
+                    moduleParam
+                  ).toLowerCase();
                   if (route.permission) {
-                    const perms = Array.isArray(route.permission) ? route.permission : [route.permission];
-                    requiredPerms = perms.map((perm: string) => {
-                      // If already prefixed, don't double-prefix
-                      if (perm.startsWith(base + "_")) return perm;
-                      return base + "_" + perm;
-                    });
+                    const perms = Array.isArray(route.permission)
+                      ? route.permission
+                      : [route.permission];
+                    requiredPerms = perms.map((perm) =>
+                      perm.startsWith(base + "_") ? perm : base + "_" + perm
+                    );
                   } else {
-                    // No permission required for this entry, just login
                     requiredPerms = [];
                   }
                   break;
@@ -66,16 +80,20 @@ let moduleNickname: string | null = null;
         }
         if (entry) break;
       }
-    } catch (e) {
-      // ignore
+    } catch {
+      // safely ignore errors
     }
     if (entry) break;
   }
-  // fallback: try the original logic if nothing found
-  if ((!entry || !requiredPerms.length) && typeof moduleParam === "string" && !moduleParam.includes("frontend/page")) {
-    function capitalizeFirst(s: string) {
-      return s.charAt(0).toUpperCase() + s.slice(1);
-    }
+
+  // Fallback logic if entry not found
+  if (
+    !entry &&
+    typeof moduleParam === "string" &&
+    !moduleParam.includes("frontend/page")
+  ) {
+    const capitalizeFirst = (s: string) =>
+      s.charAt(0).toUpperCase() + s.slice(1);
     const moduleName = capitalizeFirst(moduleParam);
     const prefixes = ["Core", "Optional", "Game_Modules"];
     for (const prefix of prefixes) {
@@ -83,37 +101,59 @@ let moduleNickname: string | null = null;
       const jsKey = path.join(prefix, moduleName, "frontend/page.js");
       if (importMap[tsxKey]) {
         entry = tsxKey;
-        foundKey = tsxKey;
         break;
       } else if (importMap[jsKey]) {
         entry = jsKey;
-        foundKey = jsKey;
         break;
       }
     }
+
     if (!entry) {
-      const tsxPath = path.join(moduleParam.replace(/\/$/, ""), "frontend/page.tsx");
-      const jsPath = path.join(moduleParam.replace(/\/$/, ""), "frontend/page.js");
-      entry = importMap[tsxPath] ? tsxPath : (importMap[jsPath] ? jsPath : tsxPath);
-      foundKey = entry;
+      const tsxPath = path.join(
+        moduleParam.replace(/\/$/, ""),
+        "frontend/page.tsx"
+      );
+      const jsPath = path.join(
+        moduleParam.replace(/\/$/, ""),
+        "frontend/page.js"
+      );
+      entry = importMap[tsxPath]
+        ? tsxPath
+        : importMap[jsPath]
+        ? jsPath
+        : tsxPath;
     }
-    // fallback: if no permission found, leave requiredPerms as empty (no permission required, just login)
   }
 
   if (!entry) {
     return (
-      <div style={{ color: 'orange', padding: 16, background: '#222', borderRadius: 8 }}>
+      <div
+        style={{
+          color: "orange",
+          padding: 16,
+          background: "#222",
+          borderRadius: 8,
+        }}
+      >
         <b>No frontend entry defined for this module.</b>
         <br />
-        Make sure the entry value exists and is under Core, Optional, or GameModules.
+        Make sure the entry value exists and is under Core, Optional, or
+        GameModules.
       </div>
     );
   }
 
-  // Debug: log the resolved entry key on the server
-  console.log("[DynamicModulePage] resolved entry:", entry);
-  // Pick display name: nickname > name > param
   const displayName = moduleNickname || moduleDisplayName || moduleParam;
-  // Pass only the resolved entry and display name to the client
-  return <DynamicModulePageClient moduleParam={moduleParam} entry={entry} requiredPerms={requiredPerms} moduleDisplayName={displayName} />;
+
+  // Server-side debug logging
+  console.log("[DynamicModulePage] resolved entry:", entry);
+
+  return (
+    <DynamicModulePageClient
+      moduleParam={moduleParam}
+      entry={entry}
+      requiredPerms={requiredPerms}
+      moduleDisplayName={displayName}
+    />
+  );
 }

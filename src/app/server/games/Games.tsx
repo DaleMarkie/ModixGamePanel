@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import "./Games.css";
 
 type GameSpec = { label: string; ok: boolean };
@@ -107,7 +108,14 @@ const GameBanner: React.FC<{
         isActive ? "active" : ""
       }`}
     >
-      <img src={game.icon} alt={game.name} />
+      {/* Using Next.js Image for optimization */}
+      <Image
+        src={game.icon}
+        alt={game.name}
+        width={200}
+        height={100}
+        className="game-icon"
+      />
       <div className="banner-overlay">
         <h3>
           {game.name} ({game.os.toUpperCase()})

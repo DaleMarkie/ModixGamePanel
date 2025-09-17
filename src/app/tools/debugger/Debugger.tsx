@@ -41,9 +41,9 @@ export default function DebuggerPage() {
     async function fetchActiveServer() {
       try {
         const res = await fetch("/api/active-server");
-        const data = await res.json();
+        const data: { server?: string } = await res.json();
         setActiveServer(data.server || null);
-      } catch (err: any) {
+      } catch {
         setError("Failed to detect active server");
       }
     }
@@ -63,15 +63,19 @@ export default function DebuggerPage() {
         if (!res.ok) throw new Error("Failed to fetch mods");
         const data: ModData = await res.json();
         if (isMounted) setMods(data);
-      } catch (err: any) {
-        if (isMounted) setError(err.message || "Unknown error fetching mods");
+      } catch (err: unknown) {
+        if (isMounted) {
+          const message =
+            err instanceof Error ? err.message : "Unknown error fetching mods";
+          setError(message);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     fetchMods();
-    const interval = setInterval(fetchMods, 5000); // Refresh every 5 seconds
+    const interval = setInterval(fetchMods, 5000);
 
     return () => {
       isMounted = false;
@@ -132,7 +136,7 @@ export default function DebuggerPage() {
           body: JSON.stringify({ text, author: "Staff" }),
         }
       );
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Failed to add note");
       const savedNote: Note = await res.json();
       setMods((prev) => ({
         ...prev,
@@ -147,7 +151,7 @@ export default function DebuggerPage() {
     }
   }
 
-  const filteredMods = Object.entries(mods).filter(([_, info]) => {
+  const filteredMods = Object.entries(mods).filter(([, info]) => {
     return (
       (!statusFilter || info.status === statusFilter) &&
       (!priorityFilter || info.priority === priorityFilter)

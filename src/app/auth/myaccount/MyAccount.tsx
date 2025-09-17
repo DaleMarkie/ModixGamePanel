@@ -27,13 +27,21 @@ const TabButton = ({
   </button>
 );
 
+// ---------------- NEWS ITEM TYPE ----------------
+interface NewsItem {
+  title: string;
+  description: string;
+  date: string;
+  link?: string;
+}
+
 // ---------------- MY ACCOUNT ----------------
 const MyAccount = () => {
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("📊 Dashboard");
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -55,20 +63,6 @@ const MyAccount = () => {
     localStorage.clear();
     refresh();
     router.push("/auth/login");
-  };
-
-  const handleDeleteAccount = async () => {
-    if (
-      !confirm("⚠️ Are you sure you want to permanently delete your account?")
-    )
-      return;
-    await fetch("/api/account/delete", {
-      method: "DELETE",
-      credentials: "include",
-    });
-    localStorage.clear();
-    refresh();
-    router.push("/");
   };
 
   if (loading) return <div className="loading">Loading account...</div>;

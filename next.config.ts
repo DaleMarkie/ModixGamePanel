@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    domains: ["cdn.cloudflare.steamstatic.com"], // allow game icon URLs
+  },
 };
 
 export default nextConfig;

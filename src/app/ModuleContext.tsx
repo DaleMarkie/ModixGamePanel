@@ -1,4 +1,3 @@
-
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { apiHandler } from "../utils/apiHandler";
@@ -54,19 +53,25 @@ export const ModuleProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      // You can adjust cacheTtlMs as needed
-      const data = await apiHandler<any>("/api/modules/enabled", { cacheTtlMs: 60000 });
-      // If API returns { modules: [...] }, extract modules
-      if (data && Array.isArray(data.modules)) {
-        setModules(data.modules);
-      } else if (Array.isArray(data)) {
+      // Properly type the API response
+      const data: Module[] | { modules: Module[] } = await apiHandler<
+        Module[] | { modules: Module[] }
+      >("/api/modules/enabled", { cacheTtlMs: 60000 });
+
+      if (Array.isArray(data)) {
         setModules(data);
+      } else if ("modules" in data && Array.isArray(data.modules)) {
+        setModules(data.modules);
       } else {
         setModules([]);
         console.warn("ModuleProvider: Unexpected API response format", data);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Failed to fetch modules");
+      }
       setModules([]);
       console.error("ModuleProvider: fetch error", e);
     } finally {
@@ -79,7 +84,9 @@ export const ModuleProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <ModuleContext.Provider value={{ modules, loading, error, refresh: fetchModules }}>
+    <ModuleContext.Provider
+      value={{ modules, loading, error, refresh: fetchModules }}
+    >
       {children}
     </ModuleContext.Provider>
   );

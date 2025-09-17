@@ -13,8 +13,8 @@ const Terms = () => {
         <section>
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using the Modix Game Panel ("Modix"), you agree to
-            be bound by these Terms of Use, our Privacy Policy, and any
+            By accessing or using the Modix Game Panel (&quot;Modix&quot;), you
+            agree to be bound by these Terms of Use, our Privacy Policy, and any
             additional policies or guidelines applicable to specific features.
             If you do not agree to these terms, you must discontinue use of
             Modix immediately.
@@ -25,8 +25,9 @@ const Terms = () => {
           <h2>2. Eligibility</h2>
           <p>
             You must be at least 16 years old, or the minimum age required by
-            your country’s digital consent laws, to use this platform. Accounts
-            registered by bots or automated tools are strictly prohibited.
+            your country&rsquo;s digital consent laws, to use this platform.
+            Accounts registered by bots or automated tools are strictly
+            prohibited.
           </p>
         </section>
 
@@ -99,9 +100,10 @@ const Terms = () => {
         <section>
           <h2>8. Availability and Uptime</h2>
           <p>
-            While we strive for high availability, Modix is provided "as is"
-            without guarantees of uninterrupted service. Maintenance windows,
-            technical issues, or other unforeseen events may impact uptime.
+            While we strive for high availability, Modix is provided &quot;as
+            is&quot; without guarantees of uninterrupted service. Maintenance
+            windows, technical issues, or other unforeseen events may impact
+            uptime.
           </p>
         </section>
 

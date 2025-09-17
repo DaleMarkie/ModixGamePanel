@@ -5,6 +5,18 @@ import { hasPermission } from "@/utils/hasPermission";
 import { authFetch } from "@/utils/authFetch";
 import DynamicModuleClient from "./DynamicModuleClient";
 
+interface UserPermission {
+  permission: string;
+  value?: string;
+  scope?: string;
+  container_id?: number;
+}
+
+interface MeResponse {
+  direct_permissions?: UserPermission[];
+  role_permissions?: UserPermission[];
+}
+
 function Forbidden({
   requiredPerms,
   userPerms,
@@ -26,7 +38,6 @@ function Forbidden({
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-950 via-gray-900 to-black px-4">
       <div className="relative w-full max-w-lg bg-gray-900/80 backdrop-blur-lg border border-green-800 rounded-3xl shadow-2xl p-10 text-center">
-        {/* Glowing Title */}
         <h1 className="text-6xl font-extrabold mb-6 text-green-400 drop-shadow-lg animate-pulse">
           403
         </h1>
@@ -39,7 +50,6 @@ function Forbidden({
           .
         </p>
 
-        {/* Debug Info Box */}
         <div className="bg-gray-800/70 border border-green-700 rounded-xl p-4 text-left font-mono text-sm text-green-200 mb-8 shadow-inner overflow-auto max-h-36">
           <strong className="text-green-400 block mb-1">Debug Info:</strong>
           Required: <code>{JSON.stringify(requiredPerms)}</code>
@@ -47,7 +57,6 @@ function Forbidden({
           Your Permissions: <code>{JSON.stringify(userPerms)}</code>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             onClick={() => (window.location.href = "/auth/login")}
@@ -63,11 +72,17 @@ function Forbidden({
           </button>
         </div>
 
-        {/* Optional subtle background glow */}
         <div className="absolute inset-0 rounded-3xl bg-green-500/10 blur-3xl pointer-events-none"></div>
       </div>
     </div>
   );
+}
+
+interface DynamicModulePageClientProps {
+  moduleParam: string;
+  entry: string;
+  requiredPerms: string[];
+  moduleDisplayName?: string;
 }
 
 export default function DynamicModulePageClient({
@@ -75,12 +90,7 @@ export default function DynamicModulePageClient({
   entry,
   requiredPerms,
   moduleDisplayName,
-}: {
-  moduleParam: string;
-  entry: string;
-  requiredPerms: string[];
-  moduleDisplayName?: string;
-}) {
+}: DynamicModulePageClientProps) {
   const [userPerms, setUserPerms] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -88,13 +98,15 @@ export default function DynamicModulePageClient({
     async function fetchPerms() {
       try {
         const res = await authFetch("/api/auth/me");
-        const data: any = await res.json();
+        const data: MeResponse = await res.json();
+
         const perms = Array.from(
           new Set([
-            ...(data.direct_permissions || []).map((p: any) => p.permission),
-            ...(data.role_permissions || []).map((p: any) => p.permission),
+            ...(data.direct_permissions?.map((p) => p.permission) || []),
+            ...(data.role_permissions?.map((p) => p.permission) || []),
           ])
         );
+
         setUserPerms(perms);
       } catch {
         setUserPerms([]);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import "./Help.css";
 
 interface FaqItem {
@@ -44,14 +45,15 @@ export default function Help() {
   useEffect(() => {
     if (modalContent) {
       lastFocusedElement.current = document.activeElement as HTMLElement | null;
-      modalRef.current?.focus();
 
-      // Simple focus trap: cycle focus within modal
+      const modalNode = modalRef.current; // ✅ copy ref to local variable
+      modalNode?.focus();
+
       const focusableSelectors =
         'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
-      const focusableElements = modalRef.current
+      const focusableElements = modalNode
         ? Array.from(
-            modalRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
+            modalNode.querySelectorAll<HTMLElement>(focusableSelectors)
           )
         : [];
 
@@ -74,10 +76,9 @@ export default function Help() {
         }
       };
 
-      modalRef.current?.addEventListener("keydown", handleTab);
-      return () => modalRef.current?.removeEventListener("keydown", handleTab);
+      modalNode?.addEventListener("keydown", handleTab);
+      return () => modalNode?.removeEventListener("keydown", handleTab);
     } else {
-      // Restore focus to last focused element before modal opened
       lastFocusedElement.current?.focus();
     }
   }, [modalContent]);
@@ -130,13 +131,13 @@ export default function Help() {
             Submit a support request and our team will help you resolve your
             issue quickly.
           </p>
-          <a
+          <Link
             href="/help/open-ticket"
             className="card-link"
             aria-label="Submit a support ticket"
           >
             Submit a Ticket &rarr;
-          </a>
+          </Link>
         </article>
 
         {/* FAQ */}

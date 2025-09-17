@@ -1,16 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import "./login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,7 +42,7 @@ const Login = () => {
       } else {
         setError(result.message || "Invalid username or password.");
       }
-    } catch (err) {
+    } catch {
       setError("Server error. Please try again later.");
     }
   };
@@ -120,14 +116,6 @@ const Login = () => {
 
           <button type="submit" className="btn-login">
             🚀 Log In
-          </button>
-
-          <button
-            type="button"
-            className="forgot-link"
-            onClick={() => setShowForgotPassword(true)}
-          >
-            Forgot password?
           </button>
 
           <footer className="footer">Modix Game Panel &copy; 2025</footer>
