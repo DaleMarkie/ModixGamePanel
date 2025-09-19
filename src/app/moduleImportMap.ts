@@ -1,7 +1,6 @@
 // src/app/moduleImportMap.ts
 import type { ComponentType } from "react";
 
-// Each import function returns a Promise resolving to a module with a default React component
 export type ModuleImportFn = () => Promise<{ default: ComponentType<unknown> }>;
 
 export const importMap: Record<string, ModuleImportFn> = {
@@ -19,8 +18,10 @@ export const importMap: Record<string, ModuleImportFn> = {
     import("../../module_system/Core/Terminal/frontend/page.tsx"),
   "Core/TestModule/frontend/page.tsx": () =>
     import("../../module_system/Core/TestModule/frontend/page.tsx"),
-  "Core/Workshop/frontend/page.tsx": () =>
-    import("../../module_system/Core/Workshop/frontend/page.tsx"),
+
+  // Workshop is now fully in src/app/Workshop
+  "Workshop/frontend/page.tsx": () => import("./Workshop/page"),
+
   "Optional/Backup/Frontend/page.tsx": () =>
     import("../../module_system/Optional/Backup/Frontend/page.tsx"),
 };

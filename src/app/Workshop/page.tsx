@@ -2,7 +2,7 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Workshop from "./Workshop";
+import Workshop from "./frontend/Workshop";
 
 export default function WorkshopPage() {
   return (

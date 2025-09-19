@@ -7,6 +7,6 @@ export const importMap = {
   "Core/RBAC/frontend/page.tsx": () => import("../../module_system/Core/RBAC/frontend/page.tsx"),
   "Core/Terminal/frontend/page.tsx": () => import("../../module_system/Core/Terminal/frontend/page.tsx"),
   "Core/TestModule/frontend/page.tsx": () => import("../../module_system/Core/TestModule/frontend/page.tsx"),
-  "Core/Workshop/frontend/page.tsx": () => import("../../module_system/Core/Workshop/frontend/page.tsx"),
   "Optional/Backup/Frontend/page.tsx": () => import("../../module_system/Optional/Backup/Frontend/page.tsx"),
+  "Workshop/frontend/page.tsx": () => import("./Workshop/page"),
 };
