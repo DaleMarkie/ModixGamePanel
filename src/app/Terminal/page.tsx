@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import MyAccount from "./MyAccount";
+import Terminal from "./frontend/Terminal";
 
-export default function MyAccountPage() {
+export default function TerminalPage() {
   return (
     <div style={{ width: "100%", height: "100%" }}>
-      <MyAccount />
+      <Terminal />
     </div>
   );
 }

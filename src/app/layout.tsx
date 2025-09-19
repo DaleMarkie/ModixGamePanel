@@ -39,7 +39,6 @@ export const navLinks = [
       { label: "🧑 User Permissions", href: "/RBAC" },
     ],
   },
-  // Add your other links as needed
 ];
 
 function FancyNavItem({ item }: { item: (typeof navLinks)[0] }) {
@@ -47,7 +46,7 @@ function FancyNavItem({ item }: { item: (typeof navLinks)[0] }) {
 
   return (
     <div
-      style={{ position: "relative" }}
+      style={{ position: "relative", display: "flex", flexDirection: "column" }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -56,10 +55,11 @@ function FancyNavItem({ item }: { item: (typeof navLinks)[0] }) {
         style={{
           color: "white",
           textDecoration: "none",
-          padding: "8px 12px",
-          display: "inline-block",
+          padding: "8px 14px",
           fontWeight: 500,
-          transition: "all 0.2s",
+          borderRadius: "6px",
+          transition: "all 0.15s",
+          whiteSpace: "nowrap",
         }}
       >
         {item.label}
@@ -71,10 +71,10 @@ function FancyNavItem({ item }: { item: (typeof navLinks)[0] }) {
             position: "absolute",
             top: "100%",
             left: 0,
-            backgroundColor: "#222",
+            backgroundColor: "#1f1f1f",
             borderRadius: "8px",
-            padding: "8px 0",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+            padding: "6px 0",
+            boxShadow: "0 6px 12px rgba(0,0,0,0.6)",
             minWidth: "200px",
             zIndex: 1000,
           }}
@@ -103,53 +103,106 @@ export default function RootLayout({
           padding: 0,
           fontFamily: "var(--font-geist-sans)",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         <ModuleProvider>
           <ContainerProvider>
             <UserProvider>
-              {/* Fancy top navbar */}
-              <header
+              <div
                 style={{
+                  maxWidth: "1400px",
                   width: "100%",
-                  backgroundColor: "#1E1E1E",
-                  borderBottom: "1px solid #333",
-                  padding: "12px 32px",
                   display: "flex",
-                  gap: "16px",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                  position: "sticky",
-                  top: 0,
-                  zIndex: 1000,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
-                }}
-              >
-                <div style={{ fontWeight: "bold", fontSize: "22px" }}>LOGO</div>
-                <nav
-                  style={{ display: "flex", gap: "16px", alignItems: "center" }}
-                >
-                  {navLinks.map((link, idx) => (
-                    <FancyNavItem key={idx} item={link} />
-                  ))}
-                </nav>
-              </header>
-
-              {/* Main content */}
-              <main
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
+                  flexDirection: "column",
+                  gap: "24px",
                   padding: "24px",
-                  overflowY: "auto",
                 }}
               >
-                {children}
-              </main>
+                {/* Header */}
+                <header
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                    padding: "12px 24px",
+                    backgroundColor: "#1f1f1f",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.4)",
+                    flexWrap: "nowrap",
+                  }}
+                >
+                  {/* Left: Logo */}
+                  <div
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      letterSpacing: "0.5px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Modix: Game Panel
+                  </div>
+
+                  {/* Center: Menu */}
+                  <nav
+                    style={{
+                      display: "flex",
+                      gap: "-100px",
+                      justifyContent: "center",
+                      flex: 1,
+                      marginLeft: "6px",
+                      marginRight: "-5px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {navLinks.map((link, idx) => (
+                      <FancyNavItem key={idx} item={link} />
+                    ))}
+                  </nav>
+
+                  {/* Right: Login Button */}
+                  <div style={{ whiteSpace: "nowrap" }}>
+                    <Link
+                      href="/auth/login"
+                      style={{
+                        padding: "6px 16px",
+                        backgroundColor: "#2a2a2a",
+                        color: "#ffffff",
+                        fontWeight: 500,
+                        borderRadius: "6px",
+                        textDecoration: "none",
+                        transition: "all 0.2s",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#3a3a3a")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#2a2a2a")
+                      }
+                    >
+                      Login
+                    </Link>
+                  </div>
+                </header>
+
+                {/* Main content */}
+                <main
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: "20px",
+                  }}
+                >
+                  {children}
+                </main>
+              </div>
             </UserProvider>
           </ContainerProvider>
         </ModuleProvider>

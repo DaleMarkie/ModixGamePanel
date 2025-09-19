@@ -14,13 +14,12 @@ export const importMap: Record<string, ModuleImportFn> = {
     import("../../module_system/Core/ModUpdater/frontend/page.tsx"),
   "Core/RBAC/frontend/page.tsx": () =>
     import("../../module_system/Core/RBAC/frontend/page.tsx"),
-  "Core/Terminal/frontend/page.tsx": () =>
-    import("../../module_system/Core/Terminal/frontend/page.tsx"),
   "Core/TestModule/frontend/page.tsx": () =>
     import("../../module_system/Core/TestModule/frontend/page.tsx"),
 
   // Workshop is now fully in src/app/Workshop
   "Workshop/frontend/page.tsx": () => import("./Workshop/page"),
+  "Terminal/frontend/page.tsx": () => import("./Terminal/page"),
 
   "Optional/Backup/Frontend/page.tsx": () =>
     import("../../module_system/Optional/Backup/Frontend/page.tsx"),

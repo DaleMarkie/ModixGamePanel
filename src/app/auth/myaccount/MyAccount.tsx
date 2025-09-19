@@ -8,7 +8,6 @@ import Subscriptions from "../subscriptions/subscriptions";
 import Activity from "../activity/Activity";
 import MyTickets from "../../support/mytickets/MyTickets";
 
-// ---------------- TAB BUTTON ----------------
 const TabButton = ({
   label,
   active,
@@ -27,7 +26,6 @@ const TabButton = ({
   </button>
 );
 
-// ---------------- NEWS ITEM TYPE ----------------
 interface NewsItem {
   title: string;
   description: string;
@@ -35,7 +33,6 @@ interface NewsItem {
   link?: string;
 }
 
-// ---------------- MY ACCOUNT ----------------
 const MyAccount = () => {
   const { user, loading, authenticated, refresh } = useUser();
   const router = useRouter();
@@ -78,14 +75,14 @@ const MyAccount = () => {
     "🪪 My License",
     "💳 Pricing",
     "⚙️ Settings",
-    "⚙️ Support",
+    "🛠️ Support",
   ];
 
   return (
     <div className="myaccount-container">
       <h1>⚙️ My Account</h1>
 
-      {/* ---------------- TABS ---------------- */}
+      {/* Fancy Tabs */}
       <nav className="tabs" aria-label="Account navigation">
         {tabs.map((tab) => (
           <TabButton
@@ -95,17 +92,21 @@ const MyAccount = () => {
             onClick={() => setActiveTab(tab)}
           />
         ))}
+        <div className="tab-underline" />
       </nav>
 
       {/* ---------------- DASHBOARD ---------------- */}
       {activeTab === "📊 Dashboard" && (
-        <section className="dashboard-card">
+        <section className="dashboard-card fancy-card">
           <div className="dashboard-user-info">
             <h2>Welcome, {user.username}</h2>
             <p>Email: {user.email || "N/A"}</p>
             <p>Status: {user.active ? "Active ✅" : "Inactive ❌"}</p>
             <span>
-              Joined: {new Date(user.created_at).toLocaleDateString()}
+              Joined:{" "}
+              {user.created_at
+                ? new Date(user.created_at).toLocaleDateString()
+                : "N/A"}
             </span>
             <button className="logout-btn" onClick={handleLogout}>
               Log Out
@@ -117,11 +118,13 @@ const MyAccount = () => {
             {news.length ? (
               <div className="news-cards">
                 {news.map((item, idx) => (
-                  <div key={idx} className="news-card">
+                  <div key={idx} className="news-card fancy-card">
                     <div className="news-header">
                       <strong className="news-title">{item.title}</strong>
                       <span className="news-date">
-                        {new Date(item.date).toLocaleDateString()}
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString()
+                          : ""}
                       </span>
                     </div>
                     <div className="news-body">
@@ -153,12 +156,20 @@ const MyAccount = () => {
 
       {/* ---------------- SECURITY ---------------- */}
       {activeTab === "🔐 Security" && (
-        <section className="card">
+        <section className="card fancy-card">
           <h3>🔐 Security</h3>
           <ul>
             <li>2FA: {user.tfa_enabled ? "Enabled" : "Disabled"}</li>
-            <li>Last Login: {new Date(user.last_login).toLocaleString()}</li>
-            <li>Active Sessions: {user.sessions?.length || 0}</li>
+            <li>
+              Last Login:{" "}
+              {user.last_login
+                ? new Date(user.last_login).toLocaleString()
+                : "N/A"}
+            </li>
+            <li>
+              Active Sessions:{" "}
+              {Array.isArray(user.sessions) ? user.sessions.length : 0}
+            </li>
           </ul>
           <button className="manage-sessions-btn">Manage Sessions</button>
         </section>
@@ -172,15 +183,14 @@ const MyAccount = () => {
 
       {/* ---------------- SETTINGS ---------------- */}
       {activeTab === "⚙️ Settings" && (
-        <section className="card">
+        <section className="card fancy-card">
           <h3>⚙️ Settings</h3>
-          {/* Settings form/components go here */}
         </section>
       )}
 
       {/* ---------------- SUPPORT ---------------- */}
-      {activeTab === "⚙️ Support" && (
-        <section className="card">
+      {activeTab === "🛠️ Support" && (
+        <section className="card fancy-card">
           <MyTickets />
         </section>
       )}
