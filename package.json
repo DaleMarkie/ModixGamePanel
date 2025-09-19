@@ -2,6 +2,11 @@
   "name": "my-panel",
   "version": "0.1.0",
   "private": true,
+  "description": "Modix Panel for managing Project Zomboid servers",
+  "author": {
+    "name": "DaleMarkie",
+    "email": "dale@modix.store"
+  },
   "main": "main.js",
   "scripts": {
     "preinstall": "node scripts/setupBackend.js",
@@ -54,24 +59,50 @@
     "@types/react-toastify": "^4.0.2",
     "concurrently": "^9.2.0",
     "cross-env": "^7.0.3",
+    "electron": "^26.2.0",
+    "electron-builder": "^24.6.0",
+    "electron-is-dev": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "electron": "^26.2.0",
-    "electron-builder": "^24.6.0",
     "wait-on": "^7.0.1"
   },
   "build": {
     "appId": "com.modix.panel",
     "productName": "Modix Panel",
+    "files": [
+      "main.js",
+      "package.json",
+      "backend/**",
+      "frontend/**",
+      "public/**",
+      "scripts/**"
+    ],
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
       "icon": "public/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "icon": "public/icon.png"
-    }
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icon.icns"
+    },
+    "publish": null
   }
 }
