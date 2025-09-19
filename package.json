@@ -5,7 +5,6 @@
   "scripts": {
     "preinstall": "node scripts/setupBackend.js",
     "setup-backend": "node scripts/setupBackend.js",
-    "predev": "npm run gen-import-map",
     "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"npm run backend-safe\"",
     "next": "next dev -p 3000",
     "backend": "node scripts/startBackend.js",
@@ -14,7 +13,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen-import-map": "node scripts/generateImportMap.js",
     "modix-installer": "node scripts/modix-installer.js"
   },
   "dependencies": {
