@@ -21,7 +21,7 @@ import PopupModal from "./PopupModal";
 import ModUpdates from "./pages/ModUpdates/ModUpdates";
 import ModDebugger from "./pages/ModDebugger/ModDebugger";
 
-import "./Workshop.css";
+import "./workshop.css";
 
 const GAME_ICONS: Record<string, string> = {
   projectzomboid:
