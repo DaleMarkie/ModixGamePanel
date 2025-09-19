@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 interface ServerPort {
   name: string;
@@ -7,46 +7,59 @@ interface ServerPort {
   status: "open" | "closed";
 }
 
-export default function GamePortChecker() {
-  const [servers, setServers] = useState<ServerPort[]>([]);
-  const [host, setHost] = useState("127.0.0.1");
-  const [customPorts, setCustomPorts] = useState("");
-  const [loading, setLoading] = useState(false);
+interface ApiResponse {
+  servers: ServerPort[];
+}
 
-  const fetchPorts = async () => {
+export default function GamePortChecker(): JSX.Element {
+  const [servers, setServers] = useState<ServerPort[]>([]);
+  const [host, setHost] = useState<string>("127.0.0.1");
+  const [customPorts, setCustomPorts] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchPorts = useCallback(async () => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
         host,
         custom_ports: customPorts,
       }).toString();
+
       const res = await fetch(`/api/server/game-ports?${query}`);
-      const data = await res.json();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data: ApiResponse = await res.json();
       setServers(data.servers);
     } catch (error) {
       console.error("Failed to fetch ports:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [host, customPorts]);
 
   useEffect(() => {
     fetchPorts();
-  }, []);
+  }, [fetchPorts]);
 
   return (
     <div className="p-6 bg-zinc-900 rounded-xl shadow-lg w-full max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-4 text-white">🎮 Game Server Ports Checker</h2>
+      <h2 className="text-3xl font-bold mb-4 text-white">
+        🎮 Game Server Ports Checker
+      </h2>
 
       <p className="mb-4 text-zinc-300">
-        This tool checks whether the default ports for popular game servers are open and reachable from your network. Currently supported games include:
-        <strong> Project Zomboid, DayZ, RimWorld</strong>, and you can also test any custom ports.
+        This tool checks whether the default ports for popular game servers are
+        open and reachable from your network. Currently supported games include:
+        <strong> Project Zomboid, DayZ, RimWorld</strong>, and you can also test
+        any custom ports.
       </p>
       <p className="mb-4 text-zinc-300">
-        <strong>Tip:</strong> If a port shows as <span className="font-bold text-red-400">CLOSED ❌</span>, you may need to:
+        <strong>Tip:</strong> If a port shows as{" "}
+        <span className="font-bold text-red-400">CLOSED ❌</span>, you may need
+        to:
       </p>
       <ul className="mb-4 list-disc list-inside text-zinc-300">
-        <li>Open the port in your server's firewall.</li>
+        <li>Open the port in your server&apos;s firewall.</li>
         <li>Forward the port on your router to the server machine.</li>
         <li>Ensure no other application is already using that port.</li>
       </ul>
