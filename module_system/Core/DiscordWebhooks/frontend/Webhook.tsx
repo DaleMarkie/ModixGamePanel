@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FaDiscord, FaTrash, FaSave, FaTimes } from "react-icons/fa";
+import { FaDiscord, FaTrash } from "react-icons/fa";
 
 type Field = { name: string; value: string };
 
@@ -17,10 +17,10 @@ type Embed = {
 type SavedWebhook = { name: string; url: string };
 type SavedTemplate = { name: string; embed: Embed };
 
-export default function WebhookPage() {
+export default function WebhookPage(): JSX.Element {
   const user = { plan: "free" };
 
-  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [embed, setEmbed] = useState<Embed>({
     title: "",
     description: "",
@@ -34,11 +34,11 @@ export default function WebhookPage() {
   const [savedWebhooks, setSavedWebhooks] = useState<SavedWebhook[]>([]);
   const [selectedWebhooks, setSelectedWebhooks] = useState<string[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
-  const [newWebhookName, setNewWebhookName] = useState("");
+  const [newWebhookName, setNewWebhookName] = useState<string>("");
 
   const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
-  const [templateNameInput, setTemplateNameInput] = useState("");
-  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
+  const [templateNameInput, setTemplateNameInput] = useState<string>("");
+  const [isEditingTemplate, setIsEditingTemplate] = useState<boolean>(false);
   const [editingTemplateIndex, setEditingTemplateIndex] = useState<
     number | null
   >(null);
@@ -53,16 +53,21 @@ export default function WebhookPage() {
 
     const templates = localStorage.getItem("modix_templates");
     if (templates) {
-      setSavedTemplates(JSON.parse(templates));
+      const parsed: SavedTemplate[] = JSON.parse(templates);
+      setSavedTemplates(parsed);
     }
   }, []);
 
   const saveWebhookToLocal = () => {
-    if (!newWebhookName || !webhookUrl)
-      return alert("Webhook name and URL required.");
-    if (savedWebhooks.some((w) => w.url === webhookUrl))
-      return alert("Webhook URL already saved.");
-    const updated = [
+    if (!newWebhookName || !webhookUrl) {
+      alert("Webhook name and URL required.");
+      return;
+    }
+    if (savedWebhooks.some((w) => w.url === webhookUrl)) {
+      alert("Webhook URL already saved.");
+      return;
+    }
+    const updated: SavedWebhook[] = [
       ...savedWebhooks,
       { name: newWebhookName, url: webhookUrl },
     ];
@@ -89,7 +94,7 @@ export default function WebhookPage() {
 
   const updateField = (index: number, key: keyof Field, value: string) => {
     const newFields = [...embed.fields];
-    newFields[index][key] = value;
+    newFields[index] = { ...newFields[index], [key]: value };
     setEmbed({ ...embed, fields: newFields });
   };
 
@@ -137,8 +142,13 @@ export default function WebhookPage() {
   };
 
   const sendToAll = async () => {
-    if (!selectedWebhooks.length) return alert("Select at least one webhook.");
-    for (const url of selectedWebhooks) await sendToWebhook(url);
+    if (!selectedWebhooks.length) {
+      alert("Select at least one webhook.");
+      return;
+    }
+    for (const url of selectedWebhooks) {
+      await sendToWebhook(url);
+    }
   };
 
   return (
@@ -201,11 +211,11 @@ export default function WebhookPage() {
                 onClick={saveWebhookToLocal}
                 className="w-full bg-[#7289da] hover:bg-[#5a6fc6] transition rounded-md py-2 font-semibold flex justify-center items-center gap-2"
               >
-                {React.createElement(FaDiscord)} Save Webhook
+                <FaDiscord /> Save Webhook
               </button>
             </div>
           </div>
-          {/* ...rest of the component unchanged... */}
+          {/* ...rest of the component */}
         </div>
       </div>
     </div>
