@@ -2,6 +2,7 @@
   "name": "my-panel",
   "version": "0.1.0",
   "private": true,
+  "main": "main.js",
   "scripts": {
     "preinstall": "node scripts/setupBackend.js",
     "setup-backend": "node scripts/setupBackend.js",
@@ -15,7 +16,10 @@
     "start": "next start",
     "lint": "next lint",
     "gen-import-map": "node scripts/generateImportMap.js",
-    "modix-installer": "node scripts/modix-installer.js"
+    "modix-installer": "node scripts/modix-installer.js",
+    "electron": "electron . --no-sandbox",
+    "electron-dev": "electron . --no-sandbox",
+    "dist": "electron-builder"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.6",
@@ -53,6 +57,21 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "electron": "^26.2.0",
+    "electron-builder": "^24.6.0",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.modix.panel",
+    "productName": "Modix Panel",
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "public/icon.png"
+    }
   }
 }
