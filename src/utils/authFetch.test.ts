@@ -5,7 +5,7 @@ import { authFetch, getCookie } from "./authFetch";
 describe("authFetch", () => {
   beforeEach(() => {
     // Mock global.fetch
-    // @ts-ignore
+    // @ts-expect-error - we are intentionally mocking fetch for tests
     global.fetch = jest.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
     );

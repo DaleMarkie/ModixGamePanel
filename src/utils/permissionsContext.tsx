@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+// src/utils/permissionsContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { authFetch } from "@/utils/authFetch";
 
 interface PermissionsContextType {
@@ -6,7 +13,20 @@ interface PermissionsContextType {
   loading: boolean;
 }
 
-const PermissionsContext = createContext<PermissionsContextType>({ permissions: null, loading: true });
+const PermissionsContext = createContext<PermissionsContextType>({
+  permissions: null,
+  loading: true,
+});
+
+// Define API response types
+interface PermissionItem {
+  permission: string;
+}
+
+interface MeResponse {
+  direct_permissions?: PermissionItem[];
+  role_permissions?: PermissionItem[];
+}
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [permissions, setPermissions] = useState<string[] | null>(null);
@@ -16,9 +36,11 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     async function fetchPerms() {
       try {
         const res = await authFetch("/api/auth/me");
-        const data = await res.json();
-        const direct = (data.direct_permissions || []).map((p: any) => p.permission);
-        const role = (data.role_permissions || []).map((p: any) => p.permission);
+        const data: MeResponse = await res.json();
+
+        const direct = (data.direct_permissions || []).map((p) => p.permission);
+        const role = (data.role_permissions || []).map((p) => p.permission);
+
         setPermissions(Array.from(new Set([...direct, ...role])));
       } catch {
         setPermissions([]);
@@ -40,7 +62,13 @@ export function usePermissions() {
   return useContext(PermissionsContext);
 }
 
-export function IfHasPermission({ required, children }: { required: string | string[]; children: ReactNode }) {
+export function IfHasPermission({
+  required,
+  children,
+}: {
+  required: string | string[];
+  children: ReactNode;
+}) {
   const { permissions, loading } = usePermissions();
   if (loading) return null;
   if (!permissions) return null;
