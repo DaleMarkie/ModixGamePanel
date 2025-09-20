@@ -227,3 +227,68 @@ h1 {
 .manage-sessions-btn:hover {
   background-color: #5fa032;
 }
+/* MyAccount.css - compact Settings tab */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin-top: 15px;
+}
+
+.settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-form label {
+  font-weight: 600;
+  color: #ffd700;
+  font-size: 0.95rem;
+}
+
+.settings-form input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #1c1f24;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-form input:focus {
+  border-color: #4fc3f7;
+  outline: none;
+  box-shadow: 0 0 6px rgba(79, 195, 247, 0.4);
+}
+
+.settings-form button {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #4caf50;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.settings-form button:hover:enabled {
+  background-color: #45a049;
+  transform: translateY(-1px);
+}
+
+.settings-form button:disabled {
+  background-color: #777;
+  cursor: not-allowed;
+}
+
+.settings-message {
+  font-weight: bold;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}

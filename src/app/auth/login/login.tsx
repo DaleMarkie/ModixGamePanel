@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./login.css";
 
-const SERVER_URL = "https://329a43d53f2c.ngrok-free.app"; // your Flask server
+const SERVER_URL = "https://7a3513ab76c3.ngrok-free.app/"; // your Flask server
 
 const Login = () => {
   const [username, setUsername] = useState("");

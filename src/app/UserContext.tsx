@@ -1,58 +1,64 @@
+// src/app/UserContext.tsx
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { apiHandler } from "../utils/apiHandler";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
-export interface User {
+interface User {
   username: string;
   email?: string;
-  active: boolean;
-  created_at: string;
-  tfa_enabled: boolean;
-  last_login: string;
+  roles?: string[];
+  permissions?: string[];
+  license_code?: string;
+  last_login?: string;
+  [key: string]: any;
 }
 
 interface UserContextType {
   user: User | null;
-  authenticated: boolean;
+  setUser: (u: User | null) => void;
   loading: boolean;
-  refresh: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType>({
   user: null,
-  authenticated: false,
+  setUser: () => {},
   loading: true,
-  refresh: () => {},
+  refreshUser: async () => {},
 });
 
-export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token");
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setUser(null);
+        return;
+      }
 
-      const statusData = await apiHandler("/api/auth/status", {
+      const res = await fetch("/api/auth/me", {
         headers: { Authorization: token },
       });
-      setAuthenticated(!!statusData.authenticated);
 
-      if (statusData.authenticated) {
-        const meData = await apiHandler("/api/auth/me", {
-          headers: { Authorization: token },
-        });
-        setUser(meData);
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user || data); // support both {user} and direct response
       } else {
         setUser(null);
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch user:", err);
       setUser(null);
-      setAuthenticated(false);
     } finally {
       setLoading(false);
     }
@@ -62,10 +68,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   }, []);
 
+  const refreshUser = async () => {
+    await fetchUser();
+  };
+
   return (
-    <UserContext.Provider
-      value={{ user, authenticated, loading, refresh: fetchUser }}
-    >
+    <UserContext.Provider value={{ user, setUser, loading, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

@@ -6,6 +6,8 @@ import Subscriptions from "../subscriptions/subscriptions";
 import Activity from "../activity/Activity";
 import MyTickets from "../../support/mytickets/MyTickets";
 
+const SERVER_URL = "https://7a3513ab76c3.ngrok-free.app/";
+
 // ---------------- TAB BUTTON ----------------
 const TabButton = ({
   label,
@@ -38,6 +40,16 @@ const MyAccount = () => {
   const [activeTab, setActiveTab] = useState("📊 Dashboard");
   const [user, setUser] = useState<any>(null);
   const [news, setNews] = useState<NewsItem[]>([]);
+
+  // Settings tab states
+  const [oldPassword, setOldPassword] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [settingsMessage, setSettingsMessage] = useState("");
+  const [settingsMessageType, setSettingsMessageType] = useState<
+    "success" | "error"
+  >("success");
+  const [settingsLoading, setSettingsLoading] = useState(false);
 
   // Load user from localStorage
   useEffect(() => {
@@ -177,9 +189,147 @@ const MyAccount = () => {
 
       {/* ---------------- SETTINGS ---------------- */}
       {activeTab === "⚙️ Settings" && (
-        <section className="card">
-          <h3>⚙️ Settings</h3>
-          {/* Settings form/components go here */}
+        <section className="card p-6 space-y-6">
+          <h3 className="text-xl font-semibold mb-4">⚙️ Account Settings</h3>
+
+          <form
+            className="settings-form space-y-4"
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              if (!oldPassword.trim()) {
+                setSettingsMessage("❌ Please enter your current password.");
+                setSettingsMessageType("error");
+                return;
+              }
+
+              if (!newUsername.trim() && !newPassword.trim()) {
+                setSettingsMessage(
+                  "❌ Enter a new username or password to update."
+                );
+                setSettingsMessageType("error");
+                return;
+              }
+
+              setSettingsLoading(true);
+              setSettingsMessage("⏳ Updating account...");
+              setSettingsMessageType("info");
+
+              try {
+                const token = localStorage.getItem("modix_token");
+
+                const res = await fetch(
+                  `${SERVER_URL}/api/auth/update-account`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: token || "",
+                    },
+                    body: JSON.stringify({
+                      old_password: oldPassword,
+                      new_username: newUsername || undefined,
+                      new_password: newPassword || undefined,
+                    }),
+                  }
+                );
+
+                const data = await res.json();
+
+                if (data.success) {
+                  setSettingsMessage("✅ Account updated successfully!");
+                  setSettingsMessageType("success");
+
+                  // Update user in state and localStorage
+                  const updatedUser = {
+                    ...user,
+                    username: newUsername || user.username,
+                  };
+                  setUser(updatedUser);
+                  localStorage.setItem(
+                    "modix_user",
+                    JSON.stringify(updatedUser)
+                  );
+
+                  // Reset form fields
+                  setOldPassword("");
+                  setNewUsername("");
+                  setNewPassword("");
+                } else {
+                  setSettingsMessage(`❌ ${data.message}`);
+                  setSettingsMessageType("error");
+                }
+              } catch (err) {
+                console.error(err);
+                setSettingsMessage(
+                  "❌ Could not reach the server. Try again later."
+                );
+                setSettingsMessageType("error");
+              } finally {
+                setSettingsLoading(false);
+              }
+            }}
+          >
+            <div className="form-group flex flex-col">
+              <label className="mb-1 font-medium">Current Password</label>
+              <input
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                placeholder="Enter your current password"
+                required
+                className="input-field"
+              />
+            </div>
+
+            <div className="form-group flex flex-col">
+              <label className="mb-1 font-medium">New Username</label>
+              <input
+                type="text"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder={user.username}
+                className="input-field"
+              />
+            </div>
+
+            <div className="form-group flex flex-col">
+              <label className="mb-1 font-medium">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Leave blank to keep current password"
+                className="input-field"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={settingsLoading}
+              className={`w-full py-2 rounded-md font-medium transition-colors ${
+                settingsLoading
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
+            >
+              {settingsLoading ? "Updating..." : "Update Account"}
+            </button>
+
+            {settingsMessage && (
+              <p
+                className={`mt-2 font-medium ${
+                  settingsMessageType === "success"
+                    ? "text-green-400"
+                    : settingsMessageType === "error"
+                    ? "text-red-400"
+                    : "text-yellow-400"
+                }`}
+              >
+                {settingsMessage}
+              </p>
+            )}
+          </form>
         </section>
       )}
 
