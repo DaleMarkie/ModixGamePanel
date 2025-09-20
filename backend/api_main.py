@@ -338,6 +338,47 @@ async def get_mod_alerts():
 
     return JSONResponse({"alerts": alerts})
 
+import httpx
+
+# ---------------------------
+# Remote License Verification
+# ---------------------------
+REMOTE_LICENSE_SERVER = "http://REMOTE_FLASK_SERVER_IP:5000"  # replace with your remote Flask server IP
+
+@app.post("/api/licenses/verify-remote")
+async def verify_remote_license(request: Request):
+    """
+    Verify a license code by querying the remote Flask license server.
+    Expects JSON: { "license_code": "CODE123" }
+    """
+    data = await request.json()
+    code = data.get("license_code", "").upper()
+
+    if not code:
+        return JSONResponse({"success": False, "detail": "Missing license code"}, status_code=400)
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                f"{REMOTE_LICENSE_SERVER}/api/licenses/verify",
+                json={"license_code": code}
+            )
+            license_data = response.json()
+
+        if response.status_code == 200 and license_data.get("success"):
+            return {"success": True, "license": license_data.get("license")}
+        else:
+            return JSONResponse({
+                "success": False,
+                "detail": license_data.get("detail", "Invalid or expired license")
+            }, status_code=404)
+
+    except httpx.RequestError as e:
+        return JSONResponse({
+            "success": False,
+            "detail": f"Could not reach remote license server: {str(e)}"
+        }, status_code=502)
+
 # ---------------------------
 # Startup Hooks
 # ---------------------------
