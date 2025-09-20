@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from "react";
-import "./subscriptions.css";
 import { useUser } from "../../UserContext";
+import "./subscriptions.css";
 
-// Define a type for the license info
 interface LicenseInfo {
+  username: string;
   plan: string;
   expires_at?: string | null;
 }
@@ -22,15 +22,16 @@ interface Plan {
   disabled?: boolean;
 }
 
-// Your public ngrok URL
-const LICENSE_SERVER_URL = "https://329a43d53f2c.ngrok-free.app/";
+const LICENSE_SERVER_URL = "https://329a43d53f2c.ngrok-free.app";
 
 const Subscriptions = () => {
-  const { user } = useUser();
-  const [license, setLicense] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [licenseInfo, setLicenseInfo] = useState<LicenseInfo | null>(null);
+  const { user, loading: userLoading } = useUser();
+  const [licenseCode, setLicenseCode] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [currentLicense, setCurrentLicense] = useState<LicenseInfo | null>(
+    null
+  );
 
   const plans: Plan[] = [
     {
@@ -86,36 +87,31 @@ const Subscriptions = () => {
     },
   ];
 
-  // Fetch current license info on load
+  // Only fetch current license once the user is loaded
   useEffect(() => {
-    const fetchLicenseInfo = async () => {
-      if (!user) return;
-
+    const fetchLicense = async () => {
+      if (!user) return; // wait until user is available
       try {
         const res = await fetch(`${LICENSE_SERVER_URL}/api/licenses/list`);
         const data = await res.json();
 
-        // Check if user has a valid license
         const userLicense = Object.values(data).find(
           (lic: any) => lic.username === user.username
-        );
+        ) as LicenseInfo | undefined;
 
-        if (userLicense) {
-          setLicenseInfo(userLicense as LicenseInfo);
-        } else {
-          setLicenseInfo(null);
-        }
+        setCurrentLicense(userLicense || null);
       } catch (err) {
-        console.error("Error fetching license info:", err);
-        setLicenseInfo(null);
+        console.error(err);
+        setCurrentLicense(null);
       }
     };
-    fetchLicenseInfo();
-  }, [user]);
+
+    if (!userLoading) fetchLicense();
+  }, [user, userLoading]);
 
   const handleRedeem = async () => {
-    if (!license) return setMessage("Enter a license code.");
-    if (!user) return setMessage("User not loaded.");
+    if (!licenseCode) return setMessage("Enter a license code.");
+    if (!user) return setMessage("User not loaded yet. Please wait.");
 
     setLoading(true);
     setMessage("");
@@ -125,7 +121,7 @@ const Subscriptions = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          license_code: license.toUpperCase(),
+          license_code: licenseCode,
           username: user.username,
         }),
       });
@@ -133,11 +129,11 @@ const Subscriptions = () => {
       const data = await res.json();
 
       if (data.success) {
-        setLicenseInfo(data.license as LicenseInfo);
+        setCurrentLicense({ username: user.username, ...data.license });
         setMessage(`License redeemed! Plan: ${data.license.plan}`);
-        setLicense("");
+        setLicenseCode("");
       } else {
-        setMessage(data.detail || "Failed to redeem license. Check your code.");
+        setMessage(data.detail || "Failed to redeem license.");
       }
     } catch (err) {
       console.error(err);
@@ -147,9 +143,8 @@ const Subscriptions = () => {
     }
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setLicense(e.target.value.toUpperCase());
-  };
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setLicenseCode(e.target.value.toUpperCase());
 
   return (
     <section className="card subscription-card px-6 py-12">
@@ -196,16 +191,18 @@ const Subscriptions = () => {
         <div className="mb-4 text-green-200">
           <p>
             <span className="font-semibold">Current License:</span>{" "}
-            {licenseInfo ? (
+            {currentLicense ? (
               <>
-                {licenseInfo.plan}{" "}
-                {licenseInfo.expires_at && (
+                {currentLicense.plan}{" "}
+                {currentLicense.expires_at && (
                   <span className="text-green-400">
                     (Expires:{" "}
-                    {new Date(licenseInfo.expires_at).toLocaleDateString()})
+                    {new Date(currentLicense.expires_at).toLocaleDateString()})
                   </span>
                 )}
               </>
+            ) : userLoading ? (
+              "Loading..."
             ) : (
               "Free"
             )}
@@ -215,14 +212,15 @@ const Subscriptions = () => {
         <input
           type="text"
           placeholder="Enter license code"
-          value={license}
+          value={licenseCode}
           onChange={handleInputChange}
           className="license-input"
+          disabled={!user || userLoading}
         />
         <button
           className="upgrade-btn"
           onClick={handleRedeem}
-          disabled={loading}
+          disabled={loading || !user || userLoading}
         >
           {loading ? "Validating..." : "Redeem License"}
         </button>
