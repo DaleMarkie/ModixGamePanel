@@ -10,8 +10,9 @@
   "MODIX_USERS": [
     {
       "username": "test1",
-      "password": "1",
+      "password": "test1",
       "email": "test1@lice.ocm",
+      "license_code": "PRO123", 
       "roles": [
         "Moderator"
       ],

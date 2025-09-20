@@ -23,7 +23,7 @@ interface Plan {
 }
 
 // Your public ngrok URL
-const LICENSE_SERVER_URL = "https://759c8b38ac42.ngrok-free.app";
+const LICENSE_SERVER_URL = "https://329a43d53f2c.ngrok-free.app/";
 
 const Subscriptions = () => {
   const { user } = useUser();

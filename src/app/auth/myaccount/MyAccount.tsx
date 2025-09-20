@@ -1,7 +1,5 @@
 "use client";
 
-import { useUser } from "../../UserContext";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./MyAccount.css";
 import Subscriptions from "../subscriptions/subscriptions";
@@ -37,12 +35,19 @@ interface NewsItem {
 
 // ---------------- MY ACCOUNT ----------------
 const MyAccount = () => {
-  const { user, loading, authenticated, refresh } = useUser();
-  const router = useRouter();
-
   const [activeTab, setActiveTab] = useState("📊 Dashboard");
+  const [user, setUser] = useState<any>(null);
   const [news, setNews] = useState<NewsItem[]>([]);
 
+  // Load user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("modix_user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Fetch news
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -58,15 +63,15 @@ const MyAccount = () => {
     fetchNews();
   }, []);
 
+  // Logout
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    localStorage.clear();
-    refresh();
-    router.push("/auth/login");
+    localStorage.removeItem("modix_user");
+    setUser(null);
+    window.location.href = "/auth/login";
   };
 
-  if (loading) return <div className="loading">Loading account...</div>;
-  if (!authenticated || !user)
+  if (!user)
     return (
       <div className="not-logged">Please log in to access your account.</div>
     );
@@ -107,6 +112,7 @@ const MyAccount = () => {
             <span>
               Joined: {new Date(user.created_at).toLocaleDateString()}
             </span>
+            <p>Last Login: {new Date(user.last_login).toLocaleString()}</p>
             <button className="logout-btn" onClick={handleLogout}>
               Log Out
             </button>
@@ -157,7 +163,6 @@ const MyAccount = () => {
           <h3>🔐 Security</h3>
           <ul>
             <li>2FA: {user.tfa_enabled ? "Enabled" : "Disabled"}</li>
-            <li>Last Login: {new Date(user.last_login).toLocaleString()}</li>
             <li>Active Sessions: {user.sessions?.length || 0}</li>
           </ul>
           <button className="manage-sessions-btn">Manage Sessions</button>
