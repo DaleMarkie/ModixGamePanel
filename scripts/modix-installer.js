@@ -2,6 +2,7 @@
 /**
  * 🚀 Modix Advanced Installer v1.1.2
  * Supported OS: Windows & Linux only
+ * Fully packaged version only — no dev/unpacked mode
  * Developed by OV3RLORD & the Modix Team
  * Website: https://modix.store
  * Discord: https://discord.gg/chYMJTGn
@@ -15,168 +16,112 @@ const net = require("net");
 
 (async () => {
   const inquirer = (await import("inquirer")).default;
+  const chalk = (await import("chalk")).default;
+  const ora = (await import("ora")).default;
 
   const VERSION = "v1.1.2";
 
   if (!["win32", "linux"].includes(process.platform)) {
-    console.error("❌ Modix Installer only supports Windows and Linux.");
+    console.error(chalk.red.bold("❌ Modix Installer only supports Windows and Linux."));
     process.exit(1);
   }
 
   function log(step, msg) {
     const icons = { info: "🔹", ok: "✅", warn: "⚠️", err: "❌", run: "⚡" };
-    console.log(`${icons[step] || "•"} ${msg}`);
-  }
-
-  async function getFreePort(defaultPort) {
-    let port = defaultPort;
-    while (true) {
-      const free = await new Promise((resolve) => {
-        const tester = net
-          .createServer()
-          .once("error", () => resolve(false))
-          .once("listening", () => {
-            tester.once("close", () => resolve(true)).close();
-          })
-          .listen(port);
-      });
-      if (free) return port;
-      port++;
-    }
-  }
-
-  function hashFile(file) {
-    try {
-      return fs.readFileSync(file, "utf8").trim();
-    } catch {
-      return null;
-    }
+    const colors = {
+      info: chalk.cyan,
+      ok: chalk.green,
+      warn: chalk.yellow,
+      err: chalk.red,
+      run: chalk.magenta,
+    };
+    console.log(colors[step] ? colors[step](`${icons[step]} ${msg}`) : msg);
   }
 
   console.clear();
-  console.log("=================================================");
-  console.log("         🚀 Welcome to Modix Installer          ");
-  console.log(`                 Version ${VERSION}                `);
-  console.log(" Supported OS: Windows & Linux only");
-  console.log("=================================================");
-  console.log(" Developed by OV3RLORD & the Modix Team");
-  console.log(" Website: https://modix.store");
-  console.log(" Discord: https://discord.gg/chYMJTGn");
-  console.log("=================================================\n");
+  console.log(chalk.blueBright("================================================="));
+  console.log(chalk.green.bold("        🚀 Welcome to Modix Installer          "));
+  console.log(chalk.yellow(`                 Version ${VERSION}                `));
+  console.log(chalk.cyan("  Supported OS: Windows & Linux only"));
+  console.log(chalk.blueBright("================================================="));
+  console.log(chalk.magenta(" Developed by OV3RLORD & the Modix Team"));
+  console.log(chalk.magenta(" Website: https://modix.store"));
+  console.log(chalk.magenta(" Discord: https://discord.gg/chYMJTGn"));
+  console.log(chalk.blueBright("=================================================\n"));
 
   const backendDir = path.join(__dirname, "../backend");
   const venvDir = path.join(backendDir, "venv");
-  const requirementsFile = path.join(backendDir, "requirements.txt");
   const checksumFile = path.join(__dirname, "../.install_checksums.json");
 
   const prevChecksums = fs.existsSync(checksumFile)
     ? JSON.parse(fs.readFileSync(checksumFile, "utf8"))
     : {};
 
-  const reqHash = hashFile(requirementsFile);
-  if (reqHash !== prevChecksums.requirements) {
-    if (fs.existsSync(venvDir)) fs.rmSync(venvDir, { recursive: true, force: true });
-    log("run", "Creating Python virtual environment...");
-    execSync(
-      `${process.platform === "win32" ? "py -3" : "python3"} -m venv "${venvDir}"`,
-      { stdio: "inherit", shell: true }
-    );
-
-    const pythonVenv =
-      process.platform === "win32"
-        ? path.join(venvDir, "Scripts", "python.exe")
-        : path.join(venvDir, "bin", "python3");
-
-    log("run", "Installing backend dependencies...");
-    execSync(`"${pythonVenv}" -m pip install --upgrade pip`, { stdio: "inherit", shell: true });
-    execSync(`"${pythonVenv}" -m pip install -r "${requirementsFile}"`, { stdio: "inherit", shell: true });
-    log("ok", "Backend setup complete ✅");
-    prevChecksums.requirements = reqHash;
+  // ---------------- Backend Setup (optional, hidden) ----------------
+  // We keep Python venv for internal use but user doesn't interact with it
+  if (!fs.existsSync(venvDir)) {
+    const spinner = ora("Creating Python virtual environment...").start();
+    execSync(`${process.platform === "win32" ? "py -3" : "python3"} -m venv "${venvDir}"`, { stdio: "ignore", shell: true });
+    spinner.succeed("Python virtual environment ready ✅");
   } else {
-    log("ok", "Backend already up-to-date ✅");
-  }
-
-  const pkgLock = hashFile(path.join(__dirname, "../package-lock.json"));
-  if (pkgLock !== prevChecksums.packageLock) {
-    log("run", "Installing frontend dependencies...");
-    execSync("npm ci", { stdio: "inherit", shell: true });
-    log("ok", "Frontend setup complete ✅");
-    prevChecksums.packageLock = pkgLock;
-  } else {
-    log("ok", "Frontend already up-to-date ✅");
-  }
-
-  // ------------------- Ports & .env -------------------
-  const frontendPort = await getFreePort(3000);
-  const backendPort = await getFreePort(2010);
-  const currentOS = process.platform; // "win32" or "linux"
-
-  fs.writeFileSync(
-    path.join(__dirname, "../.env"),
-    `PORT=${frontendPort}\nAPI_PORT=${backendPort}\nREACT_APP_OS=${currentOS}\n`
-  );
-
-  log("ok", `Environment ready → Frontend:${frontendPort} | Backend:${backendPort} | OS:${currentOS}`);
-
-  // ------------------- Launcher scripts -------------------
-  const pythonVenv =
-    process.platform === "win32"
-      ? path.join(venvDir, "Scripts", "python.exe")
-      : path.join(venvDir, "bin", "python3");
-
-  let launcherPath;
-  if (process.platform === "win32") {
-    launcherPath = path.join(__dirname, "../launch_modix.bat");
-    fs.writeFileSync(
-      launcherPath,
-      `@echo off\n` +
-        `echo 🚀 Starting Modix ${VERSION}...\n` +
-        `start "" "${pythonVenv}" -m uvicorn backend.main:app --host 127.0.0.1 --port ${backendPort}\n` +
-        `npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\n`
-    );
-
-    const shortcut = path.join(os.homedir(), "Desktop", "Modix.lnk");
-    execSync(
-      `powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('${shortcut}');$s.TargetPath='${launcherPath}';$s.Save()"`
-    );
-    log("ok", `Windows launcher + Desktop shortcut created`);
-  } else {
-    launcherPath = path.join(__dirname, "../launch_modix.sh");
-    fs.writeFileSync(
-      launcherPath,
-      `#!/bin/bash\n` +
-        `echo "🚀 Starting Modix ${VERSION}..."\n` +
-        `"${pythonVenv}" -m uvicorn backend.main:app --host 127.0.0.1 --port ${backendPort} &\n` +
-        `npx cross-env PORT=${frontendPort} API_PORT=${backendPort} npm run dev\n`
-    );
-    fs.chmodSync(launcherPath, "755");
-    log("ok", `Linux launcher created: ${launcherPath}`);
+    log("ok", "Python virtual environment already exists ✅");
   }
 
   fs.writeFileSync(checksumFile, JSON.stringify(prevChecksums, null, 2));
 
-  const { launch } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "launch",
-      message: `Do you want to launch Modix ${VERSION} now?`,
-      default: true,
-    },
-  ]);
+  // ---------------- Launcher ----------------
+  if (process.platform === "win32") {
+    // Windows -> look for EXE
+    const exePath = path.join(__dirname, "../dist/Modix Panel-0.1.0.exe");
+    if (!fs.existsSync(exePath)) {
+      log("err", "Modix .exe not found! Make sure it's in dist/");
+      process.exit(1);
+    }
 
-  if (launch) {
-    log("run", "Launching Modix in background...");
-    if (process.platform === "win32") {
+    const launcherPath = path.join(__dirname, "../launch_modix.bat");
+    fs.writeFileSync(
+      launcherPath,
+      `@echo off\n` +
+      `echo 🚀 Starting Modix ${VERSION}...\n` +
+      `start "" "${exePath}"`
+    );
+
+    const shortcut = path.join(os.homedir(), "Desktop", "Modix.lnk");
+    execSync(`powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('${shortcut}');$s.TargetPath='${launcherPath}';$s.Save()"`);
+    log("ok", "Windows launcher + Desktop shortcut created ✅");
+
+    const { launch } = await inquirer.prompt([
+      { type: "confirm", name: "launch", message: `Do you want to launch Modix ${VERSION} now?`, default: true }
+    ]);
+    if (launch) {
+      log("run", "Launching Modix...");
       spawn("cmd.exe", ["/c", `start ${launcherPath}`], { detached: true });
-    } else {
-      spawn("sh", ["-c", `${launcherPath} &`], { detached: true });
+    }
+  } else {
+    // Linux -> AppImage only
+    const appImagePath = path.join(__dirname, "../dist/Modix Panel-0.1.0.AppImage");
+    if (!fs.existsSync(appImagePath)) {
+      log("err", "AppImage not found! Make sure it's in dist/");
+      process.exit(1);
+    }
+
+    fs.chmodSync(appImagePath, "755");
+    log("ok", `AppImage ready: ${appImagePath} ✅`);
+
+    const { launch } = await inquirer.prompt([
+      { type: "confirm", name: "launch", message: `Do you want to launch Modix ${VERSION} now?`, default: true }
+    ]);
+    if (launch) {
+      log("run", "Launching Modix AppImage...");
+      spawn("sh", ["-c", `${appImagePath} &`], { detached: true });
     }
   }
 
-  console.log("\n=================================================");
-  console.log(` ✅ Modix ${VERSION} installation complete`);
-  console.log("    Developed by OV3RLORD & the Modix Team");
-  console.log("    Website: https://modix.store");
-  console.log("    Discord: https://discord.gg/chYMJTGn");
-  console.log("=================================================\n");
+  console.log(chalk.greenBright("\n================================================="));
+  console.log(chalk.green.bold(` ✅ Modix ${VERSION} installation complete`));
+  console.log(chalk.cyan("    Developed by OV3RLORD & the Modix Team"));
+  console.log(chalk.cyan("    Website: https://modix.store"));
+  console.log(chalk.cyan("    Discord: https://discord.gg/chYMJTGn"));
+  console.log(chalk.greenBright("=================================================\n"));
+
 })();

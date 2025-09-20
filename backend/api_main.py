@@ -28,6 +28,8 @@ from all_players_api import router as all_players_router
 from api_chatlogs import router as chatlogs_router
 from PlayersBannedAPI import router as players_banned_router
 
+from backend.API.Core.tools_api.portcheck_api import router as portcheck_router
+
 
 # === Game Specific APIs (raw routers) ===
 from backend.API.Core.mod_debugger_api import router as mod_debugger_router
@@ -52,6 +54,8 @@ app.include_router(steam_notes_router)
 app.include_router(all_players_router)
 app.include_router(chatlogs_router)
 app.include_router(players_banned_router)
+# === Tools ===
+app.include_router(portcheck_router, prefix="/api")
 
 # === Project Zomboid APIs ===
 
@@ -411,52 +415,6 @@ async def get_mod_alerts():
                 })
 
     return JSONResponse({"alerts": alerts})
-
-
-# ---------------------------
-# Game Server Ports Checker
-# ---------------------------
-DEFAULT_GAME_PORTS = {
-    "Project Zomboid": 16261,
-    "DayZ": 2302,
-    "RimWorld": 27015,
-}
-
-def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
-    """Check if a TCP port is open on the given host."""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (socket.timeout, ConnectionRefusedError, OSError):
-        return False
-
-@app.get("/api/server/game-ports")
-async def check_game_ports(host: str = "127.0.0.1", custom_ports: str = None):
-    """
-    Check default game server ports (Project Zomboid, DayZ, RimWorld) 
-    and optionally custom ports.
-    Query params:
-    - host: IP or hostname to check (default 127.0.0.1)
-    - custom_ports: comma-separated ports, e.g., ?custom_ports=27016,27017
-    """
-    results = []
-
-    # Check default game ports
-    for game, port in DEFAULT_GAME_PORTS.items():
-        status = "open" if is_port_open(host, port) else "closed"
-        results.append({"name": game, "port": port, "status": status})
-
-    # Check custom ports if provided
-    if custom_ports:
-        for p in custom_ports.split(","):
-            try:
-                port = int(p.strip())
-                status = "open" if is_port_open(host, port) else "closed"
-                results.append({"name": f"Custom Port {port}", "port": port, "status": status})
-            except ValueError:
-                continue
-
-    return JSONResponse({"servers": results})
 
 # ---------------------------
 # Project Zomboid Workshop Mods API
