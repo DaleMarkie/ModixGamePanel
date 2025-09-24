@@ -389,6 +389,99 @@ def on_startup():
     register_module_permissions()
 
 # ---------------------------
+# Project Zomboid Server Start/Stop (Windows/Linux Support)
+# ---------------------------
+running_pz_process: Optional[subprocess.Popen] = None
+pz_log_queue: asyncio.Queue = asyncio.Queue()
+
+def is_port_in_use(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+async def stream_pz_output(stream, prefix: str):
+    loop = asyncio.get_event_loop()
+    while True:
+        line = await loop.run_in_executor(None, stream.readline)
+        if not line:
+            break
+        await pz_log_queue.put(f"[{prefix}] {line.strip()}")
+
+async def monitor_pz_exit(process: subprocess.Popen):
+    global running_pz_process
+    await asyncio.get_event_loop().run_in_executor(None, process.wait)
+    await pz_log_queue.put("[SYSTEM] Server stopped")
+    running_pz_process = None
+
+@app.post("/api/projectzomboid/start")
+async def start_project_zomboid(request: Request):
+    global running_pz_process
+    if running_pz_process:
+        return error_response("BACKEND_001", 400, "Server already running")
+
+    data = await request.json()
+    os_type = data.get("os", "windows").lower()  # 'windows' or 'linux'
+    batch_file = data.get("batchFile")
+    port = data.get("port", 16261)
+
+    if not batch_file or not os.path.isfile(batch_file):
+        return error_response("GAME_002", 404, f"Batch/sh file not found: {batch_file}")
+
+    if is_port_in_use(port):
+        return error_response("PORT_004", 409, f"Port {port} already in use")
+
+    try:
+        if os_type == "windows":
+            running_pz_process = subprocess.Popen(
+                f'cmd /c "{batch_file}"',
+                cwd=os.path.dirname(batch_file),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+                text=True,
+                bufsize=1
+            )
+        elif os_type == "linux":
+            running_pz_process = subprocess.Popen(
+                ["bash", batch_file],
+                cwd=os.path.dirname(batch_file),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
+        else:
+            return error_response("GAME_001", 400, f"Unknown OS: {os_type}")
+
+        asyncio.create_task(stream_pz_output(running_pz_process.stdout, "OUT"))
+        asyncio.create_task(stream_pz_output(running_pz_process.stderr, "ERR"))
+        asyncio.create_task(monitor_pz_exit(running_pz_process))
+
+        return {"status": "running", "message": f"Project Zomboid ({os_type}) server started"}
+    except Exception as e:
+        running_pz_process = None
+        return error_response("BACKEND_001", 500, str(e))
+
+@app.post("/api/projectzomboid/stop")
+async def stop_project_zomboid():
+    global running_pz_process
+    if not running_pz_process:
+        return {"status": "stopped", "message": "Server not running"}
+
+    running_pz_process.terminate()
+    running_pz_process = None
+    await pz_log_queue.put("[SYSTEM] Server stopped manually")
+    return {"status": "stopped", "message": "Server terminated"}
+
+@app.get("/api/projectzomboid/terminal/log-stream")
+async def pz_terminal_log_stream():
+    async def event_generator():
+        while True:
+            log = await pz_log_queue.get()
+            yield f"data: {log}\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+# ---------------------------
 # Entrypoint
 # ---------------------------
 if __name__ == "__main__":

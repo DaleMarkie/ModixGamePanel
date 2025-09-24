@@ -19,7 +19,6 @@ const Login = () => {
   const [message, setMessage] = useState<{ text: string; type: "error" | "success" | "info" } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // ---------------- Load last user ----------------
   useEffect(() => {
     const lastUser = localStorage.getItem("modix_last_username");
     const lastLicense = localStorage.getItem("modix_last_license");
@@ -69,8 +68,10 @@ const Login = () => {
         const result = await res.json();
 
         if (res.ok && result.token) {
+          // Save token and user
           localStorage.setItem("modix_token", result.token);
           localStorage.setItem("modix_user", JSON.stringify(result.user));
+
           if (rememberMe) {
             localStorage.setItem("modix_last_username", username);
             localStorage.setItem("modix_last_license", license);
@@ -78,6 +79,7 @@ const Login = () => {
             localStorage.removeItem("modix_last_username");
             localStorage.removeItem("modix_last_license");
           }
+
           router.push("/auth/myaccount");
         } else if (res.ok && result.success && mode === "signup") {
           setMessage({ text: "✅ Account created! You can now log in.", type: "success" });
@@ -85,7 +87,12 @@ const Login = () => {
           setPassword("");
           setEmail("");
         } else {
-          throw new Error(result.message || "Something went wrong.");
+          // License-specific messages
+          let msg = result.message || "Something went wrong.";
+          if (msg.includes("License")) {
+            msg = `⚠️ ${msg}`;
+          }
+          throw new Error(msg);
         }
       }
     } catch (err: any) {
@@ -100,8 +107,7 @@ const Login = () => {
     <div
       className="login-background"
       style={{
-        backgroundImage:
-          'url("https://upload.wikimedia.org/wikipedia/en/7/73/Project_Zomboid_cover.png")',
+        backgroundImage: 'url("https://upload.wikimedia.org/wikipedia/en/7/73/Project_Zomboid_cover.png")',
         backgroundSize: "cover",
         backgroundPosition: "center",
         height: "100vh",
@@ -112,11 +118,7 @@ const Login = () => {
     >
       <form className="login-form" onSubmit={handleSubmit}>
         <h2>
-          {mode === "login"
-            ? "Sign In"
-            : mode === "signup"
-            ? "Sign Up"
-            : "Recover Account"}
+          {mode === "login" ? "Sign In" : mode === "signup" ? "Sign Up" : "Recover Account"}
         </h2>
 
         <input
@@ -148,10 +150,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-              >
+              <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? "🙈" : "👁️"}
               </span>
             </div>
@@ -165,18 +164,14 @@ const Login = () => {
                 required
               />
               <p className="license-helper">
-                Use <strong>"FREE"</strong> for free core features!
+                Use <strong>"FREE"</strong> for free core features, Pro for more sub-users.
               </p>
             </div>
 
             {mode === "login" && (
               <div className="remember-me">
                 <label className="custom-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                   <span className="checkmark" />
                   Remember Me
                 </label>
@@ -188,11 +183,7 @@ const Login = () => {
         {message && (
           <div
             className={`message ${
-              message.type === "success"
-                ? "text-green-400"
-                : message.type === "error"
-                ? "text-red-400"
-                : "text-white"
+              message.type === "success" ? "text-green-400" : message.type === "error" ? "text-red-400" : "text-white"
             }`}
           >
             {message.text}
@@ -200,26 +191,32 @@ const Login = () => {
         )}
 
         <button type="submit" disabled={loading}>
-          {loading
-            ? "Processing..."
-            : mode === "login"
-            ? "🚀 Log In"
-            : mode === "signup"
-            ? "🚀 Sign Up"
-            : "Send Recovery Email"}
+          {loading ? "Processing..." : mode === "login" ? "🚀 Log In" : mode === "signup" ? "🚀 Sign Up" : "Send Recovery Email"}
         </button>
 
         <p className="toggle-link">
-  Don't have an account?{" "}
-  <strong onClick={() => { resetMessages(); setMode("signup"); }}>
-    Sign Up / Recover
-  </strong>{" "}
-  |{" "}
-  <strong onClick={() => { resetMessages(); setMode("recover"); }}>
-    Recover Account
-  </strong>
-</p>
-
+          {mode !== "signup" && (
+            <strong
+              onClick={() => {
+                resetMessages();
+                setMode("signup");
+              }}
+            >
+              Sign Up
+            </strong>
+          )}{" "}
+          |{" "}
+          {mode !== "recover" && (
+            <strong
+              onClick={() => {
+                resetMessages();
+                setMode("recover");
+              }}
+            >
+              Recover Account
+            </strong>
+          )}
+        </p>
       </form>
     </div>
   );

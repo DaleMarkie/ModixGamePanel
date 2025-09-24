@@ -1,295 +1,343 @@
-/* --- Terminal Wrapper --- */
-.terminal-wrapper {
-  display: flex;
-  flex: 1;
-  width: 100vw;
-  height: 100vh;
+/* terminal.css - Full immersive terminal style */
+
+:root {
+  --bg-color: #0d0d0d;
+  --panel-bg: #111111;
+  --header-bg: #1a1a1a;
+  --tab-active: #222222;
+  --tab-inactive: #111111;
+  --text-color: #cfd8dc;
+  --accent-color: #027208;
+  --error-color: #ff5370;
+  --system-color: #027208;
+  --command-color: #69f0ae;
+  --button-bg: #1f1f1f;
+  --button-hover: #333333;
+  --modal-bg: rgba(0, 0, 0, 0.8);
+  --modal-content-bg: #1b1b1b;
+  --input-bg: #262626;
+  --input-text: #cfd8dc;
+}
+
+body {
   margin: 0;
-  padding: 0;
-  border-radius: 0;
-  overflow: hidden;
-  background: #121212;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Fira Code", monospace;
+  background: var(--bg-color);
+  color: var(--text-color);
 }
 
-/* --- Sidebar --- */
-.sidebar {
-  background: #181818;
-  border-right: 1px solid #222;
-  padding: 14px 10px;
-  min-width: 180px;
-  max-width: 200px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 13px;
-}
-
-.sidebar h3 {
-  color: #ddd;
-  margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  border-bottom: 1px solid #2a2a2a;
-  padding-bottom: 4px;
-}
-
-.sidebar button {
-  background: #0f3d1d;
-  color: #f5f5f5;
-  border: 1px solid #1a5a2f;
-  border-radius: 6px;
-  padding: 6px 8px;
-  text-align: left;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.sidebar button:hover:not(:disabled) {
-  background: #166c35;
-}
-
-.sidebar button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* --- Terminal Layout --- */
+/* Terminal Layout */
 .terminal-layout {
-  flex: 1;
-  background: #121212;
   display: flex;
   flex-direction: column;
+  height: 250vh; /* Fill full viewport */
   overflow: hidden;
 }
 
 /* Header */
-.terminal-header-box {
+.terminal-header {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  background: #181818;
-  padding: 10px 14px;
-  border-bottom: 1px solid #222;
-  gap: 10px;
+  padding: 10px 15px;
+  background: var(--header-bg);
+  border-bottom: 1px solid #333;
+  flex-shrink: 0; /* Keep header height fixed */
 }
 
-.status {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ddd;
+.terminal-header .status {
+  font-weight: bold;
+  font-size: 14px;
+  font-family: monospace;
 }
 
-.status.running {
-  color: #4caf50;
-}
-
-.status.stopped {
-  color: #f44336;
-}
-
-/* Header controls */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.controls button {
-  background: #0f3d1d;
-  color: #f5f5f5;
-  border: 1px solid #1a5a2f;
-  border-radius: 6px;
+.header-controls button {
+  margin-right: 8px;
   padding: 5px 10px;
-  font-size: 13px;
+  border: none;
+  background: var(--button-bg);
+  color: var(--text-color);
   cursor: pointer;
-  transition: 0.2s ease;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
-.controls button:hover:not(:disabled) {
-  background: #166c35;
+.header-controls button:hover {
+  background: var(--button-hover);
 }
 
-.controls button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.log-search {
-  background: #101010;
-  border: 1px solid #2c2c2c;
-  border-radius: 6px;
-  padding: 5px 8px;
-  color: #f5f5f5;
-  font-size: 13px;
-  width: 150px;
+.header-controls input[type="text"] {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: none;
+  background: var(--input-bg);
+  color: var(--input-text);
+  width: 200px;
 }
 
 /* Tabs */
 .terminal-tabs {
   display: flex;
-  flex-direction: row;
-  background: #1b1b1b;
-  border-bottom: 2px solid #2a2a2a;
+  background: var(--panel-bg);
+  flex-shrink: 0;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 8px 10px;
   border: none;
-  background: #2a2a2a;
-  color: #ccc;
-  font-size: 0.95rem;
-  font-weight: 500;
+  background: var(--tab-inactive);
+  color: var(--text-color);
   cursor: pointer;
-  transition: 0.2s ease;
-  text-align: center;
-}
-
-.tab-btn:hover {
-  background: #3a3a3a;
-  color: #fff;
+  font-weight: bold;
+  transition: all 0.2s;
 }
 
 .tab-btn.active {
-  background: #01891c;
-  color: #fff;
-  font-weight: 600;
+  background: var(--tab-active);
+  color: var(--accent-color);
 }
 
 /* Logs */
 .terminal-logs {
-  flex: 1;
-  background: #0f0f0f;
-  padding: 10px;
+  flex: 1; /* Take remaining height */
+  background: var(--panel-bg);
   overflow-y: auto;
-  font-size: 12px;
-  line-height: 1.4;
-  border-bottom: 1px solid #222;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: "Fira Code", monospace;
+  scrollbar-width: thin;
+  scrollbar-color: #555 transparent;
+  scroll-behavior: smooth;
 }
 
-.terminal-log {
-  margin: 1px 0;
-  font-family: "JetBrains Mono", monospace;
+.terminal-logs::-webkit-scrollbar {
+  width: 10px;
+}
+
+.terminal-logs::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 5px;
+}
+
+.terminal-logs pre {
+  margin: 0;
   white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
+.terminal-log.no-results {
+  color: #888;
+}
+
+/* Log colors */
 .log-default {
-  color: #dddddd;
-}
-.log-timestamp {
-  color: #888888;
-}
-.log-command {
-  color: #4fc3f7;
-  font-weight: 600;
-}
-.log-system {
-  color: #4caf50;
-  font-weight: 500;
-}
-.log-install {
-  color: #ffb74d;
-  font-style: italic;
+  color: var(--text-color);
 }
 .log-error {
-  color: #ffeb3b;
-  font-weight: 700;
+  color: var(--error-color);
 }
-.terminal-log.no-results {
-  color: #777;
-  text-align: center;
-  padding: 10px;
+.log-system {
+  color: var(--system-color);
+}
+.log-command {
+  color: var(--command-color);
 }
 
-/* --- Command Form --- */
+/* Blinking cursor */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  background-color: var(--accent-color);
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+  vertical-align: bottom;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Command input */
 .command-form {
   display: flex;
-  gap: 6px;
-  background: #181818;
+  gap: 5px;
   padding: 10px;
-  border-top: 1px solid #222;
+  background: var(--panel-bg);
+  border-top: 1px solid #333;
+  flex-shrink: 0; /* Fixed height */
 }
 
-.command-form input[type="text"] {
+.command-form input[type="text"],
+.command-form select {
   flex: 1;
-  background: #101010;
-  border: 1px solid #2c2c2c;
-  border-radius: 6px;
-  padding: 7px 9px;
-  color: #f5f5f5;
-  font-size: 13px;
-}
-
-.command-form input:focus {
-  outline: none;
-  border-color: #2a8f4a;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--input-text);
 }
 
 .command-form button {
-  background: #0f3d1d;
-  color: #f5f5f5;
-  border: 1px solid #1a5a2f;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  background: var(--button-bg);
+  color: var(--text-color);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s;
 }
 
-.command-form button:hover:not(:disabled) {
-  background: #166c35;
+.command-form button:hover {
+  background: var(--button-hover);
 }
 
-.command-form button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* --- Log controls (Copy / Clear) --- */
-.log-controls {
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--modal-bg);
   display: flex;
-  gap: 6px;
-  background: #181818;
-  padding: 8px 10px;
-  border-bottom: 1px solid #222;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
 }
 
-.log-controls button {
-  background: #0f3d1d;
-  color: #f5f5f5;
-  border: 1px solid #1a5a2f;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.log-controls button:hover:not(:disabled) {
-  background: #166c35;
-}
-
-.log-controls button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.terminal-layout {
+.modal-content {
+  background: var(--modal-content-bg);
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
   display: flex;
   flex-direction: column;
-  height: 180vh;       /* fills screen */
-  overflow: hidden;    /* prevents page scroll */
+  gap: 10px;
 }
 
-.terminal-logs {
+.modal-content h2 {
+  margin: 0 0 10px 0;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="password"] {
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+  background: var(--input-bg);
+  color: var(--input-text);
+  width: 100%;
+}
+
+.confirm-btn {
+  padding: 8px 10px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-btn:hover {
+  background: #056f02;
+}
+
+/* Recent batches */
+.recent-batches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.recent-batches button {
+  padding: 4px 8px;
+  background: var(--button-bg);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.recent-batches button:hover {
+  background: var(--button-hover);
+}
+
+/* OS selector in modal */
+.os-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.os-selector button {
   flex: 1;
-  background: #0f0f0f;
-  padding: 10px;
-  font-size: 12px;
-  line-height: 1.4;
-  border-bottom: 1px solid #222;
-  overflow-y: auto;   /* scroll inside logs */
-  overflow-x: hidden;
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--button-bg);
+  color: var(--text-color);
+  transition: all 0.2s;
+}
+
+.os-selector button.active {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+/* Smooth log scrolling */
+.terminal-logs {
+  scroll-behavior: smooth;
+}
+
+/* Make terminal taller for small screens */
+@media (max-height: 700px) {
+  .terminal-logs {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .command-form input[type="text"],
+  .command-form select {
+    font-size: 12px;
+  }
+  .header-controls input[type="text"] {
+    width: 150px;
+  }
+}
+/* Top OS selector toolbar */
+.os-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.os-selector button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--button-bg);
+  color: var(--text-color);
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.os-selector button:hover {
+  background: var(--button-hover);
+}
+
+.os-selector button.active {
+  background: var(--accent-color);
+  color: #000;
+}
+
+/* Adjust modal for OS selector */
+.modal-content input[type="text"] {
+  margin-bottom: 10px;
 }

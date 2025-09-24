@@ -1,10 +1,13 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+"use client";
+
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import "./MyAccount.css";
 import Subscriptions from "../subscriptions/subscriptions";
 import Activity from "../activity/Activity";
 import MyTickets from "../../support/mytickets/MyTickets";
 import WelcomePopup from "./welcome/welcome-popup";
-import { getServerUrl } from "@/app/config"; // centralized config
+import Users from "./subusers/Users";
+import { getServerUrl } from "@/app/config";
 
 const Settings = lazy(() => import("./settings/mySettings"));
 
@@ -12,15 +15,18 @@ const TabButton = ({
   label,
   active,
   onClick,
+  disabled,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) => (
   <button
-    className={`tab ${active ? "active" : ""}`}
-    onClick={onClick}
+    className={`tab ${active ? "active" : ""} ${disabled ? "tab-disabled" : ""}`}
+    onClick={disabled ? undefined : onClick}
     aria-current={active ? "page" : undefined}
+    disabled={disabled}
   >
     {label}
   </button>
@@ -32,6 +38,7 @@ const MyAccount = () => {
   const [userLogs, setUserLogs] = useState<any[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
 
+  // Load user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("modix_user");
     if (storedUser) {
@@ -45,6 +52,7 @@ const MyAccount = () => {
     }
   }, []);
 
+  // Fetch login history
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -72,16 +80,22 @@ const MyAccount = () => {
   };
 
   if (!user)
-    return <div className="not-logged">Please log in to access your account.</div>;
+    return (
+      <div className="not-logged">Please log in to access your account.</div>
+    );
 
-  const tabs = [
-    "📊 Dashboard",
-    "🔐 Security",
-    "📜 Activity",
-    "🪪 Subscriptions",
-    "⚙️ Settings",
-    "🛠️ Support",
+  // Define tabs with access rules
+  const allTabs = [
+    { label: "📊 Dashboard", roles: ["Owner", "SubUser"] },
+    { label: "🔐 Security", roles: ["Owner"] },
+    { label: "📜 Activity", roles: ["Owner", "SubUser"] },
+    { label: "🪪 Subscriptions", roles: ["Owner"] },
+    { label: "👥 Sub-Users", roles: ["Owner"] },
+    { label: "⚙️ Settings", roles: ["Owner"] },
+    { label: "🛠️ Support", roles: ["Owner", "SubUser"] },
   ];
+
+  const userRole = user.role || "SubUser"; // fallback
 
   return (
     <div className="myaccount-container">
@@ -93,12 +107,13 @@ const MyAccount = () => {
       </header>
 
       <nav className="tabs" aria-label="Account navigation">
-        {tabs.map((tab) => (
+        {allTabs.map((tab) => (
           <TabButton
-            key={tab}
-            label={tab}
-            active={activeTab === tab}
-            onClick={() => setActiveTab(tab)}
+            key={tab.label}
+            label={tab.label}
+            active={activeTab === tab.label}
+            disabled={!tab.roles.includes(userRole)}
+            onClick={() => setActiveTab(tab.label)}
           />
         ))}
       </nav>
@@ -138,9 +153,21 @@ const MyAccount = () => {
             ))}
           </section>
 
-          {/* Row with 3 boxes */}
+          {/* Permissions Card */}
           <section className="dashboard-row">
-            {/* Last Logins */}
+            <div className="dashboard-card">
+              <h3>🛡️ Permissions</h3>
+              <ul>
+                {allTabs
+                  .filter((tab) => tab.roles.includes(userRole))
+                  .map((tab) => (
+                    <li key={tab.label}>{tab.label}</li>
+                  ))}
+              </ul>
+            </div>
+          </section>
+
+          <section className="dashboard-row">
             <div className="dashboard-card">
               <h3>📝 Last Logins (Past 7)</h3>
               {userLogs.length ? (
@@ -172,22 +199,6 @@ const MyAccount = () => {
                 <p className="no-logs">No recent logins.</p>
               )}
             </div>
-
-            {/* Change Logs */}
-            <div className="dashboard-card">
-              <h3>📝 Change Logs</h3>
-              {user.change_logs && user.change_logs.length ? (
-                <ul>
-                  {user.change_logs.map((log, idx) => (
-                    <li key={idx}>
-                      <span>{new Date(log.date).toLocaleDateString()}:</span> {log.change}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No recent changes.</p>
-              )}
-            </div>
           </section>
         </>
       )}
@@ -195,7 +206,8 @@ const MyAccount = () => {
       {activeTab === "🔐 Security" && <div>Security Tab Content</div>}
       {activeTab === "📜 Activity" && <Activity />}
       {activeTab === "🪪 Subscriptions" && <Subscriptions />}
-      {activeTab === "⚙️ Settings" && (
+      {activeTab === "👥 Sub-Users" && userRole === "Owner" && <Users />}
+      {activeTab === "⚙️ Settings" && userRole === "Owner" && (
         <Suspense fallback={<div>Loading Settings...</div>}>
           <Settings />
         </Suspense>
