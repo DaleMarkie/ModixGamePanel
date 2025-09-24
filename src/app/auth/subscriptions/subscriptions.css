@@ -1,289 +1,163 @@
+/* ------------------- General Card ------------------- */
 .subscription-card {
-  background-color: #1c1f24;
-  color: #e0e0e0;
+  background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
   border-radius: 16px;
-  padding: 30px;
-  width: 95%;
-  max-width: 1000px; /* bigger card */
-  margin: 20px auto 40px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  color: #e5e5e5;
+  font-family: "Inter", sans-serif;
 }
 
+/* ------------------- Header ------------------- */
 .subscription-card h3 {
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-  color: #ffd700;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #f0f0f0;
 }
 
-.subscription-info {
-  margin-bottom: 25px;
-  font-size: 1.1rem;
-}
-
-.redeem-section {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.license-input {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: none;
-  background-color: #2a2d33;
-  color: #e0e0e0;
-  font-size: 1rem;
-}
-
-.license-input:focus {
-  outline: 2px solid #4fc3f7;
-}
-
-.upgrade-btn {
-  background-color: #4caf50;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  color: #fff;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.upgrade-btn:hover:enabled {
-  background-color: #45a049;
-  transform: translateY(-2px);
-}
-
-.upgrade-btn:disabled {
-  background-color: #777;
-  cursor: not-allowed;
-}
-
-.license-message {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #ffd700;
-  font-size: 1.05rem;
-}
-
-.logs-section {
-  margin-top: 30px;
-}
-
-.logs-section h4 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
-  color: #ffd700;
-}
-
-.logs-container {
-  max-height: 450px; /* taller log area */
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-right: 5px;
-}
-
-.log-entry {
-  background-color: #2a2d33;
-  padding: 14px 18px; /* bigger padding */
-  border-left: 5px solid #4fc3f7; /* thicker border */
-  border-radius: 10px;
+/* ------------------- License Info Horizontal ------------------- */
+.license-info {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  font-size: 1rem; /* larger text */
-  transition: background-color 0.2s, transform 0.2s;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.log-entry:hover {
-  background-color: #33363d;
-  transform: translateX(4px);
-}
-
-.log-time {
-  color: #b0bec5;
-  min-width: 160px;
-}
-
-.log-user {
-  color: #4fc3f7;
-  font-weight: bold;
-}
-
-.log-action {
-  color: #e0e0e0;
-}
-
-.no-logs {
-  text-align: center;
-  color: #888;
-  font-style: italic;
-  padding: 25px 0;
-  font-size: 1rem;
-}
-.subscription-card {
-  background-color: #1c1f24;
-  color: #e0e0e0;
-  border-radius: 16px;
-  padding: 30px;
-  width: 95%;
-  max-width: 1000px;
-  margin: 20px auto 40px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.subscription-card h3 {
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-  color: #ffd700;
-  text-align: center;
-}
-
-.subscription-info {
-  margin-bottom: 25px;
-  font-size: 1.1rem;
-  background: #2a2d33;
-  border-radius: 12px;
-  padding: 15px 20px;
-  border-left: 6px solid #4fc3f7;
-}
-
-.subscription-info strong {
-  color: #4fc3f7;
-}
-
-.license-details {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.license-info p {
+  margin: 0;
   font-size: 0.95rem;
-  color: #b0bec5;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  flex: 1 1 120px; /* grow, shrink, basis */
+  text-align: center;
 }
 
-.license-details span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.license-info strong {
+  color: #ffd700; /* golden accent */
 }
 
-.license-details .label {
-  font-weight: bold;
+/* ------------------- Active Users Section ------------------- */
+.active-users-section {
+  margin-top: 1.5rem;
+}
+
+.active-users-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
   color: #ffd700;
-  min-width: 120px;
+  margin-bottom: 0.5rem;
 }
 
+.active-users-section ul {
+  list-style: none;
+  padding-left: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.active-users-section li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin-bottom: 0.25rem;
+  transition: background 0.2s;
+}
+
+.active-users-section li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ------------------- Kick Button ------------------- */
+.kick-btn {
+  background: transparent;
+  border: 1px solid #ff5555;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.kick-btn:hover {
+  background-color: #ff5555;
+  color: #fff;
+}
+
+/* ------------------- Redeem Section ------------------- */
 .redeem-section {
   display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.license-input {
+.redeem-section input {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: none;
-  background-color: #2a2d33;
-  color: #e0e0e0;
-  font-size: 1rem;
-}
-
-.license-input:focus {
-  outline: 2px solid #4fc3f7;
-}
-
-.upgrade-btn {
-  background-color: #4caf50;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background-color: #2a2a2a;
   color: #fff;
-  transition: background-color 0.2s, transform 0.2s;
+  font-size: 0.95rem;
+  transition: border 0.2s;
 }
 
-.upgrade-btn:hover:enabled {
-  background-color: #45a049;
-  transform: translateY(-2px);
+.redeem-section input:focus {
+  border-color: #ffd700;
+  outline: none;
 }
 
-.upgrade-btn:disabled {
-  background-color: #777;
+.redeem-section button {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background-color: #ffd700;
+  color: #1a1a1a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.redeem-section button:disabled {
+  background-color: #999;
   cursor: not-allowed;
 }
 
+.redeem-section button:hover:not(:disabled) {
+  background-color: #e6c200;
+}
+
+/* ------------------- Messages ------------------- */
 .license-message {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #ffd700;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
 }
 
-/* Logs Section */
-.logs-section {
-  margin-top: 30px;
+/* ------------------- Scrollbar Styling ------------------- */
+.active-users-section ul::-webkit-scrollbar {
+  width: 6px;
 }
 
-.logs-section h4 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
-  color: #ffd700;
+.active-users-section ul::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }
 
-.logs-container {
-  max-height: 450px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-right: 5px;
+.active-users-section ul::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.log-entry {
-  background-color: #2a2d33;
-  padding: 14px 18px;
-  border-left: 5px solid #4fc3f7;
-  border-radius: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  font-size: 1rem;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.log-entry:hover {
-  background-color: #33363d;
-  transform: translateX(4px);
-}
-
-.log-time {
-  color: #b0bec5;
-  min-width: 160px;
-}
-
-.log-user {
-  color: #4fc3f7;
-  font-weight: bold;
-}
-
-.log-action {
-  color: #e0e0e0;
-}
-
-.no-logs {
-  text-align: center;
-  color: #888;
-  font-style: italic;
-  padding: 25px 0;
-  font-size: 1rem;
+/* ------------------- Responsive ------------------- */
+@media (max-width: 480px) {
+  .license-info {
+    flex-direction: column;
+  }
 }

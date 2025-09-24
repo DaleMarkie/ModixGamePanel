@@ -15,14 +15,13 @@ interface Ticket {
   page: string;
   created: string;
   updated: string;
-  userId: string; // strictly string
+  userId: string;
 }
 
 export default function MyTickets() {
   const { user, loading, authenticated } = useUser();
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
-
   const [newSubject, setNewSubject] = useState("");
   const [newPriority, setNewPriority] = useState("medium");
   const [newCategory, setNewCategory] = useState("general");
@@ -41,7 +40,7 @@ export default function MyTickets() {
         page: "dashboard",
         created: "2025-08-05",
         updated: "2025-08-08",
-        userId: String(user.id), // ✅ cast to string
+        userId: String(user.id),
       },
       {
         id: "TCK-002",
@@ -74,7 +73,7 @@ export default function MyTickets() {
       page: newPage,
       created: new Date().toISOString().slice(0, 10),
       updated: new Date().toISOString().slice(0, 10),
-      userId: String(user.id), // ✅ cast to string
+      userId: String(user.id),
     };
 
     setTickets((prev) => [newTicket, ...prev]);
@@ -84,14 +83,6 @@ export default function MyTickets() {
     setNewCategory("general");
     setNewPage("dashboard");
   };
-
-  if (loading) return <div>Loading your tickets...</div>;
-  if (!authenticated)
-    return (
-      <div className="mytickets-not-auth">
-        Please log in to view your tickets.
-      </div>
-    );
 
   return (
     <main className="mytickets-container">
@@ -104,6 +95,17 @@ export default function MyTickets() {
         View and track your support requests with the Modix team.
       </p>
 
+      {/* ---------------- Inline Status Messages ---------------- */}
+      {loading && (
+        <div className="tickets-status inline">Loading your tickets...</div>
+      )}
+      {!loading && !authenticated && (
+        <div className="tickets-status inline">
+          Please log in to view your tickets.
+        </div>
+      )}
+
+      {/* ---------------- Ticket Form ---------------- */}
       <div className="ticket-form">
         <h2>Create New Ticket</h2>
         <div className="form-row">
@@ -112,11 +114,13 @@ export default function MyTickets() {
             placeholder="Subject"
             value={newSubject}
             onChange={(e) => setNewSubject(e.target.value)}
+            disabled={!authenticated}
           />
 
           <select
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
+            disabled={!authenticated}
           >
             <option value="general">General</option>
             <option value="bug">Bug Report</option>
@@ -128,13 +132,18 @@ export default function MyTickets() {
           <select
             value={newPriority}
             onChange={(e) => setNewPriority(e.target.value)}
+            disabled={!authenticated}
           >
             <option value="low">Low Priority</option>
             <option value="medium">Medium Priority</option>
             <option value="high">High Priority</option>
           </select>
 
-          <select value={newPage} onChange={(e) => setNewPage(e.target.value)}>
+          <select
+            value={newPage}
+            onChange={(e) => setNewPage(e.target.value)}
+            disabled={!authenticated}
+          >
             <option value="dashboard">Dashboard</option>
             <option value="billing">Billing</option>
             <option value="settings">Settings</option>
@@ -143,10 +152,13 @@ export default function MyTickets() {
             <option value="other">Other</option>
           </select>
 
-          <button onClick={handleCreateTicket}>Submit</button>
+          <button onClick={handleCreateTicket} disabled={!authenticated}>
+            Submit
+          </button>
         </div>
       </div>
 
+      {/* ---------------- Ticket Table ---------------- */}
       <div className="ticket-table">
         <table>
           <thead>
@@ -162,7 +174,13 @@ export default function MyTickets() {
             </tr>
           </thead>
           <tbody>
-            {tickets.length === 0 ? (
+            {!authenticated ? (
+              <tr>
+                <td colSpan={8} className="no-tickets">
+                  Log in to view tickets.
+                </td>
+              </tr>
+            ) : tickets.length === 0 ? (
               <tr>
                 <td colSpan={8} className="no-tickets">
                   You have no tickets yet. Create one above.

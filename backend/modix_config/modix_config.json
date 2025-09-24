@@ -2,6 +2,7 @@
   "MODIX_VERSION": "Latest",
   "MODIX_INSTANCE_ID": "modex1",
   "MODIX_URL": "https://gamesmithonline.org",
+  "MODIX_API_SERVER": "https://486c5a0f25c2.ngrok-free.app", 
   "MODIX_AUTO_DEPLOY": true,
   "MODIX_MODULES": null,
   "MODIX_CLUSTER": false,
@@ -12,10 +13,8 @@
       "username": "test1",
       "password": "test1",
       "email": "test1@lice.ocm",
-      "license_code": "PRO123", 
-      "roles": [
-        "Moderator"
-      ],
+      "license_code": "PRO123",
+      "roles": ["Moderator"],
       "permissions": [
         "modix_dashboard_access",
         "terminal_access",
