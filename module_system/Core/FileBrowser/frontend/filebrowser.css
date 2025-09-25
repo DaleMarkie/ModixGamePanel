@@ -9,14 +9,14 @@ body {
   color: #f0f0f0; /* white-ish text */
   height: 100vh;
   display: flex;
-  overflow: hidden;
+  overflow: hidden; /* full page container handles scrolling */
 }
 
-/* Container split */
 .container {
   display: flex;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 /* ---------------------------
@@ -24,10 +24,12 @@ body {
 --------------------------- */
 .left-panel {
   width: 320px;
-  background-color: #11111d; /* ultra dark panel */
-  border-right: 2px solid #10b981; /* green accent */
-  overflow-y: auto;
+  background-color: #11111d;
+  border-right: 2px solid #10b981;
+  overflow-y: auto; /* scrollable */
   padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .left-panel h2 {
@@ -37,6 +39,58 @@ body {
   color: #f0f0f0;
 }
 
+.search-input {
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #10b981;
+  background-color: #0a0a12;
+  color: #f0f0f0;
+}
+
+.tree-buttons {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.tree-buttons button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background-color: #333;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.tree-buttons button:hover {
+  background-color: #10b981;
+}
+
+.os-switcher {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.os-switcher button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background-color: #333;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.os-switcher button.active {
+  background-color: #10b981;
+}
+
+/* Folder/File tree */
 .folder-item,
 .file-item {
   padding: 6px 12px;
@@ -48,7 +102,7 @@ body {
 
 .folder-item:hover,
 .file-item:hover {
-  background-color: #1c1c2f; /* darker hover, fully dark */
+  background-color: #1c1c2f;
 }
 
 .folder-name {
@@ -60,6 +114,11 @@ body {
   color: #c7c7c7;
 }
 
+.file-item.unsaved .file-name {
+  color: #ffd700;
+  font-weight: bold;
+}
+
 /* ---------------------------
    Right Panel - Editor
 --------------------------- */
@@ -68,8 +127,9 @@ body {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background-color: #0d0d18; /* fully dark panel */
+  background-color: #0d0d18;
   border-left: 2px solid #10b981;
+  overflow: hidden;
 }
 
 .file-path {
@@ -79,37 +139,49 @@ body {
   word-break: break-all;
 }
 
+/* Monaco Editor container */
+.monaco-editor,
 .file-editor-textarea {
-  flex: 1;
+  flex: 1; /* fill right-panel */
   width: 100%;
-  resize: none;
-  padding: 12px;
+  background-color: #0a0a12;
+  color: #f0f0f0;
   font-family: "Fira Code", monospace;
   font-size: 0.875rem;
-  line-height: 1.4;
-  border: 1px solid #10b981;
   border-radius: 8px;
-  background-color: #0a0a12; /* fully dark editor */
-  color: #f0f0f0;
+  border: 1px solid #10b981;
   overflow-y: auto;
 }
 
-.file-editor-textarea:focus {
-  outline: none;
-  border-color: #059669;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+/* File Editor Toolbar */
+.file-editor-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-/* Buttons */
-.save-button {
-  margin-top: 12px;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #0a0a12;
-  background-color: #10b981;
+.file-editor-toolbar button {
+  padding: 6px 10px;
+  border-radius: 6px;
   border: none;
-  border-radius: 8px;
+  cursor: pointer;
+  background-color: #333;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.file-editor-toolbar button:hover {
+  background-color: #10b981;
+}
+
+.save-button {
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: #10b981;
+  color: #0a0a12;
+  font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -123,47 +195,82 @@ body {
   cursor: not-allowed;
 }
 
-/* Scrollbar */
+/* Tabs */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 4px 10px;
+  border-radius: 6px 6px 0 0;
+  background-color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.tab.active {
+  background-color: #10b981;
+  color: #0a0a12;
+}
+
+.close-tab {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ---------------------------
+   Scrollbars
+--------------------------- */
 .left-panel::-webkit-scrollbar,
-.right-panel::-webkit-scrollbar {
+.right-panel::-webkit-scrollbar,
+.monaco-editor::-webkit-scrollbar {
   width: 8px;
 }
 
 .left-panel::-webkit-scrollbar-thumb,
-.right-panel::-webkit-scrollbar-thumb {
+.right-panel::-webkit-scrollbar-thumb,
+.monaco-editor::-webkit-scrollbar-thumb {
   background-color: #10b981;
   border-radius: 4px;
 }
 
 .left-panel::-webkit-scrollbar-track,
-.right-panel::-webkit-scrollbar-track {
+.right-panel::-webkit-scrollbar-track,
+.monaco-editor::-webkit-scrollbar-track {
   background-color: #11111d;
 }
 
-/* Fancy Dark Error / Warning Messages */
+/* ---------------------------
+   Error Messages
+--------------------------- */
 .error-message {
-  background-color: #1b1b27; /* dark background */
-  border-left: 6px solid #ef4444; /* red accent border for warning, optional */
-  padding: 20px 24px;
-  margin: 16px 0;
+  background-color: #1b1b27;
+  border-left: 6px solid #ef4444;
+  padding: 16px 20px;
+  margin: 12px 0;
   border-radius: 12px;
-  color: #ffffff !important; /* TEXT IS PURE WHITE */
+  color: #ffffff !important;
   font-family: "Segoe UI", sans-serif;
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.4;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
   white-space: pre-wrap;
 }
 
-/* Optional warning icon */
 .error-message::before {
   content: "⚠️";
   margin-right: 10px;
 }
 
-/* Ensure links in the message are also white or bright for contrast */
 .error-message a {
-  color: #10b981; /* bright green links */
+  color: #10b981;
   text-decoration: underline;
 }
 
@@ -179,8 +286,12 @@ body {
     height: 200px;
     border-right: none;
     border-bottom: 2px solid #10b981;
+    overflow-y: auto;
   }
   .right-panel {
     padding: 10px;
+  }
+  .tab-bar {
+    flex-wrap: wrap;
   }
 }
