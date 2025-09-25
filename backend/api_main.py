@@ -12,6 +12,8 @@ import configparser
 from datetime import datetime
 import psutil
 import re
+import threading
+
 
 
 # === Project root path fix ===
@@ -23,10 +25,10 @@ from backend.API.Core.module_api import router as module_api_router
 from backend.API.Core.auth import auth_router
 from backend.API.Core.steam_search_player_api import router as steam_search_router
 from backend.API.Core.workshop_api.workshop_api import router as workshop_router
+from backend.api_chatlogs import chat_bp, parse_pz_logs
 # === Player Management ===
 from steam_notes_api import router as steam_notes_router
 from all_players_api import router as all_players_router
-from api_chatlogs import router as chatlogs_router
 from PlayersBannedAPI import router as players_banned_router
 
 from backend.API.Core.tools_api.portcheck_api import router as portcheck_router
@@ -59,7 +61,7 @@ app.include_router(ddos_router, prefix="/api")
 # === Player Management ===
 app.include_router(steam_notes_router)
 app.include_router(all_players_router)
-app.include_router(chatlogs_router)
+app.register_blueprint(chat_bp, url_prefix="/api/projectzomboid")
 app.include_router(players_banned_router)
 
 # === Tools ===
@@ -323,7 +325,7 @@ async def get_mod_alerts():
                 })
 
         # Missing dependencies
-        for dep in dependencies or []:
+        for dep in dependencies or []
             dep_installed = any(
                 m["title"] == dep for m in local_mods if m["modId"] in installed_mods
             )

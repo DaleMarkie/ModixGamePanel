@@ -1,79 +1,106 @@
-# backend/api_chatlogs.py
-from fastapi import APIRouter, Query
-from datetime import datetime, timedelta
-from typing import List, Optional
+"use client";
 
-router = APIRouter(prefix="/api/projectzomboid/chatlogs", tags=["ChatLogs"])
+import React, { useEffect, useState, useRef } from "react";
+import { RefreshCw, Search, MessageSquare, User, Pause, Play } from "lucide-react";
 
-# In-memory chat logs (replace with DB later if needed)
-CHAT_LOGS = [
-    {
-        "player": "Alice",
-        "message": "/help",
-        "timestamp": (datetime.utcnow() - timedelta(minutes=5)).isoformat(),
-        "chat_type": "Global",
-    },
-    {
-        "player": "Bob",
-        "message": "Anyone got food?",
-        "timestamp": (datetime.utcnow() - timedelta(minutes=3)).isoformat(),
-        "chat_type": "Faction",
-    },
-    {
-        "player": "Charlie",
-        "message": "Meet me at the safehouse",
-        "timestamp": (datetime.utcnow() - timedelta(minutes=1)).isoformat(),
-        "chat_type": "Private",
-    },
-]
+interface ChatMessage {
+  player: string;
+  message: string;
+  timestamp: string;
+  chat_type: string;
+}
 
+const ChatLogs: React.FC = () => {
+  const [logs, setLogs] = useState<ChatMessage[]>([]);
+  const [search, setSearch] = useState("");
+  const [paused, setPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-@router.get("")
-async def get_chat_logs(
-    player: Optional[str] = Query(None, description="Filter by player name"),
-    commands_only: bool = Query(False, description="Only return messages starting with /"),
-    chat_type: Optional[str] = Query(None, description="Filter by chat type (Global, Faction, Private)"),
-    since: Optional[str] = Query(None, description="Return logs after this timestamp (ISO8601)"),
-):
-    """
-    Get chat logs with optional filters:
-    - player: filter by player name
-    - commands_only: only show messages starting with "/"
-    - chat_type: filter by chat type
-    - since: return only logs newer than given timestamp
-    """
+  const API_BASE = "http://localhost:2010/api/projectzomboid";
 
-    logs = CHAT_LOGS
+  // SSE connection
+  useEffect(() => {
+    const es = new EventSource(`${API_BASE}/chat-stream`);
+    es.onmessage = (e) => {
+      const msg: ChatMessage = JSON.parse(e.data);
+      setLogs((prev) => [...prev, msg]);
+    };
+    es.onerror = () => {
+      console.error("SSE connection lost");
+      es.close();
+    };
+    return () => es.close();
+  }, []);
 
-    if player:
-        logs = [log for log in logs if log["player"].lower() == player.lower()]
-
-    if commands_only:
-        logs = [log for log in logs if log["message"].startswith("/")]
-
-    if chat_type:
-        logs = [log for log in logs if log["chat_type"].lower() == chat_type.lower()]
-
-    if since:
-        try:
-            since_dt = datetime.fromisoformat(since)
-            logs = [log for log in logs if datetime.fromisoformat(log["timestamp"]) > since_dt]
-        except ValueError:
-            pass  # ignore bad timestamp format
-
-    return {"logs": logs}
-
-
-@router.post("")
-async def add_chat_log(player: str, message: str, chat_type: str = "Global"):
-    """
-    Add a new chat log (for testing / simulation).
-    """
-    new_log = {
-        "player": player,
-        "message": message,
-        "timestamp": datetime.utcnow().isoformat(),
-        "chat_type": chat_type,
+  // Auto-scroll
+  useEffect(() => {
+    if (!paused && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-    CHAT_LOGS.append(new_log)
-    return {"status": "ok", "log": new_log}
+  }, [logs, paused]);
+
+  const filteredLogs = logs.filter(
+    (log) =>
+      log.player.toLowerCase().includes(search.toLowerCase()) ||
+      log.message.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="p-4 space-y-4 bg-zinc-900 border border-green-600 rounded-xl shadow-lg">
+      <h2 className="text-2xl font-bold text-green-400 flex items-center gap-2">
+        <MessageSquare className="w-6 h-6 text-green-500" /> Live Chat
+      </h2>
+
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-zinc-800 border border-green-600 rounded-lg px-3 py-2 flex-1">
+          <Search className="w-5 h-5 text-green-400" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-transparent outline-none text-green-300 w-full"
+          />
+        </div>
+
+        <button
+          onClick={() => setPaused(!paused)}
+          className="px-3 py-1 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-1"
+        >
+          {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          {paused ? "Resume" : "Pause"}
+        </button>
+
+        <button
+          onClick={() => setLogs([])}
+          className="px-3 py-1 bg-green-700 hover:bg-green-600 text-white rounded-lg"
+        >
+          Clear
+        </button>
+      </div>
+
+      <div
+        ref={containerRef}
+        className="max-h-[500px] overflow-y-auto space-y-2 p-2 bg-zinc-800 border border-green-700 rounded-lg"
+      >
+        {filteredLogs.length === 0 ? (
+          <p className="text-green-400 text-center mt-10">No chat logs found.</p>
+        ) : (
+          filteredLogs.map((log, i) => (
+            <div key={i} className="bg-zinc-900 border border-green-700 rounded-xl p-2">
+              <div className="flex justify-between items-center">
+                <p className="text-green-300 font-semibold">{log.player}</p>
+                <p className="text-xs text-green-500">
+                  [{log.chat_type}] {new Date(log.timestamp).toLocaleString()}
+                </p>
+              </div>
+              <p className="text-green-100">{log.message}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ChatLogs;
