@@ -1,19 +1,19 @@
 name: Workshop
 version: 1.0.0
-description: Workshop inteterface for managing and installing game mods
+description: Workshops inteterface for managing and installing game mods
 author: Modix Team
 website: https://modix.store
 permissions:
-- manage
+  - manage
 frontend:
   routes:
-  - path: /workshop
-    component: Workshop
-    entry: Core/Workshop/frontend/page.tsx
-    permission: manage
+    - path: /workshop
+      component: Workshop
+      entry: Core/Workshop/frontend/page.tsx
+      permission: manage
   nav_items:
-  - label: Workshop
-    path: /workshop
-    icon: Workshop
+    - label: Workshop
+      path: /workshop
+      icon: Workshop
 backend:
   router: module_system.Core.Workshop.backend.workshop_api:router
