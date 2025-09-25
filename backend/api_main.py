@@ -404,7 +404,11 @@ async def stream_pz_output(stream, prefix: str):
         line = await loop.run_in_executor(None, stream.readline)
         if not line:
             break
-        await pz_log_queue.put(f"[{prefix}] {line.strip()}")
+        log_text = line.strip()
+        await pz_log_queue.put(f"[{prefix}] {log_text}")
+
+        # Update connected players in real-time
+        parse_pz_log_for_players(log_text)
 
 async def monitor_pz_exit(process: subprocess.Popen):
     global running_pz_process

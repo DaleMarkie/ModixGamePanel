@@ -12,44 +12,40 @@ interface Player {
 const AllPlayers: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
 
-  // Fetch players list
-  const fetchPlayers = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/players`);
-      const data = await res.json();
-      setPlayers(data.players || []);
-    } catch (err) {
-      console.error("Failed to fetch players:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPlayers();
+    const es = new EventSource(`${API_BASE}/players-stream`);
+
+    es.onmessage = (event) => {
+      const data: Player[] = JSON.parse(event.data);
+      setPlayers(data);
+      setConnected(true);
+    };
+
+    es.onerror = () => {
+      setConnected(false);
+      es.close();
+    };
+
+    return () => es.close();
   }, []);
 
-  const filterPlayers = (players: Player[]) =>
-    players.filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.lastSeen.toLowerCase().includes(search.toLowerCase())
-    );
+  const filteredPlayers = players.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.lastSeen.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-6 space-y-6">
-      {/* Page Title */}
       <h1 className="text-3xl font-bold text-green-400 flex items-center gap-2">
         <User className="w-8 h-8 text-green-500" />
-        All Players
+        All Players {connected ? "●" : "○"}
       </h1>
 
-      {/* Search + Refresh */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2 bg-zinc-900 border border-green-600 rounded-lg px-3 py-2 shadow-inner w-full md:w-auto">
           <Search className="w-5 h-5 text-green-400" />
@@ -62,24 +58,22 @@ const AllPlayers: React.FC = () => {
           />
         </div>
         <button
-          onClick={fetchPlayers}
-          disabled={loading}
-          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
+          onClick={() => setPlayers([...players])}
+          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className="w-4 h-4" />
           Refresh
         </button>
       </div>
 
-      {/* Players List */}
       <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg">
-        {filterPlayers(players).length === 0 ? (
+        {filteredPlayers.length === 0 ? (
           <p className="text-green-400 text-center mt-10 text-lg">
-            No players found.
+            No players connected.
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filterPlayers(players)
+            {filteredPlayers
               .slice()
               .reverse()
               .map((player, i) => (
