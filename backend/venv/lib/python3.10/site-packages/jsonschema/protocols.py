@@ -7,21 +7,14 @@ typing.Protocol classes for jsonschema interfaces.
 
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Iterable,
-    Protocol,
-    runtime_checkable,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol, runtime_checkable
 
 # in order for Sphinx to resolve references accurately from type annotations,
 # it needs to see names like `jsonschema.TypeChecker`
 # therefore, only import at type-checking time (to avoid circular references),
 # but use `jsonschema` for any types which will otherwise not be resolvable
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterable, Mapping
 
     import referencing.jsonschema
 
@@ -115,10 +108,11 @@ class Validator(Protocol):
     def __init__(
         self,
         schema: Mapping | bool,
-        registry: referencing.jsonschema.SchemaRegistry,
+        resolver: Any = None,  # deprecated
         format_checker: jsonschema.FormatChecker | None = None,
-    ) -> None:
-        ...
+        *,
+        registry: referencing.jsonschema.SchemaRegistry = ...,
+    ) -> None: ...
 
     @classmethod
     def check_schema(cls, schema: Mapping | bool) -> None:

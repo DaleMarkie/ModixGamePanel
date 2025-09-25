@@ -33,6 +33,7 @@ from PlayersBannedAPI import router as players_banned_router
 
 from backend.API.Core.tools_api.portcheck_api import router as portcheck_router
 from backend.API.Core.user_permissions_api.user_permissions_api import router as user_permissions_router
+from backend.api_chatlogs import chat_bp, parse_pz_logs
 
 
 # === Game Specific APIs (raw routers) ===
@@ -61,7 +62,7 @@ app.include_router(ddos_router, prefix="/api")
 # === Player Management ===
 app.include_router(steam_notes_router)
 app.include_router(all_players_router)
-app.register_blueprint(chat_bp, url_prefix="/api/projectzomboid")
+app.include_router(chat_bp, prefix="/api/projectzomboid")
 app.include_router(players_banned_router)
 
 # === Tools ===
@@ -69,6 +70,7 @@ app.include_router(portcheck_router, prefix="/api")
 app.include_router(workshop_router, prefix="/api")
 # === Games ===
 app.include_router(pz_settings_router, prefix="/api/projectzomboid")
+app.include_router(chat_bp, prefix="/api/projectzomboid")
 
 # === Project Zomboid APIs ===
 
@@ -277,68 +279,6 @@ def scan_local_workshop() -> list[dict]:
             else:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
-
-@app.get("/api/projectzomboid/mod-alerts")
-async def get_mod_alerts():
-    """Generate alerts based on server.ini and local Workshop mods"""
-    installed_mods = read_installed_mods_from_ini()
-    local_mods = scan_local_workshop()
-
-    alerts = []
-
-    # Example conflict map (expand as needed)
-    CONFLICTS = {
-        "Better Zombies": ["Zombie Enhancer"],
-        "Survivor Tools": ["Advanced Tools Mod"]
-    }
-
-    for mod_id in installed_mods:
-        mod = next((m for m in local_mods if m["modId"] == mod_id), None)
-        if not mod:
-            # Missing mod
-            alerts.append({
-                "id": f"{mod_id}-missing",
-                "modName": mod_id,
-                "message": "Mod listed in server.ini but not found in Workshop folder",
-                "type": "error",
-                "timestamp": datetime.now().isoformat()
-            })
-            continue
-
-        title = mod.get("title", mod_id)
-        version = mod.get("version")
-        dependencies = mod.get("dependencies", [])
-
-        # Conflicts
-        conflicts = CONFLICTS.get(title, [])
-        for conflict_name in conflicts:
-            conflict_installed = any(
-                m["title"] == conflict_name for m in local_mods if m["modId"] in installed_mods
-            )
-            if conflict_installed:
-                alerts.append({
-                    "id": f"{mod_id}-conflict-{conflict_name}",
-                    "modName": title,
-                    "message": f"This mod conflicts with '{conflict_name}'",
-                    "type": "warning",
-                    "timestamp": datetime.now().isoformat()
-                })
-
-        # Missing dependencies
-        for dep in dependencies or []
-            dep_installed = any(
-                m["title"] == dep for m in local_mods if m["modId"] in installed_mods
-            )
-            if not dep_installed:
-                alerts.append({
-                    "id": f"{mod_id}-missingdep-{dep}",
-                    "modName": title,
-                    "message": f"Missing dependency: '{dep}'",
-                    "type": "error",
-                    "timestamp": datetime.now().isoformat()
-                })
-
-    return JSONResponse({"alerts": alerts})
 
 import httpx
 
