@@ -1,5 +1,4 @@
 export const navLinks = [
-  
   {
     label: "👤 Account Info",
     href: "/auth/myaccount",
@@ -34,7 +33,6 @@ export const navLinks = [
     label: "🎮 Game Config",
     href: "/settings",
     submenu: [
-      { label: "🗄️ Backup Server", href: "/server/backup" },
       { label: "⚙️ General Settings", href: "/server/ServerSettings" },
       { label: "🧑 User Permissions", href: "/RBAC" },
     ],
