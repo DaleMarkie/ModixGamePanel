@@ -18,15 +18,45 @@ const PlayersBanned: React.FC = () => {
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
 
-  // Fetch current ban list
-  const fetchBannedPlayers = async () => {
+  // --- WebSocket for live updates ---
+  useEffect(() => {
+    const ws = new WebSocket(`${API_BASE.replace("http", "ws")}/ws/banned`);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.event === "banned") {
+        setBannedPlayers((prev) => [data.player, ...prev]);
+      } else if (data.event === "unbanned") {
+        setBannedPlayers((prev) =>
+          prev.filter(
+            (p) => p.player.toLowerCase() !== data.player.player.toLowerCase()
+          )
+        );
+      } else if (data.event === "full_list") {
+        setBannedPlayers(data.banned);
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+
+    return () => ws.close();
+  }, []);
+
+  // Ban a new player
+  const banPlayer = async () => {
+    if (!newBanPlayer.trim()) return alert("Enter a player name to ban");
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/banned`);
-      const data = await res.json();
-      setBannedPlayers(data.banned || []);
+      await fetch(`${API_BASE}/ban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player: newBanPlayer, reason: newBanReason }),
+      });
+      setNewBanPlayer("");
+      setNewBanReason("");
     } catch (err) {
-      console.error("Failed to fetch banned players:", err);
+      console.error("Failed to ban player:", err);
     } finally {
       setLoading(false);
     }
@@ -41,38 +71,12 @@ const PlayersBanned: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ player }),
       });
-      setBannedPlayers((prev) => prev.filter((p) => p.player !== player));
     } catch (err) {
       console.error("Failed to unban player:", err);
     } finally {
       setLoading(false);
     }
   };
-
-  // Ban a new player
-  const banPlayer = async () => {
-    if (!newBanPlayer.trim()) return alert("Enter a player name to ban");
-    try {
-      setLoading(true);
-      await fetch(`${API_BASE}/ban`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player: newBanPlayer, reason: newBanReason }),
-      });
-      // Refresh the ban list after banning
-      fetchBannedPlayers();
-      setNewBanPlayer("");
-      setNewBanReason("");
-    } catch (err) {
-      console.error("Failed to ban player:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBannedPlayers();
-  }, []);
 
   const filterPlayers = (players: BannedPlayer[]) =>
     players.filter(
@@ -102,7 +106,7 @@ const PlayersBanned: React.FC = () => {
           />
         </div>
         <button
-          onClick={fetchBannedPlayers}
+          onClick={() => setBannedPlayers([...bannedPlayers])} // Refresh manually
           disabled={loading}
           className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
         >
