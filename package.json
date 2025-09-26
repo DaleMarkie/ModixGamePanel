@@ -17,14 +17,16 @@
     "backend": "node scripts/startBackend.js",
     "backend-safe": "node scripts/startBackend.js",
     "backend-install": "py -3 -m pip install -r backend/requirements.txt || python3 -m pip install -r backend/requirements.txt || python -m pip install -r backend/requirements.txt",
-    "build": "next build",
+    "build": "NEXT_PUBLIC_SKIP_ESLINT=true next build",
     "start": "next start",
+    "serve": "next start -p 3000",
     "lint": "next lint",
     "gen-import-map": "node scripts/generateImportMap.js",
     "modix-installer": "node scripts/modix-installer.js",
     "electron": "electron . --no-sandbox",
     "electron-dev": "electron . --no-sandbox",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.6",
@@ -84,19 +86,13 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64", "ia32"]
         }
       ],
       "icon": "public/icon.ico"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
+      "target": ["AppImage", "deb"],
       "icon": "public/icon.png",
       "category": "Utility"
     },
