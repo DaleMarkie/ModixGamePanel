@@ -1,37 +1,42 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const { spawn } = require("child_process");
+const isDev = require("electron-is-dev");
 
-// Start your dev server automatically
-const devServer = spawn("npm", ["run", "dev"], {
-  shell: true,
-  cwd: path.resolve(__dirname),
-  stdio: "inherit",
-});
+let mainWindow;
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, "preload.js"), // optional
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
-  win.loadURL("http://localhost:3000"); // Dev server
+  if (isDev) {
+    // In dev: load Next.js server
+    mainWindow.loadURL("http://localhost:3000");
+  } else {
+    // In prod: load Next.js build
+    mainWindow.loadFile(path.join(__dirname, "frontend", "out", "index.html"));
+    // or path.join(__dirname, "build", "index.html") if using CRA
+  }
 
-  win.on("closed", () => {
-    devServer.kill(); // Stop dev server when Electron closes
-    app.quit();
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 }
 
-app.whenReady().then(() => {
-  // Give dev server 5 seconds to start
-  setTimeout(createWindow, 5000);
-});
+app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("activate", () => {
+  if (mainWindow === null) createWindow();
 });

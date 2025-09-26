@@ -4,10 +4,6 @@ export const navLinks = [
     href: "/auth/myaccount",
   },
   {
-    label: "📊 Dashboard",
-    href: "/dashboard",
-  },
-  {
     label: "💻 Terminal",
     href: "/terminal",
   },
@@ -64,7 +60,6 @@ export const navLinks = [
           { label: "📈 Your Server Stats", href: "/tools/performance" },
           { label: "🌐 Port Checker", href: "/tools/portcheck" },
           { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-          { label: "🧮 Firewall Manager", href: "/tools/firewallmanager" },
         ],
       },
     ],
@@ -74,18 +69,16 @@ export const navLinks = [
     href: "/platform-settings", // <-- renamed href to avoid clash
     submenu: [
       { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
-      { label: "🎨 Theme Customization", href: "/settings/themesettings" },
+      { label: "🎨 Theme Customization", href: "/settings/thememanager" },
       { label: "🧬 Update Modix", href: "/server/updater" },
     ],
   },
-
   {
-    label: "🔐 Account",
-    href: "/login",
-    submenu: [
-      { label: "🔓 Sign In", href: "/auth/login" },
-      { label: "📝 Register", href: "/auth/register" },
-      { label: "♻️ Recover Account", href: "/auth/recover" },
-    ],
+    label: "📝 Forums",
+    href: "/forums",
+  },
+  {
+    label: "🆘 Support",
+    href: "/support",
   },
 ];
