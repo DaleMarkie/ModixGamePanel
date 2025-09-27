@@ -39,10 +39,41 @@ const Forums: React.FC = () => {
 
   const API_BASE = "http://localhost:2010/api/forums";
 
+  // --- User detection ---
   const user = useMemo(() => {
     const stored = localStorage.getItem("modix_user");
     return stored ? JSON.parse(stored) : null;
   }, []);
+
+  // --- EARLY RETURN for not logged-in users ---
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 px-4">
+        <div className="bg-zinc-800 border border-green-600 rounded-3xl shadow-2xl p-10 max-w-md w-full text-center">
+          <div className="text-red-500 text-6xl mb-4 animate-pulse">⚠️</div>
+          <h2 className="text-3xl font-bold text-green-400 mb-4">
+            Access Restricted
+          </h2>
+          <p className="text-green-300 mb-4 text-lg">
+            You must be{" "}
+            <span className="text-green-400 font-semibold">logged in</span> to
+            view the forums.
+          </p>
+          <p className="text-green-400 mb-6 text-base">
+            Please contact your{" "}
+            <span className="font-semibold">administrator</span> or log in to
+            gain access.
+          </p>
+          <button
+            onClick={() => (window.location.href = "/auth/login")}
+            className="px-6 py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // --- Fetch posts ---
   const fetchPosts = async () => {
@@ -68,7 +99,6 @@ const Forums: React.FC = () => {
 
   // --- Create new post ---
   const createPost = async () => {
-    if (!user) return alert("You must be logged in to post.");
     if (!newTitle.trim() || !newContent.trim())
       return alert("Fill in title and content.");
     setLoading(true);
@@ -101,7 +131,6 @@ const Forums: React.FC = () => {
 
   // --- Create comment ---
   const createComment = async (postId: string) => {
-    if (!user) return alert("You must be logged in to comment.");
     const content = newComments[postId];
     if (!content?.trim()) return;
 
@@ -199,38 +228,36 @@ const Forums: React.FC = () => {
       </div>
 
       {/* New Post Form */}
-      {user && (
-        <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 shadow-lg flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Post Title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
-          />
-          <textarea
-            placeholder="Your question or content..."
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full h-32 resize-none"
-          />
-          <select
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value as any)}
-            className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
-          >
-            <option value="Modix Issue">Modix Issue</option>
-            <option value="Game Issue">Game Issue</option>
-          </select>
-          <button
-            onClick={createPost}
-            disabled={loading}
-            className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" /> Post
-          </button>
-        </div>
-      )}
+      <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 shadow-lg flex flex-col gap-4">
+        <input
+          type="text"
+          placeholder="Post Title"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
+        />
+        <textarea
+          placeholder="Your question or content..."
+          value={newContent}
+          onChange={(e) => setNewContent(e.target.value)}
+          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full h-32 resize-none"
+        />
+        <select
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value as any)}
+          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
+        >
+          <option value="Modix Issue">Modix Issue</option>
+          <option value="Game Issue">Game Issue</option>
+        </select>
+        <button
+          onClick={createPost}
+          disabled={loading}
+          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
+        >
+          <Plus className="w-4 h-4" /> Post
+        </button>
+      </div>
 
       {/* Posts List */}
       <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg space-y-4">
@@ -271,29 +298,27 @@ const Forums: React.FC = () => {
               </div>
 
               {/* New comment input */}
-              {user && (
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    value={newComments[post.id] || ""}
-                    onChange={(e) =>
-                      setNewComments({
-                        ...newComments,
-                        [post.id]: e.target.value,
-                      })
-                    }
-                    className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 flex-1"
-                  />
-                  <button
-                    onClick={() => createComment(post.id)}
-                    disabled={loading}
-                    className="px-3 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg transition-all duration-200"
-                  >
-                    Comment
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  placeholder="Write a comment..."
+                  value={newComments[post.id] || ""}
+                  onChange={(e) =>
+                    setNewComments({
+                      ...newComments,
+                      [post.id]: e.target.value,
+                    })
+                  }
+                  className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 flex-1"
+                />
+                <button
+                  onClick={() => createComment(post.id)}
+                  disabled={loading}
+                  className="px-3 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg transition-all duration-200"
+                >
+                  Comment
+                </button>
+              </div>
             </div>
           ))
         )}
