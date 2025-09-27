@@ -79,6 +79,6 @@ export const navLinks = [
   },
   {
     label: "🆘 Support",
-    href: "/support",
+    href: "https://discord.gg/EwWZUSR9tM",
   },
 ];
