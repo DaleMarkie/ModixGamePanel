@@ -1,3 +1,4 @@
+// startBackend.js
 const { spawnSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -14,6 +15,10 @@ const backendRc = path.join(__dirname, "../.backendrc");
 // 1️⃣ Check for .backendrc override
 if (fs.existsSync(backendRc)) {
   pythonPath = fs.readFileSync(backendRc, "utf8").trim();
+  if (!pythonPath) {
+    console.error("❌ .backendrc is empty. Please specify Python path.");
+    process.exit(1);
+  }
 }
 // 2️⃣ Check virtual environment
 else if (fs.existsSync(venvDir)) {
@@ -32,15 +37,18 @@ else if (fs.existsSync(venvDir)) {
 // 3️⃣ Use system Python and create venv
 else {
   console.warn("⚠️ venv not found. Creating a new virtual environment...");
+
+  // Detect system Python
   pythonPath = process.platform === "win32" ? "py -3" : "python3";
 
-  const result = spawnSync(pythonPath, ["-m", "venv", venvDir], {
+  // Create venv
+  const createVenv = spawnSync(pythonPath, ["-m", "venv", venvDir], {
     stdio: "inherit",
-    shell: process.platform === "win32", // needed for Windows
+    shell: process.platform === "win32",
   });
+  if (createVenv.status !== 0) process.exit(createVenv.status);
 
-  if (result.status !== 0) process.exit(result.status);
-
+  // Point pythonPath to newly created venv
   pythonPath =
     process.platform === "win32"
       ? path.join(venvDir, "Scripts", "python.exe")
@@ -71,13 +79,21 @@ if (fs.existsSync(requirements)) {
 // Set environment
 const env = { ...process.env, API_PORT: backendPort };
 
+// Launch backend
 console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`);
 const backendProcess = spawn(pythonPath, [backendFile], {
   stdio: "inherit",
   env,
-  shell: process.platform === "win32", // needed for Windows
+  shell: process.platform === "win32",
 });
 
+// Handle backend exit
 backendProcess.on("exit", (code) => {
   console.log(`Backend exited with code ${code}`);
+});
+
+// Optional: handle Ctrl+C in terminal
+process.on("SIGINT", () => {
+  if (backendProcess) backendProcess.kill();
+  process.exit();
 });

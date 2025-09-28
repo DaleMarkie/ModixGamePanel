@@ -1,95 +1,32 @@
-const { app, BrowserWindow, dialog } = require("electron");
-const path = require("path");
 const { spawn } = require("child_process");
-const isDev = require("electron-is-dev");
-const fetch = require("node-fetch"); // npm install node-fetch@2
-const localVersion = require("./version.json").version;
+const path = require("path");
+const fs = require("fs");
 
-let mainWindow;
-let backendProcess;
+const backendDir = path.join(__dirname, "../backend");
+const backendFile = path.join(backendDir, "api_main.py");
+const venvDir = path.join(backendDir, "venv");
+const API_PORT = process.env.API_PORT || 2010;
 
-function startBackend() {
-  const backendScript = path.join(__dirname, "scripts", "startBackend.js");
+let pythonPath;
 
-  backendProcess = spawn(process.execPath, [backendScript], {
-    cwd: __dirname,
-    shell: true,
-    stdio: "inherit",
-  });
-
-  backendProcess.on("close", (code) => {
-    console.log(`Backend exited with code ${code}`);
-  });
+if (fs.existsSync(venvDir)) {
+  pythonPath =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python");
+} else {
+  pythonPath = process.platform === "win32" ? "py -3" : "python3";
 }
 
-function getFrontendURL() {
-  if (isDev) {
-    return "http://localhost:3000";
-  } else {
-    return `file://${path.join(
-      __dirname,
-      "frontend",
-      ".next",
-      "server",
-      "pages",
-      "index.html"
-    )}`;
-  }
-}
+const env = { ...process.env, API_PORT };
+console.log(`🚀 Starting backend on port ${API_PORT}...`);
 
-async function checkVersion() {
-  try {
-    const SERVER_URL = "https://cd5b5aa367d6.ngrok-free.app";
-    const res = await fetch(`${SERVER_URL}/api/version`);
-    const data = await res.json();
-
-    if (data.success && data.version !== localVersion) {
-      dialog.showMessageBoxSync({
-        type: "warning",
-        title: "Update Required",
-        message: `Your Modix Panel is outdated.\nCurrent: ${localVersion}\nRequired: ${data.version}\nPlease update to continue.`,
-      });
-    } else {
-      console.log("Modix Panel is up-to-date.");
-    }
-  } catch (err) {
-    console.warn("Version check failed:", err);
-  }
-}
-
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  });
-
-  mainWindow.loadURL(getFrontendURL());
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-    if (backendProcess) backendProcess.kill();
-    app.quit();
-  });
-}
-
-// App initialization
-app.whenReady().then(async () => {
-  startBackend();
-  await checkVersion(); // check before loading frontend
-  createWindow();
+const backendProcess = spawn(pythonPath, [backendFile], {
+  stdio: "inherit",
+  shell: process.platform === "win32",
+  env,
 });
 
-// Quit when all windows are closed
-app.on("window-all-closed", () => {
-  if (backendProcess) backendProcess.kill();
-  if (process.platform !== "darwin") app.quit();
-});
-
-app.on("activate", () => {
-  if (mainWindow === null) createWindow();
+backendProcess.on("exit", (code) => {
+  console.log(`Backend exited with code ${code}`);
 });
