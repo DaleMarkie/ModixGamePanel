@@ -4,12 +4,12 @@
   "private": true,
   "main": "scripts/startAll.js",
   "scripts": {
-    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"node scripts/startBackend.js\"",
+    "dev": "node scripts/startAll.js",
     "next": "next dev -p 3000",
     "backend": "node scripts/startBackend.js",
     "start-all": "node scripts/startAll.js",
     "build": "NEXT_PUBLIC_SKIP_ESLINT=true next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "serve": "next start -p 3000"
   },
   "dependencies": {
@@ -20,8 +20,6 @@
     "axios": "^1.11.0"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
-    "cross-env": "^7.0.3",
     "typescript": "^5"
   }
 }
