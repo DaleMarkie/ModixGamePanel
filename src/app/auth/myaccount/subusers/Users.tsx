@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getServerUrl } from "@/app/config";
 import "./Users.css";
 
@@ -15,7 +15,6 @@ export interface SubUser {
 const Users = () => {
   const [subUsers, setSubUsers] = useState<SubUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [maxSubUsers, setMaxSubUsers] = useState<number>(0);
 
   const fetchSubUsers = async () => {
     setLoading(true);
@@ -26,11 +25,8 @@ const Users = () => {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setSubUsers(data.subUsers || []);
-
-      if (data.license_info && data.license_info.plan) {
-        setMaxSubUsers(data.license_info.max_users || 1);
-      }
+      if (data.success) setSubUsers(data.subUsers || []);
+      else alert(data.message || "Failed to fetch sub-users");
     } catch (err) {
       console.error("Failed to fetch sub-users", err);
     } finally {
@@ -43,21 +39,20 @@ const Users = () => {
   }, []);
 
   const handleAddSubUser = async () => {
-    if (subUsers.length >= maxSubUsers) {
-      alert(`You reached your plan limit (${maxSubUsers})!`);
-      return;
-    }
-
     const username = prompt("Enter username for new sub-user:");
     const email = prompt("Enter email for new sub-user:");
-    if (!username || !email) return;
+    const password = prompt("Enter password for new sub-user:");
+    if (!username || !email || !password) return;
 
     try {
       const token = localStorage.getItem("modix_token");
       const res = await fetch(`${getServerUrl()}/api/subusers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: token || "" },
-        body: JSON.stringify({ username, email }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token || "",
+        },
+        body: JSON.stringify({ username, email, password }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
@@ -71,25 +66,41 @@ const Users = () => {
     const subUser = subUsers.find((u) => u.id === id);
     if (!subUser) return;
     const newEmail = prompt("Enter new email:", subUser.email);
-    if (!newEmail) return;
+    const newPassword =
+      prompt("Enter new password (leave blank to keep same):") || undefined;
+
+    if (!newEmail && !newPassword) return;
 
     try {
       const token = localStorage.getItem("modix_token");
+      const body: any = {};
+      if (newEmail) body.email = newEmail;
+      if (newPassword) body.password = newPassword;
+
       const res = await fetch(`${getServerUrl()}/api/subusers/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: token || "" },
-        body: JSON.stringify({ email: newEmail }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token || "",
+        },
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-      setSubUsers(subUsers.map((u) => (u.id === id ? { ...u, email: newEmail } : u)));
+
+      setSubUsers(
+        subUsers.map((u) =>
+          u.id === id ? { ...u, email: newEmail || u.email } : u
+        )
+      );
     } catch (err: any) {
       alert("Failed to edit sub-user: " + err.message);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this sub-user?")) return;
+    if (!window.confirm("Are you sure you want to delete this sub-user?"))
+      return;
 
     try {
       const token = localStorage.getItem("modix_token");
@@ -146,9 +157,7 @@ const Users = () => {
         </table>
       )}
 
-      <p className="plan-info">
-        Plan limit: {subUsers.length} / {maxSubUsers} sub-users used
-      </p>
+      <p className="plan-info">Plan limit: unlimited</p>
     </div>
   );
 };

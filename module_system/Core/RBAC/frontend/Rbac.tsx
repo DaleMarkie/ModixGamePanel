@@ -51,14 +51,12 @@ type User = {
   roles?: string[];
   permissions?: string[];
 };
-
 type Role = {
   id: number;
   name: string;
   hierarchy_level: number;
   description?: string;
 };
-
 type UserRole = { role: string; container_id?: number };
 type UserPermission = {
   permission: string;
@@ -66,7 +64,6 @@ type UserPermission = {
   container_id?: number;
 };
 
-// --- Component ---
 export default function RBACManager() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +85,6 @@ export default function RBACManager() {
   );
   const [loadingRolesPerms, setLoadingRolesPerms] = useState(false);
 
-  // Fetch users from backend
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
@@ -102,7 +98,6 @@ export default function RBACManager() {
     }
   };
 
-  // Fetch all roles and permissions
   const fetchRolesAndPerms = async () => {
     setLoadingRolesPerms(true);
     try {
@@ -118,7 +113,6 @@ export default function RBACManager() {
     }
   };
 
-  // Fetch roles and permissions for each user
   const fetchUserRolesPerms = async (userId: number) => {
     try {
       const [roles, perms] = await Promise.all([
@@ -134,12 +128,10 @@ export default function RBACManager() {
     fetchUsers();
     fetchRolesAndPerms();
   }, []);
-
   useEffect(() => {
     users.forEach((u) => fetchUserRolesPerms(u.id));
   }, [users.length]);
 
-  // Add new user
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdding(true);
@@ -174,7 +166,6 @@ export default function RBACManager() {
     }
   };
 
-  // Remove user
   const handleRemoveUser = async (userId: number) => {
     if (!window.confirm("Are you sure you want to remove this user?")) return;
     setError(null);
@@ -188,7 +179,6 @@ export default function RBACManager() {
     }
   };
 
-  // Toggle user role
   const handleToggleRole = async (
     userId: number,
     roleName: string,
@@ -196,24 +186,19 @@ export default function RBACManager() {
   ) => {
     setError(null);
     try {
-      if (hasRole) {
-        alert("Role removal not implemented in backend");
-      } else {
-        await apiHandler(`/api/rbac/users/${userId}/roles`, {
-          fetchInit: {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role_name: roleName }),
-          },
-        });
-        fetchUserRolesPerms(userId);
-      }
+      await apiHandler(`/api/rbac/users/${userId}/roles`, {
+        fetchInit: {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role_name: roleName }),
+        },
+      });
+      fetchUserRolesPerms(userId);
     } catch (err: any) {
       setError(err.message || "Failed to update role");
     }
   };
 
-  // Toggle user permission
   const handleTogglePerm = async (
     userId: number,
     perm: string,
@@ -386,7 +371,6 @@ export default function RBACManager() {
                         onChange={() =>
                           handleToggleRole(user.id, role.name, hasRole)
                         }
-                        disabled={hasRole}
                       />
                       {role.name}
                     </label>

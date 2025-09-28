@@ -23,7 +23,9 @@ const TabButton = ({
   disabled?: boolean;
 }) => (
   <button
-    className={`tab ${active ? "active" : ""} ${disabled ? "tab-disabled" : ""}`}
+    className={`tab ${active ? "active" : ""} ${
+      disabled ? "tab-disabled" : ""
+    }`}
     onClick={disabled ? undefined : onClick}
     aria-current={active ? "page" : undefined}
     disabled={disabled}
@@ -86,16 +88,18 @@ const MyAccount = () => {
 
   // Define tabs with access rules
   const allTabs = [
-    { label: "📊 Dashboard", roles: ["Owner", "SubUser"] },
-    { label: "🔐 Security", roles: ["Owner"] },
-    { label: "📜 Activity", roles: ["Owner", "SubUser"] },
-    { label: "🪪 Subscriptions", roles: ["Owner"] },
-    { label: "👥 Sub-Users", roles: ["Owner"] },
-    { label: "⚙️ Settings", roles: ["Owner"] },
-    { label: "🛠️ Support", roles: ["Owner", "SubUser"] },
+    { label: "📊 Dashboard", roles: ["Owner", "SubUser", "Admin"] },
+    { label: "🔐 Security", roles: ["Owner", "Admin"] },
+    { label: "📜 Activity", roles: ["Owner", "SubUser", "Admin"] },
+    { label: "🪪 Subscriptions", roles: ["Owner", "Admin"] },
+    { label: "👥 Sub-Users", roles: ["Owner", "Admin"] },
+    { label: "⚙️ Settings", roles: ["Owner", "Admin"] },
+    { label: "🛠️ Support", roles: ["Owner", "SubUser", "Admin"] },
   ];
 
-  const userRole = user.role || "SubUser"; // fallback
+  const userRoles = user.roles || ["SubUser"];
+  const hasRole = (tabRoles: string[]) =>
+    tabRoles.some((r) => userRoles.includes(r));
 
   return (
     <div className="myaccount-container">
@@ -112,7 +116,7 @@ const MyAccount = () => {
             key={tab.label}
             label={tab.label}
             active={activeTab === tab.label}
-            disabled={!tab.roles.includes(userRole)}
+            disabled={!hasRole(tab.roles)}
             onClick={() => setActiveTab(tab.label)}
           />
         ))}
@@ -123,7 +127,11 @@ const MyAccount = () => {
           <section className="dashboard-user-info">
             {[
               { icon: "fas fa-user", label: "Username", value: user.username },
-              { icon: "fas fa-envelope", label: "Email", value: user.email || "N/A" },
+              {
+                icon: "fas fa-envelope",
+                label: "Email",
+                value: user.email || "N/A",
+              },
               {
                 icon: "fas fa-circle",
                 label: "Status",
@@ -138,7 +146,9 @@ const MyAccount = () => {
               {
                 icon: "fas fa-clock",
                 label: "Last Login",
-                value: new Date(user.last_login).toLocaleString(),
+                value: user.last_login
+                  ? new Date(user.last_login).toLocaleString()
+                  : "N/A",
               },
             ].map((info, idx) => (
               <div key={idx} className="info-card">
@@ -153,13 +163,12 @@ const MyAccount = () => {
             ))}
           </section>
 
-          {/* Permissions Card */}
           <section className="dashboard-row">
             <div className="dashboard-card">
               <h3>🛡️ Permissions</h3>
               <ul>
                 {allTabs
-                  .filter((tab) => tab.roles.includes(userRole))
+                  .filter((tab) => hasRole(tab.roles))
                   .map((tab) => (
                     <li key={tab.label}>{tab.label}</li>
                   ))}
@@ -206,8 +215,8 @@ const MyAccount = () => {
       {activeTab === "🔐 Security" && <div>Security Tab Content</div>}
       {activeTab === "📜 Activity" && <Activity />}
       {activeTab === "🪪 Subscriptions" && <Subscriptions />}
-      {activeTab === "👥 Sub-Users" && userRole === "Owner" && <Users />}
-      {activeTab === "⚙️ Settings" && userRole === "Owner" && (
+      {activeTab === "👥 Sub-Users" && hasRole(["Owner", "Admin"]) && <Users />}
+      {activeTab === "⚙️ Settings" && hasRole(["Owner", "Admin"]) && (
         <Suspense fallback={<div>Loading Settings...</div>}>
           <Settings />
         </Suspense>

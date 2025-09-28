@@ -1,6 +1,6 @@
 {
   "name": "my-panel",
-  "version": "0.1.0",
+  "version": "1.1.2",
   "private": true,
   "description": "Modix Panel for managing Project Zomboid servers",
   "author": {
@@ -12,11 +12,12 @@
     "preinstall": "node scripts/setupBackend.js",
     "setup-backend": "node scripts/setupBackend.js",
     "predev": "npm run gen-import-map",
-    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"npm run backend-safe\"",
+    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"node scripts/startBackend.js\"",
     "next": "next dev -p 3000",
     "backend": "node scripts/startBackend.js",
     "backend-safe": "node scripts/startBackend.js",
     "backend-install": "py -3 -m pip install -r backend/requirements.txt || python3 -m pip install -r backend/requirements.txt || python -m pip install -r backend/requirements.txt",
+    "start-all": "node scripts/startAll.js",
     "build": "NEXT_PUBLIC_SKIP_ESLINT=true next build",
     "start": "next start",
     "serve": "next start -p 3000",
@@ -27,7 +28,7 @@
     "electron-dev": "electron . --no-sandbox",
     "dist": "electron-builder",
     "export": "next build && next export"
-  },
+  },  
   "dependencies": {
     "@headlessui/react": "^2.2.6",
     "@monaco-editor/react": "^4.7.0",
@@ -40,6 +41,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.534.0",
     "next": "^15.4.5",
+    "node-fetch": "^2.7.0",
     "react": "^19.1.1",
     "react-chartjs-2": "^5.3.0",
     "react-d3-tree": "^3.6.6",
@@ -86,13 +88,19 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         }
       ],
       "icon": "public/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "public/icon.png",
       "category": "Utility"
     },

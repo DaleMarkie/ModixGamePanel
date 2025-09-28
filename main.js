@@ -1,13 +1,14 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const isDev = require("electron-is-dev");
+const fetch = require("node-fetch"); // npm install node-fetch@2
+const localVersion = require("./version.json").version;
 
 let mainWindow;
 let backendProcess;
 
 function startBackend() {
-  // Cross-platform Node backend start
   const backendScript = path.join(__dirname, "scripts", "startBackend.js");
 
   backendProcess = spawn(process.execPath, [backendScript], {
@@ -23,12 +24,8 @@ function startBackend() {
 
 function getFrontendURL() {
   if (isDev) {
-    // Dev server
     return "http://localhost:3000";
   } else {
-    // Production build
-    // Next.js .next server pages path
-    // Works on all OSes
     return `file://${path.join(
       __dirname,
       "frontend",
@@ -40,12 +37,32 @@ function getFrontendURL() {
   }
 }
 
+async function checkVersion() {
+  try {
+    const SERVER_URL = "https://cd5b5aa367d6.ngrok-free.app";
+    const res = await fetch(`${SERVER_URL}/api/version`);
+    const data = await res.json();
+
+    if (data.success && data.version !== localVersion) {
+      dialog.showMessageBoxSync({
+        type: "warning",
+        title: "Update Required",
+        message: `Your Modix Panel is outdated.\nCurrent: ${localVersion}\nRequired: ${data.version}\nPlease update to continue.`,
+      });
+    } else {
+      console.log("Modix Panel is up-to-date.");
+    }
+  } catch (err) {
+    console.warn("Version check failed:", err);
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"), // optional
+      preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -60,8 +77,10 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+// App initialization
+app.whenReady().then(async () => {
   startBackend();
+  await checkVersion(); // check before loading frontend
   createWindow();
 });
 

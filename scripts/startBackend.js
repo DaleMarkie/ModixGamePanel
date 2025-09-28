@@ -1,6 +1,6 @@
-const { spawn } = require("child_process");
-const path = require("path");
+const { spawnSync, spawn } = require("child_process");
 const fs = require("fs");
+const path = require("path");
 
 const backendDir = path.join(__dirname, "../backend");
 const venvDir = path.join(backendDir, "venv");
@@ -9,8 +9,14 @@ const backendPort = process.env.API_PORT || 2010;
 
 // Detect Python executable
 let pythonPath;
+const backendRc = path.join(__dirname, "../.backendrc");
 
-if (fs.existsSync(venvDir)) {
+// 1️⃣ Check for .backendrc override
+if (fs.existsSync(backendRc)) {
+  pythonPath = fs.readFileSync(backendRc, "utf8").trim();
+}
+// 2️⃣ Check virtual environment
+else if (fs.existsSync(venvDir)) {
   pythonPath =
     process.platform === "win32"
       ? path.join(venvDir, "Scripts", "python.exe")
@@ -22,23 +28,50 @@ if (fs.existsSync(venvDir)) {
     );
     process.exit(1);
   }
-} else {
-  console.warn("⚠️ venv not found. Using system Python instead.");
+}
+// 3️⃣ Use system Python
+else {
+  console.warn("⚠️ venv not found. Creating a new virtual environment...");
   pythonPath = process.platform === "win32" ? "py -3" : "python3";
+
+  // Create venv
+  const result = spawnSync(pythonPath, ["-m", "venv", venvDir], {
+    stdio: "inherit",
+  });
+  if (result.status !== 0) process.exit(result.status);
+  pythonPath =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python");
+}
+
+// Ensure pip is up-to-date
+spawnSync(pythonPath, ["-m", "pip", "install", "--upgrade", "pip"], {
+  stdio: "inherit",
+});
+
+// Install backend dependencies
+const requirements = path.join(backendDir, "requirements.txt");
+if (fs.existsSync(requirements)) {
+  console.log("📦 Installing backend dependencies...");
+  const install = spawnSync(
+    pythonPath,
+    ["-m", "pip", "install", "-r", requirements],
+    { stdio: "inherit" }
+  );
+  if (install.status !== 0) process.exit(install.status);
 }
 
 // Set environment
 const env = { ...process.env, API_PORT: backendPort };
 
 console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`);
-
-// Spawn backend process
 const backendProcess = spawn(pythonPath, [backendFile], {
   stdio: "inherit",
   env,
   shell: process.platform === "win32",
 });
 
-backendProcess.on("exit", (code) =>
-  console.log(`Backend exited with code ${code}`)
-);
+backendProcess.on("exit", (code) => {
+  console.log(`Backend exited with code ${code}`);
+});
