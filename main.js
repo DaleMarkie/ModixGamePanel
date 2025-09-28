@@ -1,32 +1,75 @@
-const { spawn } = require("child_process");
+const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const fs = require("fs");
+const isDev = require("electron-is-dev");
+const waitOn = require("wait-on");
+const { spawn } = require("child_process");
 
-const backendDir = path.join(__dirname, "../backend");
-const backendFile = path.join(backendDir, "api_main.py");
-const venvDir = path.join(backendDir, "venv");
-const API_PORT = process.env.API_PORT || 2010;
+let mainWindow;
+let frontendProcess;
 
-let pythonPath;
+function startFrontend() {
+  if (!isDev) return;
 
-if (fs.existsSync(venvDir)) {
-  pythonPath =
-    process.platform === "win32"
-      ? path.join(venvDir, "Scripts", "python.exe")
-      : path.join(venvDir, "bin", "python");
-} else {
-  pythonPath = process.platform === "win32" ? "py -3" : "python3";
+  // Start Next.js dev server automatically
+  frontendProcess = spawn(
+    process.platform === "win32" ? "npx.cmd" : "npx",
+    ["next", "dev", "-p", "3000"],
+    { stdio: "inherit", shell: true }
+  );
+
+  frontendProcess.on("exit", (code) => {
+    console.log(`Next.js frontend exited with code ${code}`);
+  });
 }
 
-const env = { ...process.env, API_PORT };
-console.log(`🚀 Starting backend on port ${API_PORT}...`);
+async function createWindow() {
+  if (isDev) {
+    // Wait for Next.js to be ready
+    try {
+      await waitOn({ resources: ["http://localhost:3000"], timeout: 30000 });
+      console.log("✅ Next.js ready on port 3000");
+    } catch (err) {
+      console.error("❌ Next.js did not start in time", err);
+      return;
+    }
+  }
 
-const backendProcess = spawn(pythonPath, [backendFile], {
-  stdio: "inherit",
-  shell: process.platform === "win32",
-  env,
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+
+  const url = isDev
+    ? "http://localhost:3000"
+    : `file://${path.join(__dirname, "frontend", "out", "index.html")}`;
+
+  mainWindow.loadURL(url);
+
+  if (isDev) mainWindow.webContents.openDevTools();
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+    if (frontendProcess) frontendProcess.kill();
+    app.quit();
+  });
+}
+
+// App ready
+app.whenReady().then(() => {
+  startFrontend(); // Start React dev server
+  createWindow(); // Open Electron window
 });
 
-backendProcess.on("exit", (code) => {
-  console.log(`Backend exited with code ${code}`);
+// Quit app
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+app.on("activate", () => {
+  if (mainWindow === null) createWindow();
 });
