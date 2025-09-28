@@ -1,99 +1,64 @@
-// startBackend.js
-const { spawnSync, spawn } = require("child_process");
-const fs = require("fs");
+// scripts/startBackend.js
+const { spawn } = require("child_process");
 const path = require("path");
+const fs = require("fs");
 
-const backendDir = path.join(__dirname, "../backend");
-const venvDir = path.join(backendDir, "venv");
-const backendFile = path.join(backendDir, "api_main.py");
-const backendPort = process.env.API_PORT || 2010;
-
-// Detect Python executable
-let pythonPath;
-const backendRc = path.join(__dirname, "../.backendrc");
-
-// 1️⃣ Check for .backendrc override
-if (fs.existsSync(backendRc)) {
-  pythonPath = fs.readFileSync(backendRc, "utf8").trim();
-  if (!pythonPath) {
-    console.error("❌ .backendrc is empty. Please specify Python path.");
-    process.exit(1);
+function fileExists(p) {
+  try {
+    return fs.existsSync(p);
+  } catch (e) {
+    return false;
   }
 }
-// 2️⃣ Check virtual environment
-else if (fs.existsSync(venvDir)) {
-  pythonPath =
-    process.platform === "win32"
-      ? path.join(venvDir, "Scripts", "python.exe")
-      : path.join(venvDir, "bin", "python");
 
-  if (!fs.existsSync(pythonPath)) {
-    console.error(
-      "❌ Python not found inside venv. Please recreate venv first."
-    );
-    process.exit(1);
+// Try Node-style backend entrypoints
+const nodeEntrypoints = [
+  path.join(__dirname, "..", "backend", "startBackend.js"),
+  path.join(__dirname, "..", "backend", "index.js"),
+  path.join(__dirname, "..", "backend", "server.js"),
+];
+
+// Try Python-style backend entrypoints
+const pyEntrypoints = [
+  path.join(__dirname, "..", "backend", "api_main.py"),
+  path.join(__dirname, "..", "backend", "main.py"),
+];
+
+let started = false;
+for (const p of nodeEntrypoints) {
+  if (fileExists(p)) {
+    const proc = spawn("node", [p], { stdio: "inherit", shell: true });
+    proc.on("close", (code) => process.exit(code));
+    proc.on("error", (err) => {
+      console.error("Node backend spawn error:", err);
+      process.exit(1);
+    });
+    started = true;
+    break;
   }
 }
-// 3️⃣ Use system Python and create venv
-else {
-  console.warn("⚠️ venv not found. Creating a new virtual environment...");
 
-  // Detect system Python
-  pythonPath = process.platform === "win32" ? "py -3" : "python3";
-
-  // Create venv
-  const createVenv = spawnSync(pythonPath, ["-m", "venv", venvDir], {
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-  if (createVenv.status !== 0) process.exit(createVenv.status);
-
-  // Point pythonPath to newly created venv
-  pythonPath =
-    process.platform === "win32"
-      ? path.join(venvDir, "Scripts", "python.exe")
-      : path.join(venvDir, "bin", "python");
-}
-
-// Upgrade pip
-spawnSync(pythonPath, ["-m", "pip", "install", "--upgrade", "pip"], {
-  stdio: "inherit",
-  shell: process.platform === "win32",
-});
-
-// Install requirements
-const requirements = path.join(backendDir, "requirements.txt");
-if (fs.existsSync(requirements)) {
-  console.log("📦 Installing backend dependencies...");
-  const install = spawnSync(
-    pythonPath,
-    ["-m", "pip", "install", "-r", requirements],
-    {
-      stdio: "inherit",
-      shell: process.platform === "win32",
+if (!started) {
+  for (const p of pyEntrypoints) {
+    if (fileExists(p)) {
+      // prefer python3 if available
+      const pyCmd = process.platform === "win32" ? "py" : "python3";
+      const proc = spawn(pyCmd, [p], { stdio: "inherit", shell: true });
+      proc.on("close", (code) => process.exit(code));
+      proc.on("error", (err) => {
+        console.error("Python backend spawn error:", err);
+        process.exit(1);
+      });
+      started = true;
+      break;
     }
-  );
-  if (install.status !== 0) process.exit(install.status);
+  }
 }
 
-// Set environment
-const env = { ...process.env, API_PORT: backendPort };
-
-// Launch backend
-console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`);
-const backendProcess = spawn(pythonPath, [backendFile], {
-  stdio: "inherit",
-  env,
-  shell: process.platform === "win32",
-});
-
-// Handle backend exit
-backendProcess.on("exit", (code) => {
-  console.log(`Backend exited with code ${code}`);
-});
-
-// Optional: handle Ctrl+C in terminal
-process.on("SIGINT", () => {
-  if (backendProcess) backendProcess.kill();
-  process.exit();
-});
+if (!started) {
+  console.error(
+    "No backend entrypoint found. Checked:\n",
+    nodeEntrypoints.concat(pyEntrypoints).join("\n")
+  );
+  process.exit(1);
+}

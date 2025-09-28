@@ -12,7 +12,7 @@
     "preinstall": "node scripts/setupBackend.js",
     "setup-backend": "node scripts/setupBackend.js",
     "predev": "npm run gen-import-map",
-    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"node scripts/startBackend.js\"",
+    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND,ELECTRON -c cyan,magenta,yellow \"npm run next\" \"node scripts/startBackend.js\" \"electron . --no-sandbox\"",
     "next": "next dev -p 3000",
     "backend": "node scripts/startBackend.js",
     "backend-safe": "node scripts/startBackend.js",

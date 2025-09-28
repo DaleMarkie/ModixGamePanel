@@ -1,60 +1,28 @@
-const { app, BrowserWindow, dialog } = require("electron");
+// main.js
+const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const isDev = require("electron-is-dev");
-const fetch = require("node-fetch"); // npm install node-fetch@2
-const localVersion = require("./version.json").version;
 
 let mainWindow;
 let backendProcess;
 
 function startBackend() {
+  // Try Node backend (scripts/startBackend.js). If you use Python, adapt this to spawn python.
   const backendScript = path.join(__dirname, "scripts", "startBackend.js");
 
-  backendProcess = spawn(process.execPath, [backendScript], {
-    cwd: __dirname,
-    shell: true,
+  backendProcess = spawn("node", [backendScript], {
     stdio: "inherit",
+    shell: true,
   });
 
   backendProcess.on("close", (code) => {
     console.log(`Backend exited with code ${code}`);
   });
-}
 
-function getFrontendURL() {
-  if (isDev) {
-    return "http://localhost:3000";
-  } else {
-    return `file://${path.join(
-      __dirname,
-      "frontend",
-      ".next",
-      "server",
-      "pages",
-      "index.html"
-    )}`;
-  }
-}
-
-async function checkVersion() {
-  try {
-    const SERVER_URL = "https://cd5b5aa367d6.ngrok-free.app";
-    const res = await fetch(`${SERVER_URL}/api/version`);
-    const data = await res.json();
-
-    if (data.success && data.version !== localVersion) {
-      dialog.showMessageBoxSync({
-        type: "warning",
-        title: "Update Required",
-        message: `Your Modix Panel is outdated.\nCurrent: ${localVersion}\nRequired: ${data.version}\nPlease update to continue.`,
-      });
-    } else {
-      console.log("Modix Panel is up-to-date.");
-    }
-  } catch (err) {
-    console.warn("Version check failed:", err);
-  }
+  backendProcess.on("error", (err) => {
+    console.error("Failed to start backend:", err);
+  });
 }
 
 function createWindow() {
@@ -62,31 +30,37 @@ function createWindow() {
     width: 1280,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: false,
-      contextIsolation: true,
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 
-  mainWindow.loadURL(getFrontendURL());
+  if (isDev) {
+    // DEV: use live dev server
+    mainWindow.loadURL("http://localhost:3000");
+  } else {
+    // PACKAGED: load an index.html fallback in frontend (you can generate a simple static index.html if needed)
+    mainWindow.loadFile(path.join(__dirname, "frontend", "index.html"));
+  }
 
   mainWindow.on("closed", () => {
     mainWindow = null;
-    if (backendProcess) backendProcess.kill();
-    app.quit();
   });
 }
 
-// App initialization
-app.whenReady().then(async () => {
+app.on("ready", () => {
   startBackend();
-  await checkVersion(); // check before loading frontend
   createWindow();
 });
 
-// Quit when all windows are closed
 app.on("window-all-closed", () => {
-  if (backendProcess) backendProcess.kill();
+  if (backendProcess) {
+    try {
+      backendProcess.kill();
+    } catch (e) {
+      /* ignore */
+    }
+  }
   if (process.platform !== "darwin") app.quit();
 });
 
