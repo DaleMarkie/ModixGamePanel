@@ -29,35 +29,41 @@ else if (fs.existsSync(venvDir)) {
     process.exit(1);
   }
 }
-// 3️⃣ Use system Python
+// 3️⃣ Use system Python and create venv
 else {
   console.warn("⚠️ venv not found. Creating a new virtual environment...");
   pythonPath = process.platform === "win32" ? "py -3" : "python3";
 
-  // Create venv
   const result = spawnSync(pythonPath, ["-m", "venv", venvDir], {
     stdio: "inherit",
+    shell: process.platform === "win32", // needed for Windows
   });
+
   if (result.status !== 0) process.exit(result.status);
+
   pythonPath =
     process.platform === "win32"
       ? path.join(venvDir, "Scripts", "python.exe")
       : path.join(venvDir, "bin", "python");
 }
 
-// Ensure pip is up-to-date
+// Upgrade pip
 spawnSync(pythonPath, ["-m", "pip", "install", "--upgrade", "pip"], {
   stdio: "inherit",
+  shell: process.platform === "win32",
 });
 
-// Install backend dependencies
+// Install requirements
 const requirements = path.join(backendDir, "requirements.txt");
 if (fs.existsSync(requirements)) {
   console.log("📦 Installing backend dependencies...");
   const install = spawnSync(
     pythonPath,
     ["-m", "pip", "install", "-r", requirements],
-    { stdio: "inherit" }
+    {
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    }
   );
   if (install.status !== 0) process.exit(install.status);
 }
@@ -69,7 +75,7 @@ console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`)
 const backendProcess = spawn(pythonPath, [backendFile], {
   stdio: "inherit",
   env,
-  shell: process.platform === "win32",
+  shell: process.platform === "win32", // needed for Windows
 });
 
 backendProcess.on("exit", (code) => {
