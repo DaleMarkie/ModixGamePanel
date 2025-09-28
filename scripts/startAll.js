@@ -1,13 +1,31 @@
 const { spawn } = require("child_process");
 
-const frontend = spawn("npm", ["run", "next"], {
-  stdio: "inherit",
-  shell: true,
-});
-const backend = spawn("node", ["scripts/startBackend.js"], {
-  stdio: "inherit",
-  shell: true,
-});
+function startBackend() {
+  const backendProcess = spawn("node", ["scripts/startBackend.js"], {
+    stdio: "inherit",
+    shell: true,
+  });
 
-frontend.on("exit", () => process.exit());
-backend.on("exit", () => process.exit());
+  backendProcess.on("close", (code) =>
+    console.log(`Backend exited with code ${code}`)
+  );
+  backendProcess.on("error", (err) => console.error("Backend failed:", err));
+}
+
+function startFrontend() {
+  const frontendProcess = spawn("npx", ["next", "start", "-p", "3000"], {
+    stdio: "inherit",
+    shell: true,
+  });
+
+  frontendProcess.on("close", (code) =>
+    console.log(`Frontend exited with code ${code}`)
+  );
+  frontendProcess.on("error", (err) => console.error("Frontend failed:", err));
+}
+
+startBackend();
+startFrontend();
+console.log(
+  "Frontend + Backend running. Open http://localhost:3000 in browser."
+);

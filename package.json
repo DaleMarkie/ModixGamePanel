@@ -2,111 +2,26 @@
   "name": "my-panel",
   "version": "1.1.2",
   "private": true,
-  "description": "Modix Panel for managing Project Zomboid servers",
-  "author": {
-    "name": "DaleMarkie",
-    "email": "dale@modix.store"
-  },
-  "main": "main.js",
+  "main": "scripts/startAll.js",
   "scripts": {
-    "preinstall": "node scripts/setupBackend.js",
-    "setup-backend": "node scripts/setupBackend.js",
-    "predev": "npm run gen-import-map",
-    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND,ELECTRON -c cyan,magenta,yellow \"npm run next\" \"node scripts/startBackend.js\" \"electron . --no-sandbox\"",
+    "dev": "npx cross-env PORT=3000 API_PORT=2010 concurrently -n FRONTEND,BACKEND -c cyan,magenta \"npm run next\" \"node scripts/startBackend.js\"",
     "next": "next dev -p 3000",
     "backend": "node scripts/startBackend.js",
-    "backend-safe": "node scripts/startBackend.js",
-    "backend-install": "py -3 -m pip install -r backend/requirements.txt || python3 -m pip install -r backend/requirements.txt || python -m pip install -r backend/requirements.txt",
     "start-all": "node scripts/startAll.js",
     "build": "NEXT_PUBLIC_SKIP_ESLINT=true next build",
     "start": "next start",
-    "serve": "next start -p 3000",
-    "lint": "next lint",
-    "gen-import-map": "node scripts/generateImportMap.js",
-    "modix-installer": "node scripts/modix-installer.js",
-    "electron": "electron . --no-sandbox",
-    "electron-dev": "electron . --no-sandbox",
-    "dist": "electron-builder --win --x64 --ia32"
+    "serve": "next start -p 3000"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.6",
-    "@monaco-editor/react": "^4.7.0",
-    "axios": "^1.11.0",
-    "chart.js": "^4.5.0",
-    "express": "^5.1.0",
-    "framer-motion": "^12.23.12",
-    "inquirer": "^8.2.7",
-    "js-yaml": "^4.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.534.0",
     "next": "^15.4.5",
-    "node-fetch": "^2.7.0",
     "react": "^19.1.1",
-    "react-chartjs-2": "^5.3.0",
-    "react-d3-tree": "^3.6.6",
     "react-dom": "^19.1.1",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^7.7.0",
-    "react-toastify": "^11.0.5"
+    "express": "^5.1.0",
+    "axios": "^1.11.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/express": "^5.0.3",
-    "@types/jest": "^30.0.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.19.17",
-    "@types/react": "^19.1.15",
-    "@types/react-dom": "^19",
-    "@types/react-icons": "^3.0.0",
-    "@types/react-toastify": "^4.0.2",
     "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
-    "electron": "^26.2.0",
-    "electron-builder": "^24.6.0",
-    "electron-is-dev": "^3.0.1",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.3",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "wait-on": "^7.2.0"
-  },
-  "build": {
-    "appId": "com.modix.panel",
-    "productName": "Modix Panel",
-    "files": [
-      "main.js",
-      "package.json",
-      "backend/**",
-      "frontend/**",
-      "public/**",
-      "scripts/**"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ],
-      "icon": "public/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "public/icon.png",
-      "category": "Utility"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "public/icon.icns"
-    },
-    "publish": null
+    "typescript": "^5"
   }
 }

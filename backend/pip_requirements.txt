@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic>=2.0.0
+python-multipart
+docker
+jsonschema
+pyyaml
