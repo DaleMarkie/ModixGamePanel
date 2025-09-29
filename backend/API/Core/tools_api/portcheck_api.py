@@ -1,3 +1,4 @@
+# backend/API/Core/tools_api/portcheck_api.py
 import socket
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
@@ -45,6 +46,7 @@ async def check_game_ports(
                 status = "open" if is_port_open(host, port) else "closed"
                 results.append({"name": f"Custom Port {port}", "port": port, "status": status})
             except ValueError:
+                results.append({"name": f"Custom Port {p.strip()}", "port": p.strip(), "status": "invalid"})
                 continue
 
     return JSONResponse({"servers": results})
