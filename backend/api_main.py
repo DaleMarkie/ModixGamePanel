@@ -11,7 +11,7 @@ import json
 import httpx
 from typing import Optional
 
-# Import the router from workshop_api
+from backend.API.Core.settings_api import server_settings
 from backend.API.Core.workshop_api import workshop_api
 
 
@@ -32,6 +32,8 @@ app.include_router(workshop_api.router, prefix="/workshop")
 app.include_router(portcheck_api.router, prefix="/api")
 app.include_router(performance_router, prefix="/api")
 app.include_router(ddos_manager_api.router, prefix="/api")
+app.include_router(server_settings.router, prefix="/api")
+
 
 # CORS
 app.add_middleware(

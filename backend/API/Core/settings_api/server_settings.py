@@ -1,3 +1,4 @@
+# backend/API/Core/settings_api/server_settings.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from configparser import ConfigParser
@@ -43,7 +44,7 @@ def read_ini(game: str) -> Dict[str, Any]:
     path = get_ini_path(game)
     parser = ConfigParser()
     parser.optionxform = str
-    parser.read(path)
+    parser.read(path, encoding="utf-8")
 
     data = {}
     for section in parser.sections():
@@ -60,14 +61,14 @@ def write_ini(game: str, settings: Dict[str, Any]):
     path = get_ini_path(game)
     parser = ConfigParser()
     parser.optionxform = str
-    parser.read(path)
+    parser.read(path, encoding="utf-8")
 
     for key, val in settings.items():
         for section in parser.sections():
             if key in parser[section]:
                 parser[section][key] = str(val)
 
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         parser.write(f)
 
 # -------------------------
@@ -93,7 +94,7 @@ async def get_server_schema(game: str):
     path = get_ini_path(game)
     parser = ConfigParser()
     parser.optionxform = str
-    parser.read(path)
+    parser.read(path, encoding="utf-8")
 
     categories = []
     for section in parser.sections():
@@ -122,7 +123,7 @@ async def get_server_schema(game: str):
 
         categories.append({
             "category": section,
-            "description": f"Section {section} from servertest.ini",
+            "description": f"Section {section} from {INI_FILE_NAME}",
             "settings": settings
         })
 
