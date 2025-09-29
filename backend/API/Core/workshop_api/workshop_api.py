@@ -1,11 +1,8 @@
-# ---------------------------
-# Project Zomboid Workshop Mods API
-# ---------------------------
+# backend/API/Core/workshop_api/workshop_api.py
 import os
 import json
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import JSONResponse
-from datetime import datetime
 
 router = APIRouter()
 
@@ -49,6 +46,10 @@ def scan_workshop_mods() -> list[dict]:
 
 def error_response(code: str, status: int, message: str):
     return JSONResponse({"success": False, "error": code, "message": message}, status_code=status)
+
+# ---------------------------
+# API Routes
+# ---------------------------
 
 @router.get("/projectzomboid/workshop-mods")
 async def get_workshop_mods():

@@ -1,24 +1,28 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import sys
-import os
-import shutil
-import subprocess
-import socket
-import asyncio
-from typing import Optional, Dict, Any
+# backend/api_main.py
 from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+import os
+import subprocess
+import socket
+import asyncio
 import configparser
-from datetime import datetime
-import psutil
-import re
-import threading
+import json
+import httpx
+from typing import Optional
 
-app = FastAPI(title="Modix Panel Backend (Stub)")
+# Import the router from workshop_api
+from backend.API.Core.workshop_api import workshop_api
 
-# Allow frontend requests
+# ---------------------------
+# Main FastAPI App
+# ---------------------------
+app = FastAPI(title="Modix Panel Backend")
+
+# Mount workshop_api under /workshop
+app.include_router(workshop_api.router, prefix="/workshop")
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,7 +47,7 @@ def check_port(port: int):
 # ---------------------------
 # Global Server Process + Log Queue
 # ---------------------------
-running_process = None
+running_process: Optional[subprocess.Popen] = None
 log_queue: asyncio.Queue = asyncio.Queue()
 
 def check_port_in_use(port: int) -> bool:
@@ -67,12 +71,18 @@ async def monitor_process_exit(process):
 # ---------------------------
 # Project Zomboid Server Start/Stop + Logs
 # ---------------------------
+def set_server_status(status: str):
+    # placeholder for server status updates
+    pass
+
+def error_response(code, status_code, message):
+    return JSONResponse({"error": code, "message": message}, status_code=status_code)
+
 @app.post("/api/projectzomboid/start")
 async def start_pz_server(request: Request):
     global running_process
     if running_process:
         return error_response("BACKEND_001", 400, "Server already running")
-
     try:
         data = await request.json()
         port = data.get("port", 16261)
@@ -80,10 +90,8 @@ async def start_pz_server(request: Request):
             "batchFile",
             r"C:\Program Files (x86)\Steam\steamapps\common\Project Zomboid Dedicated Server\StartServer32.bat"
         )
-
         if not os.path.isfile(batch_file):
             return error_response("GAME_002", 404, f"Batch file not found: {batch_file}")
-
         if check_port_in_use(port):
             return error_response("PORT_004", 409, f"Port {port} already in use")
 
@@ -96,14 +104,10 @@ async def start_pz_server(request: Request):
             text=True,
             bufsize=1
         )
-
         asyncio.create_task(stream_subprocess_output(running_process.stdout, "OUT"))
         asyncio.create_task(stream_subprocess_output(running_process.stderr, "ERR"))
         asyncio.create_task(monitor_process_exit(running_process))
-
-        # Update DDoS API server status
         set_server_status("running")
-
         return {"status": "running", "message": "Server started successfully"}
     except Exception as e:
         running_process = None
@@ -115,15 +119,10 @@ async def stop_pz_server():
     global running_process
     if not running_process:
         return {"status": "stopped", "message": "Server not running"}
-
     running_process.terminate()
     running_process = None
-
     await log_queue.put("[SYSTEM] Server stopped manually")
-
-    # Update DDoS API server status
     set_server_status("stopped")
-
     return {"status": "stopped", "message": "Server terminated"}
 
 @app.get("/api/projectzomboid/terminal/log-stream")
@@ -145,24 +144,18 @@ async def save_mod_notes(request: Request):
     workshop_id = data.get("workshopId")
     notes = data.get("notes", "")
     categories = data.get("categories", [])
-
     if not workshop_id:
         return JSONResponse({"error": "Missing workshopId"}, status_code=400)
-
     saved_mod_notes[workshop_id] = {"notes": notes, "categories": categories}
-
     return {"message": "Notes saved", "data": saved_mod_notes[workshop_id]}
 
 # ---------------------------
 # Project Zomboid Mod Alerts
 # ---------------------------
-import json
-
 WORKSHOP_PATH = os.path.expanduser("~/Steam/steamapps/workshop/content/108600")
 SERVER_INI_PATH = os.path.join(os.path.expanduser("~"), "Zomboid", "Server", "servertest.ini")
 
 def read_installed_mods_from_ini() -> list[str]:
-    """Read the Mods= line from server.ini and return a list of mod IDs"""
     config = configparser.ConfigParser()
     config.optionxform = str
     if not os.path.isfile(SERVER_INI_PATH):
@@ -174,7 +167,6 @@ def read_installed_mods_from_ini() -> list[str]:
     return [m.strip() for m in mods_line.split(";") if m.strip()]
 
 def scan_local_workshop() -> list[dict]:
-    """Scan local Workshop folder for installed mods"""
     mods = []
     if not os.path.isdir(WORKSHOP_PATH):
         return mods
@@ -198,25 +190,17 @@ def scan_local_workshop() -> list[dict]:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
 
-import httpx
-
 # ---------------------------
 # Remote License Verification
 # ---------------------------
-REMOTE_LICENSE_SERVER = "http://REMOTE_FLASK_SERVER_IP:5000"  # replace with your remote Flask server IP
+REMOTE_LICENSE_SERVER = "http://REMOTE_FLASK_SERVER_IP:5000"
 
 @app.post("/api/licenses/verify-remote")
 async def verify_remote_license(request: Request):
-    """
-    Verify a license code by querying the remote Flask license server.
-    Expects JSON: { "license_code": "CODE123" }
-    """
     data = await request.json()
     code = data.get("license_code", "").upper()
-
     if not code:
         return JSONResponse({"success": False, "detail": "Missing license code"}, status_code=400)
-
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
@@ -224,7 +208,6 @@ async def verify_remote_license(request: Request):
                 json={"license_code": code}
             )
             license_data = response.json()
-
         if response.status_code == 200 and license_data.get("success"):
             return {"success": True, "license": license_data.get("license")}
         else:
@@ -232,7 +215,6 @@ async def verify_remote_license(request: Request):
                 "success": False,
                 "detail": license_data.get("detail", "Invalid or expired license")
             }, status_code=404)
-
     except httpx.RequestError as e:
         return JSONResponse({
             "success": False,
@@ -240,101 +222,8 @@ async def verify_remote_license(request: Request):
         }, status_code=502)
 
 # ---------------------------
-# Project Zomboid Server Start/Stop (Windows/Linux Support)
+# Run server
 # ---------------------------
-running_pz_process: Optional[subprocess.Popen] = None
-pz_log_queue: asyncio.Queue = asyncio.Queue()
-
-def is_port_in_use(port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("127.0.0.1", port)) == 0
-
-async def stream_pz_output(stream, prefix: str):
-    loop = asyncio.get_event_loop()
-    while True:
-        line = await loop.run_in_executor(None, stream.readline)
-        if not line:
-            break
-        log_text = line.strip()
-        await pz_log_queue.put(f"[{prefix}] {log_text}")
-
-        # Update connected players in real-time
-        parse_pz_log_for_players(log_text)
-
-async def monitor_pz_exit(process: subprocess.Popen):
-    global running_pz_process
-    await asyncio.get_event_loop().run_in_executor(None, process.wait)
-    await pz_log_queue.put("[SYSTEM] Server stopped")
-    running_pz_process = None
-
-@app.post("/api/projectzomboid/start")
-async def start_project_zomboid(request: Request):
-    global running_pz_process
-    if running_pz_process:
-        return error_response("BACKEND_001", 400, "Server already running")
-
-    data = await request.json()
-    os_type = data.get("os", "windows").lower()  # 'windows' or 'linux'
-    batch_file = data.get("batchFile")
-    port = data.get("port", 16261)
-
-    if not batch_file or not os.path.isfile(batch_file):
-        return error_response("GAME_002", 404, f"Batch/sh file not found: {batch_file}")
-
-    if is_port_in_use(port):
-        return error_response("PORT_004", 409, f"Port {port} already in use")
-
-    try:
-        if os_type == "windows":
-            running_pz_process = subprocess.Popen(
-                f'cmd /c "{batch_file}"',
-                cwd=os.path.dirname(batch_file),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=True,
-                text=True,
-                bufsize=1
-            )
-        elif os_type == "linux":
-            running_pz_process = subprocess.Popen(
-                ["bash", batch_file],
-                cwd=os.path.dirname(batch_file),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1
-            )
-        else:
-            return error_response("GAME_001", 400, f"Unknown OS: {os_type}")
-
-        asyncio.create_task(stream_pz_output(running_pz_process.stdout, "OUT"))
-        asyncio.create_task(stream_pz_output(running_pz_process.stderr, "ERR"))
-        asyncio.create_task(monitor_pz_exit(running_pz_process))
-
-        return {"status": "running", "message": f"Project Zomboid ({os_type}) server started"}
-    except Exception as e:
-        running_pz_process = None
-        return error_response("BACKEND_001", 500, str(e))
-
-@app.post("/api/projectzomboid/stop")
-async def stop_project_zomboid():
-    global running_pz_process
-    if not running_pz_process:
-        return {"status": "stopped", "message": "Server not running"}
-
-    running_pz_process.terminate()
-    running_pz_process = None
-    await pz_log_queue.put("[SYSTEM] Server stopped manually")
-    return {"status": "stopped", "message": "Server terminated"}
-
-@app.get("/api/projectzomboid/terminal/log-stream")
-async def pz_terminal_log_stream():
-    async def event_generator():
-        while True:
-            log = await pz_log_queue.get()
-            yield f"data: {log}\n\n"
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.api_main:app", host="0.0.0.0", port=2010, reload=True)
