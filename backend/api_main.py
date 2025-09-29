@@ -22,14 +22,12 @@ from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
     all_players_api,
     steam_notes_api,
-    steam_search_player_api
+    steam_search_player_api,
+    api_chatlogs
 )
-from backend.API.Core.workshop_api import workshop_api
-from backend.API.Core.tools_api import portcheck_api
 from backend.API.Core.tools_api.performance_api import router as performance_router
-from backend.API.Core.tools_api import ddos_manager_api
-from backend.API.Core.games_api.projectzomboid.api_chatlogs import chat_bp
-
+from backend.API.Core.tools_api import portcheck_api, ddos_manager_api
+from backend.API.Core.workshop_api import workshop_api
 
 # ---------------------------
 # Main FastAPI App
@@ -41,7 +39,7 @@ app = FastAPI(title="Modix Panel Backend")
 # ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this in production
+    allow_origins=["*"],  # Change to your frontend domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,11 +48,13 @@ app.add_middleware(
 # ---------------------------
 # Mount Routers
 # ---------------------------
+
+# Workshop
 app.include_router(workshop_api.router, prefix="/workshop")
 
 # Tools
 app.include_router(portcheck_api.router, prefix="/api/tools")
-app.include_router(performance_router, prefix="/api/performance")
+app.include_router(performance_router, prefix="/api")  # includes /api/server-info
 app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 
 # Server Settings
@@ -66,7 +66,8 @@ app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
 app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
 app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
-app.include_router(chat_bp, prefix="/api/projectzomboid/chat")
+app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
+
 
 # ---------------------------
 # Global state placeholders

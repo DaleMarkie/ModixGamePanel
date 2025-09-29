@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 
 type ServerData = {
@@ -31,12 +33,6 @@ type ServerData = {
     kernel: string;
     uptime: string;
     hostname: string;
-  };
-  docker: {
-    runningInDocker: string;
-    containerID: string;
-    image: string;
-    volumes: string;
   };
   modix: {
     version: string;
@@ -88,12 +84,6 @@ const defaultData: ServerData = {
     kernel: "Loading...",
     uptime: "Loading...",
     hostname: "Loading...",
-  },
-  docker: {
-    runningInDocker: "Loading...",
-    containerID: "Loading...",
-    image: "Loading...",
-    volumes: "Loading...",
   },
   modix: {
     version: "Loading...",
@@ -190,7 +180,7 @@ const Performance = () => {
     <div className="performance-dashboard px-6 py-10 text-zinc-100">
       <header className="mb-10">
         <h1 className="text-2xl font-extrabold text-white tracking-tight">
-          🖥️ Server Prerformance
+          🖥️ Server Performance
         </h1>
         <p className="text-zinc-400 mt-2">
           Full overview of the system running Modix. Dark. Clean. Brutal.
@@ -209,27 +199,27 @@ const Performance = () => {
           <InfoItem
             label="Model"
             value={data.cpu.model}
-            tooltip="The CPU model and base clock speed installed on this server."
+            tooltip="CPU model installed on this server."
           />
           <InfoItem
             label="Cores"
             value={data.cpu.cores}
-            tooltip="Total CPU cores and threads available (physical + hyper-threaded)."
+            tooltip="Number of CPU cores/threads."
           />
           <InfoItem
             label="Clock Speed"
             value={data.cpu.clockSpeed}
-            tooltip="Base and turbo clock frequencies of the CPU."
+            tooltip="Current CPU clock speed."
           />
           <InfoItem
             label="Architecture"
             value={data.cpu.architecture}
-            tooltip="CPU instruction set architecture."
+            tooltip="CPU architecture."
           />
           <InfoItem
             label="Flags"
             value={data.cpu.flags}
-            tooltip="CPU features and capabilities supported."
+            tooltip="CPU features supported."
           />
         </Card>
 
@@ -243,17 +233,17 @@ const Performance = () => {
           <InfoItem
             label="Used RAM"
             value={data.memory.used}
-            tooltip="Currently used RAM by the system and processes."
+            tooltip="Used RAM."
           />
           <InfoItem
             label="Swap Total"
             value={data.memory.swapTotal}
-            tooltip="Total swap space available for memory overflow."
+            tooltip="Total swap available."
           />
           <InfoItem
             label="Swap Used"
             value={data.memory.swapUsed}
-            tooltip="Currently used swap space."
+            tooltip="Used swap."
           />
         </Card>
 
@@ -262,17 +252,17 @@ const Performance = () => {
           <InfoItem
             label="Total Disk"
             value={data.disk.total}
-            tooltip="Total storage capacity of the disk drive(s)."
+            tooltip="Total disk storage."
           />
           <InfoItem
             label="/ (root)"
             value={data.disk.root}
-            tooltip="Disk usage and available space on the root partition."
+            tooltip="Root partition usage."
           />
           <InfoItem
             label="/data"
             value={data.disk.data}
-            tooltip="Disk usage on the /data partition where large files reside."
+            tooltip="Data partition usage."
           />
         </Card>
 
@@ -281,75 +271,47 @@ const Performance = () => {
           <InfoItem
             label="Primary IP"
             value={data.network.primaryIP}
-            tooltip="Internal IP address assigned to this server."
+            tooltip="Internal IP."
           />
           <InfoItem
             label="Public IP"
             value={data.network.publicIP}
-            tooltip="External IP address visible on the internet."
+            tooltip="External IP."
           />
           <InfoItem
             label="Interface"
             value={data.network.interface}
-            tooltip="Network interface used for primary communication."
+            tooltip="Network interface."
           />
           <InfoItem
             label="RX/TX"
             value={data.network.rxTx}
-            tooltip="Total received (RX) and transmitted (TX) network data."
+            tooltip="Network RX/TX."
           />
         </Card>
 
         {/* OS */}
         <Card title="⚙️ Operating System">
-          <InfoItem
-            label="OS"
-            value={data.os.os}
-            tooltip="The operating system running on this server."
-          />
+          <InfoItem label="OS" value={data.os.os} tooltip="Operating System." />
           <InfoItem
             label="Platform"
             value={data.os.platform}
-            tooltip="Underlying platform kernel type."
+            tooltip="Platform details."
           />
           <InfoItem
             label="Kernel"
             value={data.os.kernel}
-            tooltip="Specific Linux kernel version."
+            tooltip="Kernel version."
           />
           <InfoItem
             label="Uptime"
             value={data.os.uptime}
-            tooltip="How long the system has been running since last reboot."
+            tooltip="System uptime."
           />
           <InfoItem
             label="Hostname"
             value={data.os.hostname}
-            tooltip="The server's network hostname."
-          />
-        </Card>
-
-        {/* Docker */}
-        <Card title="🐳 Docker">
-          <InfoItem
-            label="Running In Docker"
-            value={data.docker.runningInDocker}
-            tooltip="Indicates if the service is running inside a Docker container."
-          />
-          <InfoItem
-            label="Container ID"
-            value={data.docker.containerID}
-            tooltip="Unique identifier of the running Docker container."
-          />
-          <InfoItem
-            label="Image"
-            value={data.docker.image}
-            tooltip="Docker image name and tag used."
-          />
-          <InfoItem
-            label="Volumes"
-            value={data.docker.volumes}
-            tooltip="Mounted volume paths inside the container."
+            tooltip="Hostname."
           />
         </Card>
 
@@ -358,56 +320,48 @@ const Performance = () => {
           <InfoItem
             label="Version"
             value={data.modix.version}
-            tooltip="Current version of the Modix server software."
+            tooltip="Modix version."
           />
           <InfoItem
             label="Git Commit"
             value={data.modix.gitCommit}
-            tooltip="Git commit hash of the current build."
+            tooltip="Git commit hash."
           />
           <InfoItem
             label="Build Time"
             value={data.modix.buildTime}
-            tooltip="Timestamp when the current build was compiled."
+            tooltip="Build timestamp."
           />
           <InfoItem
             label="Environment"
             value={data.modix.environment}
-            tooltip="Runtime environment of the application."
+            tooltip="Environment."
           />
           <InfoItem
             label="API Port"
             value={data.modix.apiPort}
-            tooltip="Port used by Modix API."
+            tooltip="API port."
           />
           <InfoItem
             label="Frontend Port"
             value={data.modix.frontendPort}
-            tooltip="Port where Modix frontend UI is served."
+            tooltip="Frontend port."
           />
         </Card>
 
         {/* GPU */}
         <Card title="🎮 GPU">
-          <InfoItem
-            label="Model"
-            value={data.gpu.model}
-            tooltip="Graphics processing unit model installed."
-          />
+          <InfoItem label="Model" value={data.gpu.model} tooltip="GPU model." />
           <InfoItem
             label="Driver"
             value={data.gpu.driver}
-            tooltip="GPU driver version."
+            tooltip="GPU driver."
           />
-          <InfoItem
-            label="VRAM"
-            value={data.gpu.vram}
-            tooltip="Dedicated video memory size."
-          />
+          <InfoItem label="VRAM" value={data.gpu.vram} tooltip="Video RAM." />
           <InfoItem
             label="CUDA"
             value={data.gpu.cuda}
-            tooltip="CUDA toolkit version supported."
+            tooltip="CUDA version."
           />
         </Card>
 
@@ -416,27 +370,27 @@ const Performance = () => {
           <InfoItem
             label="Timezone"
             value={data.extra.timezone}
-            tooltip="Configured system timezone."
+            tooltip="System timezone."
           />
           <InfoItem
             label="Locale"
             value={data.extra.locale}
-            tooltip="System locale settings."
+            tooltip="System locale."
           />
           <InfoItem
             label="Shell"
             value={data.extra.shell}
-            tooltip="Default user shell."
+            tooltip="User shell."
           />
           <InfoItem
             label="Python"
             value={data.extra.python}
-            tooltip="Python runtime and web framework version."
+            tooltip="Python version."
           />
           <InfoItem
             label="Node.js"
             value={data.extra.nodejs}
-            tooltip="Node.js runtime version."
+            tooltip="Node.js version."
           />
         </Card>
       </div>
