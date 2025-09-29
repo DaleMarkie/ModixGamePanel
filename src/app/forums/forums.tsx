@@ -41,11 +41,16 @@ const Forums: React.FC = () => {
 
   // --- User detection ---
   const user = useMemo(() => {
-    const stored = localStorage.getItem("modix_user");
-    return stored ? JSON.parse(stored) : null;
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem("modix_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
   }, []);
 
-  // --- EARLY RETURN for not logged-in users ---
+  // --- Redirect if not logged in ---
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 px-4">
@@ -58,11 +63,6 @@ const Forums: React.FC = () => {
             You must be{" "}
             <span className="text-green-400 font-semibold">logged in</span> to
             view the forums.
-          </p>
-          <p className="text-green-400 mb-6 text-base">
-            Please contact your{" "}
-            <span className="font-semibold">administrator</span> or log in to
-            gain access.
           </p>
           <button
             onClick={() => (window.location.href = "/auth/login")}
@@ -84,6 +84,7 @@ const Forums: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem("modix_token")}`,
         },
       });
+      if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (err) {
@@ -123,7 +124,7 @@ const Forums: React.FC = () => {
         fetchPosts();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error creating post:", err);
     } finally {
       setLoading(false);
     }
@@ -152,7 +153,7 @@ const Forums: React.FC = () => {
         fetchPosts();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error creating comment:", err);
     } finally {
       setLoading(false);
     }
@@ -171,7 +172,7 @@ const Forums: React.FC = () => {
         p.content.toLowerCase().includes(search.toLowerCase())
     )
     .slice()
-    .reverse(); // Recent first
+    .reverse();
 
   return (
     <div className="p-6 space-y-6">
@@ -194,36 +195,19 @@ const Forums: React.FC = () => {
         </div>
 
         <div className="flex gap-2">
-          <button
-            className={`px-3 py-1 rounded-lg ${
-              filterStatus === "recent"
-                ? "bg-green-700"
-                : "bg-zinc-800 text-green-300"
-            }`}
-            onClick={() => setFilterStatus("recent")}
-          >
-            Recent
-          </button>
-          <button
-            className={`px-3 py-1 rounded-lg ${
-              filterStatus === "unsolved"
-                ? "bg-green-700"
-                : "bg-zinc-800 text-green-300"
-            }`}
-            onClick={() => setFilterStatus("unsolved")}
-          >
-            Unsolved
-          </button>
-          <button
-            className={`px-3 py-1 rounded-lg ${
-              filterStatus === "solved"
-                ? "bg-green-700"
-                : "bg-zinc-800 text-green-300"
-            }`}
-            onClick={() => setFilterStatus("solved")}
-          >
-            Solved
-          </button>
+          {["recent", "unsolved", "solved"].map((status) => (
+            <button
+              key={status}
+              className={`px-3 py-1 rounded-lg ${
+                filterStatus === status
+                  ? "bg-green-700 text-white"
+                  : "bg-zinc-800 text-green-300"
+              }`}
+              onClick={() => setFilterStatus(status as any)}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -255,7 +239,7 @@ const Forums: React.FC = () => {
           disabled={loading}
           className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
         >
-          <Plus className="w-4 h-4" /> Post
+          <Plus className="w-4 h-4" /> {loading ? "Posting..." : "Post"}
         </button>
       </div>
 
@@ -263,7 +247,7 @@ const Forums: React.FC = () => {
       <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg space-y-4">
         {filteredPosts.length === 0 ? (
           <p className="text-green-400 text-center mt-10 text-lg">
-            Module not active for v1.1.2
+            No posts found.
           </p>
         ) : (
           filteredPosts.map((post) => (
@@ -316,7 +300,7 @@ const Forums: React.FC = () => {
                   disabled={loading}
                   className="px-3 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg transition-all duration-200"
                 >
-                  Comment
+                  {loading ? "..." : "Comment"}
                 </button>
               </div>
             </div>
