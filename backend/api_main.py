@@ -15,6 +15,11 @@ from backend.API.Core.settings_api import server_settings
 from backend.API.Core.games_api.projectzomboid import pz_server_settings
 from backend.API.Core.workshop_api import workshop_api
 
+# ---------------------------
+# Players API
+# ---------------------------
+
+from backend.API.Core.games_api.projectzomboid import PlayersBannedAPI
 
 # ---------------------------
 # Tools 
@@ -34,7 +39,8 @@ app.include_router(portcheck_api.router, prefix="/api")
 app.include_router(performance_router, prefix="/api")
 app.include_router(ddos_manager_api.router, prefix="/api")
 app.include_router(server_settings.router, prefix="/api")
-app.include_router(pz_server_settings.router)
+app.include_router(pz_server_settings.router, prefix="/api")
+app.include_router(PlayersBannedAPI.router, prefix="/api")
 
 # CORS
 app.add_middleware(

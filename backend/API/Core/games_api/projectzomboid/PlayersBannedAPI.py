@@ -1,3 +1,5 @@
+# backend/API/Core/games_api/projectzomboid/PlayersBannedAPI.py
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from datetime import datetime
 from typing import List, Optional
@@ -5,9 +7,14 @@ import os
 import platform
 import asyncio
 
-router = APIRouter(prefix="/api/projectzomboid", tags=["PlayersBannedAPI"])
+router = APIRouter(
+    prefix="/api/projectzomboid",
+    tags=["PlayersBannedAPI"]
+)
 
-# --- WebSocket clients ---
+# ---------------------------
+# WebSocket connection manager
+# ---------------------------
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
@@ -27,34 +34,35 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# --- Detect server path ---
+# ---------------------------
+# Project Zomboid server path
+# ---------------------------
 def get_pz_server_path() -> str:
     user_home = os.path.expanduser("~")
     sys_os = platform.system().lower()
     if sys_os == "windows":
-        path = os.path.join(
+        return os.path.join(
             os.environ.get("PROGRAMFILES(X86)", "C:\\Program Files (x86)"),
             "Steam", "steamapps", "common", "Project Zomboid", "Server"
         )
     elif sys_os == "linux":
-        path = os.path.join(user_home, "ProjectZomboid", "Server")
+        return os.path.join(user_home, "ProjectZomboid", "Server")
     elif sys_os == "darwin":
-        path = os.path.join(user_home, "Documents", "Zomboid", "Server")
-    else:
-        path = ""
-    return path
+        return os.path.join(user_home, "Documents", "Zomboid", "Server")
+    return ""
 
 def banned_file_path() -> str:
     return os.path.join(get_pz_server_path(), "banned.txt")
 
-# --- Read/write ---
+# ---------------------------
+# Read/write banned players
+# ---------------------------
 def read_banned_file() -> List[dict]:
-    file_path = banned_file_path()
-    if not os.path.exists(file_path):
+    path = banned_file_path()
+    if not os.path.exists(path):
         return []
-
     banned_players = []
-    with open(file_path, "r") as f:
+    with open(path, "r") as f:
         for line in f.readlines():
             line = line.strip()
             if not line or line.startswith("#"):
@@ -71,13 +79,15 @@ def read_banned_file() -> List[dict]:
     return banned_players
 
 def write_banned_file(banned_list: List[dict]):
-    file_path = banned_file_path()
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "w") as f:
+    path = banned_file_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
         for b in banned_list:
             f.write(f"{b['player']}:{b['message']}:{b['timestamp']}\n")
 
-# --- API endpoints ---
+# ---------------------------
+# API endpoints
+# ---------------------------
 @router.get("/banned")
 async def get_banned_players():
     return {"banned": read_banned_file()}
@@ -109,14 +119,15 @@ async def unban_player(player: str):
     await manager.broadcast({"event": "unbanned", "player": player})
     return {"status": "unbanned", "player": player}
 
-# --- WebSocket ---
+# ---------------------------
+# WebSocket endpoint
+# ---------------------------
 @router.websocket("/ws/banned")
 async def websocket_banned(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            await asyncio.sleep(1)
-            # Optional: send full list every 5-10s
+            await asyncio.sleep(5)  # send full list every 5 seconds
             await websocket.send_json({"event": "full_list", "banned": read_banned_file()})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
