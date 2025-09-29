@@ -1,11 +1,7 @@
-# ---------------------------
-# Performance API
-# ---------------------------
 import platform
 import psutil
 import socket
 import os
-import subprocess
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from datetime import datetime
@@ -18,7 +14,7 @@ def get_server_info():
     cpu_info = {
         "model": platform.processor(),
         "cores": str(psutil.cpu_count(logical=True)),
-        "clockSpeed": str(round(psutil.cpu_freq().current if psutil.cpu_freq() else 0, 2)) + " MHz",
+        "clockSpeed": f"{round(psutil.cpu_freq().current if psutil.cpu_freq() else 0, 2)} MHz",
         "architecture": platform.architecture()[0],
         "flags": "N/A",
     }
@@ -41,7 +37,6 @@ def get_server_info():
             disk_info["root"] = f"{round(usage.used / (1024**3),2)} GB / {round(usage.total / (1024**3),2)} GB"
         elif "data" in part.mountpoint.lower():
             disk_info["data"] = f"{round(usage.used / (1024**3),2)} GB / {round(usage.total / (1024**3),2)} GB"
-    # Total disk
     total_disk = sum([psutil.disk_usage(d.mountpoint).total for d in psutil.disk_partitions()])
     disk_info["total"] = f"{round(total_disk / (1024**3),2)} GB"
 
@@ -63,19 +58,11 @@ def get_server_info():
         "os": platform.system(),
         "platform": platform.platform(),
         "kernel": platform.release(),
-        "uptime": str(round((datetime.now() - datetime.fromtimestamp(psutil.boot_time())).total_seconds() / 3600, 2)) + "h",
+        "uptime": f"{round((datetime.now() - datetime.fromtimestamp(psutil.boot_time())).total_seconds() / 3600, 2)}h",
         "hostname": hostname,
     }
 
-    # Docker
-    docker_info = {
-        "runningInDocker": "N/A",
-        "containerID": "N/A",
-        "image": "N/A",
-        "volumes": "N/A",
-    }
-
-    # Modix info (example placeholders, replace with your build info)
+    # Modix info (replace with your real build info)
     modix_info = {
         "version": "0.1.0",
         "gitCommit": "abc123",
@@ -85,39 +72,23 @@ def get_server_info():
         "frontendPort": "3000",
     }
 
-    # GPU
-    gpu_info = {
-        "model": "N/A",
-        "driver": "N/A",
-        "vram": "N/A",
-        "cuda": "N/A",
-    }
-
-    # Extra
-    extra_info = {
-        "timezone": datetime.now().astimezone().tzname(),
-        "locale": "N/A",
-        "shell": os.environ.get("SHELL", "N/A"),
-        "python": platform.python_version(),
-        "nodejs": "N/A",
-    }
-
     return {
         "cpu": cpu_info,
         "memory": memory_info,
         "disk": disk_info,
         "network": network_info,
         "os": os_info,
-        "docker": docker_info,
         "modix": modix_info,
-        "gpu": gpu_info,
-        "extra": extra_info,
+        "extra": {
+            "timezone": datetime.now().astimezone().tzname(),
+            "shell": os.environ.get("SHELL", "N/A"),
+            "python": platform.python_version(),
+        },
     }
 
 @router.get("/server-info")
 async def server_info():
     try:
-        data = get_server_info()
-        return JSONResponse(data)
+        return JSONResponse(get_server_info())
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
