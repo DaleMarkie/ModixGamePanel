@@ -1,76 +1,83 @@
-// scripts/startBackend.js
-const { spawn } = require("child_process");
+const { spawnSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-// Helper: check if a file exists
-const fileExists = (p) => {
-  try {
-    return fs.existsSync(p);
-  } catch (e) {
-    return false;
-  }
-};
+const backendDir = path.join(__dirname, "../backend");
+const venvDir = path.join(backendDir, "venv");
+const backendFile = path.join(backendDir, "api_main.py");
+const backendPort = process.env.API_PORT || 2010;
 
-// Detect Node entrypoints
-const nodeEntrypoints = [
-  path.join(__dirname, "..", "backend", "startBackend.js"),
-  path.join(__dirname, "..", "backend", "index.js"),
-  path.join(__dirname, "..", "backend", "server.js"),
-];
-
-// Detect Python entrypoints
-const pyEntrypoints = [
-  path.join(__dirname, "..", "backend", "api_main.py"),
-  path.join(__dirname, "..", "backend", "main.py"),
-];
-
-// Read custom Python command from .backendrc if it exists
-let pyCmd = process.platform === "win32" ? "py" : "python3";
+// Detect Python executable
+let pythonPath;
 const backendRc = path.join(__dirname, "../.backendrc");
-if (fileExists(backendRc)) {
-  pyCmd = fs.readFileSync(backendRc, "utf8").trim();
+
+// 1️⃣ Check for .backendrc override
+if (fs.existsSync(backendRc)) {
+  pythonPath = fs.readFileSync(backendRc, "utf8").trim();
 }
+// 2️⃣ Check virtual environment
+else if (fs.existsSync(venvDir)) {
+  pythonPath =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python");
 
-// Function to spawn a process
-function runProcess(command, args, entrypoint) {
-  console.log(`🚀 Starting backend: ${command} ${args.join(" ")}`);
-  const proc = spawn(command, args, {
-    stdio: "inherit",
-    shell: true,
-    env: { ...process.env, PYTHONPATH: path.join(__dirname, "../backend") },
-  });
-
-  proc.on("close", (code) => {
-    console.log(`Backend exited with code ${code}`);
-    process.exit(code);
-  });
-
-  proc.on("error", (err) => {
-    console.error(`Failed to start backend (${entrypoint}):`, err);
+  if (!fs.existsSync(pythonPath)) {
+    console.error(
+      "❌ Python not found inside venv. Please recreate venv first."
+    );
     process.exit(1);
+  }
+}
+// 3️⃣ Use system Python and create venv
+else {
+  console.warn("⚠️ venv not found. Creating a new virtual environment...");
+  pythonPath = process.platform === "win32" ? "py -3" : "python3";
+
+  const result = spawnSync(pythonPath, ["-m", "venv", venvDir], {
+    stdio: "inherit",
+    shell: process.platform === "win32", // needed for Windows
   });
+
+  if (result.status !== 0) process.exit(result.status);
+
+  pythonPath =
+    process.platform === "win32"
+      ? path.join(venvDir, "Scripts", "python.exe")
+      : path.join(venvDir, "bin", "python");
 }
 
-// Try Node backends first
-for (const entry of nodeEntrypoints) {
-  if (fileExists(entry)) {
-    runProcess("node", [entry], entry);
-    return; // stop after first found
-  }
+// Upgrade pip
+spawnSync(pythonPath, ["-m", "pip", "install", "--upgrade", "pip"], {
+  stdio: "inherit",
+  shell: process.platform === "win32",
+});
+
+// Install requirements
+const requirements = path.join(backendDir, "requirements.txt");
+if (fs.existsSync(requirements)) {
+  console.log("📦 Installing backend dependencies...");
+  const install = spawnSync(
+    pythonPath,
+    ["-m", "pip", "install", "-r", requirements],
+    {
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    }
+  );
+  if (install.status !== 0) process.exit(install.status);
 }
 
-// Try Python backends if no Node backend found
-for (const entry of pyEntrypoints) {
-  if (fileExists(entry)) {
-    runProcess(pyCmd, [entry], entry);
-    return; // stop after first found
-  }
-}
+// Set environment
+const env = { ...process.env, API_PORT: backendPort };
 
-// If nothing found, exit with error
-console.error(
-  "❌ No backend entrypoint found. Checked:\n",
-  nodeEntrypoints.concat(pyEntrypoints).join("\n")
-);
-process.exit(1);
+console.log(`🚀 Starting backend using: ${pythonPath} on port ${backendPort}`);
+const backendProcess = spawn(pythonPath, [backendFile], {
+  stdio: "inherit",
+  env,
+  shell: process.platform === "win32", // needed for Windows
+});
+
+backendProcess.on("exit", (code) => {
+  console.log(`Backend exited with code ${code}`);
+});

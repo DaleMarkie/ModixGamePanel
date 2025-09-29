@@ -1,15 +1,17 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ModuleProvider } from "./ModuleContext";
 import { UserProvider } from "./UserContext";
 import { ContainerProvider } from "./ContainerContext";
 
-const geistSans = Geist({
+// Replace Geist with Inter
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+// Replace Geist_Mono with Roboto Mono
+const geistMono = Roboto_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });

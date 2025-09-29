@@ -1,7 +1,11 @@
-/* global.css */
+/* globals.css */
 
-@import "tailwindcss";
+/* Tailwind base, components, utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Your custom variables and styles */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -58,7 +62,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Animation Keyframes */
+/* Keyframes */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -82,7 +86,7 @@ body {
   }
 }
 
-/* Dashboard Container */
+/* Dashboard container */
 .dashboard-container {
   position: relative;
   z-index: 1;
@@ -96,7 +100,7 @@ body {
   min-height: 30vh;
 }
 
-/* Sidebar */
+/* Sidebar and navigation */
 .sidebar {
   background-color: var(--sidebar-bg);
   color: var(--sidebar-text);
@@ -116,7 +120,7 @@ body {
   padding: var(--sidebar-padding-closed);
 }
 
-/* Logo + Title container */
+/* Sidebar header */
 .sidebar-header {
   display: flex;
   flex-direction: column;
@@ -151,7 +155,6 @@ body {
   border-radius: 8px;
   transition: height 0.3s ease;
 }
-
 .sidebar-title {
   font-weight: var(--font-weight-bold);
   font-size: 0.8rem;
@@ -165,10 +168,10 @@ body {
   user-select: none;
 }
 
-/* Server Info */
+/* Server info */
 .server-info {
   margin-top: 12px;
-  padding: 12px 12px;
+  padding: 12px;
   background-color: var(--serverinfo-bg);
   border-radius: 8px;
   color: var(--serverinfo-color);
@@ -207,7 +210,7 @@ body {
   user-select: text;
 }
 
-/* Collapse Button */
+/* Collapse button */
 .sidebar-collapse-btn {
   background-color: var(--sidebar-button-bg);
   border: none;
@@ -227,7 +230,7 @@ body {
   justify-content: center;
 }
 
-/* Search bar container */
+/* Search bar */
 .sidebar-search-container {
   margin-top: 12px;
   margin-bottom: 8px;
@@ -260,7 +263,6 @@ body {
   overflow-y: auto;
   padding-right: 2px;
 }
-
 .sidebar-nav-item {
   margin-bottom: 6px;
 }
@@ -284,8 +286,6 @@ body {
 .sidebar-nav-link.open {
   background-color: var(--sidebar-hover-bg);
 }
-
-/* Submenu container */
 .sidebar-submenu {
   margin-left: 8px;
   margin-top: 4px;
@@ -293,8 +293,6 @@ body {
   flex-direction: column;
   gap: 4px;
 }
-
-/* Submenu links */
 .sidebar-submenu-link {
   color: #ccc;
   text-decoration: none;

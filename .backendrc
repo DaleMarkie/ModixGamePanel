@@ -1,7 +1,1 @@
-let pyCmd = "python3";
-const backendRc = path.join(__dirname, "../.backendrc");
-if (fs.existsSync(backendRc)) {
-  pyCmd = fs.readFileSync(backendRc, "utf8").trim();
-} else if (process.platform === "win32") {
-  pyCmd = "py"; // fallback on Windows
-}
+backend/venv/bin/python
