@@ -106,25 +106,48 @@ export default function WorkshopPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const [selectedGame, setSelectedGame] = useState<string>(
-    localStorage.getItem("selectedGame") || "projectzomboid"
-  );
+  const [selectedGame, setSelectedGame] = useState<string>("projectzomboid");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("selectedGame");
+      if (saved) setSelectedGame(saved);
+    }
+  }, []);
+
   const appid = GAME_APPIDS[selectedGame] || 108600;
 
-  const [favorites, setFavorites] = useState<string[]>(() =>
-    JSON.parse(localStorage.getItem(`${selectedGame}_favorites`) || "[]")
-  );
-  const [modlists, setModlists] = useState<Record<string, string[]>>(() =>
-    JSON.parse(localStorage.getItem(`${selectedGame}_modlists`) || "{}")
-  );
+  const [favorites, setFavorites] = useState<string[]>([]); // start with default
+
+  useEffect(() => {
+    const saved = localStorage.getItem("favorites");
+    if (saved) {
+      setFavorites(JSON.parse(saved));
+    }
+  }, []);
+
+  const [modlists, setModlists] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("modlists");
+    if (saved) {
+      setModlists(JSON.parse(saved));
+    }
+  }, []);
+
   const [activeList, setActiveList] = useState<string>("");
   const [showListOnly, setShowListOnly] = useState<boolean>(false);
 
   const [selectedMod, setSelectedMod] = useState<Mod | null>(null);
   const [showExport, setShowExport] = useState<boolean>(false);
-  const [modColors, setModColors] = useState<Record<string, string>>(() =>
-    JSON.parse(localStorage.getItem(`${selectedGame}_modColors`) || "{}")
-  );
+  const [modColors, setModColors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem("modColors");
+    if (saved) {
+      setModColors(JSON.parse(saved));
+    }
+  }, []);
 
   const [serverIniFile, setServerIniFile] = useState<File | null>(null);
   const [serverIniContent, setServerIniContent] = useState<string>("");
