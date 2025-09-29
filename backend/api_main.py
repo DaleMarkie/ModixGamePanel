@@ -20,6 +20,7 @@ from backend.API.Core.workshop_api import workshop_api
 # ---------------------------
 from backend.API.Core.tools_api import portcheck_api
 from backend.API.Core.tools_api.performance_api import router as performance_router
+from backend.API.Core.tools_api import ddos_manager_api
 
 # ---------------------------
 # Main FastAPI App
@@ -30,6 +31,7 @@ app = FastAPI(title="Modix Panel Backend")
 app.include_router(workshop_api.router, prefix="/workshop")
 app.include_router(portcheck_api.router, prefix="/api")
 app.include_router(performance_router, prefix="/api")
+app.include_router(ddos_manager_api.router, prefix="/api")
 
 # CORS
 app.add_middleware(
