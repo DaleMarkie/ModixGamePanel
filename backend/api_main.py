@@ -28,6 +28,8 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.API.Core.tools_api import portcheck_api
 from backend.API.Core.tools_api.performance_api import router as performance_router
 from backend.API.Core.tools_api import ddos_manager_api
+from backend.API.Core.games_api.projectzomboid.api_chatlogs import chat_bp
+
 
 # ---------------------------
 # Main FastAPI App
@@ -64,6 +66,7 @@ app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
 app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
 app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
+app.include_router(chat_bp, prefix="/api/projectzomboid/chat")
 
 # ---------------------------
 # Global state placeholders

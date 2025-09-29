@@ -1,10 +1,14 @@
 # backend/api_chatlogs.py
 from fastapi import APIRouter
+from sse_starlette.sse import EventSourceResponse
+import asyncio
 
 chat_bp = APIRouter()
 
 def parse_pz_logs(log_line: str):
-    # Minimal example: extract player joins/leaves
+    """
+    Parse Project Zomboid log lines for basic events.
+    """
     if "joined the game" in log_line:
         player = log_line.split("joined the game")[0].strip()
         return {"event": "join", "player": player}
@@ -13,9 +17,19 @@ def parse_pz_logs(log_line: str):
         return {"event": "leave", "player": player}
     return None
 
+
 @chat_bp.get("/chat-stream")
 async def chat_stream():
+    """
+    SSE endpoint to stream chat/game events.
+    """
     async def event_generator():
-        # your SSE implementation
-        yield "data: Hello\n\n"
+        # Replace this with a real tail of Project Zomboid logs
+        while True:
+            await asyncio.sleep(3)
+            yield {
+                "event": "message",
+                "data": "Test chat log entry",
+            }
+
     return EventSourceResponse(event_generator())
