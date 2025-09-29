@@ -1,3 +1,5 @@
+# backend/API/Core/games_api/projectzomboid/pz_server_settings.py
+
 import os
 import shutil
 import configparser
@@ -7,12 +9,14 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import JSONResponse
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/projectzomboid",
+    tags=["PZServerSettings"]
+)
 
 # ---------------------------
-# Project Zomboid Settings
+# Helper functions
 # ---------------------------
-
 def get_pz_server_folder() -> str:
     home = os.path.expanduser("~")
     return os.path.join(home, "Zomboid", "Server")
@@ -38,7 +42,9 @@ def cast_value(value: str) -> Any:
 def error_response(code: str, status: int, message: str):
     return JSONResponse(content={"error": {"code": code, "message": message}}, status_code=status)
 
-
+# ---------------------------
+# Endpoints
+# ---------------------------
 @router.get("/settings/list")
 async def list_pz_ini_files():
     folder = get_pz_server_folder()
@@ -46,7 +52,6 @@ async def list_pz_ini_files():
         return JSONResponse(content={"folder": folder, "files": []})
     files = [f for f in os.listdir(folder) if f.lower().endswith(".ini")]
     return JSONResponse(content={"folder": folder, "files": files})
-
 
 @router.get("/settings")
 async def get_pz_server_settings(ini: str = Query("servertest.ini", description="INI filename inside ~/Zomboid/Server")):
@@ -60,12 +65,9 @@ async def get_pz_server_settings(ini: str = Query("servertest.ini", description=
 
     result: Dict[str, Dict[str, Any]] = {}
     for section in config.sections():
-        result[section] = {}
-        for key, value in config.items(section):
-            result[section][key] = cast_value(value)
+        result[section] = {k: cast_value(v) for k, v in config.items(section)}
 
     return JSONResponse(content={"folder": get_pz_server_folder(), "ini": ini, "settings": result})
-
 
 @router.post("/settings")
 async def save_pz_server_settings(request: Request):
