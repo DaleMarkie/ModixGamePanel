@@ -20,6 +20,7 @@ from backend.API.Core.workshop_api import workshop_api
 # ---------------------------
 
 from backend.API.Core.games_api.projectzomboid import PlayersBannedAPI
+from backend.API.Core.games_api.projectzomboid import all_players_api
 
 # ---------------------------
 # Tools 
@@ -41,6 +42,7 @@ app.include_router(ddos_manager_api.router, prefix="/api")
 app.include_router(server_settings.router, prefix="/api")
 app.include_router(pz_server_settings.router, prefix="/api")
 app.include_router(PlayersBannedAPI.router, prefix="/api")
+app.include_router(all_players_api.router)
 
 # CORS
 app.add_middleware(
