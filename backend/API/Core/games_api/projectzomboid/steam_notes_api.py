@@ -8,6 +8,7 @@ router = APIRouter(prefix="/api/steam_notes", tags=["Steam Notes"])
 # In-memory notes store (replace with DB later if needed)
 steam_notes_store: dict[str, list[dict]] = {}
 
+# === List notes for a SteamID ===
 @router.get("/list")
 async def list_notes(steamid: str = Query(..., description="SteamID64 of the player")):
     """
@@ -16,6 +17,7 @@ async def list_notes(steamid: str = Query(..., description="SteamID64 of the pla
     notes = steam_notes_store.get(steamid, [])
     return JSONResponse({"success": True, "steamid": steamid, "notes": notes})
 
+# === Add a new note ===
 @router.post("/add")
 async def add_note(
     steamid: str = Query(..., description="SteamID64 of the player"),
@@ -31,13 +33,14 @@ async def add_note(
     note_entry = {
         "text": text,
         "status": status,
-        "timestamp": int(time.time() * 1000)
+        "timestamp": int(time.time() * 1000)  # milliseconds
     }
     
     # Insert newest first
     steam_notes_store[steamid].insert(0, note_entry)
     return JSONResponse({"success": True, "notes": steam_notes_store[steamid]})
 
+# === Delete a note by timestamp ===
 @router.delete("/delete")
 async def delete_note(
     steamid: str = Query(..., description="SteamID64 of the player"),
@@ -47,13 +50,21 @@ async def delete_note(
     Delete a specific note by timestamp.
     """
     if steamid not in steam_notes_store:
-        return JSONResponse({"success": False, "message": "No notes found for this SteamID"}, status_code=404)
+        return JSONResponse(
+            {"success": False, "message": "No notes found for this SteamID"},
+            status_code=404
+        )
 
-    before = len(steam_notes_store[steamid])
-    steam_notes_store[steamid] = [n for n in steam_notes_store[steamid] if n["timestamp"] != timestamp]
-    after = len(steam_notes_store[steamid])
+    before_count = len(steam_notes_store[steamid])
+    steam_notes_store[steamid] = [
+        n for n in steam_notes_store[steamid] if n["timestamp"] != timestamp
+    ]
+    after_count = len(steam_notes_store[steamid])
 
-    if before == after:
-        return JSONResponse({"success": False, "message": "Note not found"}, status_code=404)
+    if before_count == after_count:
+        return JSONResponse(
+            {"success": False, "message": "Note not found"},
+            status_code=404
+        )
 
     return JSONResponse({"success": True, "notes": steam_notes_store[steamid]})

@@ -1,7 +1,3 @@
-# backend/api_main.py
-from fastapi import FastAPI, Request, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
 import os
 import subprocess
 import socket
@@ -10,39 +6,60 @@ import configparser
 import json
 import httpx
 from typing import Optional
+from datetime import datetime
 
+# FastAPI
+from fastapi import FastAPI, Request, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+
+# Your routers
 from backend.API.Core.settings_api import server_settings
 from backend.API.Core.games_api.projectzomboid import pz_server_settings
-from backend.API.Core.workshop_api import workshop_api
-
-# ---------------------------
-# Players API
-# ---------------------------
-
 from backend.API.Core.games_api.projectzomboid import PlayersBannedAPI
 from backend.API.Core.games_api.projectzomboid import all_players_api
-
-# ---------------------------
-# Tools 
-# ---------------------------
+from backend.API.Core.games_api.projectzomboid import steam_notes_api
+from backend.API.Core.workshop_api import workshop_api
 from backend.API.Core.tools_api import portcheck_api
 from backend.API.Core.tools_api.performance_api import router as performance_router
 from backend.API.Core.tools_api import ddos_manager_api
+
 
 # ---------------------------
 # Main FastAPI App
 # ---------------------------
 app = FastAPI(title="Modix Panel Backend")
 
-# Mount workshop_api under /workshop
+# ---------------------------
+# CORS Middleware
+# ---------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to your frontend domain in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------
+# Mount routers
+# ---------------------------
 app.include_router(workshop_api.router, prefix="/workshop")
-app.include_router(portcheck_api.router, prefix="/api")
-app.include_router(performance_router, prefix="/api")
-app.include_router(ddos_manager_api.router, prefix="/api")
-app.include_router(server_settings.router, prefix="/api")
-app.include_router(pz_server_settings.router, prefix="/api")
-app.include_router(PlayersBannedAPI.router, prefix="/api")
-app.include_router(all_players_api.router)
+
+# Tools
+app.include_router(portcheck_api.router, prefix="/api/tools")
+app.include_router(performance_router, prefix="/api/performance")
+app.include_router(ddos_manager_api.router, prefix="/api/ddos")
+
+# Server Settings
+app.include_router(server_settings.router, prefix="/api/server_settings")
+
+# Project Zomboid
+app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
+app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
+app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
+app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
+
 
 # CORS
 app.add_middleware(
