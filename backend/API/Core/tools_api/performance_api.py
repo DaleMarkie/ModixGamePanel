@@ -71,10 +71,9 @@ async def server_info():
 
         # Modix info (replace with your real build info)
         modix_info = {
-            "version": "1.1.3",
-            "gitCommit": "abc123",
+            "version": "1.1.2",
             "buildTime": datetime.now().isoformat(),
-            "environment": "development",
+            "environment": "production",
             "apiPort": "2010",
             "frontendPort": "3000",
         }
