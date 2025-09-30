@@ -29,6 +29,7 @@ from backend.API.Core.games_api.projectzomboid import (
 from backend.API.Core.tools_api.performance_api import router as performance_router
 from backend.API.Core.tools_api import portcheck_api, ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
+from backend.API.Core.terminal_api import terminal_api
 
 
 # ---------------------------
@@ -70,6 +71,7 @@ app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-not
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
 
+app.include_router(terminal_api.router, prefix="/api/projectzomboid")
 
 # ---------------------------
 # Global state placeholders
@@ -122,71 +124,6 @@ async def monitor_process_exit(process):
     await asyncio.get_event_loop().run_in_executor(None, process.wait)
     await log_queue.put("[SYSTEM] Server stopped")
     running_process = None
-
-# ---------------------------
-# Project Zomboid Server Start/Stop + Logs
-# ---------------------------
-def set_server_status(status: str):
-    # placeholder for server status updates
-    pass
-
-def error_response(code, status_code, message):
-    return JSONResponse({"error": code, "message": message}, status_code=status_code)
-
-@app.post("/api/projectzomboid/start")
-async def start_pz_server(request: Request):
-    global running_process
-    if running_process:
-        return error_response("BACKEND_001", 400, "Server already running")
-    try:
-        data = await request.json()
-        port = data.get("port", 16261)
-        batch_file = data.get(
-            "batchFile",
-            r"C:\Program Files (x86)\Steam\steamapps\common\Project Zomboid Dedicated Server\StartServer32.bat"
-        )
-        if not os.path.isfile(batch_file):
-            return error_response("GAME_002", 404, f"Batch file not found: {batch_file}")
-        if check_port_in_use(port):
-            return error_response("PORT_004", 409, f"Port {port} already in use")
-
-        running_process = subprocess.Popen(
-            f'cmd /c "{batch_file}"',
-            cwd=os.path.dirname(batch_file),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,
-            text=True,
-            bufsize=1
-        )
-        asyncio.create_task(stream_subprocess_output(running_process.stdout, "OUT"))
-        asyncio.create_task(stream_subprocess_output(running_process.stderr, "ERR"))
-        asyncio.create_task(monitor_process_exit(running_process))
-        set_server_status("running")
-        return {"status": "running", "message": "Server started successfully"}
-    except Exception as e:
-        running_process = None
-        set_server_status("stopped")
-        return error_response("BACKEND_001", 500, str(e))
-
-@app.post("/api/projectzomboid/stop")
-async def stop_pz_server():
-    global running_process
-    if not running_process:
-        return {"status": "stopped", "message": "Server not running"}
-    running_process.terminate()
-    running_process = None
-    await log_queue.put("[SYSTEM] Server stopped manually")
-    set_server_status("stopped")
-    return {"status": "stopped", "message": "Server terminated"}
-
-@app.get("/api/projectzomboid/terminal/log-stream")
-async def terminal_log_stream():
-    async def event_generator():
-        while True:
-            log = await log_queue.get()
-            yield f"data: {log}\n\n"
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # ---------------------------
 # Modcards (in-memory storage)
