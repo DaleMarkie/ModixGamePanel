@@ -21,40 +21,52 @@ const Users = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("modix_token");
-      const res = await fetch(`${getServerUrl()}/api/subusers`, {
-        headers: { Authorization: token || "" },
-      });
 
+      // 1️⃣ Fetch server users
       let serverUsers: SubUser[] = [];
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success)
-          serverUsers = (data.subUsers || []).map((u: any) => ({
-            id: u.username,
-            username: u.username,
-            email: u.email,
-            role: u.account_type || "master",
-            active: u.active,
-            source: "server" as const,
-          }));
+      try {
+        const res = await fetch(`${getServerUrl()}/api/subusers`, {
+          headers: { Authorization: token || "" },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            serverUsers = (data.subUsers || []).map((u: any) => ({
+              id: u.username,
+              username: u.username,
+              email: u.email,
+              role: u.account_type || "master",
+              active: u.active,
+              source: "server" as const,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Server users not available, using local only", err);
       }
 
-      // Get local staff users
-      const localStaff = JSON.parse(
-        localStorage.getItem("local_staff") || "[]"
-      );
-      const localUsers: SubUser[] = localStaff.map((u: any) => ({
-        id: u.username,
-        username: u.username,
-        email: u.email,
-        role: "staff",
-        active: true,
-        source: "local" as const,
-      }));
+      // 2️⃣ Get local staff users
+      let localStaff: SubUser[] = [];
+      try {
+        const savedStaff = JSON.parse(
+          localStorage.getItem("local_staff") || "[]"
+        );
+        localStaff = savedStaff.map((u: any) => ({
+          id: u.username,
+          username: u.username,
+          email: u.email,
+          role: "staff",
+          active: true,
+          source: "local" as const,
+        }));
+      } catch (err) {
+        console.error("Failed to parse local staff users", err);
+      }
 
-      setSubUsers([...serverUsers, ...localUsers]);
+      // 3️⃣ Merge and update state
+      setSubUsers([...serverUsers, ...localStaff]);
     } catch (err) {
-      console.error("Failed to fetch sub-users", err);
+      console.error("Failed to fetch users", err);
     } finally {
       setLoading(false);
     }
@@ -64,7 +76,7 @@ const Users = () => {
     fetchSubUsers();
   }, []);
 
-  const handleAddStaffUser = async () => {
+  const handleAddStaffUser = () => {
     const username = prompt("Enter username for new staff user:");
     const email = prompt("Enter email for new staff user:");
     const password = prompt("Enter password for new staff user:");
@@ -76,17 +88,8 @@ const Users = () => {
     localStaff.push(staffUser);
     localStorage.setItem("local_staff", JSON.stringify(localStaff));
 
-    setSubUsers([
-      ...subUsers,
-      {
-        id: username,
-        username,
-        email,
-        role: "staff",
-        active: true,
-        source: "local",
-      },
-    ]);
+    // Refresh table
+    fetchSubUsers();
   };
 
   const handleEdit = (id: string) => {
@@ -112,11 +115,7 @@ const Users = () => {
       );
       localStorage.setItem("local_staff", JSON.stringify(localStaff));
 
-      setSubUsers(
-        subUsers.map((u) =>
-          u.id === id ? { ...u, email: newEmail || u.email } : u
-        )
-      );
+      fetchSubUsers();
     } else {
       alert("Server users must be edited via backend (not implemented here).");
     }
@@ -132,7 +131,7 @@ const Users = () => {
       let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
       localStaff = localStaff.filter((u: any) => u.username !== id);
       localStorage.setItem("local_staff", JSON.stringify(localStaff));
-      setSubUsers(subUsers.filter((u) => u.id !== id));
+      fetchSubUsers();
     } else {
       alert("Server users must be deleted via backend (not implemented here).");
     }
