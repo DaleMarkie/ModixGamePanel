@@ -10,6 +10,7 @@ export interface SubUser {
   email: string;
   role: string;
   active: boolean;
+  source: "server" | "local";
 }
 
 const Users = () => {
@@ -23,10 +24,35 @@ const Users = () => {
       const res = await fetch(`${getServerUrl()}/api/subusers`, {
         headers: { Authorization: token || "" },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.success) setSubUsers(data.subUsers || []);
-      else alert(data.message || "Failed to fetch sub-users");
+
+      let serverUsers: SubUser[] = [];
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success)
+          serverUsers = (data.subUsers || []).map((u: any) => ({
+            id: u.username,
+            username: u.username,
+            email: u.email,
+            role: u.account_type || "master",
+            active: u.active,
+            source: "server" as const,
+          }));
+      }
+
+      // Get local staff users
+      const localStaff = JSON.parse(
+        localStorage.getItem("local_staff") || "[]"
+      );
+      const localUsers: SubUser[] = localStaff.map((u: any) => ({
+        id: u.username,
+        username: u.username,
+        email: u.email,
+        role: "staff",
+        active: true,
+        source: "local" as const,
+      }));
+
+      setSubUsers([...serverUsers, ...localUsers]);
     } catch (err) {
       console.error("Failed to fetch sub-users", err);
     } finally {
@@ -38,97 +64,93 @@ const Users = () => {
     fetchSubUsers();
   }, []);
 
-  const handleAddSubUser = async () => {
-    const username = prompt("Enter username for new sub-user:");
-    const email = prompt("Enter email for new sub-user:");
-    const password = prompt("Enter password for new sub-user:");
+  const handleAddStaffUser = async () => {
+    const username = prompt("Enter username for new staff user:");
+    const email = prompt("Enter email for new staff user:");
+    const password = prompt("Enter password for new staff user:");
     if (!username || !email || !password) return;
 
-    try {
-      const token = localStorage.getItem("modix_token");
-      const res = await fetch(`${getServerUrl()}/api/subusers`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token || "",
-        },
-        body: JSON.stringify({ username, email, password }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
-      setSubUsers([...subUsers, data.subUser]);
-    } catch (err: any) {
-      alert("Failed to add sub-user: " + err.message);
-    }
+    // Save locally
+    const staffUser = { username, email, password, account_type: "staff" };
+    let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
+    localStaff.push(staffUser);
+    localStorage.setItem("local_staff", JSON.stringify(localStaff));
+
+    setSubUsers([
+      ...subUsers,
+      {
+        id: username,
+        username,
+        email,
+        role: "staff",
+        active: true,
+        source: "local",
+      },
+    ]);
   };
 
-  const handleEdit = async (id: string) => {
-    const subUser = subUsers.find((u) => u.id === id);
-    if (!subUser) return;
-    const newEmail = prompt("Enter new email:", subUser.email);
-    const newPassword =
-      prompt("Enter new password (leave blank to keep same):") || undefined;
+  const handleEdit = (id: string) => {
+    const user = subUsers.find((u) => u.id === id);
+    if (!user) return;
 
-    if (!newEmail && !newPassword) return;
+    if (user.source === "local") {
+      const newEmail = prompt("Enter new email:", user.email);
+      const newPassword =
+        prompt("Enter new password (leave blank to keep same):") || undefined;
+      if (!newEmail && !newPassword) return;
 
-    try {
-      const token = localStorage.getItem("modix_token");
-      const body: any = {};
-      if (newEmail) body.email = newEmail;
-      if (newPassword) body.password = newPassword;
-
-      const res = await fetch(`${getServerUrl()}/api/subusers/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token || "",
-        },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
+      // Update local storage
+      let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
+      localStaff = localStaff.map((u: any) =>
+        u.username === id
+          ? {
+              ...u,
+              email: newEmail || u.email,
+              password: newPassword || u.password,
+            }
+          : u
+      );
+      localStorage.setItem("local_staff", JSON.stringify(localStaff));
 
       setSubUsers(
         subUsers.map((u) =>
           u.id === id ? { ...u, email: newEmail || u.email } : u
         )
       );
-    } catch (err: any) {
-      alert("Failed to edit sub-user: " + err.message);
+    } else {
+      alert("Server users must be edited via backend (not implemented here).");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this sub-user?"))
+  const handleDelete = (id: string) => {
+    const user = subUsers.find((u) => u.id === id);
+    if (!user) return;
+    if (!window.confirm(`Are you sure you want to delete ${user.username}?`))
       return;
 
-    try {
-      const token = localStorage.getItem("modix_token");
-      const res = await fetch(`${getServerUrl()}/api/subusers/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: token || "" },
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
+    if (user.source === "local") {
+      let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
+      localStaff = localStaff.filter((u: any) => u.username !== id);
+      localStorage.setItem("local_staff", JSON.stringify(localStaff));
       setSubUsers(subUsers.filter((u) => u.id !== id));
-    } catch (err: any) {
-      alert("Failed to delete sub-user: " + err.message);
+    } else {
+      alert("Server users must be deleted via backend (not implemented here).");
     }
   };
 
-  if (loading) return <div>Loading Sub-Users...</div>;
+  if (loading) return <div>Loading users...</div>;
 
   return (
     <div className="subusers-container">
       <header className="users-header">
-        <h2>👥 Sub-Users</h2>
-        <button className="add-subuser-btn" onClick={handleAddSubUser}>
-          + Add New Sub-User
+        <h2>👥 Users</h2>
+        <button className="add-subuser-btn" onClick={handleAddStaffUser}>
+          + Add Staff User
         </button>
       </header>
 
       {subUsers.length === 0 ? (
-        <p>No sub-users found.</p>
+        <p>No users found.</p>
       ) : (
         <table className="subusers-table">
           <thead>
@@ -137,6 +159,7 @@ const Users = () => {
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
+              <th>Source</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -147,6 +170,7 @@ const Users = () => {
                 <td>{user.email}</td>
                 <td>{user.role}</td>
                 <td>{user.active ? "Active ✅" : "Inactive ❌"}</td>
+                <td>{user.source}</td>
                 <td>
                   <button onClick={() => handleEdit(user.id)}>Edit</button>
                   <button onClick={() => handleDelete(user.id)}>Delete</button>
@@ -156,8 +180,6 @@ const Users = () => {
           </tbody>
         </table>
       )}
-
-      <p className="plan-info">Plan limit: unlimited</p>
     </div>
   );
 };
