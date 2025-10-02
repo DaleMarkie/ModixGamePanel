@@ -5,8 +5,8 @@ import "./Docs.css";
 
 const docs = [
   {
-    href: "/support/docs/accountinfo/accountinfo",
-    title: "👤 Account Info",
+    href: "/auth/myaccount",
+    title: "📊 Dashboard    ",
     description: "View and manage your account details and profile.",
   },
   {

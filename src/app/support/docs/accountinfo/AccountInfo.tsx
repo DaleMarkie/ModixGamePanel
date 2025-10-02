@@ -5,54 +5,44 @@ import "./Docs.css";
 
 const docs = [
   {
-    href: "/support/docs/accountinfo/accountinfo",
-    title: "👤 Account Info",
+    href: "/auth/myaccount",
+    title: "📊 Dashboard    ",
     description: "View and manage your account details and profile.",
   },
   {
     href: "/terminal",
-    title: "💻 Terminal",
+    title: "🔐 Security",
     description: "Access the integrated terminal to manage your server.",
   },
   {
     href: "/workshop",
-    title: "📦 ModManager / Workshop Manager",
+    title: "📜 Activity",
     description: "Manage mods and workshop content for your server.",
   },
   {
     href: "/filebrowser",
-    title: "🗂️ File Manager",
+    title: "🪪 Subscriptions",
     description: "Browse and manage server files directly from the panel.",
   },
   {
     href: "/player-manager",
-    title: "🧑‍🤝‍🧑 Player Manager",
+    title: "👥 Sub-Users",
     description: "Manage server players, permissions, and roles.",
   },
   {
     href: "/game-config",
-    title: "⚙️ Game Config",
+    title: "⚙️ Settings",
     description:
       "Adjust server and game settings for your Project Zomboid server.",
   },
   {
     href: "/discord-integration",
-    title: "📡 Discord Integration",
+    title: "🛠️ Support",
     description: "Set up Discord webhooks and notifications for your server.",
-  },
-  {
-    href: "/tools",
-    title: "🛠️ Tools",
-    description: "Access server tools, utilities, and maintenance features.",
-  },
-  {
-    href: "/settings",
-    title: "⚙️ Settings",
-    description: "Configure panel preferences and user settings.",
   },
 ];
 
-const Docs = () => {
+const AccountInfo = () => {
   return (
     <main className="docs-page">
       <h1 className="docs-title">Modix Documentation</h1>
@@ -73,4 +63,4 @@ const Docs = () => {
   );
 };
 
-export default Docs;
+export default AccountInfo;
