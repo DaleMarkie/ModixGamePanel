@@ -113,65 +113,55 @@ const Terminal: React.FC = () => {
   // --- Server start/stop ---
   const startServer = async (file?: string) => {
     const batchToUse = file || batchFile;
-    if (!batchToUse) return alert("Please enter your batch/sh file path!");
+    if (!batchToUse || typeof batchToUse !== "string") {
+      return alert("Please enter your .bat file path!");
+    }
+
     addLog(`[System] Validating batch file...`);
-    const valid = await validateBatch(batchToUse);
-    if (!valid) {
-      addLog(`[Error] Invalid batch/sh file: ${batchToUse}`, "server");
+    const res = await fetch(`${API_BASE}/validate-batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ batchFile: batchToUse }),
+    });
+    const data = await res.json();
+
+    if (!data.valid) {
+      addLog(`[Error] Invalid batch file: ${batchToUse}`, "server");
       return;
     }
 
-    addRecentBatch(batchToUse);
     localStorage.setItem(SELECTED_KEY, batchToUse);
     setBatchFile(batchToUse);
-    setStatus("Starting...");
 
-    try {
-      const res = await fetch(`${API_BASE}/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchFile: batchToUse, os }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        addLog(`[Error] Failed to start server: ${data.error || data.detail}`);
-        setStatus("stopped");
-        return;
-      }
+    addLog(`[System] Starting server...`);
+    const startRes = await fetch(`${API_BASE}/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ batchFile: batchToUse }),
+    });
+    const startData = await startRes.json();
 
-      setIsServerRunning(true);
-      setStatus("Server running");
+    if (startData.error) {
+      addLog(`[Error] ${startData.error}`, "server");
+      return;
+    }
 
-      eventSourceRef.current?.close();
-      const es = new EventSource(`${API_BASE}/terminal/log-stream`);
-      eventSourceRef.current = es;
+    setIsServerRunning(true);
+    setStatus("Server running");
 
-      es.onmessage = (e) => {
-        const msg = e.data;
-        addLog(msg, "server", false);
-
-        if (msg.includes("Enter new administrator password:"))
-          setPendingPasswordPrompt(true);
-        if (msg === "[SYSTEM] Server stopped") {
-          setIsServerRunning(false);
-          setStatus("stopped");
-          setPendingPasswordPrompt(false);
-          eventSourceRef.current = null;
-          es.close();
-        }
-      };
-
-      es.onerror = () => {
-        addLog("[Error] Lost log stream connection", "server");
+    // Connect SSE logs
+    eventSourceRef.current?.close();
+    const es = new EventSource(`${API_BASE}/terminal/log-stream`);
+    eventSourceRef.current = es;
+    es.onmessage = (e) => {
+      addLog(e.data, "server", false);
+      if (e.data === "[SYSTEM] Server stopped") {
         setIsServerRunning(false);
-        setStatus("connection lost");
+        setStatus("stopped");
         eventSourceRef.current?.close();
         eventSourceRef.current = null;
-      };
-    } catch (err: any) {
-      addLog(`[Error] Exception starting server: ${err.message}`);
-      setStatus("stopped");
-    }
+      }
+    };
   };
 
   const stopServer = async () => {

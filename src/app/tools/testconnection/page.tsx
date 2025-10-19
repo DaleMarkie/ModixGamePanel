@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import AccountInfo from "./AccountInfo"; // <-- Correct import
+import TestConnection from "./TestConnection"; // this is your actual feature component
 
-export default function AccountInfoPage() {
+export default function TestConnectionPage() {
   return (
     <DashboardLayout>
-      <AccountInfo />
+      <TestConnection />
     </DashboardLayout>
   );
 }

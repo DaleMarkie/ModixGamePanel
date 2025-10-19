@@ -1,16 +1,21 @@
 {
   "name": "modix-panel",
-  "version": "1.1.3",
+  "version": "1.1.2",
   "private": true,
+  "main": "main.js",
   "scripts": {
     "dev-frontend": "npx next dev -p 3000",
-    "dev-backend": "python3 -m uvicorn backend.api_main:app --host 0.0.0.0 --port 2010 --reload",
+    "dev-backend": "python -m uvicorn backend.api_main:app --host 0.0.0.0 --port 2010 --reload",
     "dev": "concurrently \"npm run dev-frontend\" \"npm run dev-backend\"",
-    "build": "NEXT_PUBLIC_SKIP_ESLINT=true npx next build",
+    "dev-electron": "concurrently \"npm run dev-frontend\" \"wait-on http://localhost:3000/ && electron .\"",
     "start-frontend": "npx next start -p 3000",
-    "start-backend": "python3 -m uvicorn backend.api_main:app --host 0.0.0.0 --port 2010",
+    "start-backend": "python -m uvicorn backend.api_main:app --host 0.0.0.0 --port 2010",
     "start": "concurrently \"npm run start-frontend\" \"npm run start-backend\"",
-    "package-linux": "npm run build && tar -czvf modix-panel-linux.tar.gz .next package.json package-lock.json node_modules public src backend"
+    "compile-backend": "pyinstaller --onefile backend/api_main.py",
+    "package-electron": "electron-builder",
+    "build-frontend": "cross-env NEXT_PUBLIC_SKIP_ESLINT=true npx next build",
+    "zip-win": "powershell -Command \"Compress-Archive -Path 'dist/win-unpacked/' -DestinationPath 'dist/ModixPanel-Windows.zip'\"",
+    "build-all": "npm run build-frontend && npm run compile-backend && npm run package-electron && npm run zip-win"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -19,6 +24,8 @@
     "lucide-react": "^0.544.0",
     "next": "14.2.33",
     "react": "18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-color": "^2.19.3",
     "react-dom": "18.2.0",
     "react-icons": "^4.10.1"
   },
@@ -27,8 +34,32 @@
     "@types/react": "19.1.15",
     "autoprefixer": "^10.4.15",
     "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^26.6.10",
+    "electron-builder": "^24.6.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.4",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.modix.panel",
+    "productName": "Modix Panel",
+    "files": [
+      "main.js",
+      "package.json",
+      ".next/**/",
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

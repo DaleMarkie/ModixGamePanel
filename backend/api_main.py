@@ -57,18 +57,24 @@ app.include_router(workshop_api.router, prefix="/workshop")
 
 # Tools
 app.include_router(portcheck_api.router, prefix="/api/tools")
-app.include_router(performance_router, prefix="/api")  # includes /api/server-info
+# includes /api/server-info
+app.include_router(performance_router, prefix="/api")
 app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 
 # Server Settings
 app.include_router(server_settings.router, prefix="/api/server_settings")
 
 # Project Zomboid
-app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
-app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
-app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
-app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
-app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
+app.include_router(pz_server_settings.router,
+                   prefix="/api/projectzomboid/settings")
+app.include_router(PlayersBannedAPI.router,
+                   prefix="/api/projectzomboid/banned")
+app.include_router(all_players_api.router,
+                   prefix="/api/projectzomboid/players")
+app.include_router(steam_notes_api.router,
+                   prefix="/api/projectzomboid/steam-notes")
+app.include_router(steam_search_player_api.router,
+                   prefix="/api/projectzomboid/steam-search")
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
 
 app.include_router(terminal_api.router, prefix="/api/projectzomboid")
@@ -91,9 +97,12 @@ app.add_middleware(
 # ---------------------------
 # Health & Diagnostics
 # ---------------------------
+
+
 @app.get("/health")
 def health_check():
     return {"success": True, "status": "ok"}
+
 
 @app.get("/check-port")
 def check_port(port: int):
@@ -101,15 +110,18 @@ def check_port(port: int):
         in_use = s.connect_ex(("127.0.0.1", port)) == 0
     return {"port": port, "inUse": in_use}
 
+
 # ---------------------------
 # Global Server Process + Log Queue
 # ---------------------------
 running_process: Optional[subprocess.Popen] = None
 log_queue: asyncio.Queue = asyncio.Queue()
 
+
 def check_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
+
 
 async def stream_subprocess_output(stream, prefix: str):
     loop = asyncio.get_event_loop()
@@ -118,6 +130,7 @@ async def stream_subprocess_output(stream, prefix: str):
         if not line:
             break
         await log_queue.put(f"[{prefix}] {line.strip()}")
+
 
 async def monitor_process_exit(process):
     global running_process
@@ -129,6 +142,7 @@ async def monitor_process_exit(process):
 # Modcards (in-memory storage)
 # ---------------------------
 saved_mod_notes = {}
+
 
 @app.post("/api/save-mod-notes")
 async def save_mod_notes(request: Request):
@@ -145,7 +159,9 @@ async def save_mod_notes(request: Request):
 # Project Zomboid Mod Alerts
 # ---------------------------
 WORKSHOP_PATH = os.path.expanduser("~/Steam/steamapps/workshop/content/108600")
-SERVER_INI_PATH = os.path.join(os.path.expanduser("~"), "Zomboid", "Server", "servertest.ini")
+SERVER_INI_PATH = os.path.join(os.path.expanduser(
+    "~"), "Zomboid", "Server", "servertest.ini")
+
 
 def read_installed_mods_from_ini() -> list[str]:
     config = configparser.ConfigParser()
@@ -157,6 +173,7 @@ def read_installed_mods_from_ini() -> list[str]:
         return []
     mods_line = config.get("Mods", "Mods")
     return [m.strip() for m in mods_line.split(";") if m.strip()]
+
 
 def scan_local_workshop() -> list[dict]:
     mods = []
@@ -182,10 +199,12 @@ def scan_local_workshop() -> list[dict]:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
 
+
 # ---------------------------
 # Remote License Verification
 # ---------------------------
 REMOTE_LICENSE_SERVER = "http://REMOTE_FLASK_SERVER_IP:5000"
+
 
 @app.post("/api/licenses/verify-remote")
 async def verify_remote_license(request: Request):

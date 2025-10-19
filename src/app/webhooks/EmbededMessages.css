@@ -1,0 +1,169 @@
+/* EMBEDED MESSAGES CSS */
+
+/* BASE PAGE */
+.embed-page {
+  background-color: #0f1f12; /* DARK GREEN/BLACK */
+  color: #e0f0d8;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+/* INPUTS */
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #1b351f;
+  border: 1px solid #2c5a33;
+  border-radius: 6px;
+  color: #e0f0d8;
+  outline: none;
+  transition: border 0.2s, background 0.2s;
+}
+
+.input-field:focus {
+  border-color: #78c35b;
+  background-color: #223d27;
+}
+
+/* SIDEBAR */
+.sidebar {
+  background-color: #1b351f;
+}
+
+.sidebar h3 {
+  color: #a3e57d;
+}
+
+.sidebar button {
+  transition: background 0.2s;
+}
+
+/* BUTTONS */
+button {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* PREDEFINED MESSAGES LIST */
+.sidebar .p-2 {
+  background-color: #224028;
+  color: #d4f0c0;
+}
+
+.sidebar .p-2:hover {
+  background-color: #2c5a33;
+}
+
+/* HIGHLIGHT ACTIVE MESSAGE */
+.sidebar .bg-gray-700 {
+  background-color: #2c5a33 !important;
+}
+
+/* FIELDS SECTION */
+.fields-section h3 {
+  color: #a3e57d;
+}
+
+.field-row input {
+  background-color: #1b351f;
+  border: 1px solid #2c5a33;
+  color: #e0f0d8;
+}
+
+.field-row label {
+  color: #c2e5a0;
+}
+
+.field-row button {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+}
+
+/* COLOR PICKER */
+.color-picker {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+}
+
+/* EMBED PREVIEW */
+.embed-preview {
+  background-color: #1b351f;
+  border: 1px solid #2c5a33;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.embed-preview .embed-header h2 {
+  color: #78c35b;
+}
+
+.embed-preview .embed-header p {
+  color: #c2e5a0;
+}
+
+.embed-preview p {
+  color: #d4f0c0;
+}
+
+.field.inline-field {
+  display: inline-block;
+  width: 48%;
+  background-color: #224028;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* ACTION BUTTONS */
+.bg-green-500 {
+  background-color: #78c35b !important;
+}
+
+.bg-blue-600 {
+  background-color: #2e7d32 !important;
+}
+
+.bg-blue-700 {
+  background-color: #1b4d20 !important;
+}
+
+.bg-red-500 {
+  background-color: #c62828 !important;
+}
+
+/* FOOTER LINK */
+.embed-preview a {
+  text-decoration: underline;
+  color: #a3e57d;
+}
+
+.embed-preview a:hover {
+  color: #78c35b;
+}
+
+/* MISC */
+textarea.input-field {
+  resize: vertical;
+}
+
+/* SCROLLBARS */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1b351f;
+}
+::-webkit-scrollbar-thumb {
+  background: #2c5a33;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #78c35b;
+}

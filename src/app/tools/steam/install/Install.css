@@ -1,0 +1,165 @@
+.install-page {
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  background: #121212;
+  color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  color: #00ff80;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.page-header p {
+  color: #aaa;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  max-width: 700px;
+}
+
+.os-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.os-alert.supported {
+  background: #004d00;
+  color: #00ff80;
+}
+
+.os-alert.unsupported {
+  background: #330000;
+  color: #ff5555;
+}
+
+.install-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: #1e1e1e;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-header h3 {
+  font-size: 1.25rem;
+}
+
+.install-btn {
+  margin-bottom: 1rem;
+  background: #00ff80;
+  color: #121212;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s;
+}
+
+.install-btn:hover {
+  background: #00cc66;
+}
+
+.progress-wrapper {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  background: #333;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 1rem;
+}
+
+.progress-fill {
+  background: #00ff80;
+  height: 100%;
+  width: 0;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  text-align: right;
+  font-size: 0.875rem;
+  color: #ccc;
+  margin-top: 0.25rem;
+}
+
+.logs {
+  background: #121212;
+  border: 1px solid #333;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+  font-family: monospace;
+  color: #ddd;
+}
+
+.log-placeholder {
+  color: #555;
+  font-style: italic;
+}
+
+.icon-pulse {
+  color: #ffcc00;
+  animation: pulse 1.5s infinite;
+}
+
+.icon-success {
+  color: #00ff80;
+}
+
+.icon-fail {
+  color: #ff5555;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.coming-soon-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 2rem;
+}

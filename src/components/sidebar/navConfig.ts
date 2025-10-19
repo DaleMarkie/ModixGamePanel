@@ -4,47 +4,52 @@ export const navLinks = [
     href: "/auth/myaccount",
   },
   {
-    label: "💻 Terminal",
-    href: "/terminal",
+    label: "🎮 My Server",
+    href: "/settings",
+    submenu: [
+      { label: "⚙️ Terminal", href: "/server/ServerSettings" },
+      { label: "📦 Mod Manager", href: "/RBAC" },
+      { label: "🗂️ Workshop Manager", href: "/RBAC" },
+      { label: "🔄 Check Mod Updates", href: "/tools/modupdates" },
+    ],
   },
   {
-    label: "📦 Mod Manager",
-    href: "/workshop",
-  },
-  {
-    label: "🗂️ File Manager",
-    href: "/FileBrowser",
+    label: "🛠️ Mod Creation",
+    href: "/tools/modcreation",
+    submenu: [
+      { label: "📦 Create New Mod", href: "/tools/modcreation/new" },
+      { label: "🖼️ Manage Assets", href: "/tools/modcreation/assets" },
+      { label: "📝 Edit Mod Info", href: "/tools/modcreation/info" },
+      { label: "⚙️ Build & Export Mod", href: "/tools/modcreation/build" },
+      { label: "🌐 Steam Workshop Upload", href: "/tools/modcreation/workshop" },
+    ],
   },
   {
     label: "👥 Player Management",
     href: "/players",
     submenu: [
-      { label: "🧍 All PLayers", href: "/PlayerManagement/AllPlayers" },
-      { label: "🔍 Player Search", href: "/steamplayermanager" },
-      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-      { label: "⛔ Players Banned", href: "/PlayerManagement/PlayerBanned" },
-    ],
-  },
-  {
-    label: "🎮 Game Config",
-    href: "/settings",
-    submenu: [
-      { label: "⚙️ General Settings", href: "/server/ServerSettings" },
-      { label: "🧑 User Permissions", href: "/RBAC" },
-    ],
-  },
-  {
-    label: "📣 Discord Integration",
-    href: "/",
-    submenu: [
       {
-        label: "🛠️ Webhooks",
-        href: "/support",
+        label: "🧍 Player Overview",
+        href: "/PlayerManagement/AllPlayers",
         submenu: [
-          { label: "✉️ Send Embed", href: "/discordwebhooks" },
-          { label: "💾 Saved Webhooks", href: "/webhooks/saved" },
-          { label: "⚙️ Webhook Settings", href: "/webhooks/settings" },
-          { label: "📚 Templates Library", href: "/webhooks/templates" },
+          { label: "📋 All Players", href: "/PlayerManagement/AllPlayers" },
+          { label: "🔍 Player Search", href: "/steamplayermanager" },
+        ],
+      },
+      {
+        label: "📊 Player Activity",
+        href: "/PlayerManagement/Activity",
+        submenu: [
+          { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
+          { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
+        ],
+      },
+      {
+        label: "⛔ Player Restrictions",
+        href: "/PlayerManagement/Bans",
+        submenu: [
+          { label: "⛔ Players Banned", href: "/PlayerManagement/PlayerBanned" },
+          { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
         ],
       },
     ],
@@ -54,19 +59,47 @@ export const navLinks = [
     href: "/tools",
     submenu: [
       {
-        label: "📊 Monitoring",
-        href: "/tools/monitoring",
+        label: "⚡ Server & Performance",
+        href: "/tools/server",
         submenu: [
           { label: "📈 Your Server Stats", href: "/tools/performance" },
+          { label: "📝 Log Viewer / Stream", href: "/tools/logs" },
+          { label: "🔌 Connection Test", href: "/tools/connectiontest" },
           { label: "🌐 Port Checker", href: "/tools/portcheck" },
-          { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
+          { label: "💾 Backup & Restore", href: "/tools/backup" },
+          { label: "⏰ Scheduler / Maintenance", href: "/tools/scheduler" },
         ],
+      },
+      {
+        label: "🎮 Steam & Mods",
+        href: "/tools/mods",
+        submenu: [
+          { label: "✉️ Steam Parser", href: "/tools/steamparser" },
+          { label: "⚙️ Steam Install / Update", href: "/tools/steam/install" },
+        ],
+      },
+      {
+        label: "🛡️ Security & Admin",
+        href: "/tools/security",
+        submenu: [
+          { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
+          { label: "🔑 Admin Tokens", href: "/tools/admin" },
+          { label: "🛡️ Firewall Rules", href: "/tools/firewall" },
+        ],
+      },
+      {
+        label: "📣 Discord Integration",
+        href: "/server/updater",
+      },
+      {
+        label: "⬆️ Updater",
+        href: "/server/updater",
       },
     ],
   },
   {
     label: "⚙️ Settings",
-    href: "/platform-settings", // <-- renamed href to avoid clash
+    href: "/platform-settings",
     submenu: [
       { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
       { label: "🎨 Theme Customization", href: "/settings/thememanager" },

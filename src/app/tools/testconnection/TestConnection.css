@@ -1,0 +1,65 @@
+.test-connection-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top left, #121212, #1a1a1a);
+  font-family: 'Segoe UI', sans-serif;
+  padding: 2rem;
+  color: #e0e0e0;
+}
+
+.coming-soon-panel {
+  max-width: 600px;
+  text-align: center;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  box-shadow: 0 0 20px rgba(0,255,128,0.1);
+}
+
+.coming-soon-icon {
+  font-size: 4rem;
+  color: #00ff80;
+  margin-bottom: 1rem;
+}
+
+.coming-soon-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #00ff80;
+  margin-bottom: 1rem;
+}
+
+.coming-soon-text {
+  font-size: 1rem;
+  color: #ccc;
+  margin-bottom: 2rem;
+}
+
+.os-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.os-alert.supported {
+  background: #004d00;
+  color: #00ff80;
+}
+
+.os-alert.unsupported {
+  background: #330000;
+  color: #ff5555;
+}
+
+.coming-soon-note {
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
+}

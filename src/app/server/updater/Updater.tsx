@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, KeyboardEvent } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import "./Updater.css";
 
 interface Changelog {
@@ -11,22 +11,21 @@ interface Changelog {
   unavailable?: boolean;
 }
 
-const fallbackChangelogs: Changelog[] = [
+const placeholderChangelogs: Changelog[] = [
   {
     version: "v1.1.2",
     date: "2025-06-10",
     tags: ["Updater", "Mods", "UI"],
     details: [
-      "Improved automatic update process for better reliability.",
-      "Fixed minor bugs in mod synchronization.",
-      "Updated UI with clearer status messages.",
+      "This page will be updated in a later update.",
+      "It currently does not connect to any API.",
     ],
   },
   {
     version: "v1.1.1",
     date: "2025-05-25",
     tags: ["Updater"],
-    details: ["unstable", "not working", "Optimized download speed."],
+    details: ["Placeholder entry."],
     unavailable: true,
   },
 ];
@@ -64,23 +63,23 @@ const Modal: React.FC<ModalProps> = ({
         >
           ×
         </button>
-        <h2 id="modal-title">
-          {version ?? "N/A"}{" "}
-          <span className="changelog-date">({date ?? "Unknown"})</span>
-        </h2>
 
-        {unavailable && <span className="badge-unavailable">Unavailable</span>}
+        <header className="modal-header">
+          <h2 id="modal-title">{version ?? "N/A"}</h2>
+          <span className="changelog-date">({date ?? "Unknown"})</span>
+          {unavailable && <span className="badge-unavailable">Unavailable</span>}
+        </header>
 
         <div className="changelog-tags">
-          {tags?.map((tag: string, idx: number) => (
+          {tags?.map((tag, idx) => (
             <span key={idx} className="badge-tag">
               {tag}
             </span>
           ))}
         </div>
 
-        <ul id="modal-description">
-          {details?.map((item: string, idx: number) => (
+        <ul id="modal-description" className="changelog-details">
+          {details?.map((item, idx) => (
             <li key={idx}>{item}</li>
           )) || <li>No details available</li>}
         </ul>
@@ -91,52 +90,15 @@ const Modal: React.FC<ModalProps> = ({
 
 export default function Updater() {
   const [modalData, setModalData] = useState<Changelog | null>(null);
-  const [changelogs, setChangelogs] = useState<Changelog[]>([]);
-  const [apiStatus, setApiStatus] = useState<"loading" | "connected" | "error">(
-    "loading"
-  );
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
-
-    fetch("http://localhost:8000/api/changelog", {
-      signal: controller.signal,
-      cache: "no-store",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Bad response code");
-        return res.json();
-      })
-      .then((data: Changelog[]) => {
-        if (!Array.isArray(data)) throw new Error("Invalid response format");
-        setChangelogs(data);
-        setApiStatus("connected");
-      })
-      .catch((err) => {
-        console.error("API failed:", err.message);
-        setChangelogs(fallbackChangelogs);
-        setApiStatus("error");
-      });
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  const handleKeyDown = (
-    e: KeyboardEvent<HTMLDivElement>,
-    changelog: Changelog
-  ) => {
-    if (e.key === "Enter" || e.key === " ") {
-      setModalData(changelog);
-    }
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, changelog: Changelog) => {
+    if (e.key === "Enter" || e.key === " ") setModalData(changelog);
   };
 
   return (
     <div className="updater-container">
-      <div className={`api-status ${apiStatus}`}>
-        {apiStatus === "loading" && "🔄 Connecting to API..."}
-        {apiStatus === "connected" && "✅ API Connected"}
-        {apiStatus === "error" && "❌ API Connection Failed - Using fallback"}
+      <div className="api-status error">
+        ⚠️ This updater page is a placeholder. It will be functional in a later update.
       </div>
 
       <header className="updater-header">
@@ -145,39 +107,41 @@ export default function Updater() {
           Current version: <strong>v1.1.2</strong>
         </p>
         <p className="update-status">
-          You are on the latest version. No updates available.
+          No updates available. This page is under development.
         </p>
       </header>
 
       <section className="changelog-section">
-        <h2>Changelog</h2>
-        {changelogs.map((changelog) => (
-          <div
-            key={changelog.version}
-            className="changelog-entry"
-            onClick={() => setModalData(changelog)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, changelog)}
-            aria-label={`Open changelog details for ${changelog.version}`}
-          >
-            <h3>
-              {changelog.version}
-              <span className="changelog-date">{changelog.date}</span>
-            </h3>
-            <div className="changelog-tags">
-              {changelog.unavailable && (
-                <span className="badge-unavailable">Unavailable</span>
-              )}
-              {changelog.tags?.map((tag: string, idx: number) => (
-                <span key={idx} className="badge-tag">
-                  {tag}
-                </span>
-              ))}
+        <h2>Changelog (Placeholder)</h2>
+        <div className="changelog-list">
+          {placeholderChangelogs.map((log) => (
+            <div
+              key={log.version}
+              className={`changelog-entry ${log.unavailable ? "disabled" : ""}`}
+              onClick={() => !log.unavailable && setModalData(log)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => handleKeyDown(e, log)}
+              aria-label={`Open changelog details for ${log.version}`}
+            >
+              <div className="changelog-header">
+                <h3>{log.version}</h3>
+                <span className="changelog-date">{log.date}</span>
+              </div>
+
+              <div className="changelog-tags">
+                {log.unavailable && <span className="badge-unavailable">Unavailable</span>}
+                {log.tags.map((tag, idx) => (
+                  <span key={idx} className="badge-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <p className="changelog-preview">{log.details[0]}...</p>
             </div>
-            <p>{changelog.details[0]}...</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       <Modal
