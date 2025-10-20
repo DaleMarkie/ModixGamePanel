@@ -7,9 +7,9 @@ export const navLinks = [
     label: "🎮 My Server",
     href: "/settings",
     submenu: [
-      { label: "⚙️ Terminal", href: "/server/ServerSettings" },
-      { label: "📦 Mod Manager", href: "/RBAC" },
-      { label: "🗂️ Workshop Manager", href: "/RBAC" },
+      { label: "⚙️ Terminal", href: "/terminal" },
+      { label: "📦 Mod Manager", href: "/modmanager" },
+      { label: "🗂️ Workshop Manager", href: "/workshop" },
       { label: "🔄 Check Mod Updates", href: "/tools/modupdates" },
     ],
   },
