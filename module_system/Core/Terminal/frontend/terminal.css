@@ -30,7 +30,7 @@ body {
 .terminal-layout {
   display: flex;
   flex-direction: column;
-  height: 250vh; /* Fill full viewport */
+  height: 190vh; /* Fill full viewport */
   overflow: hidden;
 }
 

@@ -25,7 +25,7 @@ const MAX_LOGS = 500;
 const MAX_RECENT_BATCHES = 3;
 
 const Terminal: React.FC = () => {
-  const [os, setOS] = useState<OS>("windows"); // Current OS
+  const [os, setOS] = useState<OS>("windows");
   const [status, setStatus] = useState("stopped");
   const [isServerRunning, setIsServerRunning] = useState(false);
   const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>({
@@ -38,8 +38,6 @@ const Terminal: React.FC = () => {
   const [batchFile, setBatchFile] = useState("");
   const [showBatchPrompt, setShowBatchPrompt] = useState(false);
   const [recentBatches, setRecentBatches] = useState<string[]>([]);
-  const [pendingPasswordPrompt, setPendingPasswordPrompt] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
@@ -50,12 +48,20 @@ const Terminal: React.FC = () => {
   useEffect(() => {
     const recent = localStorage.getItem(RECENT_KEY);
     if (recent) setRecentBatches(JSON.parse(recent));
+
     const selected = localStorage.getItem(SELECTED_KEY);
     if (selected) setBatchFile(selected);
     if (!selected) setShowBatchPrompt(true);
+
+    // Restore logs
+    const savedLogs = localStorage.getItem("terminalLogs");
+    if (savedLogs) setLogsByTab(JSON.parse(savedLogs));
+
+    // Reconnect logs automatically if server is running
+    reconnectLogs();
   }, [os]);
 
-  // --- Logs ---
+  // --- Logs helper ---
   const addLog = (text: string, tab: TabType = "server", timestamp = true) => {
     const line = timestamp
       ? `[${new Date().toLocaleTimeString()}] ${text}`
@@ -65,6 +71,8 @@ const Terminal: React.FC = () => {
       if (tab === "server" && text.toLowerCase().includes("error")) {
         updated.system = [...prev.system, line].slice(-MAX_LOGS);
       }
+      // Persist logs to localStorage
+      localStorage.setItem("terminalLogs", JSON.stringify(updated));
       return updated;
     });
   };
@@ -110,69 +118,72 @@ const Terminal: React.FC = () => {
     }
   };
 
-  // --- Server start/stop ---
+  // --- Server start ---
   const startServer = async (file?: string) => {
-    const batchToUse = file || batchFile;
-    if (!batchToUse || typeof batchToUse !== "string") {
-      return alert("Please enter your .bat file path!");
-    }
-
-    addLog(`[System] Validating batch file...`);
-    const res = await fetch(`${API_BASE}/validate-batch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ batchFile: batchToUse }),
-    });
-    const data = await res.json();
-
-    if (!data.valid) {
-      addLog(`[Error] Invalid batch file: ${batchToUse}`, "server");
-      return;
-    }
-
-    localStorage.setItem(SELECTED_KEY, batchToUse);
-    setBatchFile(batchToUse);
-
-    addLog(`[System] Starting server...`);
-    const startRes = await fetch(`${API_BASE}/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ batchFile: batchToUse }),
-    });
-    const startData = await startRes.json();
-
-    if (startData.error) {
-      addLog(`[Error] ${startData.error}`, "server");
-      return;
-    }
-
-    setIsServerRunning(true);
-    setStatus("Server running");
-
-    // Connect SSE logs
-    eventSourceRef.current?.close();
-    const es = new EventSource(`${API_BASE}/terminal/log-stream`);
-    eventSourceRef.current = es;
-    es.onmessage = (e) => {
-      addLog(e.data, "server", false);
-      if (e.data === "[SYSTEM] Server stopped") {
-        setIsServerRunning(false);
-        setStatus("stopped");
-        eventSourceRef.current?.close();
-        eventSourceRef.current = null;
+    try {
+      const batchToUse = file || batchFile;
+      if (!batchToUse || !batchToUse.trim()) {
+        addLog("[Error] Please provide a valid batch file path!", "system");
+        alert("Please enter your .bat or .sh file path!");
+        return;
       }
-    };
+
+      addLog(`[System] Validating batch file: ${batchToUse}`);
+      const valid = await validateBatch(batchToUse);
+      if (!valid) {
+        addLog(
+          `[Error] Invalid or missing batch file: ${batchToUse}`,
+          "system"
+        );
+        return;
+      }
+
+      localStorage.setItem(SELECTED_KEY, batchToUse);
+      setBatchFile(batchToUse);
+      addRecentBatch(batchToUse);
+
+      addLog("[System] Starting Project Zomboid server...");
+      const startRes = await fetch(`${API_BASE}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ batchFile: batchToUse }),
+      });
+      const startData = await startRes.json();
+      if (startData.error) {
+        addLog(`[Error] ${startData.error}`, "server");
+        setStatus("Error");
+        return;
+      }
+
+      setIsServerRunning(true);
+      setStatus("Running");
+      reconnectLogs();
+    } catch (err: any) {
+      console.error(err);
+      addLog(`[Error] Failed to start server: ${err.message || err}`, "system");
+      setIsServerRunning(false);
+      setStatus("Error");
+    }
   };
 
+  // --- Stop server ---
   const stopServer = async () => {
     try {
-      await fetch(`${API_BASE}/stop`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/stop`, { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        addLog(`[Error] ${data.error}`, "system");
+        return;
+      }
+
       addLog("[System] Server stopped manually.", "system");
       setIsServerRunning(false);
-      setStatus("stopped");
-      setPendingPasswordPrompt(false);
+      setStatus("Stopped");
+
+      // Close EventSource
       eventSourceRef.current?.close();
       eventSourceRef.current = null;
+
       localStorage.removeItem(SELECTED_KEY);
       setShowBatchPrompt(true);
     } catch {
@@ -180,6 +191,7 @@ const Terminal: React.FC = () => {
     }
   };
 
+  // --- Send command ---
   const sendCommand = async (cmd: string) => {
     try {
       await fetch(`${API_BASE}/command`, {
@@ -196,28 +208,41 @@ const Terminal: React.FC = () => {
   const submitCommand = (e: React.FormEvent) => {
     e.preventDefault();
     if (!command.trim()) return;
-    const cmd = command.trim();
-    if (activeTab === "system") {
-      addLog(`> ${cmd}`, "system");
-      if (cmd.toLowerCase() === "start") startServer();
-      else if (["stop", "shutdown"].includes(cmd.toLowerCase())) stopServer();
-      else addLog(`[System] Unknown command: ${cmd}`);
-    } else sendCommand(cmd);
+    sendCommand(command.trim());
     setCommand("");
   };
 
-  const handlePasswordSubmit = () => {
-    if (!passwordInput) return;
-    sendCommand(passwordInput);
-    setPasswordInput("");
-    setPendingPasswordPrompt(false);
+  // --- Reconnect logs ---
+  const reconnectLogs = () => {
+    if (eventSourceRef.current) eventSourceRef.current.close();
+    const es = new EventSource(`${API_BASE}/terminal/log-stream`);
+    eventSourceRef.current = es;
+    es.onopen = () =>
+      addLog("[System] Connected to live log stream.", "system");
+    es.onerror = () =>
+      addLog("[Warning] Lost connection to log stream.", "system");
+    es.onmessage = (e) => {
+      const msg = e.data.trim();
+      if (!msg) return;
+      addLog(msg, "server", false);
+      if (
+        msg.includes("Server stopped") ||
+        msg.includes("[SYSTEM] Server stopped")
+      ) {
+        addLog("[System] Server has stopped.", "system");
+        setIsServerRunning(false);
+        setStatus("Stopped");
+        es.close();
+        eventSourceRef.current = null;
+      }
+    };
   };
 
   const filteredLogs = logsByTab[activeTab].filter((l) =>
     l.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- Modals ---
+  // --- Batch modal ---
   if (showBatchPrompt)
     return (
       <div className="modal-overlay">
@@ -278,24 +303,6 @@ const Terminal: React.FC = () => {
       </div>
     );
 
-  if (pendingPasswordPrompt)
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>Set Admin Password</h2>
-          <input
-            type="password"
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
-            placeholder="Enter password..."
-          />
-          <button className="confirm-btn" onClick={handlePasswordSubmit}>
-            Submit
-          </button>
-        </div>
-      </div>
-    );
-
   // --- Main terminal UI ---
   return (
     <div className="terminal-layout">
@@ -304,19 +311,16 @@ const Terminal: React.FC = () => {
           ● {status}
         </div>
         <div className="header-controls">
-          <button
-            onClick={startServer}
-            disabled={status === "Starting..." || isServerRunning}
-          >
+          <button onClick={() => startServer()} disabled={isServerRunning}>
             Start
           </button>
-          <button
-            onClick={stopServer}
-            disabled={!isServerRunning && status !== "Starting..."}
-          >
+          <button onClick={stopServer} disabled={!isServerRunning}>
             Stop
           </button>
           <button onClick={() => setShowBatchPrompt(true)}>Change Batch</button>
+          <button onClick={reconnectLogs} disabled={!isServerRunning}>
+            Reconnect Logs
+          </button>
           <input
             type="text"
             placeholder="Search logs..."
@@ -361,7 +365,6 @@ const Terminal: React.FC = () => {
             onChange={(e) => {
               const val = e.target.value;
               if (val) {
-                setCommand(val);
                 sendCommand(val);
                 e.target.value = "";
               }
