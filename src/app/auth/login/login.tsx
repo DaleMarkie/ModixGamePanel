@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getServerUrl } from "@/app/config";
-import Signup from "../signup/signup"; // ✅ import signup
+import Signup from "../signup/signup";
 import "./login.css";
 
 const Login = () => {

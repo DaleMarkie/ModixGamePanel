@@ -4,14 +4,15 @@ import subprocess
 import socket
 import asyncio
 import json
+import configparser
 from typing import Optional
-from fastapi import FastAPI, Request, HTTPException
+
+# FastAPI
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-# ---------------------------
 # Routers
-# ---------------------------
 from backend.terminal_api import router as terminal_router
 from backend.API.Core.settings_api import server_settings
 from backend.API.Core.games_api.projectzomboid import (
@@ -23,9 +24,12 @@ from backend.API.Core.games_api.projectzomboid import (
     api_chatlogs
 )
 from backend.API.Core.tools_api.performance_api import router as performance_router
-from backend.API.Core.tools_api import portcheck_api, ddos_manager_api
+from backend.API.Core.tools_api import ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
+
+# Port check API
+from fastapi import APIRouter
 
 # ---------------------------
 # FastAPI App
@@ -37,31 +41,26 @@ app = FastAPI(title="Modix Panel Backend")
 # ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Set frontend domain in production
+    allow_origins=["*"],  # Change to your frontend domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------
-# Global server state
+# Global State
 # ---------------------------
 running_process: Optional[subprocess.Popen] = None
 log_queue: asyncio.Queue = asyncio.Queue()
 
+saved_mod_notes = {}
+
 # ---------------------------
 # Mount Routers
 # ---------------------------
-
-# Workshop
 app.include_router(workshop_api.router, prefix="/workshop")
-
-# Tools
-app.include_router(portcheck_api.router, prefix="/api/tools")
 app.include_router(performance_router, prefix="/api")
 app.include_router(ddos_manager_api.router, prefix="/api/ddos")
-
-# Server Settings
 app.include_router(server_settings.router, prefix="/api/server_settings")
 
 # Project Zomboid
@@ -71,31 +70,12 @@ app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
 app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
-
 app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 
-
 # ---------------------------
-# Global state placeholders
+# Health & Simple Port Check
 # ---------------------------
-running_process: Optional[subprocess.Popen] = None
-log_queue: asyncio.Queue = asyncio.Queue()
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ---------------------------
-# Health & Diagnostics
-# ---------------------------
-
-
 @app.get("/health")
 def health_check():
     return {"success": True, "status": "ok"}
@@ -108,18 +88,53 @@ def check_port(port: int):
     return {"port": port, "inUse": in_use}
 
 
-# ---------------------------
-# Global Server Process + Log Queue
-# ---------------------------
-running_process: Optional[subprocess.Popen] = None
-log_queue: asyncio.Queue = asyncio.Queue()
-
-
 def check_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
 
+# ---------------------------
+# Port Checker Router
+# ---------------------------
+port_router = APIRouter()
 
+DEFAULT_GAME_PORTS = [
+    {"name": "Project Zomboid (Game)", "port": 16261},
+    {"name": "Project Zomboid (Query)", "port": 16262},
+    {"name": "DayZ", "port": 2302},
+    {"name": "RimWorld", "port": 27015},
+]
+
+async def async_check_port(host: str, port: int) -> dict:
+    loop = asyncio.get_event_loop()
+    def _check():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            return s.connect_ex((host, port)) == 0
+    try:
+        in_use = await loop.run_in_executor(None, _check)
+        return {"name": f"Port {port}", "port": port, "status": "open" if in_use else "closed"}
+    except Exception:
+        return {"name": f"Port {port}", "port": port, "status": "closed"}
+
+@port_router.get("/game-ports")
+async def game_ports(host: str = Query("127.0.0.1"), custom_ports: str = Query("")):
+    ports_to_check = DEFAULT_GAME_PORTS.copy()
+    if custom_ports:
+        for p in custom_ports.split(","):
+            try:
+                p_int = int(p.strip())
+                ports_to_check.append({"name": f"Custom Port {p_int}", "port": p_int})
+            except ValueError:
+                return JSONResponse({"error": f"Invalid port: {p}"}, status_code=400)
+
+    results = await asyncio.gather(*[async_check_port(host, p["port"]) for p in ports_to_check])
+    return {"servers": results}
+
+app.include_router(port_router, prefix="/api/server")
+
+# ---------------------------
+# Server Helpers
+# ---------------------------
 async def stream_subprocess_output(stream, prefix: str):
     loop = asyncio.get_event_loop()
     while True:
@@ -136,11 +151,8 @@ async def monitor_process_exit(process):
     running_process = None
 
 # ---------------------------
-# Modcards (in-memory storage)
+# Mod Notes (In-Memory)
 # ---------------------------
-saved_mod_notes = {}
-
-
 @app.post("/api/save-mod-notes")
 async def save_mod_notes(request: Request):
     data = await request.json()
@@ -153,11 +165,10 @@ async def save_mod_notes(request: Request):
     return {"message": "Notes saved", "data": saved_mod_notes[workshop_id]}
 
 # ---------------------------
-# Project Zomboid Mod Alerts
+# Project Zomboid Mods
 # ---------------------------
 WORKSHOP_PATH = os.path.expanduser("~/Steam/steamapps/workshop/content/108600")
-SERVER_INI_PATH = os.path.join(os.path.expanduser(
-    "~"), "Zomboid", "Server", "servertest.ini")
+SERVER_INI_PATH = os.path.join(os.path.expanduser("~"), "Zomboid/Server/servertest.ini")
 
 
 def read_installed_mods_from_ini() -> list[str]:
@@ -195,39 +206,6 @@ def scan_local_workshop() -> list[dict]:
             else:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
-
-
-# ---------------------------
-# Remote License Verification
-# ---------------------------
-REMOTE_LICENSE_SERVER = "http://REMOTE_FLASK_SERVER_IP:5000"
-
-
-@app.post("/api/licenses/verify-remote")
-async def verify_remote_license(request: Request):
-    data = await request.json()
-    code = data.get("license_code", "").upper()
-    if not code:
-        return JSONResponse({"success": False, "detail": "Missing license code"}, status_code=400)
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                f"{REMOTE_LICENSE_SERVER}/api/licenses/verify",
-                json={"license_code": code}
-            )
-            license_data = response.json()
-        if response.status_code == 200 and license_data.get("success"):
-            return {"success": True, "license": license_data.get("license")}
-        else:
-            return JSONResponse({
-                "success": False,
-                "detail": license_data.get("detail", "Invalid or expired license")
-            }, status_code=404)
-    except httpx.RequestError as e:
-        return JSONResponse({
-            "success": False,
-            "detail": f"Could not reach remote license server: {str(e)}"
-        }, status_code=502)
 
 # ---------------------------
 # Run server

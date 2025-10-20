@@ -1,343 +1,369 @@
-/* terminal.css - Full immersive terminal style */
-
-:root {
-  --bg-color: #0d0d0d;
-  --panel-bg: #111111;
-  --header-bg: #1a1a1a;
-  --tab-active: #222222;
-  --tab-inactive: #111111;
-  --text-color: #cfd8dc;
-  --accent-color: #027208;
-  --error-color: #ff5370;
-  --system-color: #027208;
-  --command-color: #69f0ae;
-  --button-bg: #1f1f1f;
-  --button-hover: #333333;
-  --modal-bg: rgba(0, 0, 0, 0.8);
-  --modal-content-bg: #1b1b1b;
-  --input-bg: #262626;
-  --input-text: #cfd8dc;
-}
-
-body {
-  margin: 0;
-  font-family: "Fira Code", monospace;
-  background: var(--bg-color);
-  color: var(--text-color);
-}
-
-/* Terminal Layout */
-.terminal-layout {
+.container {
   display: flex;
-  flex-direction: column;
-  height: 190vh; /* Fill full viewport */
+  height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: #ddd;
+  background-color: #1e1e1e;
   overflow: hidden;
 }
 
-/* Header */
-.terminal-header {
+/* Left Panel */
+.left-panel {
+  width: 300px;
+  background-color: #252526;
+  padding: 8px;
+  overflow-y: auto;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+}
+
+.left-panel h2 {
+  margin: 8px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Sticky search bar */
+.search-input {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Mods list */
+.mods-list {
+  flex: 1;
+}
+
+/* Mod block */
+.mod-block {
+  margin-bottom: 12px;
+}
+
+.mod-title {
+  font-weight: bold;
+  margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  background: var(--header-bg);
-  border-bottom: 1px solid #333;
-  flex-shrink: 0; /* Keep header height fixed */
-}
-
-.terminal-header .status {
-  font-weight: bold;
   font-size: 14px;
-  font-family: monospace;
 }
 
-.header-controls button {
-  margin-right: 8px;
-  padding: 5px 10px;
+.new-file-btn {
+  background-color: #0e639c;
   border: none;
-  background: var(--button-bg);
-  color: var(--text-color);
+  border-radius: 3px;
+  color: #fff;
+  padding: 2px 6px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
+  font-size: 12px;
 }
 
-.header-controls button:hover {
-  background: var(--button-hover);
+.new-file-btn:hover {
+  background-color: #1177bb;
 }
 
-.header-controls input[type="text"] {
-  padding: 5px 10px;
+/* Folder & File items */
+.folder-item,
+.file-item {
+  cursor: pointer;
+  padding: 2px 0;
+  user-select: none;
+  font-size: 13px;
+  position: relative;
+  border-radius: 3px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.folder-item:hover,
+.file-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.file-item.unsaved {
+  color: #ff9800;
+}
+
+/* Favorite star */
+.folder-item span,
+.file-item span {
+  position: absolute;
+  right: 6px;
+  top: 2px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Favorites section */
+.favorites-section {
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid #333;
   border-radius: 4px;
+  background-color: #2a2a2a;
+}
+
+.favorites-section h3 {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffcc00;
+  margin-bottom: 4px;
+}
+
+/* Left panel extra buttons container */
+.left-panel-buttons {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+/* Left panel buttons: Verify Steam Mods / New Folder */
+.left-panel-buttons button {
+  flex: none;
+  background-color: #0a502a; /* dark green */
   border: none;
-  background: var(--input-bg);
-  color: var(--input-text);
-  width: 200px;
+  border-radius: 3px;
+  color: #fff; /* white text */
+  padding: 3px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.left-panel-buttons button:hover {
+  background-color: #0e7a3f; /* slightly brighter green */
+  transform: translateY(-1px);
+}
+
+.left-panel-buttons button:active {
+  background-color: #084022; /* darker green for click */
+  transform: translateY(0);
+}
+
+/* --- Resizer bar between panels --- */
+.resizer {
+  width: 6px;
+  background: linear-gradient(180deg, #333, #222);
+  cursor: col-resize;
+  transition: background 0.2s;
+}
+
+.resizer:hover {
+  background: #0e639c;
+}
+
+/* --- Right Panel --- */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #1b1c1f;
+  border-left: 1px solid #333;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Editor header */
+.editor-header {
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #202225, #18191c);
+  border-bottom: 1px solid #333;
+  font-size: 1.1rem;
+  color: #9ad46a;
+  letter-spacing: 0.5px;
 }
 
 /* Tabs */
-.terminal-tabs {
+.tab-bar {
   display: flex;
-  background: var(--panel-bg);
-  flex-shrink: 0;
+  background-color: #1b1b1b;
+  border-bottom: 1px solid #333;
+  overflow-x: auto;
+  padding: 15px;
+  gap: 6px;
 }
 
-.tab-btn {
-  flex: 1;
-  padding: 8px 10px;
-  border: none;
-  background: var(--tab-inactive);
-  color: var(--text-color);
+/* Individual tab */
+.tab {
+  padding: 10px 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px 6px 0 0;
+  background-color: #2d2d2d;
+  color: #ccc;
+  transition: background-color 0.2s, color 0.2s, transform 0.1s;
+  box-shadow: inset 0 -2px 0 #222;
+}
+
+.tab:hover {
+  background-color: #3a3a3a;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.tab.active {
+  background-color: #0e639c;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid #0e639c;
+}
+
+.tab .close-tab {
+  margin-left: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #ff4c4c;
   font-weight: bold;
-  transition: all 0.2s;
+  font-size: 14px;
+  transition: color 0.2s;
 }
 
-.tab-btn.active {
-  background: var(--tab-active);
-  color: var(--accent-color);
+.tab .close-tab:hover {
+  color: #ff0000;
 }
 
-/* Logs */
-.terminal-logs {
-  flex: 1; /* Take remaining height */
-  background: var(--panel-bg);
-  overflow-y: auto;
-  padding: 10px;
-  font-size: 13px;
-  line-height: 1.5;
-  font-family: "Fira Code", monospace;
-  scrollbar-width: thin;
-  scrollbar-color: #555 transparent;
-  scroll-behavior: smooth;
-}
-
-.terminal-logs::-webkit-scrollbar {
-  width: 10px;
-}
-
-.terminal-logs::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 5px;
-}
-
-.terminal-logs pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.terminal-log.no-results {
-  color: #888;
-}
-
-/* Log colors */
-.log-default {
-  color: var(--text-color);
-}
-.log-error {
-  color: var(--error-color);
-}
-.log-system {
-  color: var(--system-color);
-}
-.log-command {
-  color: var(--command-color);
-}
-
-/* Blinking cursor */
-.cursor {
-  display: inline-block;
-  width: 8px;
-  background-color: var(--accent-color);
-  margin-left: 2px;
-  animation: blink 1s steps(1) infinite;
-  vertical-align: bottom;
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-/* Command input */
-.command-form {
-  display: flex;
-  gap: 5px;
-  padding: 10px;
-  background: var(--panel-bg);
-  border-top: 1px solid #333;
-  flex-shrink: 0; /* Fixed height */
-}
-
-.command-form input[type="text"],
-.command-form select {
+/* Editor area */
+.editor-container {
   flex: 1;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  background: var(--input-bg);
-  color: var(--input-text);
+  display: flex;
+  flex-direction: column;
+  background: #1b1c1f;
+  border-top: 1px solid #2b2d31;
 }
 
-.command-form button {
-  padding: 5px 12px;
-  border: none;
-  border-radius: 4px;
-  background: var(--button-bg);
-  color: var(--text-color);
+/* Editor toolbar */
+.editor-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  gap: 10px;
+  background: rgba(32, 33, 36, 0.75);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.editor-toolbar button {
+  background-color: #2d2f33;
+  border: 1px solid #3d3f44;
+  color: #ddd;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.command-form button:hover {
-  background: var(--button-hover);
+.editor-toolbar button:hover {
+  background-color: #3b3d42;
+  color: #fff;
 }
 
-/* Modals */
+.save-btn {
+  background-color: #2d3a29;
+  border-color: #3b4d35;
+  color: #b8e986;
+}
+
+.save-btn:hover {
+  background-color: #3b4d35;
+}
+
+.save-btn.saving {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Empty editor state */
+.empty-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  text-align: center;
+}
+
+.empty-editor h3 {
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+/* Modal overlay */
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: var(--modal-bg);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 1000;
 }
 
+/* Modal content */
 .modal-content {
-  background: var(--modal-content-bg);
-  padding: 20px;
+  background-color: #252526;
+  padding: 20px 30px;
   border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  min-width: 250px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  color: #fff;
 }
 
-.modal-content h2 {
-  margin: 0 0 10px 0;
+.modal-content h3 {
+  margin-bottom: 16px;
+  font-size: 16px;
 }
 
-.modal-content input[type="text"],
-.modal-content input[type="password"] {
-  padding: 8px;
-  border-radius: 4px;
-  border: none;
-  background: var(--input-bg);
-  color: var(--input-text);
+.modal-content button {
+  display: block;
   width: 100%;
-}
-
-.confirm-btn {
-  padding: 8px 10px;
-  background: var(--accent-color);
+  margin: 6px 0;
+  padding: 6px 0;
+  background-color: #0e639c;
   border: none;
   border-radius: 4px;
   color: #fff;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
+  font-size: 14px;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
-.confirm-btn:hover {
-  background: #056f02;
+.modal-content button:hover {
+  background-color: #1177bb;
+  transform: translateY(-1px);
 }
 
-/* Recent batches */
-.recent-batches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
+.modal-content button:active {
+  background-color: #084c70;
+  transform: translateY(0);
 }
 
-.recent-batches button {
-  padding: 4px 8px;
-  background: var(--button-bg);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text-color);
+.modal-content .close-btn {
+  background-color: #ff4c4c;
+  margin-top: 12px;
 }
 
-.recent-batches button:hover {
-  background: var(--button-hover);
-}
-
-/* OS selector in modal */
-.os-selector {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.os-selector button {
-  flex: 1;
-  padding: 6px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: var(--button-bg);
-  color: var(--text-color);
-  transition: all 0.2s;
-}
-
-.os-selector button.active {
-  background: var(--accent-color);
-  color: #fff;
-}
-
-/* Smooth log scrolling */
-.terminal-logs {
-  scroll-behavior: smooth;
-}
-
-/* Make terminal taller for small screens */
-@media (max-height: 700px) {
-  .terminal-logs {
-    font-size: 12px;
-    padding: 8px;
-  }
-  .command-form input[type="text"],
-  .command-form select {
-    font-size: 12px;
-  }
-  .header-controls input[type="text"] {
-    width: 150px;
-  }
-}
-/* Top OS selector toolbar */
-.os-selector {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.os-selector button {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: var(--button-bg);
-  color: var(--text-color);
-  font-weight: bold;
-  transition: all 0.2s;
-}
-
-.os-selector button:hover {
-  background: var(--button-hover);
-}
-
-.os-selector button.active {
-  background: var(--accent-color);
-  color: #000;
-}
-
-/* Adjust modal for OS selector */
-.modal-content input[type="text"] {
-  margin-bottom: 10px;
+.modal-content .close-btn:hover {
+  background-color: #ff0000;
 }
