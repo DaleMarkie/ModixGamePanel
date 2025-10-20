@@ -1,314 +1,183 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
-import { Plus, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { RefreshCw, UserX, Search, X, Plus } from "lucide-react";
 
-interface ForumPost {
-  id: string;
-  author: string;
-  title: string;
-  content: string;
-  category: "Modix Issue" | "Game Issue";
-  status: "solved" | "unsolved";
-  timestamp: string;
-  comments: ForumComment[];
-}
-
-interface ForumComment {
-  id: string;
-  author: string;
-  content: string;
+interface BannedPlayer {
+  player: string;
+  message: string; // ban reason
   timestamp: string;
 }
 
-const Forums: React.FC = () => {
-  const [posts, setPosts] = useState<ForumPost[]>([]);
+const PlayersBanned: React.FC = () => {
+  const [bannedPlayers, setBannedPlayers] = useState<BannedPlayer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [newBanPlayer, setNewBanPlayer] = useState("");
+  const [newBanReason, setNewBanReason] = useState("");
 
-  const [newTitle, setNewTitle] = useState("");
-  const [newContent, setNewContent] = useState("");
-  const [newCategory, setNewCategory] = useState<"Modix Issue" | "Game Issue">(
-    "Modix Issue"
-  );
-  const [newComments, setNewComments] = useState<Record<string, string>>({});
+  const API_BASE = "http://localhost:2010/api/projectzomboid";
 
-  const [filterStatus, setFilterStatus] = useState<
-    "recent" | "solved" | "unsolved"
-  >("recent");
-
-  const API_BASE = "http://localhost:2010/api/forums";
-
-  // --- User detection ---
-  const user = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const stored = localStorage.getItem("modix_user");
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  // --- Redirect if not logged in ---
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 px-4">
-        <div className="bg-zinc-800 border border-green-600 rounded-3xl shadow-2xl p-10 max-w-md w-full text-center">
-          <div className="text-red-500 text-6xl mb-4 animate-pulse">⚠️</div>
-          <h2 className="text-3xl font-bold text-green-400 mb-4">
-            Access Restricted
-          </h2>
-          <p className="text-green-300 mb-4 text-lg">
-            You must be{" "}
-            <span className="text-green-400 font-semibold">logged in</span> to
-            view the forums.
-          </p>
-          <button
-            onClick={() => (window.location.href = "/auth/login")}
-            className="px-6 py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition-all duration-200 transform hover:-translate-y-1"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // --- Fetch posts ---
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/posts`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("modix_token")}`,
-        },
-      });
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setPosts(data.posts || []);
-    } catch (err) {
-      console.error("Failed to fetch posts:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // --- WebSocket for live updates ---
   useEffect(() => {
-    fetchPosts();
+    const ws = new WebSocket(`${API_BASE.replace("http", "ws")}/ws/banned`);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.event === "banned") {
+        setBannedPlayers((prev) => [data.player, ...prev]);
+      } else if (data.event === "unbanned") {
+        setBannedPlayers((prev) =>
+          prev.filter(
+            (p) => p.player.toLowerCase() !== data.player.player.toLowerCase()
+          )
+        );
+      } else if (data.event === "full_list") {
+        setBannedPlayers(data.banned);
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+
+    return () => ws.close();
   }, []);
 
-  // --- Create new post ---
-  const createPost = async () => {
-    if (!newTitle.trim() || !newContent.trim())
-      return alert("Fill in title and content.");
-    setLoading(true);
+  // Ban a new player
+  const banPlayer = async () => {
+    if (!newBanPlayer.trim()) return alert("Enter a player name to ban");
     try {
-      const res = await fetch(`${API_BASE}/create`, {
+      setLoading(true);
+      await fetch(`${API_BASE}/ban`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("modix_token")}`,
-        },
-        body: JSON.stringify({
-          title: newTitle,
-          content: newContent,
-          category: newCategory,
-          author: user.username,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player: newBanPlayer, reason: newBanReason }),
       });
-      if (res.ok) {
-        setNewTitle("");
-        setNewContent("");
-        setNewCategory("Modix Issue");
-        fetchPosts();
-      }
+      setNewBanPlayer("");
+      setNewBanReason("");
     } catch (err) {
-      console.error("Error creating post:", err);
+      console.error("Failed to ban player:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Create comment ---
-  const createComment = async (postId: string) => {
-    const content = newComments[postId];
-    if (!content?.trim()) return;
-
-    setLoading(true);
+  // Unban a player
+  const unbanPlayer = async (player: string) => {
     try {
-      const res = await fetch(`${API_BASE}/${postId}/comment`, {
+      setLoading(true);
+      await fetch(`${API_BASE}/unban`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("modix_token")}`,
-        },
-        body: JSON.stringify({
-          content,
-          author: user.username,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player }),
       });
-      if (res.ok) {
-        setNewComments({ ...newComments, [postId]: "" });
-        fetchPosts();
-      }
     } catch (err) {
-      console.error("Error creating comment:", err);
+      console.error("Failed to unban player:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Filter posts ---
-  const filteredPosts = posts
-    .filter((p) => {
-      if (filterStatus === "solved") return p.status === "solved";
-      if (filterStatus === "unsolved") return p.status === "unsolved";
-      return true;
-    })
-    .filter(
+  const filterPlayers = (players: BannedPlayer[]) =>
+    players.filter(
       (p) =>
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.content.toLowerCase().includes(search.toLowerCase())
-    )
-    .slice()
-    .reverse();
+        p.player.toLowerCase().includes(search.toLowerCase()) ||
+        p.message.toLowerCase().includes(search.toLowerCase())
+    );
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* Page Title */}
       <h1 className="text-3xl font-bold text-green-400 flex items-center gap-2">
-        Forums
+        <UserX className="w-8 h-8 text-green-500" />
+        Banned Players
       </h1>
 
-      {/* Search + Filter */}
+      {/* Search + Refresh */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2 bg-zinc-900 border border-green-600 rounded-lg px-3 py-2 shadow-inner w-full md:w-1/2">
+        <div className="flex items-center gap-2 bg-zinc-900 border border-green-600 rounded-lg px-3 py-2 shadow-inner w-full md:w-auto">
           <Search className="w-5 h-5 text-green-400" />
           <input
             type="text"
-            placeholder="Search posts..."
+            placeholder="Search banned players..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="bg-transparent outline-none text-green-300 placeholder-green-500 w-full"
           />
         </div>
-
-        <div className="flex gap-2">
-          {["recent", "unsolved", "solved"].map((status) => (
-            <button
-              key={status}
-              className={`px-3 py-1 rounded-lg ${
-                filterStatus === status
-                  ? "bg-green-700 text-white"
-                  : "bg-zinc-800 text-green-300"
-              }`}
-              onClick={() => setFilterStatus(status as any)}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* New Post Form */}
-      <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 shadow-lg flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Post Title"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
-        />
-        <textarea
-          placeholder="Your question or content..."
-          value={newContent}
-          onChange={(e) => setNewContent(e.target.value)}
-          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full h-32 resize-none"
-        />
-        <select
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value as any)}
-          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full"
-        >
-          <option value="Modix Issue">Modix Issue</option>
-          <option value="Game Issue">Game Issue</option>
-        </select>
         <button
-          onClick={createPost}
+          onClick={() => setBannedPlayers([...bannedPlayers])} // Refresh manually
           disabled={loading}
           className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50"
         >
-          <Plus className="w-4 h-4" /> {loading ? "Posting..." : "Post"}
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh
         </button>
       </div>
 
-      {/* Posts List */}
-      <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg space-y-4">
-        {filteredPosts.length === 0 ? (
+      {/* Ban Player Form */}
+      <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 shadow-lg flex flex-col md:flex-row items-center gap-4">
+        <input
+          type="text"
+          placeholder="Player name..."
+          value={newBanPlayer}
+          onChange={(e) => setNewBanPlayer(e.target.value)}
+          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full md:w-1/3"
+        />
+        <input
+          type="text"
+          placeholder="Reason (optional)"
+          value={newBanReason}
+          onChange={(e) => setNewBanReason(e.target.value)}
+          className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 w-full md:w-1/3"
+        />
+        <button
+          onClick={banPlayer}
+          disabled={loading}
+          className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200"
+        >
+          <Plus className="w-4 h-4" /> Ban Player
+        </button>
+      </div>
+
+      {/* Banned Players List */}
+      <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg">
+        {filterPlayers(bannedPlayers).length === 0 ? (
           <p className="text-green-400 text-center mt-10 text-lg">
-            No posts found.
+            No banned players found.
           </p>
         ) : (
-          filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-zinc-800 border border-green-700 rounded-2xl shadow-md p-4 flex flex-col gap-2 hover:bg-zinc-700 transition-all duration-200"
-            >
-              <div className="flex justify-between items-center">
-                <p className="text-xl font-semibold text-green-300">
-                  {post.title}
-                </p>
-                <span className="text-xs px-2 py-1 rounded-lg bg-zinc-900 border border-green-600 text-green-400">
-                  {post.category} | {post.status}
-                </span>
-              </div>
-              <p className="text-sm text-green-200">{post.content}</p>
-              <p className="text-xs text-green-500">
-                Posted by {post.author} on{" "}
-                {new Date(post.timestamp).toLocaleString()}
-              </p>
-
-              {/* Comments */}
-              <div className="pl-4 border-l border-green-700 space-y-2 mt-2">
-                {post.comments.map((c) => (
-                  <div key={c.id} className="text-sm text-green-200">
-                    <strong>{c.author}:</strong> {c.content}{" "}
-                    <span className="text-xs text-green-500">
-                      ({new Date(c.timestamp).toLocaleString()})
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* New comment input */}
-              <div className="flex gap-2 mt-2">
-                <input
-                  type="text"
-                  placeholder="Write a comment..."
-                  value={newComments[post.id] || ""}
-                  onChange={(e) =>
-                    setNewComments({
-                      ...newComments,
-                      [post.id]: e.target.value,
-                    })
-                  }
-                  className="bg-zinc-800 border border-green-700 rounded-lg px-3 py-2 text-green-300 flex-1"
-                />
-                <button
-                  onClick={() => createComment(post.id)}
-                  disabled={loading}
-                  className="px-3 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg transition-all duration-200"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filterPlayers(bannedPlayers)
+              .slice()
+              .reverse()
+              .map((player, i) => (
+                <div
+                  key={i}
+                  className="bg-zinc-800 border border-green-700 rounded-2xl shadow-md p-4 flex flex-col gap-2 hover:bg-zinc-700 transition-all duration-200"
                 >
-                  {loading ? "..." : "Comment"}
-                </button>
-              </div>
-            </div>
-          ))
+                  <p className="text-xl font-semibold text-green-300">
+                    {player.player}
+                  </p>
+                  <p className="text-sm text-red-500 font-medium">
+                    {player.message || "No reason provided"}
+                  </p>
+                  <p className="text-xs text-green-500">
+                    {new Date(player.timestamp).toLocaleString()}
+                  </p>
+                  <button
+                    onClick={() => unbanPlayer(player.player)}
+                    className="mt-2 px-3 py-1 bg-red-700 hover:bg-red-600 text-white rounded-lg flex items-center gap-1 text-sm transition-all duration-200"
+                  >
+                    <X className="w-4 h-4" /> Unban
+                  </button>
+                </div>
+              ))}
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-export default Forums;
+export default PlayersBanned;
