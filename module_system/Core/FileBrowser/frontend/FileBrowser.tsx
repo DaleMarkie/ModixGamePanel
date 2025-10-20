@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Editor, { OnChange, OnMount } from "@monaco-editor/react";
 import "./filebrowser.css";
@@ -11,337 +11,528 @@ interface FileItem {
   path: string;
   children?: FileItem[];
 }
-
 interface Mod {
   modId: string;
   title: string;
-  version?: string;
   files: FileItem[];
 }
-
 interface Tab {
   filePath: string;
   content: string;
   language: string;
   unsaved: boolean;
 }
+type ModalAction = "file" | "folder" | "color" | "move" | "delete";
+interface ModalTarget {
+  modId: string;
+  path?: string;
+}
+
+const ActionModal: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (a: ModalAction) => void;
+}> = ({ visible, onClose, onSelect }) => {
+  if (!visible) return null;
+  const actions: ModalAction[] = ["file", "folder", "color", "move", "delete"];
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3>Choose an action</h3>
+        {actions.map((a) => (
+          <button key={a} onClick={() => onSelect(a)}>
+            {a === "file"
+              ? "＋ New File"
+              : a === "folder"
+              ? "＋ New Folder"
+              : a === "color"
+              ? "🎨 Set Color"
+              : a === "move"
+              ? "📦 Move / Rename"
+              : "🗑️ Delete"}
+          </button>
+        ))}
+        <button className="close-btn" onClick={onClose}>
+          × Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const getFileIcon = (name: string) =>
+  name.endsWith(".lua")
+    ? "🐍"
+    : name.endsWith(".json")
+    ? "🧩"
+    : name.endsWith(".txt")
+    ? "📄"
+    : name.endsWith(".xml")
+    ? "🗂️"
+    : "📃";
 
 export default function WorkshopFileManager() {
   const [mods, setMods] = useState<Mod[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [colors, setColors] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
-  const [osMode, setOsMode] = useState<"windows" | "linux">("windows");
-
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTarget, setModalTarget] = useState<ModalTarget | null>(null);
   const editorRef = useRef<any>(null);
 
-  // Fetch Workshop mods
+  // Load saved states
+  useEffect(() => {
+    setCollapsed(JSON.parse(localStorage.getItem("collapsedState") || "{}"));
+    setFavorites(JSON.parse(localStorage.getItem("favoritesState") || "{}"));
+    setColors(JSON.parse(localStorage.getItem("colorsState") || "{}"));
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("collapsedState", JSON.stringify(collapsed));
+  }, [collapsed]);
+  useEffect(() => {
+    localStorage.setItem("favoritesState", JSON.stringify(favorites));
+  }, [favorites]);
+  useEffect(() => {
+    localStorage.setItem("colorsState", JSON.stringify(colors));
+  }, [colors]);
+
   const fetchMods = async () => {
     try {
-      setLoading(true);
-      setError("");
-      const res = await axios.get("/api/projectzomboid/workshop-mods", {
-        params: { os: osMode },
-      });
-
-      if (!res.data.mods || res.data.mods.length === 0) {
-        setError("No mods found. Subscribe in Steam Workshop.");
-        setMods([]);
-      } else {
-        setMods(res.data.mods);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch mods.");
-      setMods([]);
-    } finally {
-      setLoading(false);
+      const res = await axios.get("/api/filemanager/workshop-mods");
+      const fetched: Mod[] = res.data.mods || [];
+      setMods(fetched);
+      const init: Record<string, boolean> = { ...collapsed };
+      const mark = (items: FileItem[]) =>
+        items.forEach((i) => {
+          if (i.type === "folder" && init[i.path] === undefined)
+            init[i.path] = true;
+          if (i.children) mark(i.children);
+        });
+      fetched.forEach((m) => mark(m.files));
+      setCollapsed(init);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to fetch mods.");
     }
   };
-
   useEffect(() => {
     fetchMods();
-  }, [osMode]);
+  }, []);
 
-  // Open file in tab
-  const openFile = async (filePath: string) => {
-    const existing = tabs.find((t) => t.filePath === filePath);
-    if (existing) {
-      setActiveTab(filePath);
-      return;
-    }
+  const toggle = (path: string) =>
+    setCollapsed((p) => ({ ...p, [path]: !p[path] }));
+  const toggleFav = (path: string) =>
+    setFavorites((p) => ({ ...p, [path]: !p[path] }));
+  const setColor = (path: string) => {
+    const c = prompt("Enter color:");
+    if (c) setColors((p) => ({ ...p, [path]: c }));
+  };
 
+  const openFile = async (path: string) => {
+    if (tabs.find((t) => t.filePath === path)) return setActiveTab(path);
     try {
-      const res = await axios.get("/api/projectzomboid/workshop-mods/file", {
-        params: { path: filePath },
+      const res = await axios.get("/api/filemanager/file", {
+        params: { path },
       });
-
-      const language = filePath.endsWith(".lua")
+      const lang = path.endsWith(".lua")
         ? "lua"
-        : filePath.endsWith(".json")
+        : path.endsWith(".json")
         ? "json"
         : "plaintext";
-
-      const newTab: Tab = {
-        filePath,
-        content: res.data.content || "",
-        language,
-        unsaved: false,
-      };
-
-      setTabs((prev) => [...prev, newTab]);
-      setActiveTab(filePath);
-    } catch (err) {
-      console.error(err);
-      setError(`Failed to open file: ${filePath}`);
+      setTabs((prev) => [
+        ...prev,
+        {
+          filePath: path,
+          content: res.data.content || "",
+          language: lang,
+          unsaved: false,
+        },
+      ]);
+      setActiveTab(path);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to open file.");
     }
   };
 
-  // Save tab
-  const saveTab = async (filePath: string) => {
-    const tab = tabs.find((t) => t.filePath === filePath);
+  const saveTab = async (path: string | null) => {
+    if (!path) return;
+    const tab = tabs.find((t) => t.filePath === path);
     if (!tab) return;
-
     try {
       setSaving(true);
-      await axios.post("/api/projectzomboid/workshop-mods/file/save", {
-        path: filePath,
+      await axios.post("/api/filemanager/file/save", {
+        path,
         content: tab.content,
       });
-
       setTabs((prev) =>
-        prev.map((t) =>
-          t.filePath === filePath ? { ...t, unsaved: false } : t
-        )
+        prev.map((t) => (t.filePath === path ? { ...t, unsaved: false } : t))
       );
-    } catch (err) {
-      console.error(err);
-      setError(`Failed to save file: ${filePath}`);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Close tab
-  const closeTab = (filePath: string) => {
-    const tab = tabs.find((t) => t.filePath === filePath);
-    if (!tab) return;
-
-    if (tab.unsaved && !confirm("You have unsaved changes. Close anyway?")) return;
-
-    setTabs((prev) => prev.filter((t) => t.filePath !== filePath));
-    if (activeTab === filePath) setActiveTab(tabs[0]?.filePath || null);
+  const createItem = async (
+    modId: string,
+    folderPath?: string,
+    isFolder = false
+  ) => {
+    const name = prompt(
+      `New ${isFolder ? "folder" : "file"} name${
+        !isFolder ? " (with extension)" : ""
+      }:`
+    );
+    if (!name) return;
+    try {
+      await axios.post(
+        `/api/filemanager/${isFolder ? "folder/new" : "file/new"}`,
+        isFolder
+          ? { modId, folderName: name, folderPath }
+          : { modId, name, folderPath }
+      );
+      fetchMods();
+    } catch (e) {
+      console.error(e);
+      alert(`Failed to create ${isFolder ? "folder" : "file"}.`);
+    }
   };
 
-  // Editor mount
-  const handleEditorMount: OnMount = (editor) => {
-    editorRef.current = editor;
+  const deleteItem = async (path: string) => {
+    if (!confirm(`Delete ${path}?`)) return;
+    try {
+      await axios.post("/api/filemanager/file/delete", { path });
+      setTabs((prev) => prev.filter((t) => !t.filePath.startsWith(path)));
+      if (activeTab?.startsWith(path)) setActiveTab(null);
+      fetchMods();
+      alert("Deleted.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete.");
+    }
+  };
+  const moveItem = async (path: string) => {
+    const newName = prompt("New name or path:");
+    if (!newName) return;
+    const base = path.split("/").slice(0, -1).join("/");
+    const dest = newName.includes("/") ? newName : `${base}/${newName}`;
+    try {
+      await axios.post("/api/filemanager/file/move", {
+        source: path,
+        destination: dest,
+      });
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.filePath === path
+            ? { ...t, filePath: dest }
+            : t.filePath.startsWith(path + "/")
+            ? { ...t, filePath: t.filePath.replace(path, dest) }
+            : t
+        )
+      );
+      if (activeTab === path) setActiveTab(dest);
+      fetchMods();
+      alert("Moved/Renamed.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to move.");
+    }
   };
 
-  // Editor change
-  const handleTabChange: OnChange = (value) => {
+  const handleEditorMount: OnMount = (e) => (editorRef.current = e);
+  const handleTabChange: OnChange = (v) => {
     if (!activeTab) return;
     setTabs((prev) =>
       prev.map((t) =>
-        t.filePath === activeTab
-          ? { ...t, content: value || "", unsaved: true }
-          : t
+        t.filePath === activeTab ? { ...t, content: v || "", unsaved: true } : t
       )
     );
   };
 
-  // Autosave every 5s
-  useEffect(() => {
-    if (!activeTab) return;
-    const timer = setTimeout(() => {
-      saveTab(activeTab);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [tabs, activeTab]);
+  const filterTree = (items: FileItem[]): FileItem[] =>
+    !search
+      ? items
+      : (items
+          .map((i) => {
+            if (i.type === "folder" && i.children) {
+              const c = filterTree(i.children);
+              if (
+                c.length > 0 ||
+                i.name.toLowerCase().includes(search.toLowerCase())
+              )
+                return { ...i, children: c };
+            } else if (
+              i.type === "file" &&
+              i.name.toLowerCase().includes(search.toLowerCase())
+            )
+              return i;
+            return null;
+          })
+          .filter(Boolean) as FileItem[]);
 
-  // Toggle folder collapse
-  const toggleFolder = (path: string) => {
-    setCollapsedFolders((prev) => ({ ...prev, [path]: !prev[path] }));
-  };
-
-  // File icons
-  const getFileIcon = (fileName: string) => {
-    if (fileName.endsWith(".lua")) return "📜";
-    if (fileName.endsWith(".json")) return "🗄️";
-    if (fileName.endsWith(".txt")) return "📄";
-    return "📄";
-  };
-
-  // Render file tree
-  const renderTree = (items: FileItem[]): JSX.Element[] =>
-    items
-      .filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .map((item) => {
-        if (item.type === "folder") {
-          const isCollapsed = collapsedFolders[item.path];
-          return (
-            <div key={item.path} className="folder-item">
-              <span
-                className="folder-name"
-                onClick={() => toggleFolder(item.path)}
-              >
-                {isCollapsed ? "▶" : "▼"} {item.name}
-              </span>
-              {!isCollapsed && item.children && renderTree(item.children)}
-            </div>
-          );
-        } else {
-          const tab = tabs.find((t) => t.filePath === item.path);
-          const unsaved = tab?.unsaved;
-          return (
+  const renderTree = (
+    items: FileItem[],
+    lvl = 0,
+    modId?: string
+  ): JSX.Element[] =>
+    items.map((item) => {
+      const pad = 16 + lvl * 16,
+        col = colors[item.path] || "inherit",
+        fav = favorites[item.path];
+      if (item.type === "folder")
+        return (
+          <div key={item.path}>
             <div
-              key={item.path}
-              className={`file-item ${unsaved ? "unsaved" : ""}`}
-              onClick={() => openFile(item.path)}
+              className="folder-item"
+              style={{ paddingLeft: pad, color: col }}
+              onClick={() => toggle(item.path)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setModalTarget({ modId: modId!, path: item.path });
+                setModalVisible(true);
+              }}
             >
-              <span className="file-name">
-                {getFileIcon(item.name)} {item.name} {unsaved && "*"}
+              {collapsed[item.path] ? "▶" : "▼"} {item.name}{" "}
+              <span
+                className="fav-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFav(item.path);
+                }}
+              >
+                {fav ? "★" : "☆"}
               </span>
             </div>
-          );
-        }
-      });
-
-  // Undo/Redo
-  const handleUndo = () => editorRef.current?.trigger("keyboard", "undo", null);
-  const handleRedo = () => editorRef.current?.trigger("keyboard", "redo", null);
-
-  // Collapse/Expand All
-  const collapseAll = () => {
-    const all: Record<string, boolean> = {};
-    mods.forEach((mod) => {
-      const stack: FileItem[] = [...mod.files];
-      while (stack.length) {
-        const item = stack.pop()!;
-        if (item.type === "folder") {
-          all[item.path] = true;
-          if (item.children) stack.push(...item.children);
-        }
+            {!collapsed[item.path] &&
+              item.children &&
+              renderTree(item.children, lvl + 1, modId)}
+          </div>
+        );
+      else {
+        const tab = tabs.find((t) => t.filePath === item.path);
+        return (
+          <div
+            key={item.path}
+            className={`file-item ${tab?.unsaved ? "unsaved" : ""}`}
+            style={{ paddingLeft: pad, color: col }}
+            onClick={() => openFile(item.path)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setModalTarget({ modId: modId!, path: item.path });
+              setModalVisible(true);
+            }}
+          >
+            <span className="file-icon">{getFileIcon(item.name)}</span>{" "}
+            {item.name} {tab?.unsaved ? "*" : ""}{" "}
+            <span
+              className="fav-toggle"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFav(item.path);
+              }}
+            >
+              {fav ? "★" : "☆"}
+            </span>
+          </div>
+        );
       }
     });
-    setCollapsedFolders(all);
+
+  const favoriteItems: FileItem[] = [];
+  mods.forEach((mod) => {
+    const collect = (items: FileItem[]) => {
+      items.forEach((i) => {
+        if (favorites[i.path]) favoriteItems.push(i);
+        if (i.children) collect(i.children);
+      });
+    };
+    collect(mod.files);
+  });
+
+  const handleModalSelect = (action: ModalAction) => {
+    if (!modalTarget) return;
+    const { modId, path } = modalTarget;
+    switch (action) {
+      case "file":
+        createItem(modId, path);
+        break;
+      case "folder":
+        createItem(modId, path, true);
+        break;
+      case "color":
+        setColor(path!);
+        break;
+      case "move":
+        moveItem(path!);
+        break;
+      case "delete":
+        deleteItem(path!);
+        break;
+    }
+    setModalVisible(false);
+    setModalTarget(null);
   };
 
-  const expandAll = () => setCollapsedFolders({});
+  const expandCollapseAll = (expand: boolean) => {
+    const newState: Record<string, boolean> = {};
+    const recurse = (items: FileItem[]) =>
+      items.forEach((i) => {
+        if (i.type === "folder") {
+          newState[i.path] = !expand;
+          i.children && recurse(i.children);
+        }
+      });
+    mods.forEach((m) => recurse(m.files));
+    setCollapsed(newState);
+  };
 
   return (
     <div className="container">
+      <ActionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelect={handleModalSelect}
+      />
       <div className="left-panel">
         <h2>Workshop Mods</h2>
-
-        <div className="os-switcher">
-          <span>OS Mode:</span>
-          <button
-            className={osMode === "windows" ? "active" : ""}
-            onClick={() => setOsMode("windows")}
-          >
-            Windows
-          </button>
-          <button
-            className={osMode === "linux" ? "active" : ""}
-            onClick={() => setOsMode("linux")}
-          >
-            Linux
-          </button>
-        </div>
-
         <input
-          type="text"
-          placeholder="Search mods/files..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
-
-        <div className="tree-buttons">
-          <button onClick={collapseAll}>Collapse All</button>
-          <button onClick={expandAll}>Expand All</button>
+        <div className="left-panel-buttons">
+          <button onClick={fetchMods}>Refresh</button>
+          <button onClick={() => expandCollapseAll(true)}>Expand All</button>
+          <button onClick={() => expandCollapseAll(false)}>Collapse All</button>
+          <button
+            onClick={() => {
+              const id = prompt("Mod ID:");
+              if (id) createItem(id, undefined, true);
+            }}
+          >
+            ＋ New Folder
+          </button>
         </div>
-
-        {loading && <p>Loading...</p>}
-        {error && <pre className="error-message">{error}</pre>}
-        {!loading && !error && mods.length === 0 && <p>No mods found.</p>}
-        {mods.map((mod) => (
-          <div key={mod.modId} className="mod-block">
-            <div className="folder-name">
-              {mod.title} {mod.version && `v${mod.version}`}
-            </div>
-            {renderTree(mod.files)}
+        {favoriteItems.length > 0 && (
+          <div className="favorites-section">
+            <h3>★ Favorites</h3>
+            {renderTree(favoriteItems)}
           </div>
-        ))}
+        )}
+        <div className="mods-list">
+          {mods
+            .map((mod) => ({ ...mod, files: filterTree(mod.files) }))
+            .filter((m) => m.files.length > 0)
+            .map((mod) => (
+              <div key={mod.modId} className="mod-block">
+                <div className="mod-title">
+                  <span>{mod.title}</span>
+                  <div>
+                    <button onClick={() => createItem(mod.modId)}>
+                      ＋ New File
+                    </button>
+                    <button
+                      onClick={() => {
+                        const n = prompt("Folder name:");
+                        if (n) createItem(mod.modId, undefined, true);
+                      }}
+                    >
+                      ＋ Folder
+                    </button>
+                  </div>
+                </div>
+                {renderTree(mod.files, 0, mod.modId)}
+              </div>
+            ))}
+        </div>
       </div>
 
       <div className="right-panel">
-        <h2>File Editor</h2>
-        {tabs.length > 0 && (
-          <div className="tab-bar">
-            {tabs.map((tab) => (
-              <div
-                key={tab.filePath}
-                className={`tab ${tab.filePath === activeTab ? "active" : ""}`}
-                onClick={() => setActiveTab(tab.filePath)}
-              >
-                {tab.filePath.split("/").pop()}
-                {tab.unsaved && "*"}
-                <button
-                  className="close-tab"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeTab(tab.filePath);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab ? (
+        <div className="editor-header">
+          <h2>📝 Editor</h2>
+        </div>
+        {tabs.length > 0 ? (
           <>
-            <div className="file-editor-toolbar">
-              <div className="editor-buttons">
-                <button onClick={handleUndo}>Undo</button>
-                <button onClick={handleRedo}>Redo</button>
-                <button
-                  onClick={() => saveTab(activeTab)}
-                  disabled={saving}
-                  className="save-button"
+            <div className="tab-bar">
+              {tabs.map((tab) => (
+                <div
+                  key={tab.filePath}
+                  className={`tab ${
+                    tab.filePath === activeTab ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab(tab.filePath)}
                 >
-                  {saving ? "Saving..." : "Save"}
+                  <span className="tab-name">
+                    {tab.filePath.split("/").pop()}
+                  </span>
+                  {tab.unsaved && (
+                    <span className="unsaved-dot" title="Unsaved changes" />
+                  )}
+                  <button
+                    className="close-tab"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTabs((prev) =>
+                        prev.filter((t) => t.filePath !== tab.filePath)
+                      );
+                      if (activeTab === tab.filePath) setActiveTab(null);
+                    }}
+                    title="Close tab"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="editor-container">
+              <div className="editor-toolbar">
+                <button
+                  className={`save-btn ${saving ? "saving" : ""}`}
+                  onClick={() => saveTab(activeTab)}
+                  disabled={saving || !activeTab}
+                >
+                  💾 {saving ? "Saving..." : "Save File"}
+                </button>
+                <button className="refresh-btn" onClick={fetchMods}>
+                  ↻ Reload Mods
                 </button>
               </div>
+              <Editor
+                height="100%"
+                language={
+                  tabs.find((t) => t.filePath === activeTab)?.language ||
+                  "plaintext"
+                }
+                value={
+                  tabs.find((t) => t.filePath === activeTab)?.content || ""
+                }
+                onChange={handleTabChange}
+                onMount={handleEditorMount}
+                theme="vs-dark"
+                options={{
+                  automaticLayout: true,
+                  minimap: { enabled: false },
+                  wordWrap: "on",
+                  fontSize: 15,
+                  fontFamily: "JetBrains Mono, monospace",
+                  smoothScrolling: true,
+                }}
+              />
             </div>
-
-            <Editor
-              height="70vh"
-              language={tabs.find((t) => t.filePath === activeTab)?.language || "plaintext"}
-              value={tabs.find((t) => t.filePath === activeTab)?.content || ""}
-              onChange={handleTabChange}
-              onMount={handleEditorMount}
-              theme="vs-dark"
-              options={{
-                automaticLayout: true,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                wordWrap: "on",
-              }}
-            />
           </>
         ) : (
-          <p>Select a file to view/edit its content</p>
+          <div className="empty-editor">
+            <h3>No file selected</h3>
+            <p>Select a file from the left to start editing.</p>
+          </div>
         )}
       </div>
     </div>
