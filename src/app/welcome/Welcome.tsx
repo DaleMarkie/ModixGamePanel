@@ -109,7 +109,6 @@ export default function InstalledPage() {
             <li>👥 Player management, bans & chat logs</li>
             <li>⚡ Performance monitoring & system stats</li>
             <li>🔔 Webhooks & Discord-style notifications</li>
-            <li>🌙 Fully dark-themed customizable UI</li>
           </ul>
         </section>
 
