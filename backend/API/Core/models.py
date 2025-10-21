@@ -40,10 +40,11 @@ class Role(Base):
     permissions = relationship("RolePermission", back_populates="role")
 
 class Container(Base):
-    __tablename__ = "containers"
+    __tablename__ = "servers"
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
-    docker_id = Column(String, unique=True, nullable=False)
+    docker_id = Column(String, unique=True, nullable=True)
+    script_location = Column(String, nullable=True)
     description = Column(Text)
 
 class UserRole(Base):
@@ -51,11 +52,11 @@ class UserRole(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     role_id = Column(Integer, ForeignKey("roles.id"))
-    scope = Column(String, default="global")  # "global" or "container"
-    container_id = Column(Integer, ForeignKey("containers.id"), nullable=True)
+    scope = Column(String, default="global")  # "global" or "server"
+    server_id = Column(Integer, ForeignKey("servers.id"), nullable=True)
     user = relationship("User", back_populates="roles")
     role = relationship("Role")
-    container = relationship("Container")
+    server = relationship("Server")
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"
@@ -64,9 +65,9 @@ class RolePermission(Base):
     permission = Column(String, nullable=False)
     value = Column(Enum(PermissionValue), nullable=False)
     scope = Column(String, default="global")
-    container_id = Column(Integer, ForeignKey("containers.id"), nullable=True)
+    server_id = Column(Integer, ForeignKey("servers.id"), nullable=True)
     role = relationship("Role", back_populates="permissions")
-    container = relationship("Container")
+    server = relationship("Server")
 
 class UserPermission(Base):
     __tablename__ = "user_permissions"
@@ -75,9 +76,9 @@ class UserPermission(Base):
     permission = Column(String, nullable=False)
     value = Column(Enum(PermissionValue), nullable=False)
     scope = Column(String, default="global")
-    container_id = Column(Integer, ForeignKey("containers.id"), nullable=True)
+    server_id = Column(Integer, ForeignKey("servers.id"), nullable=True)
     user = relationship("User", back_populates="permissions")
-    container = relationship("Container")
+    server = relationship("Server")
 
 # Permission constants for use throughout the app
 PERMISSIONS = [

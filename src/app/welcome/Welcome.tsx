@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getServerUrl } from "@/app/config";
-import Signup from "../signup/signup";
+import Signup from "../auth/signup/signup";
 import { FaCheckCircle } from "react-icons/fa";
 import "./Welcome.css";
 
