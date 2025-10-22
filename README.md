@@ -16,6 +16,69 @@ https://discord.gg/sNSE8HsEdU
 | Hosting      | Windows                                         |
 | Game Support | Project Zomboid (Steam + Workshop + ModManager) |
 
+# Modix: Project  
+### 🔓 Open Source, Browser-Based Game Panel for Project Zomboid  
+
+🚀 **Modix Game Panel** is a fully **browser-based, open source control panel** for Project Zomboid.  
+It allows you to **manage every aspect of your server locally**, from starting/stopping the server to editing settings, managing mods, sending webhooks, and more.  
+
+This project is designed for **community development and contributions**. You can **download, run, modify, and contribute** to it locally in your browser or on your system.  
+Development is currently ongoing for **v1.1.2**.  
+
+⚠️ **Disclaimer:** The Software may display **game logos or other images from Steam**. These assets are **not owned or created by the Modix Dev Team**. Modix only provides the **panel UI and backend functionality**.  
+
+---
+
+## 🧩 Key Features  
+
+- 🔧 **Server Controls** — Start, stop, restart, and gracefully shut down Project Zomboid servers  
+- 🧠 **Real-time Logs** — Live terminal view using Server-Sent Events (SSE)  
+- ⚙️ **Full Settings Editor** — Modify `server.ini` and `SandboxVars.lua` directly from the UI  
+- 🧱 **Mod Manager** — Enable/disable/uninstall Workshop mods with **tag-based search** and **auto-thumbnail detection**  
+- 🌐 **Webhook Support** — Create and send custom Discord-style embed messages  
+- 🧰 **File Manager** — Browse, upload, and edit server-side files in a clean UI  
+
+---
+
+## 💻 Tech Stack  
+
+| Layer       | Tech Used                               |  
+|-------------|-----------------------------------------|  
+| Frontend    | React (CRA), Tailwind, React Icons       |  
+| Backend     | FastAPI (uvicorn) (Python 3), SSE, Systemd |  
+| Database    | JSON config, SQLite                     |  
+| Hosting     | Windows                                 |  
+| Game Support| Project Zomboid (Steam + Workshop + ModManager) |  
+
+---
+
+## ⚡🚀 Getting Started / Local Installation  
+
+Run **Modix Game Panel** locally on your PC in a few simple steps:
+
+### 💾 1. Download the Project
+- Clone or download the repository: `Modix-Windows--main`
+- Place the folder anywhere on your PC
+
+### ✏️ 2. Rename the Folder (Optional)
+- You may rename it, e.g., `Modix-Local`
+- **Note:** Renaming does **not affect functionality**
+
+### 📦 3. Install Dependencies
+- Open **Command Prompt (CMD)** or **PowerShell** in the project folder
+- Run:
+```bash
+npm install 
+npm run dev
+
+🌐 5. Access the Panel
+
+Open your browser and go to:
+
+http://localhost:3000
+
+You should see the Modix Game Panel ready to use
+
 💖 Support & Donations
 
 All donations are welcome to help keep Modix development going. You can support us here:
