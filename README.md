@@ -6,6 +6,7 @@
 | Database     | JSON config, SQLite                             |
 | Hosting      | Windows                                         |
 | Game Support | Project Zomboid (Steam + Workshop + ModManager) |
+| Developed BY OV3RLORD & GameSmithOnline |
 
 # Modix: Project  
 ### 🔓 Open Source, Browser-Based Game Panel for Project Zomboid  
