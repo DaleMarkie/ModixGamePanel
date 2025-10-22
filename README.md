@@ -23,12 +23,15 @@ Development is currently ongoing for **v1.1.2**.
 
 ## 🧩 Key Features  
 
-- 🔧 **Server Controls** — Start, stop, restart, and gracefully shut down Project Zomboid servers  
+- 🔧 **Server Controls** — Locally hosted and fully controlled by you; start, stop, restart, and gracefully shut down Project Zomboid servers  
 - 🧠 **Real-time Logs** — Live terminal view using Server-Sent Events (SSE)  
 - ⚙️ **Full Settings Editor** — Modify `server.ini` and `SandboxVars.lua` directly from the UI  
-- 🧱 **Mod Manager** — Enable/disable/uninstall Workshop mods with **tag-based search** and **auto-thumbnail detection**  
+- 🧱 **Mod Manager & Workshop Manager** — Enable/disable/uninstall Workshop mods with **tag-based search**, **auto-thumbnail detection**, and full Workshop integration  
 - 🌐 **Webhook Support** — Create and send custom Discord-style embed messages  
 - 🧰 **File Manager** — Browse, upload, and edit server-side files in a clean UI  
+- ✨ **And much more coming!** — New features and improvements are actively being developed
+
+
 
 ---
 
