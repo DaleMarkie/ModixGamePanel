@@ -82,6 +82,8 @@ You should see the Modix Game Panel ready to use
 All donations are welcome to help keep Modix development going. You can support us here:
 https://ko-fi.com/modixgamepanel
 
+######################################
+
 ❗ Important: You are not allowed to reupload Modix or any part of it to another website. The project must always be used from this official repository or your local environment.
 
 🧑‍💻 Modix Game Panel Non-Commercial License (NC) – Version 1.4
