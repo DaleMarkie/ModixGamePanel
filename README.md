@@ -69,7 +69,7 @@ Run **Modix Game Panel** locally on your PC in a few simple steps:
 npm install 
 npm run dev
 
-🌐 5. Access the Panel
+### 🌐 5. Access the Panel
 
 Open your browser and go to:
 
