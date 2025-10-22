@@ -1,25 +1,9 @@
 Modix: Project
-🔓 Open Source Game Panel for Project Zomboid
+🔓 Open Source, Browser-Based Game Panel for Project Zomboid
 
-🚀 Modix Game Panel is open source and designed for community development and contributions.
-You may download, run, modify, and contribute to this project locally in your browser or on your system.
-Development is currently ongoing for v1.1.2.
+🚀 Modix Game Panel is a fully browser-based, open source control panel for Project Zomboid. It allows you to manage every aspect of your server locally, from starting and stopping the server to editing settings, managing mods, sending webhooks, and more. The project is designed for community development and contributions. You can download, run, modify, and contribute to it locally in your browser or on your system. Development is currently ongoing for v1.1.2.
 
 ⚠️ Disclaimer: The Software may display game logos or other images from Steam. These assets are not owned or created by the Modix Dev Team. Modix only provides the panel UI and backend functionality.
-
-🧩 Key Features
-
-🔧 Server Controls — Start, stop, restart, and gracefully shut down PZ servers
-
-🧠 Real-time Logs — Live terminal view using Server-Sent Events (SSE)
-
-⚙️ Full Settings Editor — Modify server.ini and SandboxVars.lua from the UI
-
-🧱 Mod Manager — Enable/disable/uninstall Workshop mods with tag-based search and auto-thumbnail detection
-
-🌐 Webhook Support — Create and send custom Discord-style embed messages
-
-🧰 File Manager — Browse, upload, and edit server-side files in a clean UI
 
 | Layer        | Tech Used                                       |
 | ------------ | ----------------------------------------------- |
@@ -28,6 +12,13 @@ Development is currently ongoing for v1.1.2.
 | Database     | JSON config, SQLite                             |
 | Hosting      | Windows                                         |
 | Game Support | Project Zomboid (Steam + Workshop + ModManager) |
+
+💖 Support & Donations
+
+All donations are welcome to help keep Modix development going. You can support us here:
+https://ko-fi.com/modixgamepanel
+
+❗ Important: You are not allowed to reupload Modix or any part of it to another website. The project must always be used from this official repository or your local environment.
 
 🧑‍💻 Modix Game Panel Non-Commercial License (NC) – Version 1.4
 
