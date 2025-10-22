@@ -4,6 +4,7 @@ Modix: Project
 🚀 Modix Game Panel is open source and designed for community development and contributions.
 You may download, run, modify, and contribute to this project locally in your browser or on your system.
 Development is currently ongoing for v1.1.2.
+
 ⚠️ Disclaimer: The Software may display game logos or other images from Steam. These assets are not owned or created by the Modix Dev Team. Modix only provides the panel UI and backend functionality.
 
 🧩 Key Features
