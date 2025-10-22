@@ -14,10 +14,14 @@
 🚀 **Modix Game Panel** is a fully **browser-based, open source control panel** for Project Zomboid.  
 It allows you to **manage every aspect of your server locally**, from starting/stopping the server to editing settings, managing mods, sending webhooks, and more.  
 
-This project is designed for **community development and contributions**. You can **download, run, modify, and contribute** to it locally in your browser or on your system.  
-Development is currently ongoing for **v1.1.2**.  
+⚠️ **Disclaimer:**  
+The Software may display **game logos or other images from Steam**. These assets are **not owned or created by the Modix Dev Team**. Modix only provides the **panel UI and backend functionality**.  
 
-⚠️ **Disclaimer:** The Software may display **game logos or other images from Steam**. These assets are **not owned or created by the Modix Dev Team**. Modix only provides the **panel UI and backend functionality**.  
+🐞 **Bugs & Issues:**  
+This is an active development project, so there **may be bugs or unexpected behavior**.  
+- Please **create an issue** on GitHub if you encounter any problems  
+- Or **contact us on Discord** for faster support and fixes: [https://discord.gg/sNSE8HsEdU](https://discord.gg/sNSE8HsEdU)  
+
 
 ---
 
@@ -30,7 +34,6 @@ Development is currently ongoing for **v1.1.2**.
 - 🌐 **Webhook Support** — Create and send custom Discord-style embed messages  
 - 🧰 **File Manager** — Browse, upload, and edit server-side files in a clean UI  
 - ✨ **And much more coming!** — New features and improvements are actively being developed
-
 
 
 ---
