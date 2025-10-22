@@ -3,6 +3,9 @@ Modix: Project
 
 🚀 Modix Game Panel is a fully browser-based, open source control panel for Project Zomboid. It allows you to manage every aspect of your server locally, from starting and stopping the server to editing settings, managing mods, sending webhooks, and more. The project is designed for community development and contributions. You can download, run, modify, and contribute to it locally in your browser or on your system. Development is currently ongoing for v1.1.2.
 
+Join the official Modix Discord for support, updates, and community discussions:
+https://discord.gg/sNSE8HsEdU
+
 ⚠️ Disclaimer: The Software may display game logos or other images from Steam. These assets are not owned or created by the Modix Dev Team. Modix only provides the panel UI and backend functionality.
 
 | Layer        | Tech Used                                       |
