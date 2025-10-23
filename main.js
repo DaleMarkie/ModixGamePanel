@@ -14,7 +14,9 @@ function startBackend() {
     shell: true,
   });
 
-  backendProcess.on("close", (code) => console.log("Backend exited with code", code));
+  backendProcess.on("close", (code) =>
+    console.log("Backend exited with code", code)
+  );
   backendProcess.on("error", (err) => console.error("Backend failed:", err));
 }
 
