@@ -21,7 +21,10 @@ export const navLinks = [
       { label: "🖼️ Manage Assets", href: "/tools/modcreation/assets" },
       { label: "📝 Edit Mod Info", href: "/tools/modcreation/info" },
       { label: "⚙️ Build & Export Mod", href: "/tools/modcreation/build" },
-      { label: "🌐 Steam Workshop Upload", href: "/tools/modcreation/workshop" },
+      {
+        label: "🌐 Steam Workshop Upload",
+        href: "/tools/modcreation/workshop",
+      },
     ],
   },
   {
@@ -41,15 +44,24 @@ export const navLinks = [
         href: "/PlayerManagement/Activity",
         submenu: [
           { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-          { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
+          {
+            label: "🎮 Session History",
+            href: "/PlayerManagement/SessionHistory",
+          },
         ],
       },
       {
         label: "⛔ Player Restrictions",
         href: "/PlayerManagement/Bans",
         submenu: [
-          { label: "⛔ Players Banned", href: "/PlayerManagement/PlayerBanned" },
-          { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
+          {
+            label: "⛔ Players Banned",
+            href: "/PlayerManagement/PlayerBanned",
+          },
+          {
+            label: "⚠️ Warnings & Notes",
+            href: "/PlayerManagement/PlayerNotes",
+          },
         ],
       },
     ],
@@ -89,7 +101,7 @@ export const navLinks = [
       },
       {
         label: "📣 Discord Integration",
-        href: "/server/updater",
+        href: "/webhooks",
       },
       {
         label: "⬆️ Updater",
