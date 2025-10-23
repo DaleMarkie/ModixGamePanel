@@ -35,21 +35,6 @@ This is an active development project, so there **may be bugs or unexpected beha
 - 🧰 **File Manager** — Browse, upload, and edit server-side files in a clean UI  
 - ✨ **And much more coming!** — New features and improvements are actively being developed
 
-
----
-
-## 💻 Tech Stack  
-
-| Layer       | Tech Used                               |  
-|-------------|-----------------------------------------|  
-| Frontend    | React (CRA), Tailwind, React Icons       |  
-| Backend     | FastAPI (uvicorn) (Python 3), SSE, Systemd |  
-| Database    | JSON config, SQLite                     |  
-| Hosting     | Windows                                 |  
-| Game Support| Project Zomboid (Steam + Workshop + ModManager) |  
-
----
-
 ## ⚡🚀 Getting Started / Local Installation  
 
 Run **Modix Game Panel** locally on your PC in a few simple steps:
