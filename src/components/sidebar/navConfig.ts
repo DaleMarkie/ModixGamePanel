@@ -8,9 +8,9 @@ export const navLinks = [
     href: "/settings",
     submenu: [
       { label: "⚙️ Terminal", href: "/terminal" },
-      { label: "📦 Mod Manager", href: "/modmanager" },
+      { label: "📦 Mod Manager", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔄 Check Mod Updates", href: "/tools/modupdates" },
+      { label: "🔄 Check Mod Updates", href: "/modupdates" },
     ],
   },
   {
