@@ -38,7 +38,9 @@ const Terminal: React.FC = () => {
   const [batchFile, setBatchFile] = useState("");
   const [showBatchPrompt, setShowBatchPrompt] = useState(false);
   const [recentBatches, setRecentBatches] = useState<string[]>([]);
+  const [autoScroll, setAutoScroll] = useState(true);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const logsEndRef = useRef<HTMLDivElement | null>(null);
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
   const RECENT_KEY = `recentPZBatches_${os}`;
@@ -61,6 +63,15 @@ const Terminal: React.FC = () => {
     reconnectLogs();
   }, [os]);
 
+  // --- Auto-scroll ---
+  const scrollToBottom = () => {
+    if (autoScroll) logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [logsByTab, activeTab]);
+
   // --- Logs helper ---
   const addLog = (text: string, tab: TabType = "server", timestamp = true) => {
     const line = timestamp
@@ -71,7 +82,6 @@ const Terminal: React.FC = () => {
       if (tab === "server" && text.toLowerCase().includes("error")) {
         updated.system = [...prev.system, line].slice(-MAX_LOGS);
       }
-      // Persist logs to localStorage
       localStorage.setItem("terminalLogs", JSON.stringify(updated));
       return updated;
     });
@@ -180,7 +190,6 @@ const Terminal: React.FC = () => {
       setIsServerRunning(false);
       setStatus("Stopped");
 
-      // Close EventSource
       eventSourceRef.current?.close();
       eventSourceRef.current = null;
 
@@ -327,6 +336,9 @@ const Terminal: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <button onClick={() => setAutoScroll(!autoScroll)}>
+            {autoScroll ? "🔒 Auto-scroll" : "🔓 Auto-scroll"}
+          </button>
         </div>
       </header>
 
@@ -357,6 +369,7 @@ const Terminal: React.FC = () => {
         ) : (
           <p>No matching logs</p>
         )}
+        <div ref={logsEndRef} />
       </div>
 
       <form className="command-form" onSubmit={submitCommand}>
