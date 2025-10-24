@@ -223,7 +223,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print("\n===========================================")
-    print("🛡️  Modix Panel Backend - Localhost Only")
+    print("🛡️  Modix Panel Backend - Localhost")
     print("===========================================")
     print(" ✅ Allowed : localhost (127.0.0.1)")
     print(" ❌ Blocked : All LAN & External IPs")
