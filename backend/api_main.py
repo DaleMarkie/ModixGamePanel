@@ -27,6 +27,7 @@ from backend.API.Core.tools_api.performance_api import router as performance_rou
 from backend.API.Core.tools_api import ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
+from backend.updater_api import router as updater_router
 
 # Port check API
 from fastapi import APIRouter
@@ -72,7 +73,7 @@ app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/s
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
 app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
-
+app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 # ---------------------------
 # Health & Simple Port Check
 # ---------------------------

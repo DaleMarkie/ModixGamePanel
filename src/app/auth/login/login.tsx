@@ -1,15 +1,71 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { getServerUrl } from "@/app/config";
 import Signup from "../signup/signup";
 import "./login.css";
 
-const Login = () => {
-  const router = useRouter();
-  const usernameRef = useRef<HTMLInputElement>(null);
+const LOCAL_USERS_KEY = "modix_local_users";
 
+interface LocalUser {
+  username: string;
+  password: string; // plaintext for simplicity; can later hash
+  role?: "Owner" | "Admin" | "SubUser";
+  email?: string;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
+// ---------------------------
+// LocalStorage Helpers
+// ---------------------------
+const getLocalUsers = (): LocalUser[] => {
+  const data = localStorage.getItem(LOCAL_USERS_KEY);
+  if (!data) {
+    // pre-populate with test users
+    const testUsers: LocalUser[] = [
+      {
+        username: "testuser",
+        password: "test1234",
+        role: "Owner",
+        email: "test@example.com",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        username: "admin",
+        password: "admin123",
+        role: "Admin",
+        email: "admin@example.com",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        username: "subuser1",
+        password: "password1",
+        role: "SubUser",
+        email: "sub1@example.com",
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
+    return testUsers;
+  }
+  return JSON.parse(data);
+};
+
+const saveLocalUsers = (users: LocalUser[]) => {
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+};
+
+const saveLocalUser = (user: LocalUser) => {
+  const users = getLocalUsers();
+  users.push(user);
+  saveLocalUsers(users);
+};
+
+// ---------------------------
+// Component
+// ---------------------------
+const Login = () => {
+  const usernameRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"login" | "signup" | "recover">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,57 +85,79 @@ const Login = () => {
 
   const resetMessages = () => setMessage(null);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  // ---------------------------
+  // Login Handler
+  // ---------------------------
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetMessages();
     setLoading(true);
 
-    try {
-      if (!username || !password) throw new Error("All fields are required.");
+    setTimeout(() => {
+      try {
+        if (!username || !password) throw new Error("All fields are required.");
 
-      const res = await fetch(`${getServerUrl()}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const result = await res.json();
+        const users = getLocalUsers();
+        const user = users.find((u) => u.username === username);
 
-      if (res.ok && result.token) {
-        localStorage.setItem("modix_token", result.token);
-        localStorage.setItem("modix_user", JSON.stringify(result.user));
+        if (!user) throw new Error("User not found.");
+        if (user.password !== password) throw new Error("Incorrect password.");
+
+        // Update lastLogin timestamp
+        user.lastLogin = new Date().toISOString();
+        saveLocalUsers(users);
+
+        localStorage.setItem("modix_user", JSON.stringify(user));
         if (rememberMe) localStorage.setItem("modix_last_username", username);
         else localStorage.removeItem("modix_last_username");
 
-        router.push("/auth/myaccount");
-      } else {
-        throw new Error(result.message || "Something went wrong.");
+        setMessage({
+          text: `Login successful! Welcome ${user.username}`,
+          type: "success",
+        });
+        setTimeout(() => (window.location.href = "/auth/myaccount"), 500);
+      } catch (err: any) {
+        setMessage({ text: err.message, type: "error" });
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      setMessage({
-        text: err.message || "Server error. Try again later.",
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
+    }, 300); // simulate network delay
+  };
+
+  // ---------------------------
+  // Signup Handler
+  // ---------------------------
+  const handleSignup = (
+    username: string,
+    password: string,
+    role: "Owner" | "Admin" | "SubUser" = "SubUser"
+  ) => {
+    resetMessages();
+    const users = getLocalUsers();
+    if (users.find((u) => u.username === username)) {
+      setMessage({ text: "Username already exists.", type: "error" });
+      return;
     }
+
+    const newUser: LocalUser = {
+      username,
+      password,
+      role,
+      createdAt: new Date().toISOString(),
+      lastLogin: null,
+    };
+    saveLocalUser(newUser);
+    setMessage({
+      text: `User ${username} registered successfully!`,
+      type: "success",
+    });
+    setMode("login");
   };
 
   return (
-    <div
-      className="login-background"
-      style={{
-        backgroundImage:
-          'url("https://upload.wikimedia.org/wikipedia/en/7/73/Project_Zomboid_cover.png")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <div className="login-background">
       {mode === "signup" ? (
-        <Signup onBack={() => setMode("login")} />
+        <Signup onBack={() => setMode("login")} onSignup={handleSignup} />
       ) : (
         <form className="login-form" onSubmit={handleLogin}>
           <h2>{mode === "recover" ? "Recover Account" : "Sign In"}</h2>
@@ -119,8 +197,7 @@ const Login = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span className="checkmark" />
-                Remember Me
+                <span className="checkmark" /> Remember Me
               </label>
             </div>
           )}

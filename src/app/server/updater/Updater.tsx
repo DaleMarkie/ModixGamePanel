@@ -1,154 +1,214 @@
 "use client";
 
-import React, { useState, KeyboardEvent } from "react";
+import React, { useState, useEffect } from "react";
 import "./Updater.css";
 
-interface Changelog {
-  version: string;
+interface Commit {
+  sha: string;
+  message: string;
+  author: string;
   date: string;
-  details: string[];
+  url: string;
   tags: string[];
-  unavailable?: boolean;
+  fullMessage: string;
 }
-
-const placeholderChangelogs: Changelog[] = [
-  {
-    version: "v1.1.2",
-    date: "2025-06-10",
-    tags: ["Updater", "Mods", "UI"],
-    details: [
-      "This page will be updated in a later update.",
-      "It currently does not connect to any API.",
-    ],
-  },
-  {
-    version: "v1.1.1",
-    date: "2025-05-25",
-    tags: ["Updater"],
-    details: ["Placeholder entry."],
-    unavailable: true,
-  },
-];
-
-interface ModalProps extends Partial<Changelog> {
-  open: boolean;
-  onClose: () => void;
-}
-
-const Modal: React.FC<ModalProps> = ({
-  open,
-  onClose,
-  version,
-  date,
-  details,
-  tags,
-  unavailable,
-}) => {
-  if (!open) return null;
-
-  return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-    >
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button
-          className="modal-close"
-          onClick={onClose}
-          aria-label="Close modal"
-        >
-          ×
-        </button>
-
-        <header className="modal-header">
-          <h2 id="modal-title">{version ?? "N/A"}</h2>
-          <span className="changelog-date">({date ?? "Unknown"})</span>
-          {unavailable && <span className="badge-unavailable">Unavailable</span>}
-        </header>
-
-        <div className="changelog-tags">
-          {tags?.map((tag, idx) => (
-            <span key={idx} className="badge-tag">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <ul id="modal-description" className="changelog-details">
-          {details?.map((item, idx) => (
-            <li key={idx}>{item}</li>
-          )) || <li>No details available</li>}
-        </ul>
-      </div>
-    </div>
-  );
-};
 
 export default function Updater() {
-  const [modalData, setModalData] = useState<Changelog | null>(null);
+  const [commits, setCommits] = useState<Commit[]>([]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, changelog: Changelog) => {
-    if (e.key === "Enter" || e.key === " ") setModalData(changelog);
+  // Fetch latest commits from GitHub
+  const fetchCommits = async () => {
+    try {
+      const res = await fetch(
+        "https://api.github.com/repos/DaleMarkie/ModixGamePanel/commits?per_page=20"
+      );
+      const data = await res.json();
+
+      const formatted = data.map((c: any) => {
+        const tagMatches = c.commit.message.match(/\[(.*?)\]/g);
+        const tags = tagMatches
+          ? tagMatches.map((t: string) => t.replace(/\[|\]/g, ""))
+          : [];
+        return {
+          sha: c.sha,
+          message: c.commit.message.split("\n")[0],
+          fullMessage: c.commit.message,
+          author: c.commit.author.name,
+          date: new Date(c.commit.author.date).toLocaleString(),
+          url: c.html_url,
+          tags,
+        };
+      });
+
+      setCommits(formatted);
+    } catch (err) {
+      console.error("Failed to fetch commits:", err);
+    }
   };
+
+  useEffect(() => {
+    fetchCommits();
+    const interval = setInterval(fetchCommits, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="updater-container">
-      <div className="api-status error">
-        ⚠️ This updater page is a placeholder. It will be functional in a later update.
-      </div>
-
       <header className="updater-header">
         <h1>Modix Game Panel Updater</h1>
-        <p className="subtitle">
-          Current version: <strong>v1.1.2</strong>
-        </p>
-        <p className="update-status">
-          No updates available. This page is under development.
+        <p className="short-description">
+          Live updates from the official Modix GitHub:{" "}
+          <a
+            href="https://github.com/DaleMarkie/ModixGamePanel"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            https://github.com/DaleMarkie/ModixGamePanel
+          </a>
         </p>
       </header>
 
       <section className="changelog-section">
-        <h2>Changelog (Placeholder)</h2>
+        <h2>Latest Commits</h2>
         <div className="changelog-list">
-          {placeholderChangelogs.map((log) => (
-            <div
-              key={log.version}
-              className={`changelog-entry ${log.unavailable ? "disabled" : ""}`}
-              onClick={() => !log.unavailable && setModalData(log)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => handleKeyDown(e, log)}
-              aria-label={`Open changelog details for ${log.version}`}
-            >
+          {commits.length === 0 && <p>No commits found...</p>}
+          {commits.map((c, idx) => (
+            <div key={c.sha} className="changelog-entry">
               <div className="changelog-header">
-                <h3>{log.version}</h3>
-                <span className="changelog-date">{log.date}</span>
-              </div>
-
-              <div className="changelog-tags">
-                {log.unavailable && <span className="badge-unavailable">Unavailable</span>}
-                {log.tags.map((tag, idx) => (
-                  <span key={idx} className="badge-tag">
+                <span className="commit-index">#{idx + 1}</span>
+                {c.tags.map((tag, i) => (
+                  <span key={i} className="badge-tag">
                     {tag}
                   </span>
                 ))}
+                <span className="changelog-date">{c.date}</span>
               </div>
-
-              <p className="changelog-preview">{log.details[0]}...</p>
+              <div className="commit-details">
+                <p>
+                  <strong>Message:</strong> {c.message}
+                </p>
+                <p>
+                  <strong>Author:</strong> {c.author}
+                </p>
+                <p>
+                  <strong>SHA:</strong> {c.sha}
+                </p>
+                <pre className="commit-full-message">{c.fullMessage}</pre>
+                <a href={c.url} target="_blank" rel="noopener noreferrer">
+                  View on GitHub
+                </a>
+              </div>
             </div>
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+("use client");
 
-      <Modal
-        open={!!modalData}
-        onClose={() => setModalData(null)}
-        {...(modalData || {})}
-      />
+import React, { useState, useEffect } from "react";
+import "./Updater.css";
+
+interface Commit {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+  tags: string[];
+  fullMessage: string;
+}
+
+export default function Updater() {
+  const [commits, setCommits] = useState<Commit[]>([]);
+
+  // Fetch latest commits from GitHub
+  const fetchCommits = async () => {
+    try {
+      const res = await fetch(
+        "https://api.github.com/repos/DaleMarkie/ModixGamePanel/commits?per_page=20"
+      );
+      const data = await res.json();
+
+      const formatted = data.map((c: any) => {
+        const tagMatches = c.commit.message.match(/\[(.*?)\]/g);
+        const tags = tagMatches
+          ? tagMatches.map((t: string) => t.replace(/\[|\]/g, ""))
+          : [];
+        return {
+          sha: c.sha,
+          message: c.commit.message.split("\n")[0],
+          fullMessage: c.commit.message,
+          author: c.commit.author.name,
+          date: new Date(c.commit.author.date).toLocaleString(),
+          url: c.html_url,
+          tags,
+        };
+      });
+
+      setCommits(formatted);
+    } catch (err) {
+      console.error("Failed to fetch commits:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommits();
+    const interval = setInterval(fetchCommits, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="updater-container">
+      <header className="updater-header">
+        <h1>Modix Game Panel Updater</h1>
+        <p className="short-description">
+          Live updates from the official Modix GitHub:{" "}
+          <a
+            href="https://github.com/DaleMarkie/ModixGamePanel"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            https://github.com/DaleMarkie/ModixGamePanel
+          </a>
+        </p>
+      </header>
+
+      <section className="changelog-section">
+        <h2>Latest Commits</h2>
+        <div className="changelog-list">
+          {commits.length === 0 && <p>No commits found...</p>}
+          {commits.map((c, idx) => (
+            <div key={c.sha} className="changelog-entry">
+              <div className="changelog-header">
+                <span className="commit-index">#{idx + 1}</span>
+                {c.tags.map((tag, i) => (
+                  <span key={i} className="badge-tag">
+                    {tag}
+                  </span>
+                ))}
+                <span className="changelog-date">{c.date}</span>
+              </div>
+              <div className="commit-details">
+                <p>
+                  <strong>Message:</strong> {c.message}
+                </p>
+                <p>
+                  <strong>Author:</strong> {c.author}
+                </p>
+                <p>
+                  <strong>SHA:</strong> {c.sha}
+                </p>
+                <pre className="commit-full-message">{c.fullMessage}</pre>
+                <a href={c.url} target="_blank" rel="noopener noreferrer">
+                  View on GitHub
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

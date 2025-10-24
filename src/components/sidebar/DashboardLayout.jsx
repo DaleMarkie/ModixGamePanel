@@ -196,7 +196,7 @@ export default function DashboardLayout({ children }) {
         }
         .dashboard-root {
           position: relative;
-          min-height: 100vh;
+          min-height: 60vh;
           width: 100vw;
           background: #121212;
           display: flex;
