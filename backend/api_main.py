@@ -8,7 +8,7 @@ import configparser
 from typing import Optional
 
 # FastAPI
-from fastapi import FastAPI, Request, Query, HTTPException
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -21,26 +21,27 @@ from backend.API.Core.games_api.projectzomboid import (
     all_players_api,
     steam_notes_api,
     steam_search_player_api,
-    api_chatlogs,
+    api_chatlogs
 )
 from backend.API.Core.tools_api.performance_api import router as performance_router
 from backend.API.Core.tools_api import ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
 
+# Port check API
 from fastapi import APIRouter
 
 # ---------------------------
-# FastAPI App Setup
+# FastAPI App
 # ---------------------------
 app = FastAPI(title="Modix Panel Backend")
 
 # ---------------------------
-# CORS Configuration
+# CORS Middleware
 # ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],  # Only local frontend
+    allow_origins=["*"],  # Change to your frontend domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +52,7 @@ app.add_middleware(
 # ---------------------------
 running_process: Optional[subprocess.Popen] = None
 log_queue: asyncio.Queue = asyncio.Queue()
+
 saved_mod_notes = {}
 
 # ---------------------------
@@ -72,16 +74,13 @@ app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 
 # ---------------------------
-# Health Check
+# Health & Simple Port Check
 # ---------------------------
 @app.get("/health")
 def health_check():
     return {"success": True, "status": "ok"}
 
 
-# ---------------------------
-# Port Checking
-# ---------------------------
 @app.get("/check-port")
 def check_port(port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -93,40 +92,48 @@ def check_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
 
-
+# ---------------------------
+# Port Checker Router
+# ---------------------------
 port_router = APIRouter()
 
 DEFAULT_GAME_PORTS = [
     {"name": "Project Zomboid (Game)", "port": 16261},
     {"name": "Project Zomboid (Query)", "port": 16262},
+    {"name": "DayZ", "port": 2302},
+    {"name": "RimWorld", "port": 27015},
 ]
-
 
 async def async_check_port(host: str, port: int) -> dict:
     loop = asyncio.get_event_loop()
-
     def _check():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(0.5)
             return s.connect_ex((host, port)) == 0
-
     try:
         in_use = await loop.run_in_executor(None, _check)
         return {"name": f"Port {port}", "port": port, "status": "open" if in_use else "closed"}
     except Exception:
         return {"name": f"Port {port}", "port": port, "status": "closed"}
 
-
 @port_router.get("/game-ports")
-async def game_ports(host: str = Query("127.0.0.1")):
-    results = await asyncio.gather(*[async_check_port(host, p["port"]) for p in DEFAULT_GAME_PORTS])
-    return {"servers": results}
+async def game_ports(host: str = Query("127.0.0.1"), custom_ports: str = Query("")):
+    ports_to_check = DEFAULT_GAME_PORTS.copy()
+    if custom_ports:
+        for p in custom_ports.split(","):
+            try:
+                p_int = int(p.strip())
+                ports_to_check.append({"name": f"Custom Port {p_int}", "port": p_int})
+            except ValueError:
+                return JSONResponse({"error": f"Invalid port: {p}"}, status_code=400)
 
+    results = await asyncio.gather(*[async_check_port(host, p["port"]) for p in ports_to_check])
+    return {"servers": results}
 
 app.include_router(port_router, prefix="/api/server")
 
 # ---------------------------
-# Log Stream Helpers
+# Server Helpers
 # ---------------------------
 async def stream_subprocess_output(stream, prefix: str):
     loop = asyncio.get_event_loop()
@@ -143,9 +150,8 @@ async def monitor_process_exit(process):
     await log_queue.put("[SYSTEM] Server stopped")
     running_process = None
 
-
 # ---------------------------
-# Mod Notes
+# Mod Notes (In-Memory)
 # ---------------------------
 @app.post("/api/save-mod-notes")
 async def save_mod_notes(request: Request):
@@ -158,9 +164,8 @@ async def save_mod_notes(request: Request):
     saved_mod_notes[workshop_id] = {"notes": notes, "categories": categories}
     return {"message": "Notes saved", "data": saved_mod_notes[workshop_id]}
 
-
 # ---------------------------
-# Workshop Scanning
+# Project Zomboid Mods
 # ---------------------------
 WORKSHOP_PATH = os.path.expanduser("~/Steam/steamapps/workshop/content/108600")
 SERVER_INI_PATH = os.path.join(os.path.expanduser("~"), "Zomboid/Server/servertest.ini")
@@ -202,28 +207,9 @@ def scan_local_workshop() -> list[dict]:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
 
-
-# ---------------------------
-# Localhost-Only Middleware (Security)
-# ---------------------------
-@app.middleware("http")
-async def localhost_only_access(request: Request, call_next):
-    """Block ALL connections except from localhost (127.0.0.1 / ::1)."""
-    client_ip = request.client.host
-    if client_ip not in ("127.0.0.1", "::1"):
-        print(f"[SECURITY] Blocked unauthorized access attempt from {client_ip}")
-        raise HTTPException(status_code=403, detail="Access denied: Localhost only.")
-    return await call_next(request)
-
-
 # ---------------------------
 # Run server
 # ---------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "backend.api_main:app",
-        host="0.0.0.0",  # accessible from any network interface
-        port=2010,
-        reload=True
-    )
+    uvicorn.run("backend.api_main:app", host="0.0.0.0", port=2010, reload=True)
