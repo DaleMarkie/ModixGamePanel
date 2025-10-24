@@ -1,153 +1,126 @@
+🧩 Modix: Game Panel
 
-| Layer        | Tech Used                                       |
-| ------------ | ----------------------------------------------- |
-| Frontend     | React (CRA), Tailwind, React Icons              |
-| Backend      | FastAPI (uvicorn) (Python 3), SSE, Systemd      |
-| Database     | JSON config, SQLite                             |
-| Hosting      | Windows                                         |
-| Game Support | Project Zomboid (Steam + Workshop + ModManager) |
-| Developed BY OV3RLORD & GameSmithOnline |
+Open Source, Browser-Based Game Panel for Project Zomboid
+Layer Technology Used
+Frontend React (CRA), Tailwind CSS, React Icons
+Backend FastAPI (Uvicorn), Python 3, SSE, Systemd
+Database JSON Config, SQLite
+Hosting Windows
+Game Support Project Zomboid (Steam + Workshop + Mod Manager)
+Developed By Ov3rlord & GameSmithOnline
+🚀 Overview
 
-# Modix: Project  
-### 🔓 Open Source, Browser-Based Game Panel for Project Zomboid  
+Modix Game Panel is a fully browser-based, open-source control panel for Project Zomboid.
+It lets you manage every aspect of your server locally — from starting or stopping your server, to editing settings, managing mods, sending webhooks, and more — all through a clean web interface.
 
-🚀 **Modix Game Panel** is a fully **browser-based, open source control panel** for Project Zomboid.  
-It allows you to **manage every aspect of your server locally**, from starting/stopping the server to editing settings, managing mods, sending webhooks, and more.  
+⚠️ Disclaimer
 
-⚠️ **Disclaimer:**  
-The Software may display **game logos or other images from Steam**. These assets are **not owned or created by the Modix Dev Team**. Modix only provides the **panel UI and backend functionality**.  
+Modix may display game logos or images from Steam. These assets are not owned or created by the Modix Dev Team.
+Modix only provides the panel UI and backend functionality for managing your Project Zomboid server.
 
-🐞 **Bugs & Issues:**  
-This is an active development project, so there **may be bugs or unexpected behavior**.  
-- Please **create an issue** on GitHub if you encounter any problems  
-- Or **contact us on Discord** for faster support and fixes: [https://discord.gg/sNSE8HsEdU](https://discord.gg/sNSE8HsEdU)  
+🐞 Bugs & Issues
 
+This project is under active development, so you may encounter bugs or unexpected behavior.
 
----
+If you find an issue:
 
-## 🧩 Key Features  
+🧾 Report it on GitHub (issues tab)
 
-- 🔧 **Server Controls** — Locally hosted and fully controlled by you; start, stop, restart, and gracefully shut down Project Zomboid servers  
-- 🧠 **Real-time Logs** — Live terminal view using Server-Sent Events (SSE)  
-- ⚙️ **Full Settings Editor** — Modify `server.ini` and `SandboxVars.lua` directly from the UI  
-- 🧱 **Mod Manager & Workshop Manager** — Enable/disable/uninstall Workshop mods with **tag-based search**, **auto-thumbnail detection**, and full Workshop integration  
-- 🌐 **Webhook Support** — Create and send custom Discord-style embed messages  
-- 🧰 **File Manager** — Browse, upload, and edit server-side files in a clean UI  
-- ✨ **And much more coming!** — New features and improvements are actively being developed
+💬 Contact us on Discord for faster support:
+👉 https://discord.gg/sNSE8HsEdU
 
-## ⚡🚀 Getting Started / Local Installation  
+🧠 Key Features
 
-Run **Modix Game Panel** locally on your PC in a few simple steps:
+🔧 Server Controls — Start, stop, restart, or gracefully shut down your Project Zomboid server locally
 
-### 💾 1. Download the Project
-- Clone or download the repository: `Modix-Windows--main`
-- Place the folder anywhere on your PC
+🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
 
-### ✏️ 2. Rename the Folder (Optional)
-- You may rename it, e.g., `Modix-Local`
-- **Note:** Renaming does **not affect functionality**
+⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
 
-### 📦 3. Install Dependencies
-- Open **Command Prompt (CMD)** or **PowerShell** in the project folder
-- Run:
-```bash
-npm install 
-npm run dev
+🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
 
-### 🌐 5. Access the Panel
+🌐 Webhook Support — Send and preview custom Discord-style embed messages
 
-Open your browser and go to:
+🧰 File Manager — Browse, upload, and modify files in a clean UI
 
-http://localhost:3000
+✨ More Features Coming Soon! — Continuous updates and improvements
 
-You should see the Modix Game Panel ready to use
+⚡ Getting Started / Local Installation
+
+- Run Modix Game Panel locally in just a few steps:
+
+💾 1. Download the Project
+
+- Download the repository (Modix-Windows--main)
+
+Place the folder anywhere on your PC
+
+✏️ 2. Rename the Folder (Optional)
+
+- You can rename it (e.g., Modix-Local) — this won’t affect functionality
+
+📦 3. Install Dependencies
+
+- Open Command Prompt or PowerShell inside the Modix folder, then run:
+
+- npm install
+- npm run dev
+
+Step 1: npm install — installs all required dependencies
+Step 2: npm run dev — launches Modix
+
+🌐 4. Access the Panel
+
+- Once it’s running, open your browser and visit:
+
+👉 http://localhost:3000
+
+- You’ll see the Modix Game Panel ready to use!
 
 💖 Support & Donations
 
-All donations are welcome to help keep Modix development going. You can support us here:
-https://ko-fi.com/modixgamepanel
+All donations go directly toward maintaining and improving Modix.
+If you’d like to support development, visit:
+👉 https://ko-fi.com/modixgamepanel
 
-######################################
-
-❗ Important: You are not allowed to reupload Modix or any part of it to another website. The project must always be used from this official repository or your local environment.
-
+⚖️ License & Terms of Use
 🧑‍💻 Modix Game Panel Non-Commercial License (NC) – Version 1.4
 
-Copyright (c) 2025 Ov3rlord (Dale Markie) and the Modix Dev Team
+Copyright (c) 2025
+Ov3rlord (Dale Markie) & the Modix Dev Team
 
-All parts of Modix Game Panel, including but not limited to: source code, API code, frontend, backend, UI components, assets, documentation, and any content officially produced by the Modix Dev Team (collectively the "Software"), are the exclusive property of Ov3rlord (Dale Markie) and the Modix Dev Team.
+All components of Modix — including source code, API code, UI, backend, frontend, and assets — are the exclusive property of Ov3rlord (Dale Markie) and the Modix Dev Team.
+You are free to use, modify, and contribute to Modix for personal, educational, or community use, but not for commercial purposes.
 
-You may use the Software locally in your browser, on your system, or in a personal development environment for personal, educational, or community development purposes, and you are encouraged to contribute to the project. Ownership remains solely with the original authors, and you may never claim ownership of the Software or any derivative work, even if modified.
+✅ You May
 
-- License Grant
+- Use Modix locally for personal or educational projects
+- Modify and build upon Modix for non-commercial purposes
+- Share improvements or extensions for community benefit
 
-Subject to these terms, Ov3rlord and the Modix Dev Team grant you a non-exclusive, non-transferable, non-commercial license to:
+🚫 You May NOT
 
-Use the Software locally for personal, educational, or community development purposes
+- Copy or reupload Modix or its components elsewhere
+- Sell, rent, or license the core Modix Software
+- Use any Modix UI, assets, or frontend code in other software or websites
+- Use Modix for cheating, exploiting, or any illegal activity
 
-Modify the Software locally for personal, educational, or community development purposes
+Claim ownership or remove attribution
 
-Share modifications or contributions only for non-commercial purposes
+🔌 Add-ons and Extensions
 
-Important: Users are strictly prohibited from copying, reusing, or extracting Modix UI components, frontend code, assets, or other parts of the Software to incorporate into another website, application, or software. You may only modify or build upon Modix within the context of this project for personal, educational, or community purposes.
+Users may create and sell verified add-ons or extensions only after approval from the Modix Dev Team via our official Discord:
+👉 https://discord.gg/EwWZUSR9tM
 
-- Add-ons and Extensions
+Any unverified or unauthorized sale is strictly prohibited
 
-Users may create and sell add-ons or extensions for Modix Game Panel, but only after being officially verified by the Modix Dev Team via our official Discord server: https://discord.gg/EwWZUSR9tM
-.
+The Modix Dev Team may revoke verification for any violations
 
-Any add-on or extension sold without official verification is strictly prohibited
+⚖️ Other Terms
 
-The Modix Dev Team reserves the right to revoke verification for violations of our rules or policies
+- License updates may occur; users must follow the latest version
+- Violations immediately terminate your rights to use Modix
+- Governed by the laws of the United Kingdom
 
-- Prohibited Use
-
-You may NOT use the Software, or any derivative works, for:
-
-Cheating, exploiting, or bypassing game/client security
-
-Hacking or performing illegal activities
-
-Any activity that violates laws or third-party rights
-
-Reusing Modix UI, frontend code, assets, or other parts of the Software in another website, application, or software
-
-- Restrictions
-
-You may NOT:
-
-Sell, license, rent, or distribute the core Software or derivatives for profit or commercial purposes, except as allowed under Section 3 (verified add-ons)
-
-Use the Software or derivatives in any commercial product or service without explicit permission
-
-Remove, alter, or obscure any copyright, trademark, or attribution notices
-
-Claim ownership of the Software or any derivative works
-
-- Attribution
-
-Any copies or modifications must:
-
-Include this license in full
-
-Clearly state the original authors: Ov3rlord (Dale Markie) and the Modix Dev Team
-
-Include a visible reference to Modix Game Panel as the source of the Software
-
-- Warranty Disclaimer
-
-The Software is provided "as is" without warranty of any kind, express or implied. Ov3rlord and the Modix Dev Team shall not be liable for any damages arising from the use or inability to use the Software.
-
-- License Updates
-
-Ov3rlord and the Modix Dev Team reserve the right to update or modify this license at any time. Users are responsible for reviewing the license for updates and must comply with the most recent version.
-
-- Enforcement
-
-Any violation of this license immediately terminates your rights to use the Software. Ov3rlord and the Modix Dev Team reserve the right to pursue legal action against anyone violating the non-commercial, prohibited use, or any other terms of this license.
-
-- Governing Law
-
-This license shall be governed by and interpreted according to the laws of the United Kingdom (or your preferred jurisdiction).
-
-By downloading, copying, modifying, contributing to, or using the Software, you agree to be bound by these terms. The Software remains the exclusive property of Ov3rlord (Dale Markie) and the Modix Dev Team at all times, while being fully open source for community development under the conditions outlined above.
+By using or modifying Modix Game Panel, you agree to all the above terms.
+The software remains open source for the community but ownership stays with Ov3rlord (Dale Markie) and the Modix Dev Team.
