@@ -8,19 +8,20 @@ Database JSON Config, SQLite
 Hosting Windows
 Game Support Project Zomboid (Steam + Workshop + Mod Manager)
 Developed By Ov3rlord & GameSmithOnline
+
 🚀 Overview
 
-Modix Game Panel is a fully browser-based, open-source control panel for Project Zomboid.
-It lets you manage every aspect of your server locally — from starting or stopping your server, to editing settings, managing mods, sending webhooks, and more — all through a clean web interface.
+- Modix Game Panel is a fully browser-based, open-source control panel for Project Zomboid.
+  It lets you manage every aspect of your server locally — from starting or stopping your server, to editing settings, managing mods, sending webhooks, and more — all through a clean web interface.
 
 ⚠️ Disclaimer
 
-Modix may display game logos or images from Steam. These assets are not owned or created by the Modix Dev Team.
-Modix only provides the panel UI and backend functionality for managing your Project Zomboid server.
+- Modix may display game logos or images from Steam. These assets are not owned or created by the Modix Dev Team.
+  Modix only provides the panel UI and backend functionality for managing your Project Zomboid server.
 
 🐞 Bugs & Issues
 
-This project is under active development, so you may encounter bugs or unexpected behavior.
+- This project is under active development, so you may encounter bugs or unexpected behavior.
 
 If you find an issue:
 
@@ -32,17 +33,11 @@ If you find an issue:
 🧠 Key Features
 
 🔧 Server Controls — Start, stop, restart, or gracefully shut down your Project Zomboid server locally
-
 🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
-
 ⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
-
 🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
-
 🌐 Webhook Support — Send and preview custom Discord-style embed messages
-
 🧰 File Manager — Browse, upload, and modify files in a clean UI
-
 ✨ More Features Coming Soon! — Continuous updates and improvements
 
 ⚡ Getting Started / Local Installation
