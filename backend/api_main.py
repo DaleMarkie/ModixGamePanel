@@ -217,23 +217,13 @@ async def localhost_only_access(request: Request, call_next):
 
 
 # ---------------------------
-# Startup Message
+# Run server
 # ---------------------------
 if __name__ == "__main__":
     import uvicorn
-
-    print("\n===========================================")
-    print("🛡️  Modix Panel Backend - Localhost")
-    print("===========================================")
-    print(" ✅ Allowed : localhost (127.0.0.1)")
-    print(" ❌ Blocked : All LAN & External IPs")
-    print("-------------------------------------------")
-    print(" 🔗 Access URL: http://127.0.0.1:2010")
-    print("===========================================\n")
-
     uvicorn.run(
         "backend.api_main:app",
-        host="127.0.0.1",  # only localhost access
+        host="0.0.0.0",  # accessible from any network interface
         port=2010,
-        reload=True,
+        reload=True
     )
