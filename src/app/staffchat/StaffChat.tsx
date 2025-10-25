@@ -57,7 +57,7 @@ const StaffChat: React.FC = () => {
         id: Date.now().toString(),
         author: "System",
         message:
-          "Welcome to the Staff Chat! Here you can coordinate tasks, ask questions, or pin important messages for your team.",
+          "Welcome to the Staff Chat! Here you can coordinate tasks, ask questions, or pin important messages for your team. Keep Updated.",
         timestamp: new Date().toISOString(),
         pinned: true,
         important: true,
