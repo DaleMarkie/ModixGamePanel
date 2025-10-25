@@ -1,15 +1,70 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { getServerUrl } from "@/app/config";
 import Signup from "../auth/signup/signup";
 import { FaCheckCircle } from "react-icons/fa";
 import "./Welcome.css";
 
-export default function InstalledPage() {
-  const router = useRouter();
-  const usernameRef = useRef<HTMLInputElement>(null);
+const LOCAL_USERS_KEY = "modix_local_users";
 
+interface LocalUser {
+  username: string;
+  password: string;
+  role?: "Owner" | "Admin" | "SubUser";
+  email?: string;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
+// ---------------------------
+// LocalStorage Helpers
+// ---------------------------
+const getLocalUsers = (): LocalUser[] => {
+  const data = localStorage.getItem(LOCAL_USERS_KEY);
+  if (!data) {
+    const testUsers: LocalUser[] = [
+      {
+        username: "testuser",
+        password: "test1234",
+        role: "Owner",
+        email: "test@example.com",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        username: "admin",
+        password: "admin123",
+        role: "Admin",
+        email: "admin@example.com",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        username: "subuser1",
+        password: "password1",
+        role: "SubUser",
+        email: "sub1@example.com",
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
+    return testUsers;
+  }
+  return JSON.parse(data);
+};
+
+const saveLocalUsers = (users: LocalUser[]) =>
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+
+const saveLocalUser = (user: LocalUser) => {
+  const users = getLocalUsers();
+  users.push(user);
+  saveLocalUsers(users);
+};
+
+// ---------------------------
+// Component
+// ---------------------------
+export default function InstalledPage() {
+  const usernameRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"login" | "signup" | "recover">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,40 +84,82 @@ export default function InstalledPage() {
 
   const resetMessages = () => setMessage(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // ---------------------------
+  // Login
+  // ---------------------------
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     resetMessages();
     setLoading(true);
 
-    try {
-      if (!username || !password) throw new Error("All fields are required.");
+    setTimeout(() => {
+      try {
+        if (!username.trim() || (!password.trim() && mode !== "recover"))
+          throw new Error("All fields are required.");
 
-      const res = await fetch(`${getServerUrl()}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+        const users = getLocalUsers();
+        const user = users.find((u) => u.username === username.trim());
 
-      const result = await res.json();
+        if (!user) throw new Error("User not found.");
+        if (mode !== "recover" && user.password !== password)
+          throw new Error("Incorrect password.");
 
-      if (res.ok && result.token) {
-        localStorage.setItem("modix_token", result.token);
-        localStorage.setItem("modix_user", JSON.stringify(result.user));
-        if (rememberMe) localStorage.setItem("modix_last_username", username);
-        else localStorage.removeItem("modix_last_username");
+        if (mode === "recover") {
+          setMessage({
+            text: `Recovery simulated for ${username}`,
+            type: "info",
+          });
+          return;
+        }
 
-        router.push("/auth/myaccount");
-      } else {
-        throw new Error(result.message || "Something went wrong.");
+        user.lastLogin = new Date().toISOString();
+        saveLocalUsers(users);
+
+        localStorage.setItem("modix_user", JSON.stringify(user));
+        rememberMe
+          ? localStorage.setItem("modix_last_username", username)
+          : localStorage.removeItem("modix_last_username");
+
+        setMessage({
+          text: `Login successful! Welcome ${user.username}`,
+          type: "success",
+        });
+        setTimeout(() => (window.location.href = "/auth/myaccount"), 500);
+      } catch (err: any) {
+        setMessage({ text: err.message, type: "error" });
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      setMessage({
-        text: err.message || "Server error. Try again later.",
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
+    }, 300);
+  };
+
+  // ---------------------------
+  // Signup
+  // ---------------------------
+  const handleSignup = (
+    newUsername: string,
+    newPassword: string,
+    role: "Owner" | "Admin" | "SubUser" = "SubUser"
+  ) => {
+    resetMessages();
+    const users = getLocalUsers();
+    if (users.find((u) => u.username === newUsername)) {
+      setMessage({ text: "Username already exists.", type: "error" });
+      return;
     }
+
+    saveLocalUser({
+      username: newUsername,
+      password: newPassword,
+      role,
+      createdAt: new Date().toISOString(),
+    });
+
+    setMessage({
+      text: `User ${newUsername} registered successfully!`,
+      type: "success",
+    });
+    setMode("login");
   };
 
   return (
@@ -75,14 +172,12 @@ export default function InstalledPage() {
             radial-gradient(circle at top left, rgba(0, 255, 128, 0.06), transparent 40%),
             radial-gradient(circle at bottom right, rgba(255, 165, 0, 0.06), transparent 50%)
           `,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
           opacity: 0.3,
         }}
       />
 
-      {/* Hero / Description Section */}
       <div className="relative z-10 w-full max-w-6xl space-y-16">
+        {/* Hero */}
         <section className="space-y-6 text-center max-w-3xl mx-auto">
           <FaCheckCircle
             size={72}
@@ -91,30 +186,14 @@ export default function InstalledPage() {
           <h1 className="text-5xl md:text-6xl font-extrabold text-green-500 tracking-tight">
             Modix Game Panel
           </h1>
-
           <span className="inline-block mt-1 px-3 py-1 text-sm font-semibold text-black bg-green-500 rounded-full shadow">
             v1.1.2 — Unstable
           </span>
-
-          <p className="text-gray-300 text-lg mt-4">
-            Modix Game Panel is a powerful, modern server manager for Project
-            Zomboid. Control mods, players, server settings, and real-time
-            analytics in a sleek interface.
-          </p>
-
-          <ul className="text-left text-gray-300 list-disc list-inside max-w-xl mx-auto mt-4 space-y-2 text-base md:text-lg">
-            <li>🕹 Full Project Zomboid server control (start/stop/restart)</li>
-            <li>📜 Real-time log monitoring & command terminal</li>
-            <li>🧩 Mod management with Steam Workshop integration</li>
-            <li>👥 Player management, bans & chat logs</li>
-            <li>⚡ Performance monitoring & system stats</li>
-            <li>🔔 Webhooks & Discord-style notifications</li>
-          </ul>
         </section>
 
-        {/* Login / Signup / Recover Box */}
+        {/* Form Box */}
         {mode === "signup" ? (
-          <Signup onBack={() => setMode("login")} />
+          <Signup onBack={() => setMode("login")} onSignup={handleSignup} />
         ) : (
           <div className="mt-8 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-8 max-w-md mx-auto text-left">
             <h2 className="text-2xl font-bold text-white mb-6 text-center">

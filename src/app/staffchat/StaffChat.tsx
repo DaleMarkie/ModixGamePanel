@@ -1,7 +1,6 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Star, AtSign } from "lucide-react";
+import { Plus, Trash2, Star, AtSign, MessageSquare } from "lucide-react";
 import "./StaffChat.css";
 
 interface LocalUser {
@@ -18,7 +17,7 @@ interface ChatMessage {
   important?: boolean;
   replies?: ChatMessage[];
   tags?: string[];
-  reactions?: { [emoji: string]: string[] }; // emoji -> list of usernames
+  reactions?: { [emoji: string]: string[] };
 }
 
 const LOCAL_CHAT_KEY = "modix_staff_chat";
@@ -32,32 +31,29 @@ const saveLocalChat = (messages: ChatMessage[]) => {
   localStorage.setItem(LOCAL_CHAT_KEY, JSON.stringify(messages));
 };
 
-const StaffChat: React.FC = () => {
+export default function StaffChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
-  const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const emojiList = ["👍", "👎", "❤️", "😂", "⚠️"];
+  const emojiList = ["👍", "🔥", "❤️", "😂", "⚠️"];
 
   useEffect(() => {
     const user = localStorage.getItem("modix_user");
     if (user) {
       const parsed: LocalUser = JSON.parse(user);
-      if (["Owner", "Admin"].includes(parsed.role || ""))
-        setCurrentUser(parsed);
+      if (["Owner", "Admin"].includes(parsed.role || "")) setCurrentUser(parsed);
     }
 
     let storedMessages = getLocalChat();
 
-    // Add example message if none exists
     if (storedMessages.length === 0) {
-      const exampleMessage: ChatMessage = {
+      const welcome: ChatMessage = {
         id: Date.now().toString(),
         author: "System",
         message:
-          "Welcome to the Staff Chat! Here you can coordinate tasks, ask questions, or pin important messages for your team. Keep Updated.",
+          "👋 Welcome to the Staff Chat! Coordinate with your team, share updates, or pin important info.",
         timestamp: new Date().toISOString(),
         pinned: true,
         important: true,
@@ -65,7 +61,7 @@ const StaffChat: React.FC = () => {
         tags: [],
         reactions: {},
       };
-      storedMessages = [exampleMessage];
+      storedMessages = [welcome];
       saveLocalChat(storedMessages);
     }
 
@@ -79,14 +75,14 @@ const StaffChat: React.FC = () => {
     });
   }, [messages]);
 
-  if (!currentUser)
+  if (!currentUser) {
     return (
-      <div className="chat-container">
-        <p className="chat-warning">
-          Only staff and owners can access this chat.
-        </p>
+      <div className="chat-container no-access">
+        <MessageSquare size={40} />
+        <p>Access restricted. Only staff members can use the chat.</p>
       </div>
     );
+  }
 
   const extractTags = (text: string) => {
     const matches = text.match(/@(\w+)/g);
@@ -96,60 +92,47 @@ const StaffChat: React.FC = () => {
   const sendMessage = (important = false) => {
     if (!message.trim()) return;
 
-    const newMessage: ChatMessage = {
+    const newMsg: ChatMessage = {
       id: Date.now().toString(),
       author: currentUser.username,
       message: message.trim(),
       timestamp: new Date().toISOString(),
-      pinned: false,
       important,
       replies: [],
       tags: extractTags(message),
       reactions: {},
     };
 
+    let updated = [...messages];
     if (replyTo) {
-      const updated = messages.map((m) =>
+      updated = updated.map((m) =>
         m.id === replyTo
-          ? { ...m, replies: [...(m.replies || []), newMessage] }
+          ? { ...m, replies: [...(m.replies || []), newMsg] }
           : m
       );
-      setMessages(updated);
-      saveLocalChat(updated);
     } else {
-      const updated = [...messages, newMessage];
-      setMessages(updated);
-      saveLocalChat(updated);
+      updated.push(newMsg);
     }
 
+    setMessages(updated);
+    saveLocalChat(updated);
     setMessage("");
     setReplyTo(null);
   };
 
-  const toggleReaction = (msgId: string, emoji: string) => {
+  const toggleReaction = (id: string, emoji: string) => {
     const updated = messages.map((m) => {
-      if (m.id === msgId) {
+      if (m.id === id) {
         const reactions = { ...m.reactions };
         if (!reactions[emoji]) reactions[emoji] = [];
-
-        if (reactions[emoji].includes(currentUser!.username)) {
-          reactions[emoji] = reactions[emoji].filter(
-            (u) => u !== currentUser!.username
-          );
-          if (reactions[emoji].length === 0) delete reactions[emoji];
-        } else {
-          reactions[emoji].push(currentUser!.username);
-        }
+        const hasReacted = reactions[emoji].includes(currentUser!.username);
+        reactions[emoji] = hasReacted
+          ? reactions[emoji].filter((u) => u !== currentUser!.username)
+          : [...reactions[emoji], currentUser!.username];
         return { ...m, reactions };
       }
       return m;
     });
-    setMessages(updated);
-    saveLocalChat(updated);
-  };
-
-  const deleteMessage = (id: string) => {
-    const updated = messages.filter((m) => m.id !== id);
     setMessages(updated);
     saveLocalChat(updated);
   };
@@ -162,15 +145,13 @@ const StaffChat: React.FC = () => {
     saveLocalChat(updated);
   };
 
-  const toggleImportant = (id: string) => {
-    const updated = messages.map((m) =>
-      m.id === id ? { ...m, important: !m.important } : m
-    );
+  const deleteMessage = (id: string) => {
+    const updated = messages.filter((m) => m.id !== id);
     setMessages(updated);
     saveLocalChat(updated);
   };
 
-  const sortedMessages = [...messages].sort((a, b) => {
+  const sorted = [...messages].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
     return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
@@ -178,127 +159,113 @@ const StaffChat: React.FC = () => {
 
   return (
     <div className="chat-container">
-      <h1 className="chat-title">Owner & Staff Chat</h1>
-      <p className="chat-help">
-        This chat helps staff coordinate, share updates, ask questions, and pin
-        important messages for easy reference.
-      </p>
+      <header className="chat-header">
+        <h2>💬 Staff Communication Hub</h2>
+        <p>Collaborate, discuss, and manage server updates in real-time.</p>
+      </header>
 
-      {/* Input */}
-      <div className="chat-input">
-        {replyTo && (
-          <div className="chat-replying">
-            Replying to:{" "}
-            <strong>{messages.find((m) => m.id === replyTo)?.author}</strong>
-            <button onClick={() => setReplyTo(null)}>✕</button>
-          </div>
-        )}
-        <div className="chat-input-row">
-          <input
-            type="text"
-            placeholder="Type a message... (@username to tag)"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button onClick={() => sendMessage(false)} title="Send Message">
-            <Plus size={18} />
-          </button>
-          {currentUser.role === "Owner" && (
-            <button
-              onClick={() => sendMessage(true)}
-              className="important-btn"
-              title="Send Important Message"
-            >
-              !
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Messages */}
       <div className="chat-messages" ref={scrollRef}>
-        {sortedMessages.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className="chat-empty">No messages yet.</p>
         ) : (
-          sortedMessages.map((msg) => (
+          sorted.map((msg) => (
             <div
               key={msg.id}
-              className={`chat-message ${msg.pinned ? "pinned" : ""} ${
+              className={`chat-msg ${msg.pinned ? "pinned" : ""} ${
                 msg.important ? "important" : ""
               }`}
             >
-              <div className="chat-message-header">
-                <div className="chat-author-time">
-                  <span className="chat-author">{msg.author}</span>
-                  <span className="chat-time">
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  {msg.pinned && (
-                    <span className="badge pinned-badge">PINNED</span>
-                  )}
-                  {msg.important && (
-                    <span className="badge important-badge">IMPORTANT</span>
-                  )}
-                </div>
-
-                <div className="chat-controls">
-                  <button onClick={() => togglePin(msg.id)} title="Pin/Unpin">
-                    <Star size={16} className={msg.pinned ? "active" : ""} />
-                  </button>
-                  <button
-                    onClick={() => toggleImportant(msg.id)}
-                    title="Mark Important"
-                  >
-                    !
-                  </button>
-                  <button onClick={() => deleteMessage(msg.id)} title="Delete">
-                    <Trash2 size={14} />
-                  </button>
-                  <button onClick={() => setReplyTo(msg.id)} title="Reply">
-                    <AtSign size={16} />
-                  </button>
-                </div>
+              <div className="msg-header">
+                <span className="msg-author">{msg.author}</span>
+                <span className="msg-time">
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                {msg.pinned && <span className="badge pinned">📌</span>}
+                {msg.important && <span className="badge important">⚠️</span>}
               </div>
 
-              <p className="chat-message-text">
-                {msg.message}{" "}
-                {msg.tags?.map((tag) => (
-                  <span key={tag} className="chat-tag">
-                    @{tag}
-                  </span>
-                ))}
-              </p>
+              <div className="msg-body">
+                <p>
+                  {msg.message}{" "}
+                  {msg.tags?.map((tag) => (
+                    <span key={tag} className="tag">
+                      @{tag}
+                    </span>
+                  ))}
+                </p>
+              </div>
 
-              {/* Reactions */}
-              <div className="chat-reactions">
+              <div className="msg-actions">
+                <button onClick={() => togglePin(msg.id)} title="Pin message">
+                  <Star size={16} />
+                </button>
+                <button onClick={() => deleteMessage(msg.id)} title="Delete">
+                  <Trash2 size={16} />
+                </button>
+                <button onClick={() => setReplyTo(msg.id)} title="Reply">
+                  <AtSign size={16} />
+                </button>
+              </div>
+
+              <div className="msg-reactions">
                 {emojiList.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => toggleReaction(msg.id, emoji)}
                     title={msg.reactions?.[emoji]?.join(", ") || ""}
                   >
-                    {emoji} {msg.reactions?.[emoji]?.length || 0}
+                    {emoji} {msg.reactions?.[emoji]?.length || ""}
                   </button>
                 ))}
               </div>
 
-              {msg.replies &&
-                msg.replies.map((reply) => (
-                  <div key={reply.id} className="chat-reply">
-                    <span className="chat-author">{reply.author}</span>:
-                    <span className="chat-message-text">{reply.message}</span>
-                  </div>
-                ))}
+              {msg.replies?.length > 0 && (
+                <div className="msg-replies">
+                  {msg.replies.map((r) => (
+                    <div key={r.id} className="reply">
+                      <strong>{r.author}:</strong> {r.message}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
+
+      <footer className="chat-input">
+        {replyTo && (
+          <div className="replying-banner">
+            Replying to{" "}
+            <strong>{messages.find((m) => m.id === replyTo)?.author}</strong>
+            <button onClick={() => setReplyTo(null)}>✖</button>
+          </div>
+        )}
+        <div className="input-row">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message... use @user to tag"
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          />
+          <button className="send-btn" onClick={() => sendMessage()}>
+            <Plus size={18} />
+          </button>
+          {currentUser.role === "Owner" && (
+            <button
+              className="important-btn"
+              onClick={() => sendMessage(true)}
+              title="Send important message"
+            >
+              ⚠️
+            </button>
+          )}
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default StaffChat;
+}

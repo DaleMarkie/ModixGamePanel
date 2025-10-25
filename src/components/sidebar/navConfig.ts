@@ -83,8 +83,6 @@ export const navLinks: NavItem[] = [
         submenu: [
           { label: "📈 Server Stats", href: "/tools/performance" },
           { label: "📝 Log Viewer / Stream", href: "/tools/logs" },
-          { label: "🔌 Connection Test", href: "/tools/connectiontest" },
-          { label: "🌐 Port Checker", href: "/tools/portcheck" },
           { label: "💾 Backup & Restore", href: "/tools/backup" },
           { label: "⏰ Scheduler / Maintenance", href: "/tools/scheduler" },
         ],
