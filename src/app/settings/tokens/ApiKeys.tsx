@@ -1,17 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Copy, Eye, EyeOff, KeyRound, Info } from "lucide-react";
+import axios from "axios";
 import "./ApiKeys.css";
+
+interface ApiToken {
+  token: string;
+  createdAt: string;
+}
 
 export default function ApiKeys() {
   const [showToken, setShowToken] = useState(false);
+  const [apiToken, setApiToken] = useState<ApiToken | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const mockToken = "mox_dev_3h29df8sdh2389hsdh32";
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(mockToken);
+  // Fetch the current API token from backend
+  const fetchToken = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/api-keys/current"); // backend endpoint
+      setApiToken(res.data);
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to fetch API token");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Generate new token
+  const generateToken = async () => {
+    try {
+      const res = await axios.post("/api/api-keys/generate");
+      setApiToken(res.data);
+      setShowToken(true);
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to generate token");
+    }
+  };
+
+  // Copy to clipboard
+  const handleCopy = () => {
+    if (apiToken?.token) {
+      navigator.clipboard.writeText(apiToken.token);
+    }
+  };
+
+  useEffect(() => {
+    fetchToken();
+  }, []);
 
   return (
     <div className="api-container">
@@ -29,31 +69,44 @@ export default function ApiKeys() {
         <div className="api-card">
           <div className="api-card-header">
             <h2>Your API Token</h2>
-            <button
-              className="api-generate-btn"
-              onClick={() => alert("Token generation is coming soon!")}
-            >
-              Generate New
+            <button className="api-generate-btn" onClick={generateToken}>
+              {loading ? "Loading..." : "Generate New"}
             </button>
           </div>
 
           <div className="api-token-display">
             <code className="token-text">
-              {showToken ? mockToken : "••••••••••••••••••••••••••••"}
+              {apiToken
+                ? showToken
+                  ? apiToken.token
+                  : "••••••••••••••••••••••••••••"
+                : loading
+                ? "Fetching..."
+                : "No token"}
             </code>
             <div className="token-actions">
-              <button
-                className="icon-btn"
-                onClick={() => setShowToken(!showToken)}
-                title={showToken ? "Hide Token" : "Show Token"}
-              >
-                {showToken ? <EyeOff /> : <Eye />}
-              </button>
-              <button className="icon-btn" onClick={handleCopy} title="Copy">
-                <Copy />
-              </button>
+              {apiToken && (
+                <>
+                  <button
+                    className="icon-btn"
+                    onClick={() => setShowToken(!showToken)}
+                    title={showToken ? "Hide Token" : "Show Token"}
+                  >
+                    {showToken ? <EyeOff /> : <Eye />}
+                  </button>
+                  <button
+                    className="icon-btn"
+                    onClick={handleCopy}
+                    title="Copy"
+                  >
+                    <Copy />
+                  </button>
+                </>
+              )}
             </div>
           </div>
+
+          {error && <div className="api-error">{error}</div>}
 
           <div className="api-info-box">
             <Info size={18} />
@@ -94,7 +147,7 @@ export default function ApiKeys() {
       <footer className="api-footer">
         <div className="api-beta">
           🚧 <strong>Developer API in Progress:</strong> This feature will
-          release in later update. <b></b>. Stay tuned!
+          release in a later update. Stay tuned!
         </div>
       </footer>
     </div>

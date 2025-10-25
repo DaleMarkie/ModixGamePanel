@@ -1,4 +1,11 @@
-export const navLinks = [
+// navConfig.ts
+export interface NavItem {
+  label: string;
+  href: string;
+  submenu?: NavItem[];
+}
+
+export const navLinks: NavItem[] = [
   {
     label: "👤 Account Info",
     href: "/auth/myaccount",
@@ -67,14 +74,14 @@ export const navLinks = [
     ],
   },
   {
-    label: "🛠️ Tools",
+    label: "🧰 Tools",
     href: "/tools",
     submenu: [
       {
         label: "⚡ Server & Performance",
         href: "/tools/server",
         submenu: [
-          { label: "📈 Your Server Stats", href: "/tools/performance" },
+          { label: "📈 Server Stats", href: "/tools/performance" },
           { label: "📝 Log Viewer / Stream", href: "/tools/logs" },
           { label: "🔌 Connection Test", href: "/tools/connectiontest" },
           { label: "🌐 Port Checker", href: "/tools/portcheck" },
@@ -99,14 +106,8 @@ export const navLinks = [
           { label: "🛡️ Firewall Rules", href: "/tools/firewall" },
         ],
       },
-      {
-        label: "📣 Discord Integration",
-        href: "/webhooks",
-      },
-      {
-        label: "⬆️ Updater",
-        href: "/server/updater",
-      },
+      { label: "📣 Discord Integration", href: "/webhooks" },
+      { label: "⬆️ Updater", href: "/server/updater" },
     ],
   },
   {
@@ -118,12 +119,6 @@ export const navLinks = [
       { label: "🧬 Update Modix", href: "/server/updater" },
     ],
   },
-  {
-    label: "📝 Forums",
-    href: "/forums",
-  },
-  {
-    label: "🆘 Support",
-    href: "https://discord.gg/EwWZUSR9tM",
-  },
+  { label: "📝 Staff Chat", href: "/staffchat" },
+  { label: "🆘 Support", href: "https://discord.gg/EwWZUSR9tM" },
 ];

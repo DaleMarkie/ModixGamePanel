@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Forums from "./forums"; // <-- Correct import
+import StaffChat from "./StaffChat"; // <-- Correct import
 
 export default function PlayersBannedPage() {
   return (
     <DashboardLayout>
-      <Forums />
+      <StaffChat />
     </DashboardLayout>
   );
 }
