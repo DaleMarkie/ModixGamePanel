@@ -1,0 +1,90 @@
+.backup-container {
+  background: #101014;
+  color: #e2e2e2;
+  border-radius: 1rem;
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.backup-container h1 {
+  color: #00c7ff;
+  font-size: 1.6rem;
+}
+
+.backup-desc {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.backup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.backup-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 0.6rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00c7ff, #0070f3);
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.backup-btn:hover {
+  transform: scale(1.05);
+}
+
+.backup-btn.running {
+  background: linear-gradient(135deg, #ffaa00, #ff7a00);
+  cursor: default;
+}
+
+.last-backup {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.backup-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.backup-status.success {
+  background: #003300aa;
+  color: #00ff00;
+}
+
+.backup-status.error {
+  background: #330000aa;
+  color: #ff5555;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

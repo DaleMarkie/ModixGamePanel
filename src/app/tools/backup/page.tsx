@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Login from "./Billing"; // <-- Correct import
+import BackUp from "./BackUp"; // <-- Correct import
 
-export default function LoginPage() {
+export default function BackUpPage() {
   return (
     <DashboardLayout>
-      <Login />
+      <BackUp />
     </DashboardLayout>
   );
 }

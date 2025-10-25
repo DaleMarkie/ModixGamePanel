@@ -105,7 +105,7 @@ export const navLinks: NavItem[] = [
         ],
       },
       { label: "📣 Discord Integration", href: "/webhooks" },
-      { label: "⬆️ Updater", href: "/server/updater" },
+
     ],
   },
   {
