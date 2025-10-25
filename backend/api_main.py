@@ -1,4 +1,3 @@
-# backend/api_main.py
 import os
 import subprocess
 import socket
@@ -8,7 +7,7 @@ import configparser
 from typing import Optional
 
 # FastAPI
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -28,8 +27,6 @@ from backend.API.Core.tools_api import ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
 from backend.updater_api import router as updater_router
-
-# Port check API
 from fastapi import APIRouter
 
 # ---------------------------
@@ -53,7 +50,6 @@ app.add_middleware(
 # ---------------------------
 running_process: Optional[subprocess.Popen] = None
 log_queue: asyncio.Queue = asyncio.Queue()
-
 saved_mod_notes = {}
 
 # ---------------------------
@@ -64,7 +60,7 @@ app.include_router(performance_router, prefix="/api")
 app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(server_settings.router, prefix="/api/server_settings")
 
-# Project Zomboid
+# Project Zomboid APIs
 app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
 app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
 app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
@@ -74,8 +70,9 @@ app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
 app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
+
 # ---------------------------
-# Health & Simple Port Check
+# Health & Port Check
 # ---------------------------
 @app.get("/health")
 def health_check():
@@ -107,10 +104,12 @@ DEFAULT_GAME_PORTS = [
 
 async def async_check_port(host: str, port: int) -> dict:
     loop = asyncio.get_event_loop()
+
     def _check():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(0.5)
             return s.connect_ex((host, port)) == 0
+
     try:
         in_use = await loop.run_in_executor(None, _check)
         return {"name": f"Port {port}", "port": port, "status": "open" if in_use else "closed"}
@@ -207,6 +206,49 @@ def scan_local_workshop() -> list[dict]:
             else:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
+
+# ---------------------------
+# Staff Chat Persistence
+# ---------------------------
+CHAT_FILE = "/home/modix/modix-app/data/staff_chat.json"
+os.makedirs(os.path.dirname(CHAT_FILE), exist_ok=True)
+
+# Create default file if missing
+if not os.path.exists(CHAT_FILE) or os.stat(CHAT_FILE).st_size == 0:
+    welcome_msg = [{
+        "id": "1",
+        "author": "System",
+        "message": "👋 Welcome to the Staff Chat! Coordinate with your team, share updates, or pin important info.",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        "pinned": True,
+        "important": True,
+        "replies": [],
+        "tags": [],
+        "reactions": {}
+    }]
+    with open(CHAT_FILE, "w", encoding="utf-8") as f:
+        json.dump(welcome_msg, f, indent=2)
+
+@app.get("/api/chat")
+async def get_staff_chat():
+    """Return all staff chat messages"""
+    try:
+        with open(CHAT_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/chat")
+async def save_staff_chat(data: list = Body(...)):
+    """Save all staff chat messages"""
+    try:
+        with open(CHAT_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return {"status": "ok"}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 # ---------------------------
 # Run server
