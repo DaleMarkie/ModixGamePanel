@@ -1,323 +1,233 @@
-/* MyAccount.css */
+/* MyAccount.css - Clean Dark Green Neon Theme */
 
-/* -------------------- Base Styles -------------------- */
-body,
 .myaccount-container {
-  margin: 0;
-  padding: 0;
-  font-family: "Inter", sans-serif;
+  background-color: #111418; /* true deep neutral dark */
   color: #e0e0e0;
-  background-color: #1e1e2f;
   min-height: 100vh;
+  padding: 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* -------------------- Header -------------------- */
+/* Header */
 .account-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #3b3b5a;
+  margin-bottom: 2rem;
 }
 
 .account-header h1 {
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 2rem;
+  color: #baffd4;
+  text-shadow: 0 0 8px #00ff88;
 }
 
+/* Logout Button */
 .logout-btn {
   background-color: #ff4c4c;
   border: none;
-  padding: 10px 20px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
   color: #fff;
-  font-weight: 600;
-  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: none;
 }
 
 .logout-btn:hover {
-  background-color: #ff1f1f;
+  background-color: #e04343;
+  box-shadow: 0 0 10px #ff4c4c;
 }
 
-/* -------------------- Tabs -------------------- */
+/* Tabs */
 .tabs {
   display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 25px;
 }
 
 .tab {
-  padding: 10px 18px;
-  border-radius: 8px;
-  background-color: #2a2a40;
-  border: none;
-  color: #ccc;
-  font-weight: 500;
+  background-color: #1b1f26;
+  border: 1px solid #1f2a22;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+  color: #e0e0e0;
+  transition: all 0.3s ease;
 }
 
 .tab:hover {
-  background-color: #3b3b5a;
+  background-color: #203a2b;
+  box-shadow: 0 0 10px #00ff88;
+  color: #baffd4;
 }
 
 .tab.active {
-  background-color: #4b6ef2;
-  color: #fff;
+  background-color: #254830;
+  border-color: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
+  color: #baffd4;
 }
 
 .tab-disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* -------------------- Dashboard Cards -------------------- */
-.dashboard-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.dashboard-card {
-  background: linear-gradient(145deg, #2a2a40, #212133);
-  flex: 1 1 250px;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-.dashboard-card h3 {
-  display: flex;
-  align-items: center;
-  font-size: 1.1rem;
-  color: #4b6ef2;
-  margin-bottom: 15px;
-}
-
-.dashboard-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.dashboard-card li {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #3b3b5a;
-  font-weight: 500;
-}
-
-.dashboard-card li:last-child {
-  border-bottom: none;
-}
-
-.dashboard-card p {
-  font-size: 0.8rem;
-  color: #aaa;
-  margin-top: 10px;
-}
-
-/* -------------------- User Info Cards -------------------- */
+/* Info Cards */
 .dashboard-user-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
 .info-card {
-  background-color: #2a2a40;
-  padding: 15px;
-  border-radius: 12px;
+  background-color: #161a20;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  flex: 1 1 200px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  gap: 1rem;
+  transition: all 0.3s ease;
 }
 
 .info-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transform: scale(1.03);
+  box-shadow: 0 0 12px #00ff88;
 }
 
 .info-card i {
-  font-size: 1.5rem;
-  color: #4b6ef2;
+  font-size: 1.8rem;
+  color: #00ff88;
+  text-shadow: 0 0 8px #00ff88;
 }
 
-.info-details {
-  display: flex;
-  flex-direction: column;
+/* Text */
+.info-label {
+  font-size: 0.85rem;
+  color: #aaa;
 }
 
 .info-value {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.info-label {
-  font-size: 0.8rem;
-  color: #aaa;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .status-active {
-  color: #4caf50;
-  font-weight: 600;
+  color: #00ff88;
+  text-shadow: 0 0 6px #00ff88;
 }
 
 .status-inactive {
-  color: #ff4c4c;
-  font-weight: 600;
+  color: #f44336;
 }
 
-/* -------------------- Badges -------------------- */
-.badge {
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
+/* Dashboard Cards */
+.dashboard-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.badge.active {
-  background-color: #4caf50;
-  color: #fff;
+.dashboard-card {
+  background-color: #161a20;
+  border: 1px solid #1f2a22;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  flex: 1 1 300px;
+  transition: all 0.3s ease;
 }
 
-.badge.inactive {
-  background-color: #ff4c4c;
-  color: #fff;
+.dashboard-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 12px #00ff88;
 }
 
-.badge.permission {
-  background-color: #4b6ef2;
-  color: #fff;
+.dashboard-card h3 {
+  margin-bottom: 1rem;
+  color: #00ff88;
+  text-shadow: 0 0 8px #00ff88;
 }
 
-/* -------------------- Tables -------------------- */
-.login-history-table {
+/* Lists */
+.dashboard-card ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.dashboard-card ul li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.8rem;
+  position: relative;
+}
+
+.dashboard-card ul li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #00ff88;
+  text-shadow: 0 0 6px #00ff88;
+}
+
+/* Tables */
+.login-history-table,
+.subusers-table,
+.subscriptions-table,
+.activity-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
 }
 
-.login-history-table th,
-.login-history-table td {
-  padding: 8px 10px;
+th,
+td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #252b33;
   text-align: left;
 }
 
-.login-history-table th {
-  background-color: #3b3b5a;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.85rem;
+th {
+  color: #00ff88;
+  text-shadow: 0 0 6px #00ff88;
 }
 
-.login-history-table tr:nth-child(even) {
-  background-color: #2a2a40;
-}
-
-.login-history-table tr:hover {
-  background-color: #3b3b5a;
-}
-
-.login-history-table td img {
-  vertical-align: middle;
-  border-radius: 2px;
-}
-
-/* -------------------- No Logs / Not Logged -------------------- */
-.no-logs,
-.not-logged {
+.no-logs {
   color: #aaa;
   font-style: italic;
-  font-weight: 500;
-  text-align: center;
-  margin-top: 20px;
 }
 
-/* -------------------- Welcome Popup -------------------- */
-.welcome-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #2a2a40;
-  padding: 25px 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-  z-index: 1000;
-  width: 90%;
-  max-width: 400px;
-  color: #e0e0e0;
-}
-
-.welcome-popup h2 {
-  margin-top: 0;
-  color: #4b6ef2;
-}
-
-.welcome-popup p {
-  margin: 10px 0;
-  font-size: 0.9rem;
-}
-
-.welcome-popup button {
-  background-color: #4b6ef2;
+/* Add Buttons */
+.add-subuser-btn,
+.add-subscription-btn {
+  background-color: #00ff88;
   border: none;
-  padding: 8px 18px;
-  color: #fff;
-  font-weight: 600;
-  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.4rem;
+  font-weight: bold;
   cursor: pointer;
-  margin-top: 10px;
+  color: #0a0a0a;
+  transition: all 0.3s ease;
 }
 
-.welcome-popup button:hover {
-  background-color: #3b5ed2;
+.add-subuser-btn:hover,
+.add-subscription-btn:hover {
+  background-color: #00e67a;
+  box-shadow: 0 0 10px #00ff88;
 }
 
-/* -------------------- Responsive -------------------- */
-@media (max-width: 1024px) {
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-user-info,
   .dashboard-row {
     flex-direction: column;
   }
 
-  .dashboard-user-info {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .account-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .logout-btn {
-    width: 100%;
-  }
-
-  .tabs {
-    flex-direction: column;
+  .tab {
+    flex: 1 1 45%;
   }
 }
