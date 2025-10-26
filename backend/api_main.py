@@ -29,6 +29,8 @@ from backend.filemanager import router as filemanager_router
 from backend.updater_api import router as updater_router
 from fastapi import APIRouter
 from backend.modupdates_api import router as modupdates_router
+from backend.discord_api import router as discord_router
+
 
 # ---------------------------
 # FastAPI App
@@ -72,6 +74,7 @@ app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
+app.include_router(discord_router, prefix="/api", tags=["Discord"])
 
 
 # ---------------------------

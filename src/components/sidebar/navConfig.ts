@@ -7,115 +7,101 @@ export interface NavItem {
 
 export const navLinks: NavItem[] = [
   {
-    label: "👤 Account Info",
+    label: "👤 Account",
     href: "/auth/myaccount",
   },
   {
-    label: "🎮 My Server",
-    href: "/settings",
+    label: "🎮 Server Management",
+    href: "/server",
     submenu: [
-      { label: "⚙️ Terminal", href: "/terminal" },
+      { label: "💻 Terminal Console", href: "/terminal" },
       { label: "📦 Mod Manager", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔄 Check Mod Updates", href: "/ModUpdates" },
+      { label: "🔍 Check Mod Updates", href: "/ModUpdates" },
+      { label: "⚙️ Server Settings", href: "/server/ServerSettings" },
     ],
   },
   {
-    label: "🛠️ Mod Creation",
-    href: "/tools/modcreation",
-    submenu: [
-      { label: "📦 Create New Mod", href: "/tools/modcreation/new" },
-      { label: "🖼️ Manage Assets", href: "/tools/modcreation/assets" },
-      { label: "📝 Edit Mod Info", href: "/tools/modcreation/info" },
-      { label: "⚙️ Build & Export Mod", href: "/tools/modcreation/build" },
-      {
-        label: "🌐 Steam Workshop Upload",
-        href: "/tools/modcreation/workshop",
-      },
-    ],
-  },
-  {
-    label: "👥 Player Management",
+    label: "👥 Players",
     href: "/players",
     submenu: [
+      { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
+      { label: "🔎 Player Search", href: "/steamplayermanager" },
+      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
+      { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
       {
-        label: "🧍 Player Overview",
-        href: "/PlayerManagement/AllPlayers",
-        submenu: [
-          { label: "📋 All Players", href: "/PlayerManagement/AllPlayers" },
-          { label: "🔍 Player Search", href: "/steamplayermanager" },
-        ],
+        label: "🚫 Bans & Restrictions",
+        href: "/PlayerManagement/PlayerBanned",
       },
-      {
-        label: "📊 Player Activity",
-        href: "/PlayerManagement/Activity",
-        submenu: [
-          { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-          {
-            label: "🎮 Session History",
-            href: "/PlayerManagement/SessionHistory",
-          },
-        ],
-      },
-      {
-        label: "⛔ Player Restrictions",
-        href: "/PlayerManagement/Bans",
-        submenu: [
-          {
-            label: "⛔ Players Banned",
-            href: "/PlayerManagement/PlayerBanned",
-          },
-          {
-            label: "⚠️ Warnings & Notes",
-            href: "/PlayerManagement/PlayerNotes",
-          },
-        ],
-      },
+      { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
     ],
   },
   {
-    label: "🧰 Tools",
+    label: "🧩 Mod Creation Suite",
+    href: "/tools/modcreation",
+    submenu: [
+      { label: "🆕 Create New Mod", href: "/tools/modcreation/new" },
+      { label: "🖼️ Manage Assets", href: "/tools/modcreation/assets" },
+      { label: "📝 Edit Mod Info", href: "/tools/modcreation/info" },
+      { label: "⚙️ Build & Export", href: "/tools/modcreation/build" },
+      { label: "🌐 Upload to Workshop", href: "/tools/modcreation/workshop" },
+    ],
+  },
+  {
+    label: "🛠️ Admin Tools",
     href: "/tools",
     submenu: [
       {
-        label: "⚡ Server & Performance",
-        href: "/tools/server",
-        submenu: [
-          { label: "📈 Server Stats", href: "/tools/performance" },
-          { label: "📝 Log Viewer / Stream", href: "/tools/logs" },
-          { label: "💾 Backup & Restore", href: "/tools/backup" },
-          { label: "⏰ Scheduler / Maintenance", href: "/tools/scheduler" },
-        ],
+        label: "⚡ Server Performance",
+        href: "/tools/performance",
       },
       {
-        label: "🎮 Steam & Mods",
-        href: "/tools/mods",
+        label: "🧾 Log Viewer",
+        href: "/tools/logs",
+      },
+      {
+        label: "💾 Backups & Restore",
+        href: "/tools/backup",
+      },
+      {
+        label: "⏰ Task Scheduler",
+        href: "/tools/scheduler",
+      },
+      {
+        label: "🎮 Steam Integration",
+        href: "/tools/steamparser",
         submenu: [
           { label: "✉️ Steam Parser", href: "/tools/steamparser" },
           { label: "⚙️ Steam Install / Update", href: "/tools/steam/install" },
         ],
       },
       {
-        label: "🛡️ Security & Admin",
+        label: "🛡️ Security & Access",
         href: "/tools/security",
         submenu: [
           { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
           { label: "🔑 Admin Tokens", href: "/tools/admin" },
-          { label: "🛡️ Firewall Rules", href: "/tools/firewall" },
+          { label: "🚧 Firewall Rules", href: "/tools/firewall" },
         ],
       },
-      { label: "📣 Discord Integration", href: "/webhooks" },
+      { label: "🤖 Discord Webhooks", href: "/webhooks" },
     ],
   },
   {
-    label: "⚙️ Settings",
+    label: "⚙️ Panel Settings",
     href: "/platform-settings",
     submenu: [
-      { label: "🗝️ API Keys & Tokens", href: "/settings/tokens" },
+      { label: "🗝️ API Keys", href: "/settings/tokens" },
       { label: "🎨 Theme Customization", href: "/settings/thememanager" },
-      { label: "🧬 Update Modix", href: "/server/updater" },
+      { label: "⬆️ Change Log", href: "/server/updater" },
     ],
   },
-  { label: "📝 Staff Chat", href: "/staffchat" },
-  { label: "🆘 Support", href: "https://discord.gg/EwWZUSR9tM" },
+  {
+    label: "💬 Staff Chat",
+    href: "/staffchat",
+  },
+  {
+    label: "🆘 Support",
+    href: "https://discord.gg/EwWZUSR9tM",
+  },
 ];
