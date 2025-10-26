@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Signup from "../signup/signup";
-import { recordLogin } from "../activity/Activity"; // ⬅️ added import
+import { recordLogin } from "../activity/Activity";
 import "./login.css";
 
 const LOCAL_USERS_KEY = "modix_local_users";
@@ -18,9 +18,6 @@ interface LocalUser {
   lastLogin?: string;
 }
 
-// ---------------------------
-// LocalStorage Helpers
-// ---------------------------
 const getLocalUsers = (): LocalUser[] => {
   const data = localStorage.getItem(LOCAL_USERS_KEY);
   if (!data) {
@@ -49,15 +46,13 @@ const saveLocalUsers = (users: LocalUser[]) => {
   localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
 };
 
-// ---------------------------
-// Component
-// ---------------------------
 export default function Login() {
   const usernameRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptLicense, setAcceptLicense] = useState(false); // NEW
   const [message, setMessage] = useState<{ text: string; type: string } | null>(
     null
   );
@@ -74,6 +69,15 @@ export default function Login() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     resetMessage();
+
+    if (!acceptLicense) {
+      setMessage({
+        text: "You must accept the Modix License to log in.",
+        type: "error",
+      });
+      return;
+    }
+
     setLoading(true);
 
     setTimeout(() => {
@@ -86,21 +90,16 @@ export default function Login() {
         if (!user) throw new Error("User not found.");
         if (user.password !== password) throw new Error("Incorrect password.");
 
-        // Ensure roles array exists
         user.roles = user.roles || [user.role || "SubUser"];
-
-        // Update timestamps
         user.lastLogin = new Date().toISOString();
         saveLocalUsers(users);
 
-        // Save session
         localStorage.setItem("modix_user", JSON.stringify(user));
         localStorage.setItem(
           SESSION_KEY,
           JSON.stringify({ username: user.username, startTime: Date.now() })
         );
 
-        // 🔥 Record login
         recordLogin(user.username);
 
         if (rememberMe)
@@ -156,6 +155,16 @@ export default function Login() {
             onChange={(e) => setRememberMe(e.target.checked)}
           />
           Remember Me
+        </label>
+
+        {/* NEW License Acceptance */}
+        <label className="accept-license">
+          <input
+            type="checkbox"
+            checked={acceptLicense}
+            onChange={(e) => setAcceptLicense(e.target.checked)}
+          />
+          I accept the <strong>Modix License & Terms of Use</strong>
         </label>
 
         {message && <p className={`message ${message.type}`}>{message.text}</p>}

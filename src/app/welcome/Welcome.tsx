@@ -16,9 +16,6 @@ interface LocalUser {
   lastLogin?: string;
 }
 
-// ---------------------------
-// LocalStorage Helpers
-// ---------------------------
 const getLocalUsers = (): LocalUser[] => {
   const data = localStorage.getItem(LOCAL_USERS_KEY);
   if (!data) {
@@ -60,15 +57,13 @@ const saveLocalUser = (user: LocalUser) => {
   saveLocalUsers(users);
 };
 
-// ---------------------------
-// Component
-// ---------------------------
 export default function InstalledPage() {
   const usernameRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"login" | "signup" | "recover">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [acceptLicense, setAcceptLicense] = useState(false); // NEW
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<{
     text: string;
@@ -90,6 +85,15 @@ export default function InstalledPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     resetMessages();
+
+    if (!acceptLicense) {
+      setMessage({
+        text: "You must accept the Modix License & Terms of Use to log in.",
+        type: "error",
+      });
+      return;
+    }
+
     setLoading(true);
 
     setTimeout(() => {
@@ -236,6 +240,7 @@ export default function InstalledPage() {
                 </div>
               )}
 
+              {/* Remember Me */}
               {mode === "login" && (
                 <div className="flex items-center gap-2">
                   <input
@@ -247,6 +252,25 @@ export default function InstalledPage() {
                   />
                   <label htmlFor="rememberMe" className="text-gray-300 text-sm">
                     Remember Me
+                  </label>
+                </div>
+              )}
+
+              {/* License Acceptance */}
+              {mode === "login" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={acceptLicense}
+                    onChange={(e) => setAcceptLicense(e.target.checked)}
+                    id="acceptLicense"
+                    className="accent-green-500"
+                  />
+                  <label
+                    htmlFor="acceptLicense"
+                    className="text-gray-300 text-sm"
+                  >
+                    I accept the <strong>Modix License & Terms of Use</strong>
                   </label>
                 </div>
               )}

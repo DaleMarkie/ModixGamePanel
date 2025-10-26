@@ -8,6 +8,7 @@ import MyTickets from "../../support/mytickets/MyTickets";
 import WelcomePopup from "./welcome/welcome-popup";
 import Users from "./subusers/Users";
 import { getServerUrl } from "@/app/config";
+import License from "../License/License";
 
 const Settings = lazy(() => import("./settings/mySettings"));
 
@@ -45,8 +46,6 @@ const MyAccount = () => {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-
-        // Ensure roles array exists
         parsedUser.roles = parsedUser.roles || [parsedUser.role || "SubUser"];
         setUser(parsedUser);
         setShowWelcome(true);
@@ -91,6 +90,7 @@ const MyAccount = () => {
     { label: "📊 Dashboard", roles: ["Owner", "SubUser", "Admin"] },
     { label: "🔐 Security", roles: ["Owner", "Admin"] },
     { label: "📜 Activity", roles: ["Owner", "SubUser", "Admin"] },
+    { label: "🧾 My License", roles: ["Owner", "Admin"] },
     { label: "🪪 Subscriptions", roles: ["Owner", "Admin"] },
     { label: "👥 Sub-Users", roles: ["Owner", "Admin"] },
     { label: "⚙️ Settings", roles: ["Owner", "Admin"] },
@@ -122,94 +122,46 @@ const MyAccount = () => {
         ))}
       </nav>
 
+      {/* -------------------- TAB CONTENT -------------------- */}
       {activeTab === "📊 Dashboard" && (
-        <>
-          <section className="dashboard-user-info">
-            {[
-              { icon: "fas fa-user", label: "Username", value: user.username },
-              {
-                icon: "fas fa-envelope",
-                label: "Email",
-                value: user.email || "N/A",
-              },
-              {
-                icon: "fas fa-circle",
-                label: "Status",
-                value: user.active ? "Active ✅" : "Inactive ❌",
-                className: user.active ? "status-active" : "status-inactive",
-              },
-              {
-                icon: "fas fa-calendar-plus",
-                label: "Joined",
-                value: new Date(user.created_at).toLocaleDateString(),
-              },
-              {
-                icon: "fas fa-clock",
-                label: "Last Login",
-                value: user.last_login
-                  ? new Date(user.last_login).toLocaleString()
-                  : "N/A",
-              },
-            ].map((info, idx) => (
-              <div key={idx} className="info-card">
-                <i className={info.icon}></i>
-                <div className="info-details">
-                  <span className={`info-value ${info.className || ""}`}>
-                    {info.value}
-                  </span>
-                  <span className="info-label">{info.label}</span>
-                </div>
+        <section className="dashboard-user-info">
+          {[
+            { icon: "fas fa-user", label: "Username", value: user.username },
+            {
+              icon: "fas fa-envelope",
+              label: "Email",
+              value: user.email || "N/A",
+            },
+            {
+              icon: "fas fa-circle",
+              label: "Status",
+              value: user.active ? "Active ✅" : "Inactive ❌",
+              className: user.active ? "status-active" : "status-inactive",
+            },
+            {
+              icon: "fas fa-calendar-plus",
+              label: "Joined",
+              value: new Date(user.created_at).toLocaleDateString(),
+            },
+            {
+              icon: "fas fa-clock",
+              label: "Last Login",
+              value: user.last_login
+                ? new Date(user.last_login).toLocaleString()
+                : "N/A",
+            },
+          ].map((info, idx) => (
+            <div key={idx} className="info-card">
+              <i className={info.icon}></i>
+              <div className="info-details">
+                <span className={`info-value ${info.className || ""}`}>
+                  {info.value}
+                </span>
+                <span className="info-label">{info.label}</span>
               </div>
-            ))}
-          </section>
-
-          <section className="dashboard-row">
-            <div className="dashboard-card">
-              <h3>🛡️ Permissions</h3>
-              <ul>
-                {allTabs
-                  .filter((tab) => hasRole(tab.roles))
-                  .map((tab) => (
-                    <li key={tab.label}>{tab.label}</li>
-                  ))}
-              </ul>
             </div>
-          </section>
-
-          <section className="dashboard-row">
-            <div className="dashboard-card">
-              <h3>📝 Last Logins (Past 7)</h3>
-              {userLogs.length ? (
-                <table className="login-history-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>IP</th>
-                      <th>Country</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userLogs.map((log, idx) => (
-                      <tr key={idx}>
-                        <td>{new Date(log.date).toLocaleString()}</td>
-                        <td>{log.ip}</td>
-                        <td>
-                          <img
-                            src={`https://flagcdn.com/24x18/${log.country_code.toLowerCase()}.png`}
-                            alt={log.country_code}
-                            title={log.country_code}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="no-logs">No recent logins.</p>
-              )}
-            </div>
-          </section>
-        </>
+          ))}
+        </section>
       )}
 
       {activeTab === "🔐 Security" && <div>Security Tab Content</div>}
@@ -222,6 +174,9 @@ const MyAccount = () => {
         </Suspense>
       )}
       {activeTab === "🛠️ Support" && <MyTickets />}
+      {activeTab === "🧾 My License" && hasRole(["Owner", "Admin"]) && (
+        <License />
+      )}
 
       {showWelcome && (
         <WelcomePopup

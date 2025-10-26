@@ -7,22 +7,26 @@ import "./Users.css";
 export interface SubUser {
   id: string;
   username: string;
-  email: string;
-  role: string;
-  active: boolean;
+  email?: string;
+  role: "Owner" | "Admin" | "SubUser";
+  status: "active" | "suspended" | "banned";
   source: "server" | "local";
+  password?: string;
 }
+
+const LOCAL_USERS_KEY = "modix_local_users";
 
 const Users = () => {
   const [subUsers, setSubUsers] = useState<SubUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<SubUser | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchSubUsers = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("modix_token");
 
-      // 1️⃣ Fetch server users
       let serverUsers: SubUser[] = [];
       try {
         const res = await fetch(`${getServerUrl()}/api/subusers`, {
@@ -36,37 +40,32 @@ const Users = () => {
               username: u.username,
               email: u.email,
               role: u.account_type || "master",
-              active: u.active,
+              status: u.active ? "active" : "suspended",
               source: "server" as const,
             }));
           }
         }
-      } catch (err) {
-        console.warn("Server users not available, using local only", err);
-      }
+      } catch {}
 
-      // 2️⃣ Get local staff users
-      let localStaff: SubUser[] = [];
+      let localUsers: SubUser[] = [];
       try {
-        const savedStaff = JSON.parse(
-          localStorage.getItem("local_staff") || "[]"
+        const savedUsers = JSON.parse(
+          localStorage.getItem(LOCAL_USERS_KEY) || "[]"
         );
-        localStaff = savedStaff.map((u: any) => ({
+        localUsers = savedUsers.map((u: any) => ({
           id: u.username,
           username: u.username,
           email: u.email,
-          role: "staff",
-          active: true,
-          source: "local" as const,
+          role: u.role || "SubUser",
+          status: u.status || "active",
+          source: "local",
+          password: u.password,
         }));
-      } catch (err) {
-        console.error("Failed to parse local staff users", err);
-      }
+      } catch {}
 
-      // 3️⃣ Merge and update state
-      setSubUsers([...serverUsers, ...localStaff]);
+      setSubUsers([...serverUsers, ...localUsers]);
     } catch (err) {
-      console.error("Failed to fetch users", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -76,64 +75,46 @@ const Users = () => {
     fetchSubUsers();
   }, []);
 
-  const handleAddStaffUser = () => {
-    const username = prompt("Enter username for new staff user:");
-    const email = prompt("Enter email for new staff user:");
-    const password = prompt("Enter password for new staff user:");
-    if (!username || !email || !password) return;
-
-    // Save locally
-    const staffUser = { username, email, password, account_type: "staff" };
-    let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
-    localStaff.push(staffUser);
-    localStorage.setItem("local_staff", JSON.stringify(localStaff));
-
-    // Refresh table
-    fetchSubUsers();
+  const openEditModal = (user: SubUser) => {
+    setEditingUser({ ...user }); // copy to avoid direct mutation
+    setModalOpen(true);
   };
 
-  const handleEdit = (id: string) => {
-    const user = subUsers.find((u) => u.id === id);
-    if (!user) return;
+  const saveEdit = () => {
+    if (!editingUser) return;
 
-    if (user.source === "local") {
-      const newEmail = prompt("Enter new email:", user.email);
-      const newPassword =
-        prompt("Enter new password (leave blank to keep same):") || undefined;
-      if (!newEmail && !newPassword) return;
-
-      // Update local storage
-      let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
-      localStaff = localStaff.map((u: any) =>
-        u.username === id
+    if (editingUser.source === "local") {
+      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
+      users = users.map((u: any) =>
+        u.username === editingUser.id
           ? {
               ...u,
-              email: newEmail || u.email,
-              password: newPassword || u.password,
+              username: editingUser.username,
+              email: editingUser.email,
+              role: editingUser.role,
+              status: editingUser.status,
+              password: editingUser.password || u.password,
             }
           : u
       );
-      localStorage.setItem("local_staff", JSON.stringify(localStaff));
-
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
       fetchSubUsers();
+      setModalOpen(false);
+      setEditingUser(null);
     } else {
-      alert("Server users must be edited via backend (not implemented here).");
+      alert("Server users must be edited via backend.");
     }
   };
 
-  const handleDelete = (id: string) => {
-    const user = subUsers.find((u) => u.id === id);
-    if (!user) return;
-    if (!window.confirm(`Are you sure you want to delete ${user.username}?`))
-      return;
-
+  const deleteUser = (user: SubUser) => {
+    if (!window.confirm(`Delete user ${user.username}?`)) return;
     if (user.source === "local") {
-      let localStaff = JSON.parse(localStorage.getItem("local_staff") || "[]");
-      localStaff = localStaff.filter((u: any) => u.username !== id);
-      localStorage.setItem("local_staff", JSON.stringify(localStaff));
+      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
+      users = users.filter((u: any) => u.username !== user.id);
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
       fetchSubUsers();
     } else {
-      alert("Server users must be deleted via backend (not implemented here).");
+      alert("Server users must be deleted via backend.");
     }
   };
 
@@ -143,8 +124,20 @@ const Users = () => {
     <div className="subusers-container">
       <header className="users-header">
         <h2>👥 Users</h2>
-        <button className="add-subuser-btn" onClick={handleAddStaffUser}>
-          + Add Staff User
+        <button
+          className="add-subuser-btn"
+          onClick={() =>
+            openEditModal({
+              id: "",
+              username: "",
+              email: "",
+              role: "SubUser",
+              status: "active",
+              source: "local",
+            })
+          }
+        >
+          + Add User
         </button>
       </header>
 
@@ -166,18 +159,97 @@ const Users = () => {
             {subUsers.map((user) => (
               <tr key={user.id}>
                 <td>{user.username}</td>
-                <td>{user.email}</td>
+                <td>{user.email || "-"}</td>
                 <td>{user.role}</td>
-                <td>{user.active ? "Active ✅" : "Inactive ❌"}</td>
+                <td>{user.status}</td>
                 <td>{user.source}</td>
                 <td>
-                  <button onClick={() => handleEdit(user.id)}>Edit</button>
-                  <button onClick={() => handleDelete(user.id)}>Delete</button>
+                  <button onClick={() => openEditModal(user)}>Edit</button>
+                  <button onClick={() => deleteUser(user)}>Delete</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {/* Edit Modal */}
+      {modalOpen && editingUser && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>
+              {editingUser.id
+                ? `Edit User: ${editingUser.username}`
+                : "Add New User"}
+            </h3>
+
+            <label>Username</label>
+            <input
+              type="text"
+              value={editingUser.username}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, username: e.target.value })
+              }
+            />
+
+            <label>Email</label>
+            <input
+              type="email"
+              value={editingUser.email || ""}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, email: e.target.value })
+              }
+            />
+
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Leave blank to keep current"
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, password: e.target.value })
+              }
+            />
+
+            <label>Role</label>
+            <select
+              value={editingUser.role}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, role: e.target.value as any })
+              }
+            >
+              <option value="Owner">Owner</option>
+              <option value="Admin">Admin</option>
+              <option value="SubUser">SubUser</option>
+            </select>
+
+            <label>Status</label>
+            <select
+              value={editingUser.status}
+              onChange={(e) =>
+                setEditingUser({
+                  ...editingUser,
+                  status: e.target.value as any,
+                })
+              }
+            >
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="banned">Banned</option>
+            </select>
+
+            <div className="modal-buttons">
+              <button onClick={saveEdit}>Save</button>
+              <button
+                onClick={() => {
+                  setModalOpen(false);
+                  setEditingUser(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

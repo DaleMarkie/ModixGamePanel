@@ -1,9 +1,9 @@
-/* Users.css */
+/* Users.css - Dark Green / Neon Theme */
 
 .subusers-container {
-  background-color: #1e1e2f;
+  background-color: #111418; /* deep dark background */
   color: #e0e0e0;
-  padding: 20px;
+  padding: 2rem;
   border-radius: 12px;
   max-width: 900px;
   margin: 0 auto;
@@ -14,34 +14,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .users-header h2 {
   margin: 0;
   font-size: 1.8rem;
-  color: #ffffff;
+  color: #baffd4;
 }
 
 .add-subuser-btn {
-  background-color: #4caf50;
-  color: white;
+  background-color: #00ff88;
+  color: #0a0a0a;
   border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease;
 }
 
 .add-subuser-btn:hover {
-  background-color: #45a049;
+  background-color: #00e67a;
 }
 
 .subusers-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2b2b3c;
+  background-color: #161a20;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -53,13 +53,13 @@
 }
 
 .subusers-table th {
-  background-color: #3c3c5a;
+  background-color: #1f2a22;
   font-weight: 600;
-  color: #ffffff;
+  color: #00ff88;
 }
 
 .subusers-table tr {
-  border-bottom: 1px solid #44445a;
+  border-bottom: 1px solid #252b33;
 }
 
 .subusers-table tr:last-child {
@@ -67,27 +67,164 @@
 }
 
 .subusers-table tr:hover {
-  background-color: #3a3a50;
+  background-color: #203a2b;
 }
 
 .subusers-table td button {
-  background-color: #2979ff;
-  color: white;
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 0.4rem;
   margin-right: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  font-weight: 600;
 }
 
-.subusers-table td button:hover {
-  background-color: #1565c0;
+/* Button Styles */
+button.edit-btn {
+  background-color: #00ff88;
+  color: #0a0a0a;
+}
+button.edit-btn:hover {
+  background-color: #00e67a;
 }
 
-.plan-info {
-  margin-top: 15px;
-  font-size: 0.95rem;
-  color: #a0a0a0;
+button.suspend-btn {
+  background-color: #ffb400;
+  color: #0a0a0a;
+}
+button.suspend-btn:hover {
+  background-color: #ffaa00;
+}
+
+button.unsuspend-btn {
+  background-color: #00c853;
+  color: #0a0a0a;
+}
+button.unsuspend-btn:hover {
+  background-color: #00b74a;
+}
+
+button.ban-btn {
+  background-color: #ff4c4c;
+  color: #ffffff;
+}
+button.ban-btn:hover {
+  background-color: #e04343;
+}
+
+/* Status Colors */
+.status-active {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.status-suspended {
+  color: #ffb400;
+  font-weight: bold;
+}
+
+.status-banned {
+  color: #ff4c4c;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .subusers-table td button {
+    margin-bottom: 4px;
+    display: block;
+  }
+}
+
+/* Edit / Add User Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(17, 20, 24, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #161a20;
+  border: 2px solid #00ff88;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal h3 {
+  margin-top: 0;
+  color: #baffd4;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.modal label {
+  display: block;
+  font-weight: 600;
+  margin-top: 1rem;
+  color: #00ff88;
+}
+
+.modal input,
+.modal select {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  margin-top: 0.3rem;
+  border-radius: 6px;
+  border: 1px solid #00ff88;
+  background-color: #111418;
+  color: #e0e0e0;
+  font-size: 1rem;
+  outline: none;
+}
+
+.modal input:focus,
+.modal select:focus {
+  border-color: #00e67a;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.modal-buttons button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+/* Save / Primary Button */
+.modal-buttons button:first-child {
+  background-color: #00ff88;
+  color: #0a0a0a;
+  border: none;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #00e67a;
+}
+
+/* Cancel Button */
+.modal-buttons button:last-child {
+  background-color: #ff4c4c;
+  color: #fff;
+  border: none;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #e04343;
 }
