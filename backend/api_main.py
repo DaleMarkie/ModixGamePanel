@@ -28,6 +28,7 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
 from backend.updater_api import router as updater_router
 from fastapi import APIRouter
+from backend.modupdates_api import router as modupdates_router
 
 # ---------------------------
 # FastAPI App
@@ -70,6 +71,8 @@ app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
 app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
+app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
+
 
 # ---------------------------
 # Health & Port Check
@@ -249,6 +252,7 @@ async def save_staff_chat(data: list = Body(...)):
         return {"status": "ok"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
 
 # ---------------------------
 # Run server

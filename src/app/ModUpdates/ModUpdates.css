@@ -1,0 +1,103 @@
+.mod-updates-page {
+  padding: 20px;
+  color: #f1f1f1;
+  background: #0e0e10;
+  min-height: 100vh;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #00b4d8;
+}
+
+.page-subtitle {
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+.mods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.mod-card {
+  background: #1a1a1d;
+  border: 1px solid #2a2a2d;
+  border-radius: 12px;
+  padding: 16px;
+  transition: 0.2s;
+}
+
+.mod-card:hover {
+  border-color: #00b4d8;
+  transform: scale(1.02);
+}
+
+.mod-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.status-badge.ok {
+  background: #144d2c;
+  color: #4ade80;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.mod-description {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 10px;
+}
+
+.version-info,
+.path-info {
+  font-size: 0.8rem;
+  color: #999;
+  word-wrap: break-word;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 60px;
+}
+
+.spin {
+  animation: spin 1.2s linear infinite;
+  font-size: 2rem;
+  color: #00b4d8;
+}
+
+.error-icon {
+  font-size: 2.5rem;
+  color: #f87171;
+}
+
+.retry-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: none;
+  background: #00b4d8;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: #0091b2;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

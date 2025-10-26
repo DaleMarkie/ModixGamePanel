@@ -3,12 +3,12 @@
 import React from "react";
 
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import TestConnection from "./TestConnection"; // this is your actual feature component
+import ModUpdates from "./ModUpdates"; // this is your actual feature component
 
-export default function TestConnectionPage() {
+export default function ModUpdatesPage() {
   return (
     <DashboardLayout>
-      <TestConnection />
+      <ModUpdates />
     </DashboardLayout>
   );
 }

@@ -17,7 +17,7 @@ export const navLinks: NavItem[] = [
       { label: "⚙️ Terminal", href: "/terminal" },
       { label: "📦 Mod Manager", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔄 Check Mod Updates", href: "/modupdates" },
+      { label: "🔄 Check Mod Updates", href: "/ModUpdates" },
     ],
   },
   {
@@ -105,7 +105,6 @@ export const navLinks: NavItem[] = [
         ],
       },
       { label: "📣 Discord Integration", href: "/webhooks" },
-
     ],
   },
   {

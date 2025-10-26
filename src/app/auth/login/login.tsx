@@ -12,6 +12,7 @@ interface LocalUser {
   username: string;
   password: string;
   role?: "Owner" | "Admin" | "SubUser";
+  roles?: string[];
   email?: string;
   createdAt?: string;
   lastLogin?: string;
@@ -24,8 +25,19 @@ const getLocalUsers = (): LocalUser[] => {
   const data = localStorage.getItem(LOCAL_USERS_KEY);
   if (!data) {
     const testUsers: LocalUser[] = [
-      { username: "admin", password: "admin123", role: "Owner" },
-      { username: "subuser", password: "pass123", role: "SubUser" },
+      { username: "owner", password: "owner", role: "Owner", roles: ["Owner"] },
+      {
+        username: "admin",
+        password: "admin123",
+        role: "Admin",
+        roles: ["Admin"],
+      },
+      {
+        username: "subuser1",
+        password: "password1",
+        role: "SubUser",
+        roles: ["SubUser"],
+      },
     ];
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
     return testUsers;
@@ -73,6 +85,9 @@ export default function Login() {
 
         if (!user) throw new Error("User not found.");
         if (user.password !== password) throw new Error("Incorrect password.");
+
+        // Ensure roles array exists
+        user.roles = user.roles || [user.role || "SubUser"];
 
         // Update timestamps
         user.lastLogin = new Date().toISOString();

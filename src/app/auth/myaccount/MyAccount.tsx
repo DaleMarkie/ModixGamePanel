@@ -40,12 +40,14 @@ const MyAccount = () => {
   const [userLogs, setUserLogs] = useState<any[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  // Load user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("modix_user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+
+        // Ensure roles array exists
+        parsedUser.roles = parsedUser.roles || [parsedUser.role || "SubUser"];
         setUser(parsedUser);
         setShowWelcome(true);
       } catch {
@@ -54,7 +56,6 @@ const MyAccount = () => {
     }
   }, []);
 
-  // Fetch login history
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -86,7 +87,6 @@ const MyAccount = () => {
       <div className="not-logged">Please log in to access your account.</div>
     );
 
-  // Define tabs with access rules
   const allTabs = [
     { label: "📊 Dashboard", roles: ["Owner", "SubUser", "Admin"] },
     { label: "🔐 Security", roles: ["Owner", "Admin"] },

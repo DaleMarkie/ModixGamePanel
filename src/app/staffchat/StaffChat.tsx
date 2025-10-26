@@ -43,7 +43,8 @@ export default function StaffChat() {
     const user = localStorage.getItem("modix_user");
     if (user) {
       const parsed: LocalUser = JSON.parse(user);
-      if (["Owner", "Admin"].includes(parsed.role || "")) setCurrentUser(parsed);
+      if (["Owner", "Admin"].includes(parsed.role || ""))
+        setCurrentUser(parsed);
     }
 
     let storedMessages = getLocalChat();
@@ -106,9 +107,7 @@ export default function StaffChat() {
     let updated = [...messages];
     if (replyTo) {
       updated = updated.map((m) =>
-        m.id === replyTo
-          ? { ...m, replies: [...(m.replies || []), newMsg] }
-          : m
+        m.id === replyTo ? { ...m, replies: [...(m.replies || []), newMsg] } : m
       );
     } else {
       updated.push(newMsg);
