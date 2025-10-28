@@ -1,14 +1,16 @@
 "use client";
 
 import React from "react";
-
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import PlayersBanned from "./PlayersBanned"; // <-- Correct import
+import PlayersBanned from "./PlayersBanned"; // Correct import
+import AuthWrapper from "@/app/auth"; // central wrapper
 
 export default function PlayersBannedPage() {
   return (
-    <DashboardLayout>
-      <PlayersBanned />
-    </DashboardLayout>
+    <AuthWrapper roles={["Owner", "Admin"]}>
+      <DashboardLayout>
+        <PlayersBanned />
+      </DashboardLayout>
+    </AuthWrapper>
   );
 }

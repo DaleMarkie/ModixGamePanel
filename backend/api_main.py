@@ -6,8 +6,7 @@ import json
 import configparser
 from typing import Optional
 
-# FastAPI
-from fastapi import FastAPI, Request, Query, Body
+from fastapi import FastAPI, Request, Query, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -27,22 +26,18 @@ from backend.API.Core.tools_api import ddos_manager_api
 from backend.API.Core.workshop_api import workshop_api
 from backend.filemanager import router as filemanager_router
 from backend.updater_api import router as updater_router
-from fastapi import APIRouter
 from backend.modupdates_api import router as modupdates_router
 from backend.discord_api import router as discord_router
-
+from backend.API.Core.auth import auth_router
 
 # ---------------------------
 # FastAPI App
 # ---------------------------
 app = FastAPI(title="Modix Panel Backend")
 
-# ---------------------------
-# CORS Middleware
-# ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to your frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,7 +51,76 @@ log_queue: asyncio.Queue = asyncio.Queue()
 saved_mod_notes = {}
 
 # ---------------------------
-# Mount Routers
+# Local Users File & Helpers
+# ---------------------------
+LOCAL_USERS_FILE = os.path.expanduser("~/modix_local_users.json")
+
+if not os.path.exists(LOCAL_USERS_FILE):
+    test_users = [
+        {"username": "1", "password": "1", "role": "Owner", "roles": ["Owner"], "pages": []},
+        {"username": "admin", "password": "admin123", "role": "Admin", "roles": ["Admin"], "pages": []},
+        {"username": "subuser1", "password": "password1", "role": "SubUser", "roles": ["SubUser"], "pages": []},
+    ]
+    with open(LOCAL_USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(test_users, f, indent=2)
+
+def load_local_users():
+    try:
+        with open(LOCAL_USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+def save_local_users(users):
+    with open(LOCAL_USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=2)
+
+# ---------------------------
+# Auth Router Already Included
+# ---------------------------
+app.include_router(auth_router, prefix="/api")
+
+# ---------------------------
+# Owner Permissions API
+# ---------------------------
+@app.post("/api/update_pages")
+async def update_pages(data: dict = Body(...)):
+    """
+    Owner updates pages a user can access.
+    JSON Body:
+    {
+        "target_username": "subuser1",
+        "pages": ["Dashboard", "Settings"],
+        "requester": "owner_username"
+    }
+    """
+    try:
+        target_username = data.get("target_username")
+        new_pages = data.get("pages", [])
+        requester_username = data.get("requester")
+
+        if not target_username or not requester_username:
+            return JSONResponse({"error": "target_username and requester required"}, status_code=400)
+
+        users = load_local_users()
+        requester = next((u for u in users if u["username"] == requester_username), None)
+        target_user = next((u for u in users if u["username"] == target_username), None)
+
+        if not requester or requester.get("role") != "Owner":
+            return JSONResponse({"error": "Only the Owner can update user permissions"}, status_code=403)
+        if not target_user:
+            return JSONResponse({"error": "Target user not found"}, status_code=404)
+
+        # Update pages
+        target_user["pages"] = new_pages
+        save_local_users(users)
+        return {"success": True, "message": f"{target_username}'s pages updated", "pages": new_pages}
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+# ---------------------------
+# Mount Other Routers
 # ---------------------------
 app.include_router(workshop_api.router, prefix="/workshop")
 app.include_router(performance_router, prefix="/api")
@@ -76,7 +140,6 @@ app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 
-
 # ---------------------------
 # Health & Port Check
 # ---------------------------
@@ -84,13 +147,11 @@ app.include_router(discord_router, prefix="/api", tags=["Discord"])
 def health_check():
     return {"success": True, "status": "ok"}
 
-
 @app.get("/check-port")
 def check_port(port: int):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         in_use = s.connect_ex(("127.0.0.1", port)) == 0
     return {"port": port, "inUse": in_use}
-
 
 def check_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -149,7 +210,6 @@ async def stream_subprocess_output(stream, prefix: str):
             break
         await log_queue.put(f"[{prefix}] {line.strip()}")
 
-
 async def monitor_process_exit(process):
     global running_process
     await asyncio.get_event_loop().run_in_executor(None, process.wait)
@@ -176,7 +236,6 @@ async def save_mod_notes(request: Request):
 WORKSHOP_PATH = os.path.expanduser("~/Steam/steamapps/workshop/content/108600")
 SERVER_INI_PATH = os.path.join(os.path.expanduser("~"), "Zomboid/Server/servertest.ini")
 
-
 def read_installed_mods_from_ini() -> list[str]:
     config = configparser.ConfigParser()
     config.optionxform = str
@@ -187,7 +246,6 @@ def read_installed_mods_from_ini() -> list[str]:
         return []
     mods_line = config.get("Mods", "Mods")
     return [m.strip() for m in mods_line.split(";") if m.strip()]
-
 
 def scan_local_workshop() -> list[dict]:
     mods = []
@@ -219,7 +277,6 @@ def scan_local_workshop() -> list[dict]:
 CHAT_FILE = "/home/modix/modix-app/data/staff_chat.json"
 os.makedirs(os.path.dirname(CHAT_FILE), exist_ok=True)
 
-# Create default file if missing
 if not os.path.exists(CHAT_FILE) or os.stat(CHAT_FILE).st_size == 0:
     welcome_msg = [{
         "id": "1",
@@ -237,7 +294,6 @@ if not os.path.exists(CHAT_FILE) or os.stat(CHAT_FILE).st_size == 0:
 
 @app.get("/api/chat")
 async def get_staff_chat():
-    """Return all staff chat messages"""
     try:
         with open(CHAT_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -245,10 +301,8 @@ async def get_staff_chat():
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
-
 @app.post("/api/chat")
 async def save_staff_chat(data: list = Body(...)):
-    """Save all staff chat messages"""
     try:
         with open(CHAT_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -256,6 +310,24 @@ async def save_staff_chat(data: list = Body(...)):
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
+# ---------------------------
+# Mount Remaining Routers
+# ---------------------------
+app.include_router(workshop_api.router, prefix="/workshop")
+app.include_router(performance_router, prefix="/api")
+app.include_router(ddos_manager_api.router, prefix="/api/ddos")
+app.include_router(server_settings.router, prefix="/api/server_settings")
+app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
+app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
+app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
+app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
+app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
+app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
+app.include_router(terminal_router, prefix="/api/projectzomboid")
+app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
+app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
+app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
+app.include_router(discord_router, prefix="/api", tags=["Discord"])
 
 # ---------------------------
 # Run server

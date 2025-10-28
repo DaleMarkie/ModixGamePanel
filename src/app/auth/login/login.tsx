@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Signup from "../signup/signup";
-import { recordLogin } from "../activity/Activity";
 import "./login.css";
+import { recordLogin } from "../activity/Activity";
 
 const LOCAL_USERS_KEY = "modix_local_users";
 const SESSION_KEY = "modix_active_session";
@@ -13,8 +12,6 @@ interface LocalUser {
   password: string;
   role?: "Owner" | "Admin" | "SubUser";
   roles?: string[];
-  email?: string;
-  createdAt?: string;
   lastLogin?: string;
 }
 
@@ -23,18 +20,8 @@ const getLocalUsers = (): LocalUser[] => {
   if (!data) {
     const testUsers: LocalUser[] = [
       { username: "owner", password: "owner", role: "Owner", roles: ["Owner"] },
-      {
-        username: "admin",
-        password: "admin123",
-        role: "Admin",
-        roles: ["Admin"],
-      },
-      {
-        username: "subuser1",
-        password: "password1",
-        role: "SubUser",
-        roles: ["SubUser"],
-      },
+      { username: "admin", password: "admin123", role: "Admin", roles: ["Admin"] },
+      { username: "subuser1", password: "password1", role: "SubUser", roles: ["SubUser"] },
     ];
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
     return testUsers;
@@ -46,16 +33,16 @@ const saveLocalUsers = (users: LocalUser[]) => {
   localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
 };
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:2010";
+
 export default function Login() {
   const usernameRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [acceptLicense, setAcceptLicense] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [acceptLicense, setAcceptLicense] = useState(false); // NEW
-  const [message, setMessage] = useState<{ text: string; type: string } | null>(
-    null
-  );
+  const [message, setMessage] = useState<{ text: string; type: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -66,30 +53,56 @@ export default function Login() {
 
   const resetMessage = () => setMessage(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     resetMessage();
 
     if (!acceptLicense) {
-      setMessage({
-        text: "You must accept the Modix License to log in.",
-        type: "error",
-      });
+      setMessage({ text: "You must accept the Modix License to log in.", type: "error" });
+      return;
+    }
+    if (!username || !password) {
+      setMessage({ text: "All fields are required.", type: "error" });
       return;
     }
 
     setLoading(true);
 
-    setTimeout(() => {
-      try {
-        if (!username || !password) throw new Error("All fields are required.");
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-        const users = getLocalUsers();
-        const user = users.find((u) => u.username === username);
+      if (!res.ok) throw new Error("Invalid username or password");
 
-        if (!user) throw new Error("User not found.");
-        if (user.password !== password) throw new Error("Incorrect password.");
+      const data = await res.json();
+      const user: LocalUser = data.user;
 
+      user.roles = user.roles || [user.role || "SubUser"];
+      user.lastLogin = new Date().toISOString();
+
+      localStorage.setItem("modix_user", JSON.stringify(user));
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ username: user.username, startTime: Date.now() })
+      );
+      recordLogin(user.username);
+
+      if (rememberMe) localStorage.setItem("modix_last_username", user.username);
+      else localStorage.removeItem("modix_last_username");
+
+      setMessage({ text: `Welcome ${user.username}! Redirecting...`, type: "success" });
+      setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
+    } catch {
+      // fallback: localStorage login
+      const users = getLocalUsers();
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (!user) {
+        setMessage({ text: "Invalid username or password", type: "error" });
+      } else {
         user.roles = user.roles || [user.role || "SubUser"];
         user.lastLogin = new Date().toISOString();
         saveLocalUsers(users);
@@ -99,31 +112,23 @@ export default function Login() {
           SESSION_KEY,
           JSON.stringify({ username: user.username, startTime: Date.now() })
         );
-
         recordLogin(user.username);
 
-        if (rememberMe)
-          localStorage.setItem("modix_last_username", user.username);
+        if (rememberMe) localStorage.setItem("modix_last_username", user.username);
         else localStorage.removeItem("modix_last_username");
 
-        setMessage({
-          text: `Welcome ${user.username}! Redirecting...`,
-          type: "success",
-        });
-
+        setMessage({ text: `Welcome ${user.username}! Redirecting...`, type: "success" });
         setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
-      } catch (err: any) {
-        setMessage({ text: err.message, type: "error" });
-      } finally {
-        setLoading(false);
       }
-    }, 400);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="login-background">
+    <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h2>🔐 Local Login</h2>
+        <h2 className="login-title">🔐 Local Login</h2>
 
         <input
           ref={usernameRef}
@@ -131,6 +136,7 @@ export default function Login() {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          className="login-input"
         />
 
         <div className="password-wrapper">
@@ -139,16 +145,14 @@ export default function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="login-input"
           />
-          <span
-            className="toggle-password"
-            onClick={() => setShowPassword(!showPassword)}
-          >
+          <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? "🙈" : "👁️"}
           </span>
         </div>
 
-        <label className="remember-me">
+        <label className="checkbox-label">
           <input
             type="checkbox"
             checked={rememberMe}
@@ -157,8 +161,7 @@ export default function Login() {
           Remember Me
         </label>
 
-        {/* NEW License Acceptance */}
-        <label className="accept-license">
+        <label className="checkbox-label">
           <input
             type="checkbox"
             checked={acceptLicense}
@@ -169,7 +172,7 @@ export default function Login() {
 
         {message && <p className={`message ${message.type}`}>{message.text}</p>}
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className="login-button">
           {loading ? "Checking..." : "🚀 Log In"}
         </button>
       </form>
