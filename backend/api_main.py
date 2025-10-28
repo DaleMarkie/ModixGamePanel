@@ -330,7 +330,7 @@ app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 
 # ---------------------------
-# Run server
+# Run serve
 # ---------------------------
 if __name__ == "__main__":
     import uvicorn
