@@ -59,31 +59,27 @@ export const navLinks: NavItem[] = [
     label: "🎮 Server Management",
     href: "/server",
     submenu: [
-      { label: "⚙️ Server Settings", href: "/server/ServerSettings" },
-      { label: "💾 Backups", href: "/server/backups" },
-      { label: "🧠 Auto Restart", href: "/server/autorestart" },
+      { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
+      { label: "💾 Backups", href: "/servermanagement/backup" },
+      { label: "🧠 Auto Restart", href: "/servermanagement/autorestart" },
       {
         label: "🎮 Steam Tools",
         href: "/tools/steamparser",
         submenu: [
-          { label: "⚙️ Install", href: "/tools/steam/install" },
-          { label: "🔁 Update", href: "/tools/steam/update" },
-          { label: "🧼 Validate Files", href: "/tools/steam/validate" },
+          { label: "⚙️ Install", href: "/servermanagement/steamtools/install" },
+          { label: "🔁 Update", href: "/servermanagement/steamtools/update" },
+          {
+            label: "🧼 Validate Files",
+            href: "/servermanagement/steamtools/validate",
+          },
         ],
       },
     ],
   },
 
-  // --- Monitoring / Performance ---
   {
     label: "📊 Monitoring",
     href: "/monitoring",
-    submenu: [
-      { label: "💻 Server Performance", href: "/monitoring/performance" },
-      { label: "🌐 Network Activity", href: "/monitoring/network" },
-      { label: "🕒 Uptime Tracker", href: "/monitoring/uptime" },
-      { label: "📈 Server Analytics", href: "/monitoring/analytics" },
-    ],
   },
 
   // --- Security & Access ---
@@ -91,10 +87,10 @@ export const navLinks: NavItem[] = [
     label: "🛡️ Security",
     href: "/tools/security",
     submenu: [
-      { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-      { label: "🔑 Admin Tokens", href: "/tools/admin" },
-      { label: "🚧 Firewall Rules", href: "/tools/firewall" },
-      { label: "🕵️ Audit Logs", href: "/tools/audit" },
+      { label: "🛡️ DDoS Manager", href: "/security/ddosmanager" },
+      { label: "🔑 Admin Tokens", href: "/security/admin" },
+      { label: "🚧 Firewall Rules", href: "/security/firewall" },
+      { label: "🕵️ Audit Logs", href: "/security/audit" },
     ],
   },
 

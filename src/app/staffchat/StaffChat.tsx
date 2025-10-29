@@ -1,6 +1,13 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Star, AtSign, MessageSquare } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Star,
+  MessageSquare,
+  CornerDownRight,
+} from "lucide-react";
 import "./StaffChat.css";
 
 interface LocalUser {
@@ -17,28 +24,34 @@ interface ChatMessage {
   important?: boolean;
   replies?: ChatMessage[];
   tags?: string[];
-  reactions?: { [emoji: string]: string[] };
+  reactions?: Record<string, string[]>;
+  webhook?: boolean;
 }
 
 const LOCAL_CHAT_KEY = "modix_staff_chat";
 
-const getLocalChat = (): ChatMessage[] => {
-  const data = localStorage.getItem(LOCAL_CHAT_KEY);
-  return data ? JSON.parse(data) : [];
-};
+const getLocalChat = (): ChatMessage[] =>
+  JSON.parse(localStorage.getItem(LOCAL_CHAT_KEY) || "[]");
 
-const saveLocalChat = (messages: ChatMessage[]) => {
+const saveLocalChat = (messages: ChatMessage[]) =>
   localStorage.setItem(LOCAL_CHAT_KEY, JSON.stringify(messages));
-};
 
 export default function StaffChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState("");
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [expandedThreads, setExpandedThreads] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
+  const [showWarning, setShowWarning] = useState(true);
+  const [webhookEnabled, setWebhookEnabled] = useState(false);
+  const [webhookURL, setWebhookURL] = useState(
+    localStorage.getItem("modix_webhook_url") || ""
+  );
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const emojiList = ["👍", "🔥", "❤️", "😂", "⚠️"];
 
+  // Load user & initial messages
   useEffect(() => {
     const user = localStorage.getItem("modix_user");
     if (user) {
@@ -47,14 +60,13 @@ export default function StaffChat() {
         setCurrentUser(parsed);
     }
 
-    let storedMessages = getLocalChat();
-
-    if (storedMessages.length === 0) {
+    let stored = getLocalChat();
+    if (!stored.length) {
       const welcome: ChatMessage = {
         id: Date.now().toString(),
         author: "System",
         message:
-          "👋 Welcome to the Staff Chat! Coordinate with your team, share updates, or pin important info.",
+          "👋 Welcome to the Staff Chat! Use @user to tag and reply to threads.",
         timestamp: new Date().toISOString(),
         pinned: true,
         important: true,
@@ -62,11 +74,10 @@ export default function StaffChat() {
         tags: [],
         reactions: {},
       };
-      storedMessages = [welcome];
-      saveLocalChat(storedMessages);
+      stored = [welcome];
+      saveLocalChat(stored);
     }
-
-    setMessages(storedMessages);
+    setMessages(stored);
   }, []);
 
   useEffect(() => {
@@ -85,9 +96,13 @@ export default function StaffChat() {
     );
   }
 
-  const extractTags = (text: string) => {
-    const matches = text.match(/@(\w+)/g);
-    return matches ? matches.map((m) => m.replace("@", "")) : [];
+  const extractTags = (text: string) =>
+    [...text.matchAll(/@(\w+)/g)].map((m) => m[1]);
+
+  const updateMessages = (updater: (msgs: ChatMessage[]) => ChatMessage[]) => {
+    const updated = updater(messages);
+    setMessages(updated);
+    saveLocalChat(updated);
   };
 
   const sendMessage = (important = false) => {
@@ -95,60 +110,252 @@ export default function StaffChat() {
 
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
-      author: currentUser.username,
+      author: currentUser!.username,
       message: message.trim(),
       timestamp: new Date().toISOString(),
       important,
       replies: [],
       tags: extractTags(message),
       reactions: {},
+      webhook: webhookEnabled,
     };
 
-    let updated = [...messages];
     if (replyTo) {
-      updated = updated.map((m) =>
-        m.id === replyTo ? { ...m, replies: [...(m.replies || []), newMsg] } : m
+      updateMessages((msgs) =>
+        msgs.map((m) =>
+          m.id === replyTo.id
+            ? { ...m, replies: [...(m.replies || []), newMsg] }
+            : {
+                ...m,
+                replies: m.replies ? updateMessagesRecursive(m.replies) : [],
+              }
+        )
       );
     } else {
-      updated.push(newMsg);
+      updateMessages((msgs) => [...msgs, newMsg]);
     }
 
-    setMessages(updated);
-    saveLocalChat(updated);
+    // Webhook for sending messages
+    if (webhookEnabled && webhookURL) {
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser!.username,
+          embeds: [
+            {
+              title: "Staff Chat Message",
+              description: replyTo
+                ? `Replying to **${replyTo.author}**: ${
+                    replyTo.message
+                  }\n\n${message.trim()}`
+                : message.trim(),
+              color: 3447003,
+              timestamp: new Date().toISOString(),
+              footer: { text: "Modix Staff Chat" },
+            },
+          ],
+        }),
+      }).catch((err) => console.error("Webhook failed:", err));
+    }
+
     setMessage("");
     setReplyTo(null);
+
+    function updateMessagesRecursive(msgs: ChatMessage[]): ChatMessage[] {
+      return msgs.map((m) => ({
+        ...m,
+        replies: m.replies ? updateMessagesRecursive(m.replies) : [],
+      }));
+    }
   };
 
   const toggleReaction = (id: string, emoji: string) => {
-    const updated = messages.map((m) => {
-      if (m.id === id) {
-        const reactions = { ...m.reactions };
-        if (!reactions[emoji]) reactions[emoji] = [];
-        const hasReacted = reactions[emoji].includes(currentUser!.username);
-        reactions[emoji] = hasReacted
-          ? reactions[emoji].filter((u) => u !== currentUser!.username)
-          : [...reactions[emoji], currentUser!.username];
-        return { ...m, reactions };
-      }
-      return m;
-    });
-    setMessages(updated);
-    saveLocalChat(updated);
-  };
+    const reactedUser = currentUser!.username;
 
-  const togglePin = (id: string) => {
-    const updated = messages.map((m) =>
-      m.id === id ? { ...m, pinned: !m.pinned } : m
+    updateMessages((msgs) =>
+      msgs.map((m) => {
+        if (m.id === id) {
+          const reactions = { ...m.reactions };
+          const users = reactions[emoji] || [];
+          const hasReacted = users.includes(reactedUser);
+          reactions[emoji] = hasReacted
+            ? users.filter((u) => u !== reactedUser)
+            : [...users, reactedUser];
+
+          // Send webhook on reaction
+          if (webhookEnabled && webhookURL) {
+            fetch(webhookURL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                username: reactedUser,
+                embeds: [
+                  {
+                    title: "Staff Chat Reaction",
+                    description: `${reactedUser} reacted with ${emoji} to ${m.author}'s message: "${m.message}"`,
+                    color: 16776960, // yellow
+                    timestamp: new Date().toISOString(),
+                    footer: { text: "Modix Staff Chat" },
+                  },
+                ],
+              }),
+            }).catch((err) => console.error("Webhook failed:", err));
+          }
+
+          return { ...m, reactions };
+        }
+        return {
+          ...m,
+          replies: m.replies ? m.replies.map(toggleReactionRecursive) : [],
+        };
+      })
     );
-    setMessages(updated);
-    saveLocalChat(updated);
+
+    function toggleReactionRecursive(msg: ChatMessage): ChatMessage {
+      return {
+        ...msg,
+        replies: msg.replies ? msg.replies.map(toggleReactionRecursive) : [],
+      };
+    }
   };
 
-  const deleteMessage = (id: string) => {
-    const updated = messages.filter((m) => m.id !== id);
-    setMessages(updated);
-    saveLocalChat(updated);
-  };
+  const togglePin = (id: string) =>
+    updateMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === id
+          ? { ...m, pinned: !m.pinned }
+          : {
+              ...m,
+              replies: m.replies ? m.replies.map(togglePinRecursive) : [],
+            }
+      )
+    );
+
+  function togglePinRecursive(msg: ChatMessage): ChatMessage {
+    return {
+      ...msg,
+      replies: msg.replies ? msg.replies.map(togglePinRecursive) : [],
+    };
+  }
+
+  const deleteMessage = (id: string) =>
+    updateMessages((msgs) =>
+      msgs
+        .filter((m) => m.id !== id)
+        .map((m) => ({
+          ...m,
+          replies: m.replies ? deleteRecursive(m.replies) : [],
+        }))
+    );
+
+  function deleteRecursive(msgs: ChatMessage[]): ChatMessage[] {
+    return msgs
+      .filter((m) => m.id !== id)
+      .map((m) => ({
+        ...m,
+        replies: m.replies ? deleteRecursive(m.replies) : [],
+      }));
+  }
+
+  const toggleThread = (id: string) =>
+    setExpandedThreads((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+
+  const renderMessages = (msgs: ChatMessage[], depth = 0) =>
+    msgs.map((msg) => (
+      <div
+        key={msg.id}
+        className={`chat-msg ${msg.pinned ? "pinned" : ""} ${
+          msg.important ? "important" : ""
+        } ${msg.webhook ? "webhook" : ""}`}
+        style={{ marginLeft: depth * 20 }}
+      >
+        <div className="msg-header">
+          <span className="msg-author">{msg.author}</span>
+          <span className="msg-time">
+            {new Date(msg.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          {msg.pinned && <span className="badge pinned">📌</span>}
+          {msg.important && <span className="badge important">⚠️</span>}
+        </div>
+
+        {msg.replies?.length && depth === 0 && (
+          <div className="replying-banner">
+            {msg.replies.length}{" "}
+            {msg.replies.length === 1 ? "reply" : "replies"}
+          </div>
+        )}
+
+        <div className="msg-body">
+          {replyTo && replyTo.id === msg.id && (
+            <div className="replying-banner">
+              Replying to <strong>{replyTo.author}</strong>:{" "}
+              <span className="reply-preview">
+                {replyTo.message.slice(0, 50)}...
+              </span>
+            </div>
+          )}
+          <p>
+            {msg.message}
+            {msg.tags?.map((tag) => (
+              <span key={tag} className="tag">
+                @{tag}
+              </span>
+            ))}
+          </p>
+        </div>
+
+        {msg.webhook && (
+          <div className="webhook-footer">Embedded via Webhook 🌐</div>
+        )}
+
+        <div className="msg-actions">
+          <button onClick={() => togglePin(msg.id)} title="Pin">
+            <Star size={16} />
+          </button>
+          <button onClick={() => deleteMessage(msg.id)} title="Delete">
+            <Trash2 size={16} />
+          </button>
+          <button onClick={() => setReplyTo(msg)} title="Reply">
+            <CornerDownRight size={16} />
+          </button>
+          {msg.replies?.length ? (
+            <button
+              onClick={() => toggleThread(msg.id)}
+              className="thread-btn"
+              title="View replies"
+            >
+              💬 {msg.replies.length}
+            </button>
+          ) : null}
+        </div>
+
+        <div className="msg-reactions">
+          {emojiList.map((emoji) => (
+            <button
+              key={emoji}
+              className="emoji-btn"
+              onClick={() => toggleReaction(msg.id, emoji)}
+              title={msg.reactions?.[emoji]?.join(", ") || ""}
+            >
+              {emoji}{" "}
+              <span className="emoji-count">
+                {msg.reactions?.[emoji]?.length || ""}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {expandedThreads.includes(msg.id) &&
+          msg.replies?.length &&
+          renderMessages(msg.replies, depth + 1)}
+      </div>
+    ));
 
   const sorted = [...messages].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
@@ -160,86 +367,51 @@ export default function StaffChat() {
     <div className="chat-container">
       <header className="chat-header">
         <h2>💬 Staff Communication Hub</h2>
-        <p>Collaborate, discuss, and manage server updates in real-time.</p>
+        <p>Discuss, coordinate, and track your team's workflow efficiently.</p>
       </header>
+
+      {/* WARNING POPUP */}
+      {showWarning && (
+        <div className="chat-warning">
+          ⚠️ Do NOT share passwords, personal info, or sensitive data.
+          <button onClick={() => setShowWarning(false)}>✖</button>
+        </div>
+      )}
 
       <div className="chat-messages" ref={scrollRef}>
         {sorted.length === 0 ? (
           <p className="chat-empty">No messages yet.</p>
         ) : (
-          sorted.map((msg) => (
-            <div
-              key={msg.id}
-              className={`chat-msg ${msg.pinned ? "pinned" : ""} ${
-                msg.important ? "important" : ""
-              }`}
-            >
-              <div className="msg-header">
-                <span className="msg-author">{msg.author}</span>
-                <span className="msg-time">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                {msg.pinned && <span className="badge pinned">📌</span>}
-                {msg.important && <span className="badge important">⚠️</span>}
-              </div>
-
-              <div className="msg-body">
-                <p>
-                  {msg.message}{" "}
-                  {msg.tags?.map((tag) => (
-                    <span key={tag} className="tag">
-                      @{tag}
-                    </span>
-                  ))}
-                </p>
-              </div>
-
-              <div className="msg-actions">
-                <button onClick={() => togglePin(msg.id)} title="Pin message">
-                  <Star size={16} />
-                </button>
-                <button onClick={() => deleteMessage(msg.id)} title="Delete">
-                  <Trash2 size={16} />
-                </button>
-                <button onClick={() => setReplyTo(msg.id)} title="Reply">
-                  <AtSign size={16} />
-                </button>
-              </div>
-
-              <div className="msg-reactions">
-                {emojiList.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => toggleReaction(msg.id, emoji)}
-                    title={msg.reactions?.[emoji]?.join(", ") || ""}
-                  >
-                    {emoji} {msg.reactions?.[emoji]?.length || ""}
-                  </button>
-                ))}
-              </div>
-
-              {msg.replies?.length > 0 && (
-                <div className="msg-replies">
-                  {msg.replies.map((r) => (
-                    <div key={r.id} className="reply">
-                      <strong>{r.author}:</strong> {r.message}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
+          renderMessages(sorted)
         )}
       </div>
+
+      {/* Webhook input */}
+      {webhookEnabled && (
+        <div className="webhook-url-input">
+          <input
+            type="text"
+            placeholder="Enter Webhook URL"
+            value={webhookURL}
+            onChange={(e) => setWebhookURL(e.target.value)}
+          />
+          <button
+            onClick={() =>
+              localStorage.setItem("modix_webhook_url", webhookURL)
+            }
+          >
+            Save
+          </button>
+        </div>
+      )}
 
       <footer className="chat-input">
         {replyTo && (
           <div className="replying-banner">
-            Replying to{" "}
-            <strong>{messages.find((m) => m.id === replyTo)?.author}</strong>
+            Replying to <strong>{replyTo.author}</strong>:{" "}
+            <span className="reply-preview">
+              {replyTo.message.slice(0, 50)}...
+            </span>
             <button onClick={() => setReplyTo(null)}>✖</button>
           </div>
         )}
@@ -263,6 +435,12 @@ export default function StaffChat() {
               ⚠️
             </button>
           )}
+          <button
+            className="webhook-btn"
+            onClick={() => setWebhookEnabled(!webhookEnabled)}
+          >
+            🌐 Webhooks {webhookEnabled ? "ON" : "OFF"}
+          </button>
         </div>
       </footer>
     </div>

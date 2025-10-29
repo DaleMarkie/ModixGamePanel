@@ -20,15 +20,11 @@ interface ServerSettingsFancyProps {
   game: string;
 }
 
-export default function ServerSettingsFancy({
-  game,
-}: ServerSettingsFancyProps) {
+export default function ServerSettingsFancy({ game }: ServerSettingsFancyProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [settings, setSettings] = useState<
-    Record<string, string | number | boolean>
-  >({});
+  const [settings, setSettings] = useState<Record<string, string | number | boolean>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -65,16 +61,12 @@ export default function ServerSettingsFancy({
     fetchSchema();
   }, [game]);
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    type: string,
-    name: string
-  ) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>, type: string, name: string) => {
     let val: string | number | boolean;
     if (type === "checkbox") val = e.target.checked;
     else if (type === "number") val = Number(e.target.value);
     else val = e.target.value;
-    setSettings((prev) => ({ ...prev, [name]: val }));
+    setSettings(prev => ({ ...prev, [name]: val }));
   };
 
   const handleSave = async () => {
@@ -105,24 +97,24 @@ export default function ServerSettingsFancy({
         <h1>⚙️ {game} Server Settings</h1>
       </header>
       <main>
-        {categories.map((cat) => (
+        {categories.map(cat => (
           <section key={cat.category}>
             <h2>{cat.category}</h2>
             {cat.description && <p>{cat.description}</p>}
-            {cat.settings.map((s) => (
+            {cat.settings.map(s => (
               <label key={s.name}>
                 {s.label}:
                 {s.type === "checkbox" ? (
                   <input
                     type="checkbox"
                     checked={!!settings[s.name]}
-                    onChange={(e) => handleChange(e, s.type, s.name)}
+                    onChange={e => handleChange(e, s.type, s.name)}
                   />
                 ) : (
                   <input
                     type={s.type}
                     value={settings[s.name] as string | number}
-                    onChange={(e) => handleChange(e, s.type, s.name)}
+                    onChange={e => handleChange(e, s.type, s.name)}
                   />
                 )}
               </label>
