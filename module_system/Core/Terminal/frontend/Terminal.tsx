@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Performance from "@/app/tools/performance/Performance";
 import "./terminal.css";
-
-type TabType = "server" | "system";
-type OS = "windows" | "linux";
+import Performance from "@/app/monitoring/performance/Performance";
 
 interface ServerCommand {
   cmd: string;
