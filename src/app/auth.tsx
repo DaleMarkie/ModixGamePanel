@@ -16,7 +16,11 @@ interface AuthWrapperProps {
   roles?: Array<"Owner" | "Admin" | "SubUser">; // optional role check
 }
 
-export default function AuthWrapper({ children, pageName, roles }: AuthWrapperProps) {
+export default function AuthWrapper({
+  children,
+  pageName,
+  roles,
+}: AuthWrapperProps) {
   const [user, setUser] = useState<User | null>(null);
   const [checked, setChecked] = useState(false);
 
@@ -45,7 +49,15 @@ export default function AuthWrapper({ children, pageName, roles }: AuthWrapperPr
     </div>
   );
 
-  const Button = ({ children, onClick, href }: { children: ReactNode; onClick?: () => void; href?: string }) => (
+  const Button = ({
+    children,
+    onClick,
+    href,
+  }: {
+    children: ReactNode;
+    onClick?: () => void;
+    href?: string;
+  }) => (
     <a
       href={href}
       onClick={onClick}
@@ -70,10 +82,23 @@ export default function AuthWrapper({ children, pageName, roles }: AuthWrapperPr
   // 🚨 No user logged in
   if (!user) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+        }}
+      >
         <Card>
-          <h1 style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}>⚠️ Access Denied</h1>
-          <p style={{ fontSize: "1rem", marginBottom: "1.5rem" }}>You must be logged in to access this page.</p>
+          <h1
+            style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}
+          >
+            ⚠️ Access Denied
+          </h1>
+          <p style={{ fontSize: "1rem", marginBottom: "1.5rem" }}>
+            You must be logged in to access this page.
+          </p>
           <Button href="/auth/login">Go to Login</Button>
         </Card>
       </div>
@@ -83,21 +108,49 @@ export default function AuthWrapper({ children, pageName, roles }: AuthWrapperPr
   // 🚨 Role restriction
   if (roles && !roles.includes(user.role)) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+        }}
+      >
         <Card>
-          <h1 style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}>⚠️ Access Denied</h1>
-          <p style={{ fontSize: "1rem" }}>You don’t have the required role to view this page. Contact your admin.</p>
+          <h1
+            style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}
+          >
+            ⚠️ Access Denied
+          </h1>
+          <p style={{ fontSize: "1rem" }}>
+            You don’t have the required role to view this page. Contact your
+            admin.
+          </p>
         </Card>
       </div>
     );
   }
 
   // 🚨 Page permission check (Owners bypass)
-  if (user.role !== "Owner" && (!user.pages || !user.pages.includes(pageName))) {
+  if (
+    user.role !== "Owner" &&
+    (!user.pages || !user.pages.includes(pageName))
+  ) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+        }}
+      >
         <Card>
-          <h1 style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}>⚠️ Access Denied</h1>
+          <h1
+            style={{ color: "#ff5555", fontSize: "2rem", marginBottom: "1rem" }}
+          >
+            ⚠️ Access Denied
+          </h1>
           <p style={{ fontSize: "1rem" }}>
             You do not have permission to view this page. <br />
             Ask your server owner to grant access.

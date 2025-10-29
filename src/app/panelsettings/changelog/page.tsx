@@ -2,12 +2,12 @@
 
 import React from "react";
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Updater from "./Updater"; // your actual feature component
+import Changelogs from "./Changelogs"; // your actual feature component
 
-export default function UpdaterPage() {
+export default function ChangelogsPage() {
   return (
     <DashboardLayout>
-      <Updater />
+      <Changelogs />
     </DashboardLayout>
   );
 }

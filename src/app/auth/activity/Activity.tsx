@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import "./Activity.css";
 
@@ -39,7 +40,41 @@ const addLog = (user: string, action: string, duration?: string) => {
 };
 
 // ---------------------------
-// Main Component
+// Page View Tracking
+// ---------------------------
+export const recordPageView = (username: string, page: string) => {
+  addLog(username, `Viewed page: ${page}`);
+};
+
+// ---------------------------
+// Login / Logout
+// ---------------------------
+export const recordLogin = (username: string) => {
+  addLog(username, "Signed in");
+  localStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({ username, startTime: Date.now() })
+  );
+};
+
+export const recordLogout = (username: string) => {
+  const session = localStorage.getItem(SESSION_KEY);
+  let duration = "Unknown";
+
+  if (session) {
+    const { startTime } = JSON.parse(session);
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  }
+
+  addLog(username, "Signed out", duration);
+  localStorage.removeItem(SESSION_KEY);
+};
+
+// ---------------------------
+// Activity Component
 // ---------------------------
 export default function Activity() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -47,7 +82,6 @@ export default function Activity() {
   useEffect(() => {
     setLogs(getActivityLogs());
 
-    // Watch for login/logout events from anywhere in app
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === ACTIVITY_LOG_KEY) setLogs(getActivityLogs());
     };
@@ -82,31 +116,3 @@ export default function Activity() {
     </section>
   );
 }
-
-// ---------------------------
-// Utility for Login System
-// ---------------------------
-// Call these inside your login/logout code
-export const recordLogin = (username: string) => {
-  addLog(username, "Signed in");
-  localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ username, startTime: Date.now() })
-  );
-};
-
-export const recordLogout = (username: string) => {
-  const session = localStorage.getItem(SESSION_KEY);
-  let duration = "Unknown";
-
-  if (session) {
-    const { startTime } = JSON.parse(session);
-    const seconds = Math.floor((Date.now() - startTime) / 1000);
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-  }
-
-  addLog(username, "Signed out", duration);
-  localStorage.removeItem(SESSION_KEY);
-};

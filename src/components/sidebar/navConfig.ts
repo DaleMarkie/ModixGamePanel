@@ -1,26 +1,43 @@
 // navConfig.ts
 export interface NavItem {
   label: string;
-  href: string;
+  href?: string; // make href optional
   submenu?: NavItem[];
+  disabled?: boolean; // add disabled flag
 }
 
 export const navLinks: NavItem[] = [
+  // --- Account / Profile ---
   {
     label: "👤 Account",
     href: "/auth/myaccount",
   },
+
+  // --- Console / Live Terminal ---
   {
-    label: "🎮 Server Management",
-    href: "/server",
+    label: "💻 Console",
+    href: "/terminal",
+  },
+
+  // --- Mod Creation Suite ---
+  {
+    label: "🧩 My Mods",
+    href: "/tools/modcreation",
     submenu: [
-      { label: "💻 Terminal Console", href: "/terminal" },
-      { label: "📦 Mod Manager", href: "/FileBrowser" },
+      { label: "📦 My Mods", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔍 Check Mod Updates", href: "/ModUpdates" },
-      { label: "⚙️ Server Settings", href: "/server/ServerSettings" },
+
+      // --- Disabled / Placeholder ---
+      { label: "🔍 Check Mod Updates", disabled: true },
+      { label: "🆕 Create New Mod", disabled: true },
+      { label: "🖼️ Manage Assets", disabled: true },
+      { label: "📝 Edit Mod Info", disabled: true },
+      { label: "⚙️ Build & Export", disabled: true },
+      { label: "🌐 Upload to Workshop", disabled: true },
     ],
   },
+
+  // --- Player Tools ---
   {
     label: "👥 Players",
     href: "/players",
@@ -36,70 +53,91 @@ export const navLinks: NavItem[] = [
       { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
     ],
   },
+
+  // --- Server Management ---
   {
-    label: "🧩 Mod Creation Suite",
-    href: "/tools/modcreation",
+    label: "🎮 Server Management",
+    href: "/server",
     submenu: [
-      { label: "🆕 Create New Mod", href: "/tools/modcreation/new" },
-      { label: "🖼️ Manage Assets", href: "/tools/modcreation/assets" },
-      { label: "📝 Edit Mod Info", href: "/tools/modcreation/info" },
-      { label: "⚙️ Build & Export", href: "/tools/modcreation/build" },
-      { label: "🌐 Upload to Workshop", href: "/tools/modcreation/workshop" },
-    ],
-  },
-  {
-    label: "🛠️ Admin Tools",
-    href: "/tools",
-    submenu: [
+      { label: "⚙️ Server Settings", href: "/server/ServerSettings" },
+      { label: "💾 Backups", href: "/server/backups" },
+      { label: "🧠 Auto Restart", href: "/server/autorestart" },
       {
-        label: "⚡ Server Performance",
-        href: "/tools/performance",
-      },
-      {
-        label: "🧾 Log Viewer",
-        href: "/tools/logs",
-      },
-      {
-        label: "💾 Backups & Restore",
-        href: "/tools/backup",
-      },
-      {
-        label: "⏰ Task Scheduler",
-        href: "/tools/scheduler",
-      },
-      {
-        label: "🎮 Steam Integration",
+        label: "🎮 Steam Tools",
         href: "/tools/steamparser",
         submenu: [
-          { label: "✉️ Steam Parser", href: "/tools/steamparser" },
-          { label: "⚙️ Steam Install / Update", href: "/tools/steam/install" },
+          { label: "⚙️ Install", href: "/tools/steam/install" },
+          { label: "🔁 Update", href: "/tools/steam/update" },
+          { label: "🧼 Validate Files", href: "/tools/steam/validate" },
         ],
       },
-      {
-        label: "🛡️ Security & Access",
-        href: "/tools/security",
-        submenu: [
-          { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
-          { label: "🔑 Admin Tokens", href: "/tools/admin" },
-          { label: "🚧 Firewall Rules", href: "/tools/firewall" },
-        ],
-      },
-      { label: "🤖 Discord Webhooks", href: "/webhooks" },
     ],
   },
+
+  // --- Monitoring / Performance ---
+  {
+    label: "📊 Monitoring",
+    href: "/monitoring",
+    submenu: [
+      { label: "💻 Server Performance", href: "/monitoring/performance" },
+      { label: "🌐 Network Activity", href: "/monitoring/network" },
+      { label: "🕒 Uptime Tracker", href: "/monitoring/uptime" },
+      { label: "📈 Server Analytics", href: "/monitoring/analytics" },
+    ],
+  },
+
+  // --- Security & Access ---
+  {
+    label: "🛡️ Security",
+    href: "/tools/security",
+    submenu: [
+      { label: "🛡️ DDoS Manager", href: "/tools/ddosmanager" },
+      { label: "🔑 Admin Tokens", href: "/tools/admin" },
+      { label: "🚧 Firewall Rules", href: "/tools/firewall" },
+      { label: "🕵️ Audit Logs", href: "/tools/audit" },
+    ],
+  },
+
+  // --- Network ---
+  {
+    label: "🌐 Network",
+    href: "/network",
+    submenu: [
+      { label: "📡 Check Ports", href: "/network/ports" },
+      { label: "🧱 Firewall Rules", href: "/network/firewall" },
+      { label: "🚨 Connection Logs", href: "/network/logs" },
+    ],
+  },
+
+  // --- Automation ---
+  {
+    label: "🤖 Automation",
+    href: "/automation",
+    submenu: [
+      { label: "📜 Custom Scripts", href: "/automation/scripts" },
+      { label: "🕒 Scheduled Jobs", href: "/tools/scheduler" },
+      { label: "🔗 Webhooks & APIs", href: "/automation/webhooks" },
+    ],
+  },
+
+  // --- Panel Settings ---
   {
     label: "⚙️ Panel Settings",
     href: "/platform-settings",
     submenu: [
-      { label: "🗝️ API Keys", href: "/settings/tokens" },
-      { label: "🎨 Theme Customization", href: "/settings/thememanager" },
-      { label: "⬆️ Change Log", href: "/server/updater" },
+      { label: "🗝️ API Keys", href: "/panelsettings/tokens" },
+      { label: "🎨 Theme Customization", href: "/panelsettings/thememanager" },
+      { label: "⬆️ Change Log", href: "/panelsettings/changelogs" },
     ],
   },
+
+  // --- Staff Chat ---
   {
     label: "💬 Staff Chat",
     href: "/staffchat",
   },
+
+  // --- Support ---
   {
     label: "🆘 Support",
     href: "https://discord.gg/EwWZUSR9tM",

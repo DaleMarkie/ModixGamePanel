@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import "./Updater.css";
+import "./Changelogs.css";
 
 interface Commit {
   sha: string;
@@ -26,7 +26,7 @@ interface Issue {
   labels: string[];
 }
 
-export default function Updater() {
+export default function Changelogs() {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [error, setError] = useState<string | null>(null);
