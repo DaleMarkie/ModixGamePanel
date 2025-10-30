@@ -2,16 +2,14 @@
 
 import React from "react";
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Subscriptions from "./subscriptions"; // ✅ PascalCase
-
+import ServerManagement from "./ServerManagement"; // Correct import
 import AuthWrapper from "@/app/auth"; // central wrapper
 
-export default function SubscriptionsPage() {
-  // ✅ PascalCase function name
+export default function ServerManagementPage() {
   return (
     <AuthWrapper roles={["Owner", "Admin"]}>
       <DashboardLayout>
-        <Subscriptions /> {/* ✅ PascalCase usage */}
+        <ServerManagement />
       </DashboardLayout>
     </AuthWrapper>
   );

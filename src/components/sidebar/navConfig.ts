@@ -28,12 +28,9 @@ export const navLinks: NavItem[] = [
       { label: "🗂️ Workshop Manager", href: "/workshop" },
 
       // --- Disabled / Placeholder ---
-      { label: "🔍 Check Mod Updates", disabled: true },
-      { label: "🆕 Create New Mod", disabled: true },
-      { label: "🖼️ Manage Assets", disabled: true },
-      { label: "📝 Edit Mod Info", disabled: true },
-      { label: "⚙️ Build & Export", disabled: true },
-      { label: "🌐 Upload to Workshop", disabled: true },
+      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
+      { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
+      { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
     ],
   },
 
@@ -79,7 +76,7 @@ export const navLinks: NavItem[] = [
 
   {
     label: "📊 Monitoring",
-    href: "/monitoring",
+    href: "/monitoring/performance",
   },
 
   // --- Security & Access ---

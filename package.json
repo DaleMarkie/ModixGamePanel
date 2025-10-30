@@ -4,19 +4,21 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-  "installmodix": "node scripts/installmodix.js",
-  "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:electron\"",
-  "dev:frontend": "npx next dev -p 3000",
-  "dev:backend": "python -m backend.api_main",
-  "dev:electron": "npx wait-on tcp:3000 tcp:2010 && npx electron .",
-  "build:frontend": "npx next build",
-  "build:backend": "pyinstaller --onefile backend/api_main.py --distpath dist/backend",
-  "build": "npm run build:frontend && npm run build:backend",
-  "package": "npm run build && npx electron-builder"
-},
+    "installmodix": "node scripts/installmodix.js",
+    "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:electron\"",
+    "dev:frontend": "npx next dev -p 3000",
+    "dev:backend": "python -m backend.api_main",
+    "dev:electron": "npx wait-on tcp:3000 tcp:2010 && npx electron .",
+    "build:frontend": "npx next build",
+    "build:backend": "pyinstaller --onefile backend/api_main.py --distpath dist/backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "package": "npm run build && npx electron-builder"
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@uiw/react-codemirror": "^4.25.2",
     "axios": "^1.12.2",
+    "codemirror": "^6.0.2",
     "lucide-react": "^0.544.0",
     "next": "14.2.33",
     "react": "18.2.0",
@@ -51,9 +53,17 @@
       "dist/**/*"
     ],
     "extraResources": [
-      { "from": "dist/backend/", "to": "backend" }
+      {
+        "from": "dist/backend/",
+        "to": "backend"
+      }
     ],
-    "directories": { "output": "dist" },
-    "win": { "target": "nsis", "icon": "icon.ico" }
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    }
   }
 }

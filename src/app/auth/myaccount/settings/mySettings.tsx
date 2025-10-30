@@ -12,9 +12,6 @@ const MySettings: React.FC<MySettingsProps> = ({ user, setUser }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [securityQuestion, setSecurityQuestion] = useState("");
-  const [securityAnswer, setSecurityAnswer] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,9 +35,6 @@ const MySettings: React.FC<MySettingsProps> = ({ user, setUser }) => {
           old_password: oldPassword,
           new_username: newUsername || undefined,
           new_password: newPassword || undefined,
-          new_email: newEmail || undefined,
-          security_question: securityQuestion || undefined,
-          security_answer: securityAnswer || undefined,
         }),
       });
 
@@ -62,24 +56,18 @@ const MySettings: React.FC<MySettingsProps> = ({ user, setUser }) => {
   };
 
   return (
-    <section className="p-6 max-w-md mx-auto bg-gradient-to-b from-black via-gray-900 to-gray-800 rounded-xl space-y-6 shadow-lg border border-gray-700">
-      <h3 className="text-2xl font-bold text-white">⚙️ Account Settings</h3>
+    <section className="p-6 max-w-md mx-auto bg-gray-900 rounded-xl shadow-lg border border-gray-700 space-y-4">
+      <h3 className="text-2xl font-semibold text-white text-center">
+        ⚙️ Account Settings
+      </h3>
 
-      <form className="space-y-4" onSubmit={handleUpdateAccount}>
+      <form className="space-y-3" onSubmit={handleUpdateAccount}>
         <input
           type="password"
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
           placeholder="Current Password"
           required
-          className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none"
-        />
-
-        <input
-          type="text"
-          value={newUsername}
-          onChange={(e) => setNewUsername(e.target.value)}
-          placeholder={user?.username || ""}
           className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none"
         />
 
@@ -92,26 +80,10 @@ const MySettings: React.FC<MySettingsProps> = ({ user, setUser }) => {
         />
 
         <input
-          type="email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-          placeholder={user?.email || ""}
-          className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none"
-        />
-
-        <input
           type="text"
-          value={securityQuestion}
-          onChange={(e) => setSecurityQuestion(e.target.value)}
-          placeholder="Security Question"
-          className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none"
-        />
-
-        <input
-          type="text"
-          value={securityAnswer}
-          onChange={(e) => setSecurityAnswer(e.target.value)}
-          placeholder="Security Answer"
+          value={newUsername}
+          onChange={(e) => setNewUsername(e.target.value)}
+          placeholder={user?.username || "New Username"}
           className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none"
         />
 
@@ -128,7 +100,7 @@ const MySettings: React.FC<MySettingsProps> = ({ user, setUser }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-green-800 hover:bg-green-700 text-white p-3 rounded-lg font-bold transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? "Updating..." : "Save Changes"}
         </button>

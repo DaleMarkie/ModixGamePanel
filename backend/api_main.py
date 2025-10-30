@@ -271,6 +271,165 @@ def scan_local_workshop() -> list[dict]:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
 
+ # ---------------------------
+# Project Zomboid Mod Creation & Asset Management
+# ---------------------------
+from fastapi import File, UploadFile, Form, Body, Query
+from fastapi.responses import JSONResponse
+import os
+import shutil
+
+# Default mods folder
+DEFAULT_MODS_PATH = os.path.expanduser("~/Zomboid/mods")
+os.makedirs(DEFAULT_MODS_PATH, exist_ok=True)
+
+
+def ensure_mod_structure(mod_name: str, base_path: str = None):
+    """Create base mod structure if missing"""
+    folder = base_path or DEFAULT_MODS_PATH
+    base_mod_path = os.path.join(folder, mod_name)
+    media_path = os.path.join(base_mod_path, "media")
+    os.makedirs(media_path, exist_ok=True)
+    return base_mod_path
+
+
+def write_mod_info(mod_name: str, description: str = "", poster: str = "", base_path: str = None):
+    """Generate mod.info for a new mod"""
+    base_mod_path = ensure_mod_structure(mod_name, base_path)
+    mod_info_path = os.path.join(base_mod_path, "mod.info")
+    with open(mod_info_path, "w", encoding="utf-8") as f:
+        f.write(f"name={mod_name}\n")
+        f.write(f"id={mod_name}\n")
+        f.write(f"description={description}\n")
+        if poster:
+            f.write(f"poster={poster}\n")
+    return mod_info_path
+
+
+@app.get("/api/projectzomboid/mods")
+async def list_local_mods(savePath: str = Query(None)):
+    """List locally created mods in default or custom folder"""
+    mods_folder = savePath or DEFAULT_MODS_PATH
+    mods = []
+    if not os.path.isdir(mods_folder):
+        return {"mods": []}
+
+    for name in os.listdir(mods_folder):
+        mod_folder = os.path.join(mods_folder, name)
+        if not os.path.isdir(mod_folder):
+            continue
+        info_file = os.path.join(mod_folder, "mod.info")
+        desc, poster = "", ""
+        if os.path.isfile(info_file):
+            with open(info_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            for line in lines:
+                if line.startswith("description="):
+                    desc = line.split("=", 1)[1].strip()
+                elif line.startswith("poster="):
+                    poster = line.split("=", 1)[1].strip()
+        mods.append({
+            "name": name,
+            "description": desc,
+            "poster": poster,
+            "path": mod_folder,
+        })
+    return {"mods": mods}
+
+
+@app.post("/api/projectzomboid/mods/create")
+async def create_mod(
+    modName: str = Form(...),
+    description: str = Form(""),
+    poster: UploadFile = File(None),
+    savePath: str = Form(None)
+):
+    """Create a new mod folder with mod.info and optional poster in custom folder"""
+    base_path = savePath or DEFAULT_MODS_PATH
+    mod_path = ensure_mod_structure(modName, base_path)
+    poster_name = ""
+
+    if poster:
+        poster_name = "poster.png"
+        poster_path = os.path.join(mod_path, poster_name)
+        with open(poster_path, "wb") as f:
+            f.write(await poster.read())
+
+    write_mod_info(modName, description, poster_name, base_path)
+    return {"success": True, "message": f"Mod '{modName}' created at '{mod_path}'."}
+
+
+@app.post("/api/projectzomboid/mods/upload")
+async def upload_mod_asset(
+    modName: str = Form(...),
+    folder: str = Form("media"),
+    file: UploadFile = File(...),
+    savePath: str = Form(None)
+):
+    """Upload an asset to a mod's subfolder in default or custom folder"""
+    base_path = savePath or DEFAULT_MODS_PATH
+    mod_path = ensure_mod_structure(modName, base_path)
+    dest_folder = os.path.join(mod_path, folder)
+    os.makedirs(dest_folder, exist_ok=True)
+
+    dest_path = os.path.join(dest_folder, file.filename)
+    with open(dest_path, "wb") as f:
+        f.write(await file.read())
+
+    return {"success": True, "message": f"File '{file.filename}' uploaded to {folder}/"}
+
+
+@app.post("/api/projectzomboid/mods/update-info")
+async def update_mod_info(data: dict = Body(...)):
+    """Update description or poster reference in mod.info (supports custom folder)"""
+    mod_name = data.get("modName")
+    new_description = data.get("description", "")
+    new_poster = data.get("poster", "")
+    save_path = data.get("savePath", None)
+
+    if not mod_name:
+        return JSONResponse({"error": "modName is required"}, status_code=400)
+
+    base_path = save_path or DEFAULT_MODS_PATH
+    info_file = os.path.join(ensure_mod_structure(mod_name, base_path), "mod.info")
+
+    if not os.path.isfile(info_file):
+        write_mod_info(mod_name, new_description, new_poster, base_path)
+    else:
+        lines = []
+        with open(info_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        updated = []
+        found_desc = found_poster = False
+        for line in lines:
+            if line.startswith("description="):
+                updated.append(f"description={new_description}\n")
+                found_desc = True
+            elif line.startswith("poster="):
+                updated.append(f"poster={new_poster}\n")
+                found_poster = True
+            else:
+                updated.append(line)
+        if not found_desc:
+            updated.append(f"description={new_description}\n")
+        if new_poster and not found_poster:
+            updated.append(f"poster={new_poster}\n")
+        with open(info_file, "w", encoding="utf-8") as f:
+            f.writelines(updated)
+
+    return {"success": True, "message": f"Mod '{mod_name}' info updated."}
+
+
+@app.delete("/api/projectzomboid/mods/delete")
+async def delete_mod(modName: str = Query(...), savePath: str = Query(None)):
+    """Delete a local mod folder in default or custom folder"""
+    mods_folder = savePath or DEFAULT_MODS_PATH
+    mod_path = os.path.join(mods_folder, modName)
+    if not os.path.isdir(mod_path):
+        return JSONResponse({"error": "Mod not found"}, status_code=404)
+    shutil.rmtree(mod_path)
+    return {"success": True, "message": f"Mod '{modName}' deleted from '{mods_folder}'."}
+
 # ---------------------------
 # Staff Chat Persistence
 # ---------------------------

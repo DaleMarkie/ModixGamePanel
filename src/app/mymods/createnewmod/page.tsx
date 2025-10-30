@@ -2,14 +2,14 @@
 
 import React from "react";
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import ModManager from "./ModManager"; // your actual feature component
+import CreateNewMod from "./CreateNewMod"; // Correct import
 import AuthWrapper from "@/app/auth"; // central wrapper
 
-export default function ModManagerPage() {
+export default function CreateNewModPage() {
   return (
     <AuthWrapper roles={["Owner", "Admin"]}>
       <DashboardLayout>
-        <ModManager />
+        <CreateNewMod />
       </DashboardLayout>
     </AuthWrapper>
   );

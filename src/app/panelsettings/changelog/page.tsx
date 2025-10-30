@@ -2,12 +2,12 @@
 
 import React from "react";
 import DashboardLayout from "@components/sidebar/DashboardLayout";
-import Changelogs from "./Changelogs"; // your actual feature component
+import changelogs from "./Changelogs"; // your actual feature component
 
-export default function ChangelogsPage() {
+export default function changelogsPage() {
   return (
     <DashboardLayout>
-      <Changelogs />
+      <changelogs />
     </DashboardLayout>
   );
 }

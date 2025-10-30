@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import "./MyAccount.css";
-import Subscriptions from "../subscriptions/subscriptions";
 import Activity from "../activity/Activity";
 import MyTickets from "../../support/mytickets/MyTickets";
 import WelcomePopup from "./welcome/welcome-popup";
@@ -91,15 +90,19 @@ const MyAccount = () => {
     { label: "🔐 Security", roles: ["Owner", "Admin"] },
     { label: "📜 Activity", roles: ["Owner", "SubUser", "Admin"] },
     { label: "🧾 My License", roles: ["Owner", "Admin"] },
-    { label: "🪪 Subscriptions", roles: ["Owner", "Admin"] },
     { label: "👥 Sub-Users", roles: ["Owner", "Admin"] },
     { label: "⚙️ Settings", roles: ["Owner", "Admin"] },
-    { label: "🛠️ Support", roles: ["Owner", "SubUser", "Admin"] },
   ];
 
   const userRoles = user.roles || ["SubUser"];
   const hasRole = (tabRoles: string[]) =>
     tabRoles.some((r) => userRoles.includes(r));
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "N/A";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "Invalid Date" : d.toLocaleString();
+  };
 
   return (
     <div className="myaccount-container">
@@ -126,33 +129,36 @@ const MyAccount = () => {
       {activeTab === "📊 Dashboard" && (
         <section className="dashboard-user-info">
           {[
-            { icon: "fas fa-user", label: "Username", value: user.username },
+            { label: "Username", value: user.username || "N/A" },
+            { label: "Email", value: user.email || "N/A" },
+            { label: "Role(s)", value: userRoles.join(", ") },
             {
-              icon: "fas fa-envelope",
-              label: "Email",
-              value: user.email || "N/A",
-            },
-            {
-              icon: "fas fa-circle",
               label: "Status",
               value: user.active ? "Active ✅" : "Inactive ❌",
               className: user.active ? "status-active" : "status-inactive",
             },
             {
-              icon: "fas fa-calendar-plus",
               label: "Joined",
-              value: new Date(user.created_at).toLocaleDateString(),
+              value: formatDate(user.created_at),
             },
             {
-              icon: "fas fa-clock",
               label: "Last Login",
-              value: user.last_login
-                ? new Date(user.last_login).toLocaleString()
-                : "N/A",
+              value: formatDate(user.last_login),
+            },
+            {
+              label: "Account ID",
+              value: user.id || "N/A",
+            },
+            {
+              label: "Plan / License",
+              value: user.license?.plan || "Free / N/A",
+            },
+            {
+              label: "Active Sessions",
+              value: userLogs.length || "0",
             },
           ].map((info, idx) => (
             <div key={idx} className="info-card">
-              <i className={info.icon}></i>
               <div className="info-details">
                 <span className={`info-value ${info.className || ""}`}>
                   {info.value}
@@ -166,7 +172,6 @@ const MyAccount = () => {
 
       {activeTab === "🔐 Security" && <div>Security Tab Content</div>}
       {activeTab === "📜 Activity" && <Activity />}
-      {activeTab === "🪪 Subscriptions" && <Subscriptions />}
       {activeTab === "👥 Sub-Users" && hasRole(["Owner", "Admin"]) && <Users />}
       {activeTab === "⚙️ Settings" && hasRole(["Owner", "Admin"]) && (
         <Suspense fallback={<div>Loading Settings...</div>}>

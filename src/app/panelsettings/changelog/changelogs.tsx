@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import "./Changelogs.css";
+import "./changelogs.css";
 
 interface Commit {
   sha: string;

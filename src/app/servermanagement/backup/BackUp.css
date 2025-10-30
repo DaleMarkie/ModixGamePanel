@@ -1,0 +1,275 @@
+/* BackUp.css */
+
+.modix-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  color: #f2f2f2;
+}
+
+.modix-page-header h1 {
+  font-size: 1.8rem;
+  color: #016911;
+  margin-bottom: 4px;
+}
+
+.modix-page-header p {
+  color: #a1a1aa;
+  margin-bottom: 20px;
+}
+
+.modix-card {
+  background: #111214;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.modix-form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.modix-form-group label {
+  margin-bottom: 6px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.modix-form-group input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1b1b1f;
+  color: #f2f2f2;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modix-form-group input:focus {
+  border-color: #016911;
+}
+
+.modix-button {
+  padding: 10px 20px;
+  background: #016911;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 10px;
+}
+
+.modix-button:hover:not(:disabled) {
+  background: #016911;
+}
+
+.modix-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.modix-button.small {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+/* Messages */
+.modix-error-text {
+  margin-top: 12px;
+  color: #f87171;
+  font-weight: 500;
+}
+
+.modix-success-text {
+  margin-top: 12px;
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.modix-progress-text {
+  margin-top: 12px;
+  color: #facc15;
+  font-weight: 500;
+}
+
+/* Backup list */
+.backup-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.backup-item {
+  background: #1b1b1f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.backup-item:hover {
+  background: #27272c;
+}
+
+.backup-item div span {
+  display: block;
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+/* Search input */
+.modix-search-input {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1b1b1f;
+  color: #f2f2f2;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.modix-search-input:focus {
+  border-color: #016911;
+}
+
+/* ===========================
+   Work in Progress / Warning Popup
+=========================== */
+
+.warning-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+.warning-card {
+  position: relative;
+  background: linear-gradient(145deg, #1f1f23, #2a2a30);
+  color: #f2f2f2;
+  padding: 2rem 2.5rem;
+  border-radius: 16px;
+  max-width: 460px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(79, 172, 254, 0.5);
+  animation: slideFade 0.4s ease-out;
+  overflow: hidden;
+}
+
+.warning-glow {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(79, 172, 254, 0.3),
+    transparent 70%
+  );
+  animation: rotateGlow 6s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.warning-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: #ffbb33;
+  animation: bounce 1.2s infinite;
+  z-index: 1;
+  position: relative;
+}
+
+.warning-card h2,
+.warning-card p,
+.warning-card a,
+.warning-btn {
+  position: relative;
+  z-index: 1;
+}
+
+.warning-card h2 {
+  font-size: 1.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.warning-card p {
+  margin: 0.4rem 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.warning-card a {
+  color: #4facfe;
+  text-decoration: underline;
+}
+
+.warning-btn {
+  margin-top: 1.2rem;
+  padding: 0.6rem 1.5rem;
+  background: #4facfe;
+  color: #fff;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.warning-btn:hover {
+  background: #3a9ad9;
+  transform: translateY(-2px);
+}
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rotateGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
