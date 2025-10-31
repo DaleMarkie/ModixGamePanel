@@ -470,6 +470,84 @@ async def save_staff_chat(data: list = Body(...)):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 # ---------------------------
+# Project Zomboid Map / World State API
+# ---------------------------
+import os
+import json
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse, FileResponse
+
+app = FastAPI()
+
+WORLD_SAVE_PATH = os.path.expanduser("~/Zomboid/Saves")  # adjust to your server save path
+
+def list_latest_save():
+    """Find latest Project Zomboid world save folder"""
+    if not os.path.exists(WORLD_SAVE_PATH):
+        return None
+    saves = [d for d in os.listdir(WORLD_SAVE_PATH) if os.path.isdir(os.path.join(WORLD_SAVE_PATH, d))]
+    if not saves:
+        return None
+    saves.sort(key=lambda x: os.path.getmtime(os.path.join(WORLD_SAVE_PATH, x)), reverse=True)
+    return os.path.join(WORLD_SAVE_PATH, saves[0])
+
+@app.get("/api/projectzomboid/map/players")
+async def get_players():
+    """Return active players' positions for frontend map"""
+    save_folder = list_latest_save()
+    if not save_folder:
+        return {"players": []}
+
+    players_file = os.path.join(save_folder, "players.json")
+    if not os.path.isfile(players_file):
+        return {"players": []}
+
+    with open(players_file, "r", encoding="utf-8") as f:
+        try:
+            players = json.load(f)
+        except json.JSONDecodeError:
+            players = []
+    return {"players": players}
+
+
+@app.get("/api/projectzomboid/map/map-image")
+async def get_map_image():
+    """Return static map image (pre-rendered or generated from saves)"""
+    map_image_path = os.path.join(WORLD_SAVE_PATH, "latest_map.png")
+    if not os.path.isfile(map_image_path):
+        return JSONResponse({"error": "Map image not found"}, status_code=404)
+    return FileResponse(map_image_path, media_type="image/png")
+
+
+@app.get("/api/projectzomboid/map/state")
+async def get_world_state():
+    """Return combined world state: players, zombies, loot"""
+    save_folder = list_latest_save()
+    if not save_folder:
+        return {"players": [], "zombies": [], "loot": []}
+
+    # For demo purposes, this can later be loaded from actual save files
+    world_state = {
+        "players": [
+            {"name": "Alice", "x": 1024, "y": 2048, "health": 85},
+            {"name": "Bob", "x": 1200, "y": 1980, "health": 92}
+        ],
+        "zombies": [
+            {"x": 500, "y": 1200, "type": "walker"},
+            {"x": 550, "y": 1250, "type": "runner"}
+        ],
+        "loot": [
+            {"id": "loot1", "x": 1500, "y": 3000, "name": "Medkit", "type": "Medical"},
+            {"id": "loot2", "x": 1600, "y": 3100, "name": "Pistol", "type": "Weapon"},
+            {"id": "loot3", "x": 1700, "y": 3200, "name": "Canned Food", "type": "Food"}
+        ]
+    }
+
+    return world_state
+
+
+
+# ---------------------------
 # Mount Remaining Routers
 # ---------------------------
 app.include_router(workshop_api.router, prefix="/workshop")

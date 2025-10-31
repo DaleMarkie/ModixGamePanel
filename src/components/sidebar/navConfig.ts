@@ -1,9 +1,9 @@
 // navConfig.ts
 export interface NavItem {
   label: string;
-  href?: string; // make href optional
+  href?: string; // optional
   submenu?: NavItem[];
-  disabled?: boolean; // add disabled flag
+  disabled?: boolean; // optional disabled flag
 }
 
 export const navLinks: NavItem[] = [
@@ -26,8 +26,6 @@ export const navLinks: NavItem[] = [
     submenu: [
       { label: "📦 My Mods", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
-
-      // --- Disabled / Placeholder ---
       { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
       { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
       { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
@@ -74,6 +72,7 @@ export const navLinks: NavItem[] = [
     ],
   },
 
+  // --- Monitoring ---
   {
     label: "📊 Monitoring",
     href: "/monitoring/performance",
@@ -110,6 +109,22 @@ export const navLinks: NavItem[] = [
       { label: "📜 Custom Scripts", href: "/automation/scripts" },
       { label: "🕒 Scheduled Jobs", href: "/tools/scheduler" },
       { label: "🔗 Webhooks & APIs", href: "/automation/webhooks" },
+    ],
+  },
+
+  // --- Game Tools (New Category) ---
+  {
+    label: "🎮 Game Tools",
+    submenu: [
+      {
+        label: "Project Zomboid",
+        submenu: [
+          {
+            label: "🗺️ Map Editor",
+            href: "/games/projectzomboid/tools/mapeditor",
+          },
+        ],
+      },
     ],
   },
 
