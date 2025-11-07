@@ -1,100 +1,105 @@
 /* Right panel layout */
 .right-panel {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 3rem;
-    background: #121212; /* subtle contrast from left panel */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  background: #121212; /* subtle contrast from left panel */
+}
+
+/* Login modal */
+.login-form {
+  width: 100%;
+  max-width: 360px; /* 👈 tighter modal */
+  background: #1e1e1e;
+  padding: 2rem 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Title */
+.login-form .form-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #f5f5f5;
+}
+
+/* Inputs */
+.input-field {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 0.95rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+  outline: none;
+}
+
+/* Buttons */
+.btn-login {
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #4a90e2, #007aff);
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+}
+
+/* Forgot password link */
+.forgot-link {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+  color: #fff;
+}
+
+/* Error message */
+.error-message {
+  background: rgba(255, 80, 80, 0.1);
+  border: 1px solid #ff5050;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #ff8080;
+  text-align: center;
+}
+
+/* Smooth entrance */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
   }
-  
-  /* Login modal */
-  .login-form {
-    width: 100%;
-    max-width: 360px;  /* 👈 tighter modal */
-    background: #1e1e1e;
-    padding: 2rem 2.5rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    animation: fadeIn 0.4s ease-in-out;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  /* Title */
-  .login-form .form-title {
-    font-size: 1.6rem;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 0.5rem;
-    color: #f5f5f5;
-  }
-  
-  /* Inputs */
-  .input-field {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border-radius: 10px;
-    border: 1px solid #333;
-    background: #2a2a2a;
-    color: #fff;
-    font-size: 0.95rem;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .input-field:focus {
-    border-color: #4a90e2;
-    box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
-    outline: none;
-  }
-  
-  /* Buttons */
-  .btn-login {
-    padding: 0.8rem;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(135deg, #4a90e2, #007aff);
-    color: #fff;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  .btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
-  }
-  
-  /* Forgot password link */
-  .forgot-link {
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-align: center;
-    transition: color 0.2s ease;
-  }
-  
-  .forgot-link:hover {
-    color: #fff;
-  }
-  
-  /* Error message */
-  .error-message {
-    background: rgba(255, 80, 80, 0.1);
-    border: 1px solid #ff5050;
-    padding: 0.6rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    color: #ff8080;
-    text-align: center;
-  }
-  
-  /* Smooth entrance */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
+}

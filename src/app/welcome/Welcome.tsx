@@ -6,7 +6,6 @@ import "./Welcome.css";
 
 export default function InstalledPage() {
   const [username, setUsername] = useState("");
-  const [nodeId, setNodeId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<{
@@ -26,7 +25,7 @@ export default function InstalledPage() {
   const handleCreateMaster = () => {
     resetMessages();
 
-    if (!username.trim() || !nodeId.trim() || !password || !confirmPassword) {
+    if (!username.trim() || !password || !confirmPassword) {
       setMessage({ text: "All fields are required.", type: "error" });
       return;
     }
@@ -39,7 +38,9 @@ export default function InstalledPage() {
     setLoading(true);
 
     try {
-      const users = JSON.parse(localStorage.getItem("modix_local_users") || "[]");
+      const users = JSON.parse(
+        localStorage.getItem("modix_local_users") || "[]"
+      );
 
       if (users.some((u: any) => u.role === "Owner")) {
         setMessage({
@@ -52,7 +53,6 @@ export default function InstalledPage() {
 
       const masterUser = {
         username: username.trim(),
-        nodeId: nodeId.trim(),
         password,
         role: "Owner",
         pages: ["Dashboard", "Settings", "Mods", "Terminal"],
@@ -84,7 +84,11 @@ export default function InstalledPage() {
             Master Account Already Created
           </h1>
           <p className="text-gray-300">
-            You already have a master account. Please <a href="/auth/login" className="text-green-400 underline">login</a>.
+            You already have a master account. Please{" "}
+            <a href="/auth/login" className="text-green-400 underline">
+              login
+            </a>
+            .
           </p>
         </div>
       </main>
@@ -106,7 +110,10 @@ export default function InstalledPage() {
 
       <div className="relative z-10 w-full max-w-md space-y-8">
         <section className="space-y-4 text-center">
-          <FaCheckCircle size={64} className="text-green-500 mx-auto animate-bounce" />
+          <FaCheckCircle
+            size={64}
+            className="text-green-500 mx-auto animate-bounce"
+          />
           <h1 className="text-4xl font-extrabold text-green-500 tracking-tight">
             Create Master Account
           </h1>
@@ -118,8 +125,9 @@ export default function InstalledPage() {
         <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-6 text-left space-y-4">
           {/* Warning */}
           <div className="bg-yellow-900 text-yellow-100 border-l-4 border-yellow-500 p-4 rounded-lg text-sm">
-            <strong>Important:</strong> The Master account password <em>cannot</em> be recovered if lost. 
-            Make sure you remember it. If you forget it, the only way to regain access is to reinstall Modix.
+            <strong>Important:</strong> The Master account password{" "}
+            <em>cannot</em> be recovered if lost. Make sure you remember it. If
+            you forget it, the only way to regain access is to reinstall Modix.
           </div>
 
           {/* Message */}
@@ -147,15 +155,7 @@ export default function InstalledPage() {
               className="w-full px-4 py-2 rounded-lg bg-[#121212] border border-gray-600 text-white focus:outline-none focus:border-green-500"
             />
           </div>
-          <div>
-            <label className="block text-gray-300 text-sm mb-1">NodeID (obfuscated)</label>
-            <input
-              type="text"
-              value={nodeId}
-              onChange={(e) => setNodeId(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[#121212] border border-gray-600 text-white focus:outline-none focus:border-green-500"
-            />
-          </div>
+
           <div>
             <label className="block text-gray-300 text-sm mb-1">Password</label>
             <input
@@ -165,8 +165,11 @@ export default function InstalledPage() {
               className="w-full px-4 py-2 rounded-lg bg-[#121212] border border-gray-600 text-white focus:outline-none focus:border-green-500"
             />
           </div>
+
           <div>
-            <label className="block text-gray-300 text-sm mb-1">Confirm Password</label>
+            <label className="block text-gray-300 text-sm mb-1">
+              Confirm Password
+            </label>
             <input
               type="password"
               value={confirmPassword}

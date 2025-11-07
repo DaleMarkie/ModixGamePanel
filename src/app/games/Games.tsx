@@ -1,299 +1,125 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import "./Games.css";
 
-type GameSpec = { label: string; ok: boolean };
-type Game = {
+interface Game {
+  id: number;
   name: string;
-  icon: string;
-  id: string;
-  os: "linux" | "windows";
-  canHost: boolean;
-  comingSoon: boolean;
-  specs: { cpu: GameSpec; ram: GameSpec; storage: GameSpec };
-};
+  image: string;
+  supported: boolean;
+  appId: string;
+}
 
-const gamesList: Game[] = [
-  {
-    name: "Project Zomboid",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz-linux",
-    os: "linux",
-    canHost: true,
-    comingSoon: true,
-    specs: {
-      cpu: { label: "CPU: 4+ cores", ok: true },
-      ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 5 GB", ok: true },
-    },
-  },
-  {
-    name: "Project Zomboid",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz-windows",
-    os: "windows",
-    canHost: true,
-    comingSoon: false,
-    specs: {
-      cpu: { label: "CPU: 4+ cores", ok: true },
-      ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 5 GB", ok: true },
-    },
-  },
-];
-
-const formatDuration = (ms: number) => {
-  const s = Math.floor(ms / 1000) % 60;
-  const m = Math.floor(ms / 60000) % 60;
-  const h = Math.floor(ms / 3600000);
-  return `${h ? h + "h " : ""}${m ? m + "m " : ""}${s}s`;
-};
-
-// Modal popup component
-const FilePickerModal: React.FC<{
-  visible: boolean;
-  onSelect: (fileName: string) => void;
-  onClose: () => void;
-}> = ({ visible, onSelect, onClose }) => {
-  const [fileName, setFileName] = useState("");
-
-  if (!visible) return null;
-
-  const handleSelect = () => {
-    if (!fileName) return alert("Please enter batch file name");
-    onSelect(fileName);
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Select Project Zomboid Batch File</h2>
-        <p>Enter the filename of your `.bat` file to start the server:</p>
-        <input
-          type="text"
-          placeholder="e.g. start-pz-server.bat"
-          value={fileName}
-          onChange={(e) => setFileName(e.target.value)}
-        />
-        <div className="modal-buttons">
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="confirm-btn" onClick={handleSelect}>
-            Start Server
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const GameBanner: React.FC<{
-  game: Game;
-  onSelect: (game: Game) => void;
-  onStop: (game: Game) => void;
-  activeGame: string | null;
-  status: string;
-  loading: boolean;
-  uptime: number;
-}> = ({ game, onSelect, onStop, activeGame, status, loading, uptime }) => {
-  const isActive = activeGame === game.id;
-  const anotherRunning = activeGame && !isActive;
-
-  return (
-    <div
-      className={`game-banner ${anotherRunning ? "disabled" : ""} ${
-        isActive ? "active" : ""
-      }`}
-    >
-      {/* Using Next.js Image for optimization */}
-      <Image
-        src={game.icon}
-        alt={game.name}
-        width={200}
-        height={100}
-        className="game-icon"
-      />
-      <div className="banner-overlay">
-        <h3>
-          {game.name} ({game.os.toUpperCase()})
-          {game.comingSoon && (
-            <span className="coming-soon">🚧 Coming Soon</span>
-          )}
-          {isActive && !game.comingSoon && (
-            <span className={`status-badge ${status}`}>
-              {status === "running"
-                ? `🟢 Running (${formatDuration(uptime)})`
-                : "🔴 Stopped"}
-            </span>
-          )}
-        </h3>
-
-        <div className="requirements always-visible">
-          <h4>Server Requirements</h4>
-          {Object.values(game.specs).map((spec, i) => (
-            <span key={i} className={`tag ${spec.ok ? "ok" : "fail"}`}>
-              {spec.label} {spec.ok ? "✅" : "❌"}
-            </span>
-          ))}
-        </div>
-
-        {!isActive ? (
-          <button
-            disabled={loading || anotherRunning || game.comingSoon}
-            className="host-btn start"
-            onClick={() => onSelect(game)}
-          >
-            {loading ? "⏳ Starting..." : "➕ Start Server"}
-          </button>
-        ) : (
-          <div className="server-actions">
-            <button
-              disabled={loading}
-              className="stop-btn stop"
-              onClick={() => onStop(game)}
-            >
-              {loading ? "⏳ Stopping..." : "🛑 Stop Server"}
-            </button>
-            {status === "running" && (
-              <button
-                className="terminal-btn"
-                onClick={() => (window.location.href = "/terminal")}
-              >
-                🖥️ View Terminal
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const Games: React.FC = () => {
+export default function Games() {
+  const [games, setGames] = useState<Game[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [status, setStatus] = useState("stopped");
-  const [loading, setLoading] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [uptime, setUptime] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [pendingGame, setPendingGame] = useState<Game | null>(null);
 
   useEffect(() => {
-    const storedGame = localStorage.getItem("selectedGame");
-    const storedTime = localStorage.getItem("serverStartTime");
-    if (storedGame) setActiveGame(storedGame);
-    if (storedTime) setStartTime(Number(storedTime));
+    const list: Game[] = [
+      {
+        id: 1,
+        name: "Project Zomboid",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+        supported: true,
+        appId: "108600",
+      },
+      {
+        id: 2,
+        name: "RimWorld",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/294100/header.jpg",
+        supported: true,
+        appId: "294100",
+      },
+      {
+        id: 3,
+        name: "ARK: Survival Evolved",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/346110/header.jpg",
+        supported: false,
+        appId: "346110",
+      },
+      {
+        id: 4,
+        name: "Unturned",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/304930/header.jpg",
+        supported: false,
+        appId: "304930",
+      },
+      {
+        id: 5,
+        name: "Valheim",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/892970/header.jpg",
+        supported: false,
+        appId: "892970",
+      },
+    ];
+    setGames(list);
+
+    fetch("/api/games")
+      .then((res) => res.json())
+      .then((data) => setActiveGame(data.active_game?.appId ?? null))
+      .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    if (status === "running" && startTime) {
-      const interval = setInterval(
-        () => setUptime(Date.now() - startTime),
-        1000
-      );
-      return () => clearInterval(interval);
-    }
-  }, [status, startTime]);
-
-  const startServer = useCallback(
-    async (game: Game) => {
-      if (activeGame && activeGame !== game.id) return;
-      setPendingGame(game);
-      setShowModal(true);
-    },
-    [activeGame]
-  );
-
-  const confirmStart = async (batchFileName: string) => {
-    if (!pendingGame) return;
-    setLoading(true);
-    setShowModal(false);
+  const handleSetActive = async (game: Game) => {
+    if (!game.supported) return;
+    const newAppId = activeGame === game.appId ? null : game.appId;
+    setActiveGame(newAppId);
 
     try {
-      const res = await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/start-server",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchFile: batchFileName }),
-        }
+      const res = await fetch("/api/set-active-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appId: newAppId }),
+      });
+      const data = await res.json();
+      if (!res.ok) alert(data.error || "Failed to set active game");
+      window.dispatchEvent(
+        new CustomEvent("activeGameChanged", { detail: newAppId })
       );
-
-      if (!res.ok) throw new Error("Failed to start server");
-      setStatus("running");
-      const now = Date.now();
-      setStartTime(now);
-      localStorage.setItem("selectedGame", pendingGame.id);
-      localStorage.setItem("serverStartTime", now.toString());
-      setActiveGame(pendingGame.id);
     } catch (err) {
       console.error(err);
-      alert("Failed to start server. Check backend logs.");
-    } finally {
-      setLoading(false);
-      setPendingGame(null);
+      alert("Failed to connect to backend.");
     }
   };
 
-  const stopServer = useCallback(async () => {
-    setLoading(true);
-    try {
-      await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/stop-server",
-        {
-          method: "POST",
-        }
-      );
-      setStatus("stopped");
-      setActiveGame(null);
-      setStartTime(null);
-      localStorage.removeItem("selectedGame");
-      localStorage.removeItem("serverStartTime");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to stop server. Check backend logs.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   return (
-    <main className="games-hosting-page">
-      <header className="page-header fancy">
-        <h1 className="page-title">🚀 My Servers</h1>
-        <p className="page-description">
-          Start/stop Project Zomboid servers. Only one server runs at a time.
-        </p>
-      </header>
+    <div className="games-page">
+      <div className="games-header">
+        <h2>Supported Games</h2>
+        <p>Select a supported game to update your panel and workshop mods.</p>
+      </div>
 
-      <section className="category">
-        <h2>Project Zomboid</h2>
-        <div className="game-banner-list">
-          {gamesList.map((game) => (
-            <GameBanner
-              key={game.id}
-              game={game}
-              onSelect={startServer}
-              onStop={stopServer}
-              activeGame={activeGame}
-              status={status}
-              loading={loading}
-              uptime={uptime}
-            />
-          ))}
-        </div>
-      </section>
-
-      <FilePickerModal
-        visible={showModal}
-        onSelect={confirmStart}
-        onClose={() => setShowModal(false)}
-      />
-    </main>
+      <div className="games-grid">
+        {games.map((game) => (
+          <div
+            key={game.id}
+            className={`game-card ${!game.supported ? "coming-soon-card" : ""}`}
+          >
+            <img src={game.image} alt={game.name} className="game-image" />
+            <div className="game-info">
+              <h3>{game.name}</h3>
+              {game.supported ? (
+                <button
+                  className={`toggle-btn ${
+                    activeGame === game.appId ? "active" : ""
+                  }`}
+                  onClick={() => handleSetActive(game)}
+                >
+                  {activeGame === game.appId ? "Active" : "Activate"}
+                </button>
+              ) : (
+                <span className="coming-soon">Coming Soon</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-};
-
-export default Games;
+}

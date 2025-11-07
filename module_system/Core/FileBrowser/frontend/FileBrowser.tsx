@@ -28,6 +28,10 @@ interface ModalTarget {
   path?: string;
 }
 
+interface WorkshopFileManagerProps {
+  activeGameId: string; // ID of the active game selected from the Games page
+}
+
 const ActionModal: React.FC<{
   visible: boolean;
   onClose: () => void;
@@ -71,7 +75,7 @@ const getFileIcon = (name: string) =>
     ? "🗂️"
     : "📃";
 
-export default function WorkshopFileManager() {
+export default function WorkshopFileManager({ activeGameId }: WorkshopFileManagerProps) {
   const [mods, setMods] = useState<Mod[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -100,16 +104,20 @@ export default function WorkshopFileManager() {
     localStorage.setItem("colorsState", JSON.stringify(colors));
   }, [colors]);
 
+  // Fetch mods based on active game
   const fetchMods = async () => {
+    if (!activeGameId) return;
     try {
-      const res = await axios.get("/api/filemanager/workshop-mods");
+      const res = await axios.get("/api/filemanager/workshop-mods", {
+        params: { appId: activeGameId }, // use activeGameId
+      });
       const fetched: Mod[] = res.data.mods || [];
       setMods(fetched);
+
       const init: Record<string, boolean> = { ...collapsed };
       const mark = (items: FileItem[]) =>
         items.forEach((i) => {
-          if (i.type === "folder" && init[i.path] === undefined)
-            init[i.path] = true;
+          if (i.type === "folder" && init[i.path] === undefined) init[i.path] = true;
           if (i.children) mark(i.children);
         });
       fetched.forEach((m) => mark(m.files));
@@ -119,14 +127,14 @@ export default function WorkshopFileManager() {
       alert("Failed to fetch mods.");
     }
   };
+
+  // Refetch mods whenever the active game changes
   useEffect(() => {
     fetchMods();
-  }, []);
+  }, [activeGameId]);
 
-  const toggle = (path: string) =>
-    setCollapsed((p) => ({ ...p, [path]: !p[path] }));
-  const toggleFav = (path: string) =>
-    setFavorites((p) => ({ ...p, [path]: !p[path] }));
+  const toggle = (path: string) => setCollapsed((p) => ({ ...p, [path]: !p[path] }));
+  const toggleFav = (path: string) => setFavorites((p) => ({ ...p, [path]: !p[path] }));
   const setColor = (path: string) => {
     const c = prompt("Enter color:");
     if (c) setColors((p) => ({ ...p, [path]: c }));
@@ -135,23 +143,13 @@ export default function WorkshopFileManager() {
   const openFile = async (path: string) => {
     if (tabs.find((t) => t.filePath === path)) return setActiveTab(path);
     try {
-      const res = await axios.get("/api/filemanager/file", {
-        params: { path },
-      });
+      const res = await axios.get("/api/filemanager/file", { params: { path } });
       const lang = path.endsWith(".lua")
         ? "lua"
         : path.endsWith(".json")
         ? "json"
         : "plaintext";
-      setTabs((prev) => [
-        ...prev,
-        {
-          filePath: path,
-          content: res.data.content || "",
-          language: lang,
-          unsaved: false,
-        },
-      ]);
+      setTabs((prev) => [...prev, { filePath: path, content: res.data.content || "", language: lang, unsaved: false }]);
       setActiveTab(path);
     } catch (e) {
       console.error(e);
@@ -165,13 +163,8 @@ export default function WorkshopFileManager() {
     if (!tab) return;
     try {
       setSaving(true);
-      await axios.post("/api/filemanager/file/save", {
-        path,
-        content: tab.content,
-      });
-      setTabs((prev) =>
-        prev.map((t) => (t.filePath === path ? { ...t, unsaved: false } : t))
-      );
+      await axios.post("/api/filemanager/file/save", { path, content: tab.content });
+      setTabs((prev) => prev.map((t) => (t.filePath === path ? { ...t, unsaved: false } : t)));
     } catch (e) {
       console.error(e);
       alert("Failed to save.");
@@ -180,24 +173,11 @@ export default function WorkshopFileManager() {
     }
   };
 
-  const createItem = async (
-    modId: string,
-    folderPath?: string,
-    isFolder = false
-  ) => {
-    const name = prompt(
-      `New ${isFolder ? "folder" : "file"} name${
-        !isFolder ? " (with extension)" : ""
-      }:`
-    );
+  const createItem = async (modId: string, folderPath?: string, isFolder = false) => {
+    const name = prompt(`New ${isFolder ? "folder" : "file"} name${!isFolder ? " (with extension)" : ""}:`);
     if (!name) return;
     try {
-      await axios.post(
-        `/api/filemanager/${isFolder ? "folder/new" : "file/new"}`,
-        isFolder
-          ? { modId, folderName: name, folderPath }
-          : { modId, name, folderPath }
-      );
+      await axios.post(`/api/filemanager/${isFolder ? "folder/new" : "file/new"}`, isFolder ? { modId, folderName: name, folderPath } : { modId, name, folderPath });
       fetchMods();
     } catch (e) {
       console.error(e);
@@ -218,16 +198,14 @@ export default function WorkshopFileManager() {
       alert("Failed to delete.");
     }
   };
+
   const moveItem = async (path: string) => {
     const newName = prompt("New name or path:");
     if (!newName) return;
     const base = path.split("/").slice(0, -1).join("/");
     const dest = newName.includes("/") ? newName : `${base}/${newName}`;
     try {
-      await axios.post("/api/filemanager/file/move", {
-        source: path,
-        destination: dest,
-      });
+      await axios.post("/api/filemanager/file/move", { source: path, destination: dest });
       setTabs((prev) =>
         prev.map((t) =>
           t.filePath === path
@@ -249,11 +227,7 @@ export default function WorkshopFileManager() {
   const handleEditorMount: OnMount = (e) => (editorRef.current = e);
   const handleTabChange: OnChange = (v) => {
     if (!activeTab) return;
-    setTabs((prev) =>
-      prev.map((t) =>
-        t.filePath === activeTab ? { ...t, content: v || "", unsaved: true } : t
-      )
-    );
+    setTabs((prev) => prev.map((t) => (t.filePath === activeTab ? { ...t, content: v || "", unsaved: true } : t)));
   };
 
   const filterTree = (items: FileItem[]): FileItem[] =>
@@ -263,25 +237,13 @@ export default function WorkshopFileManager() {
           .map((i) => {
             if (i.type === "folder" && i.children) {
               const c = filterTree(i.children);
-              if (
-                c.length > 0 ||
-                i.name.toLowerCase().includes(search.toLowerCase())
-              )
-                return { ...i, children: c };
-            } else if (
-              i.type === "file" &&
-              i.name.toLowerCase().includes(search.toLowerCase())
-            )
-              return i;
+              if (c.length > 0 || i.name.toLowerCase().includes(search.toLowerCase())) return { ...i, children: c };
+            } else if (i.type === "file" && i.name.toLowerCase().includes(search.toLowerCase())) return i;
             return null;
           })
           .filter(Boolean) as FileItem[]);
 
-  const renderTree = (
-    items: FileItem[],
-    lvl = 0,
-    modId?: string
-  ): JSX.Element[] =>
+  const renderTree = (items: FileItem[], lvl = 0, modId?: string): JSX.Element[] =>
     items.map((item) => {
       const pad = 16 + lvl * 16,
         col = colors[item.path] || "inherit",
@@ -310,9 +272,7 @@ export default function WorkshopFileManager() {
                 {fav ? "★" : "☆"}
               </span>
             </div>
-            {!collapsed[item.path] &&
-              item.children &&
-              renderTree(item.children, lvl + 1, modId)}
+            {!collapsed[item.path] && item.children && renderTree(item.children, lvl + 1, modId)}
           </div>
         );
       else {
@@ -329,8 +289,7 @@ export default function WorkshopFileManager() {
               setModalVisible(true);
             }}
           >
-            <span className="file-icon">{getFileIcon(item.name)}</span>{" "}
-            {item.name} {tab?.unsaved ? "*" : ""}{" "}
+            <span className="file-icon">{getFileIcon(item.name)}</span> {item.name} {tab?.unsaved ? "*" : ""}{" "}
             <span
               className="fav-toggle"
               onClick={(e) => {
@@ -395,26 +354,17 @@ export default function WorkshopFileManager() {
 
   return (
     <div className="container">
-      <ActionModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSelect={handleModalSelect}
-      />
+      <ActionModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={handleModalSelect} />
       <div className="left-panel">
         <h2>Mod Manager</h2>
-        <input
-          className="search-input"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <input className="search-input" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="left-panel-buttons">
           <button onClick={fetchMods}>Refresh</button>
           <button onClick={() => expandCollapseAll(true)}>Expand All</button>
           <button onClick={() => expandCollapseAll(false)}>Collapse All</button>
           <button
             onClick={() => {
-              const id = prompt("Mod ID:");
+              const id = activeGameId;
               if (id) createItem(id, undefined, true);
             }}
           >
@@ -436,13 +386,10 @@ export default function WorkshopFileManager() {
                 <div className="mod-title">
                   <span>{mod.title}</span>
                   <div>
-                    <button onClick={() => createItem(mod.modId)}>
-                      ＋ New File
-                    </button>
+                    <button onClick={() => createItem(mod.modId)}>＋ New File</button>
                     <button
                       onClick={() => {
-                        const n = prompt("Folder name:");
-                        if (n) createItem(mod.modId, undefined, true);
+                        createItem(mod.modId, undefined, true);
                       }}
                     >
                       ＋ Folder
@@ -463,26 +410,14 @@ export default function WorkshopFileManager() {
           <>
             <div className="tab-bar">
               {tabs.map((tab) => (
-                <div
-                  key={tab.filePath}
-                  className={`tab ${
-                    tab.filePath === activeTab ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab(tab.filePath)}
-                >
-                  <span className="tab-name">
-                    {tab.filePath.split("/").pop()}
-                  </span>
-                  {tab.unsaved && (
-                    <span className="unsaved-dot" title="Unsaved changes" />
-                  )}
+                <div key={tab.filePath} className={`tab ${tab.filePath === activeTab ? "active" : ""}`} onClick={() => setActiveTab(tab.filePath)}>
+                  <span className="tab-name">{tab.filePath.split("/").pop()}</span>
+                  {tab.unsaved && <span className="unsaved-dot" title="Unsaved changes" />}
                   <button
                     className="close-tab"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setTabs((prev) =>
-                        prev.filter((t) => t.filePath !== tab.filePath)
-                      );
+                      setTabs((prev) => prev.filter((t) => t.filePath !== tab.filePath));
                       if (activeTab === tab.filePath) setActiveTab(null);
                     }}
                     title="Close tab"
@@ -494,11 +429,7 @@ export default function WorkshopFileManager() {
             </div>
             <div className="editor-container">
               <div className="editor-toolbar">
-                <button
-                  className={`save-btn ${saving ? "saving" : ""}`}
-                  onClick={() => saveTab(activeTab)}
-                  disabled={saving || !activeTab}
-                >
+                <button className={`save-btn ${saving ? "saving" : ""}`} onClick={() => saveTab(activeTab)} disabled={saving || !activeTab}>
                   💾 {saving ? "Saving..." : "Save File"}
                 </button>
                 <button className="refresh-btn" onClick={fetchMods}>
@@ -507,24 +438,12 @@ export default function WorkshopFileManager() {
               </div>
               <Editor
                 height="100%"
-                language={
-                  tabs.find((t) => t.filePath === activeTab)?.language ||
-                  "plaintext"
-                }
-                value={
-                  tabs.find((t) => t.filePath === activeTab)?.content || ""
-                }
+                language={tabs.find((t) => t.filePath === activeTab)?.language || "plaintext"}
+                value={tabs.find((t) => t.filePath === activeTab)?.content || ""}
                 onChange={handleTabChange}
                 onMount={handleEditorMount}
                 theme="vs-dark"
-                options={{
-                  automaticLayout: true,
-                  minimap: { enabled: false },
-                  wordWrap: "on",
-                  fontSize: 15,
-                  fontFamily: "JetBrains Mono, monospace",
-                  smoothScrolling: true,
-                }}
+                options={{ automaticLayout: true, minimap: { enabled: false }, wordWrap: "on", fontSize: 15, fontFamily: "JetBrains Mono, monospace", smoothScrolling: true }}
               />
             </div>
           </>

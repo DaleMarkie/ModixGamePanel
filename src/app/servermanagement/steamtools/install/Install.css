@@ -1,241 +1,142 @@
-/* Install.css */
-
-/* Variables */
 :root {
-  --bg-dark: #1e1e2f;
-  --card-bg: #2a2a3c;
-  --card-hover: #33334d;
-  --text-light: #e0e0e0;
+  --bg: #1a1a1a;
+  --card-bg: #2a2a2a;
+  --accent: #ff6f61;
+  --text: #eee;
   --text-muted: #aaa;
-  --accent: #4ade80; /* green */
-  --warn: #facc15; /* yellow */
-  --fail: #f87171; /* red */
-  --progress-bg: #44445c;
-  --progress-fill: #4ade80;
+  --progress-bg: #444;
+  --progress-fill: #ff6f61;
+  --log-bg: #111;
 }
 
-/* Global */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-light);
-}
-
-/* Page Header */
-.page-header {
-  text-align: center;
-  padding: 2rem 1rem;
+.install-page {
+  font-family: "JetBrains Mono", monospace;
+  padding: 2rem;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
 }
 
 .page-header h1 {
-  font-size: 2.2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.3rem;
+  color: var(--accent);
 }
 
 .page-header p {
-  font-size: 1rem;
   color: var(--text-muted);
+  margin-bottom: 2rem;
 }
 
-/* OS Alert */
 .os-alert {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
-  font-weight: 500;
-  padding: 0.8rem;
-  margin: 0 2rem 2rem 2rem;
+  font-weight: bold;
+  padding: 0.8rem 1rem;
   border-radius: 8px;
-  background-color: #27273f;
+  margin-bottom: 2rem;
 }
 
 .os-alert.supported {
-  border-left: 4px solid var(--accent);
+  background-color: #1e3a1e;
+  color: #a6f3a6;
 }
 
 .os-alert.unsupported {
-  border-left: 4px solid var(--fail);
+  background-color: #3a1e1e;
+  color: #f3a6a6;
 }
 
-/* Search Bar */
-.search-bar {
-  display: flex;
-  align-items: center;
-  margin: 0 2rem 1.5rem 2rem;
-  padding: 0.5rem 1rem;
-  background-color: #27273f;
-  border-radius: 8px;
-  gap: 0.5rem;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text-light);
-  font-size: 1rem;
-}
-
-/* Install Grid */
-.install-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 0 2rem 3rem 2rem;
-}
-
-/* Card */
-.card {
-  background-color: var(--card-bg);
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
+.install-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   transition: all 0.3s ease;
 }
 
-.card:hover {
-  background-color: var(--card-hover);
-  transform: translateY(-2px);
-}
-
-/* Card Header */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  margin-bottom: 1rem;
 }
 
-.card-header h3 {
+.card-header h2 {
   margin: 0;
-  font-size: 1.2rem;
-}
-
-.status-icon svg {
   font-size: 1.5rem;
 }
 
-.installed {
-  color: var(--accent);
+.status-icon svg {
+  font-size: 1.6rem;
 }
 
-.not-installed {
-  color: var(--fail);
-}
-
-.installing {
-  color: var(--warn);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Install Button */
 .install-btn {
-  margin: 1rem 0;
-  padding: 0.5rem 1rem;
-  background-color: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  background: var(--accent);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .install-btn:hover {
-  background-color: #22c55e;
+  background: #ff8f81;
 }
 
-/* Progress Bar */
 .progress-wrapper {
-  margin: 0.5rem 0;
+  margin-top: 1rem;
 }
 
 .progress-bar {
   width: 100%;
-  height: 12px;
-  background-color: var(--progress-bg);
-  border-radius: 6px;
+  height: 16px;
+  background: var(--progress-bg);
+  border-radius: 8px;
   overflow: hidden;
+  margin-bottom: 0.5rem;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: var(--progress-fill);
-  border-radius: 6px;
-  transition: width 0.5s ease;
+  background: var(--progress-fill);
+  transition: width 0.3s ease;
 }
 
 .progress-text {
-  margin-top: 0.25rem;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   text-align: right;
+  display: block;
 }
 
-/* Logs */
 .logs {
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  background-color: #1f1f2b;
-  border-radius: 8px;
-  max-height: 150px;
+  margin-top: 1rem;
+  max-height: 200px;
   overflow-y: auto;
-  font-family: "Courier New", monospace;
+  background: var(--log-bg);
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
   font-size: 0.85rem;
-  color: var(--text-light);
+  line-height: 1.3rem;
 }
 
 .log-placeholder {
   color: var(--text-muted);
 }
 
-/* Expanded Card */
-.card.expanded {
-  grid-column: span 2;
-}
-
-/* Coming Soon Banner */
-.coming-soon-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  margin: 0 2rem 2rem 2rem;
-  border-radius: 8px;
-  background-color: #27273f;
-  color: var(--warn);
-  font-weight: 600;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .install-grid {
-    grid-template-columns: 1fr;
-  }
-  .card.expanded {
-    grid-column: 1 / -1;
-  }
+.install-footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }

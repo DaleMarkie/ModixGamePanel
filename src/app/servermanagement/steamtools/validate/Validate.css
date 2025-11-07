@@ -1,0 +1,158 @@
+.validate-page {
+  color: #e6e6e6;
+  background-color: #0d0d0d;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: "Inter", sans-serif;
+}
+
+.validate-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.validate-header h1 {
+  font-size: 2rem;
+  color: #9af78a;
+}
+
+.steam-section {
+  background: #121212;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.steam-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.steam-icon {
+  font-size: 1.8rem;
+  color: #9af78a;
+}
+
+.warning {
+  color: #ff6363;
+}
+
+.steam-btn {
+  background-color: #163016;
+  color: #9af78a;
+  border: 1px solid #294829;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.steam-btn:hover {
+  background-color: #1f451f;
+  box-shadow: 0 0 8px #41e24140;
+}
+
+.status-card {
+  background: #121212;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-text {
+  font-size: 1.2rem;
+}
+
+.status-text.ok {
+  color: #9af78a;
+}
+
+.status-icon.ok {
+  color: #9af78a;
+}
+
+.status-icon.warn {
+  color: #ffb347;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn.dark-green {
+  flex: 1;
+  background-color: #163016;
+  border: 1px solid #294829;
+  color: #9af78a;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn.dark-green:hover {
+  background-color: #1f451f;
+  box-shadow: 0 0 10px #41e24160;
+}
+
+.progress-section {
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #41e241;
+  width: 0%;
+  transition: width 0.3s ease-in-out;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  text-align: right;
+  color: #9af78a;
+}
+
+.logs-section {
+  background: #121212;
+  border-radius: 12px;
+  border: 1px solid #1a1a1a;
+  padding: 1.5rem;
+}
+
+.logs-container {
+  background: #0a0a0a;
+  border-radius: 8px;
+  height: 250px;
+  overflow-y: auto;
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #bcbcbc;
+  margin-top: 0.5rem;
+}
+
+.no-logs {
+  color: #555;
+  text-align: center;
+  margin-top: 3rem;
+}

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState, ChangeEvent } from "react";
 import "./ServerSettings.css";
 
@@ -16,11 +17,8 @@ interface Category {
   settings: Setting[];
 }
 
-interface ServerSettingsFancyProps {
-  game: string;
-}
-
-export default function ServerSettingsFancy({ game }: ServerSettingsFancyProps) {
+export default function ServerSettingsFancy() {
+  const [game, setGame] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +27,30 @@ export default function ServerSettingsFancy({ game }: ServerSettingsFancyProps) 
   const [message, setMessage] = useState("");
 
   // -------------------
+  // Fetch active game first
+  // -------------------
+  useEffect(() => {
+    const fetchActiveGame = async () => {
+      try {
+        const res = await fetch("/api/active-game");
+        if (!res.ok) throw new Error("Failed to get active game");
+        const data = await res.json();
+        if (data.active_game?.appId) setGame(data.active_game.appId);
+        else setGame(""); // fallback if no active game
+      } catch (err: any) {
+        console.error(err);
+        setGame(""); 
+      }
+    };
+    fetchActiveGame();
+  }, []);
+
+  // -------------------
   // Fetch schema from backend
   // -------------------
   useEffect(() => {
+    if (!game) return;
+
     const fetchSchema = async () => {
       try {
         setLoading(true);
@@ -70,6 +89,7 @@ export default function ServerSettingsFancy({ game }: ServerSettingsFancyProps) 
   };
 
   const handleSave = async () => {
+    if (!game) return;
     setSaving(true);
     setMessage("");
     try {
@@ -88,13 +108,15 @@ export default function ServerSettingsFancy({ game }: ServerSettingsFancyProps) 
     }
   };
 
+  if (!game) return <p>No active game selected. Please select a game first.</p>;
   if (loading) return <p>Loading settings...</p>;
   if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div className="fancy-wrapper">
       <header>
-        <h1>⚙️ {game} Server Settings</h1>
+        <h1>⚙️ {game === "108600" ? "Project Zomboid" : game} Server Settings</h1>
+        <p>Editing settings for the active game.</p>
       </header>
       <main>
         {categories.map(cat => (

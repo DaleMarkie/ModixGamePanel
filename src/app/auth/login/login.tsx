@@ -20,8 +20,18 @@ const getLocalUsers = (): LocalUser[] => {
   if (!data) {
     const testUsers: LocalUser[] = [
       { username: "owner", password: "owner", role: "Owner", roles: ["Owner"] },
-      { username: "admin", password: "admin123", role: "Admin", roles: ["Admin"] },
-      { username: "subuser1", password: "password1", role: "SubUser", roles: ["SubUser"] },
+      {
+        username: "admin",
+        password: "admin123",
+        role: "Admin",
+        roles: ["Admin"],
+      },
+      {
+        username: "subuser1",
+        password: "password1",
+        role: "SubUser",
+        roles: ["SubUser"],
+      },
     ];
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
     return testUsers;
@@ -33,7 +43,8 @@ const saveLocalUsers = (users: LocalUser[]) => {
   localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
 };
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:2010";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:2010";
 
 export default function Login() {
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -42,7 +53,9 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [acceptLicense, setAcceptLicense] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: string } | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: string } | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -58,7 +71,10 @@ export default function Login() {
     resetMessage();
 
     if (!acceptLicense) {
-      setMessage({ text: "You must accept the Modix License to log in.", type: "error" });
+      setMessage({
+        text: "You must accept the Modix License to log in.",
+        type: "error",
+      });
       return;
     }
     if (!username || !password) {
@@ -90,15 +106,21 @@ export default function Login() {
       );
       recordLogin(user.username);
 
-      if (rememberMe) localStorage.setItem("modix_last_username", user.username);
+      if (rememberMe)
+        localStorage.setItem("modix_last_username", user.username);
       else localStorage.removeItem("modix_last_username");
 
-      setMessage({ text: `Welcome ${user.username}! Redirecting...`, type: "success" });
+      setMessage({
+        text: `Welcome ${user.username}! Redirecting...`,
+        type: "success",
+      });
       setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
     } catch {
       // fallback: localStorage login
       const users = getLocalUsers();
-      const user = users.find(u => u.username === username && u.password === password);
+      const user = users.find(
+        (u) => u.username === username && u.password === password
+      );
 
       if (!user) {
         setMessage({ text: "Invalid username or password", type: "error" });
@@ -114,10 +136,14 @@ export default function Login() {
         );
         recordLogin(user.username);
 
-        if (rememberMe) localStorage.setItem("modix_last_username", user.username);
+        if (rememberMe)
+          localStorage.setItem("modix_last_username", user.username);
         else localStorage.removeItem("modix_last_username");
 
-        setMessage({ text: `Welcome ${user.username}! Redirecting...`, type: "success" });
+        setMessage({
+          text: `Welcome ${user.username}! Redirecting...`,
+          type: "success",
+        });
         setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
       }
     } finally {
@@ -147,7 +173,10 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             className="login-input"
           />
-          <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+          <span
+            className="toggle-password"
+            onClick={() => setShowPassword(!showPassword)}
+          >
             {showPassword ? "🙈" : "👁️"}
           </span>
         </div>
