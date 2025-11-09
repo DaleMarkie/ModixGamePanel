@@ -15,11 +15,23 @@ export default function DashboardLayout({ children }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [theme, setTheme] = useState({
     background: "",
+    gradient: "",
     logo: "https://i.ibb.co/cMPwcn8/logo.png",
     title: "Modix Game Panel",
     icons: {},
-    menuOrder: navLinks.map((i) => i.label),
+    menuOrder: [],
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved) {
+      try {
+        setTheme(JSON.parse(saved));
+      } catch {
+        console.error("Failed to parse saved theme");
+      }
+    }
+  }, []);
 
   const currentUser = useMemo(() => {
     try {
@@ -28,11 +40,6 @@ export default function DashboardLayout({ children }) {
     } catch {
       return null;
     }
-  }, []);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    if (savedTheme) setTheme(JSON.parse(savedTheme));
   }, []);
 
   const allowedPages =
@@ -51,20 +58,16 @@ export default function DashboardLayout({ children }) {
       links
         .map(({ label, href = "", submenu }) => {
           if (!currentUser && label.toLowerCase() !== "support") return null;
-
           const matchesSearch =
             !searchTerm ||
             label.toLowerCase().includes(lowerSearch) ||
             (href && href.toLowerCase().includes(lowerSearch));
-
           const hasPermission =
             !allowedPages ||
             allowedPages.includes(label) ||
             (href && allowedPages.includes(href.replace(/^\//, ""))) ||
             (href && allowedPages.includes(href));
-
-          let filteredSubmenu = submenu ? filterLinks(submenu) : null;
-
+          const filteredSubmenu = submenu ? filterLinks(submenu) : null;
           if (
             (matchesSearch && hasPermission) ||
             (filteredSubmenu && filteredSubmenu.length > 0)
@@ -74,71 +77,80 @@ export default function DashboardLayout({ children }) {
           return null;
         })
         .filter(Boolean);
-
     return filterLinks(navLinks);
   }, [searchTerm, allowedPages, currentUser]);
 
-  const orderedNavLinks = useMemo(() => {
-    return theme.menuOrder
-      .map((label) => filteredNavLinks.find((i) => i.label === label))
-      .filter(Boolean);
-  }, [theme, filteredNavLinks]);
+  const renderMenuItems = (items, level = 0) =>
+    items.map(({ label, href = "", submenu }) => {
+      const isOpen = !!openMenus[href];
+      const hasSubmenu = submenu && submenu.length > 0;
+      const iconClass = theme.icons?.[label];
 
-  const renderMenuItems = (items, level = 0) => (
-    <ul className={`menu-level-${level}`}>
-      {items.map(({ label, href = "", submenu }) => {
-        const iconClass = theme.icons[label];
-        const isOpen = !!openMenus[href];
-        const hasSubmenu = submenu && submenu.length > 0;
-
-        return hasSubmenu ? (
-          <li key={label} className="menu-item has-submenu">
-            <button
-              type="button"
-              aria-expanded={isOpen}
-              aria-controls={`submenu-${label}`}
-              onClick={() => toggleSubMenu(href || label)}
-              className={`menu-button ${isOpen ? "open" : ""}`}
+      return (
+        <li
+          key={href || label}
+          className={`menu-item ${hasSubmenu ? "has-submenu" : ""}`}
+        >
+          {hasSubmenu ? (
+            <>
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={`submenu-${label}`}
+                onClick={() => toggleSubMenu(href || label)}
+                className={`menu-button ${isOpen ? "open" : ""} ${
+                  !sidebarOpen ? "icon-only" : ""
+                }`}
+                title={!sidebarOpen ? label : ""}
+              >
+                {iconClass && <i className={`fa ${iconClass}`}></i>}
+                {sidebarOpen && <span>{label}</span>}
+                <FaChevronRight
+                  className={`chevron ${isOpen ? "rotated" : ""}`}
+                  aria-hidden="true"
+                />
+              </button>
+              <ul
+                id={`submenu-${label}`}
+                role="region"
+                aria-label={`${label} submenu`}
+                className={`submenu ${isOpen ? "expanded" : "collapsed"}`}
+              >
+                {renderMenuItems(submenu, level + 1)}
+              </ul>
+            </>
+          ) : (
+            <a
+              href={href}
+              className={`menu-link ${!sidebarOpen ? "icon-only" : ""} ${
+                level > 0 ? "submenu-link" : ""
+              }`}
+              title={!sidebarOpen ? label : ""}
+              style={{ paddingLeft: sidebarOpen ? `${level * 16 + 12}px` : "" }}
             >
-              {iconClass && <i className={`fa ${iconClass}`} />}
-              <span>{label}</span>
-              <FaChevronRight
-                className={`chevron ${isOpen ? "rotated" : ""}`}
-                aria-hidden="true"
-              />
-            </button>
-            <ul
-              id={`submenu-${label}`}
-              role="region"
-              aria-label={`${label} submenu`}
-              className={`submenu ${isOpen ? "expanded" : "collapsed"}`}
-            >
-              {renderMenuItems(submenu, level + 1)}
-            </ul>
-          </li>
-        ) : (
-          <li key={href || label} className="menu-item">
-            <a href={href} className={`menu-link level-${level}`}>
-              {iconClass && <i className={`fa ${iconClass}`} />}
-              {label}
+              {iconClass && <i className={`fa ${iconClass}`}></i>}
+              {sidebarOpen && <span>{label}</span>}
             </a>
-          </li>
-        );
-      })}
-    </ul>
-  );
+          )}
+        </li>
+      );
+    });
 
   return (
-    <div
-      className="dashboard-root"
-      style={{
-        backgroundImage: theme.background ? `url(${theme.background})` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <div className="dashboard-root">
+      <div
+        className="dashboard-background"
+        style={{
+          backgroundImage:
+            theme.gradient && theme.gradient !== ""
+              ? theme.gradient
+              : theme.background && theme.background !== ""
+              ? `url(${theme.background})`
+              : "none",
+        }}
+      />
       <div className="dashboard-overlay" />
+
       <div className="dashboard-container">
         <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <div
@@ -149,45 +161,28 @@ export default function DashboardLayout({ children }) {
             aria-pressed={sidebarOpen}
           >
             <div className="sidebar-logo-row">
-              <img alt="Logo" className="sidebar-logo" src={theme.logo} />
+              <img
+                alt="Modix Logo"
+                className="sidebar-logo"
+                src={theme.logo || "https://i.ibb.co/cMPwcn8/logo.png"}
+              />
               {sidebarOpen && (
                 <span className="sidebar-title">{theme.title}</span>
               )}
-              <button
-                className="sidebar-toggle-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSidebarOpen((v) => !v);
-                }}
-              >
-                <FaBars />
-              </button>
             </div>
+            <button
+              className="sidebar-toggle-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSidebarOpen((v) => !v);
+              }}
+            >
+              <FaBars />
+            </button>
           </div>
 
           {sidebarOpen && (
-            <div className="sidebar-search">
-              <input
-                type="search"
-                placeholder="Search menu..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
-
-          <nav className="sidebar-menu-container">
-            {orderedNavLinks.length > 0 ? (
-              renderMenuItems(orderedNavLinks)
-            ) : (
-              <p style={{ padding: "1rem", color: "#888" }}>No access</p>
-            )}
-          </nav>
-
-          {sidebarOpen && currentUser && <SidebarUserInfo />}
-
-          {sidebarOpen && (
-            <footer className="sidebar-footer">
+            <div className="sidebar-auth-top">
               {currentUser ? (
                 <button
                   className="auth-button"
@@ -204,14 +199,48 @@ export default function DashboardLayout({ children }) {
                   🔒 Login
                 </a>
               )}
-              <div style={{ marginTop: "8px", fontSize: "0.8rem" }}>
-                &copy; 2024 - 2025 Modix Game Panel
-              </div>
-            </footer>
+            </div>
           )}
+
+          <div className="sidebar-search">
+            <input
+              type="search"
+              placeholder="Search menu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <nav
+            className={`sidebar-menu-container ${
+              !sidebarOpen ? "collapsed" : ""
+            }`}
+          >
+            {filteredNavLinks.length > 0 ? (
+              <ul>
+                {theme.menuOrder.length > 0
+                  ? renderMenuItems(
+                      filteredNavLinks.sort(
+                        (a, b) =>
+                          theme.menuOrder.indexOf(a.label) -
+                          theme.menuOrder.indexOf(b.label)
+                      )
+                    )
+                  : renderMenuItems(filteredNavLinks)}
+              </ul>
+            ) : (
+              <p style={{ padding: "1rem", color: "#888" }}>
+                ⚠️ <strong>You must be logged in to gain permissions.</strong>
+              </p>
+            )}
+          </nav>
+
+          <SidebarUserInfo />
+
+          <footer className="sidebar-footer">v1.12</footer>
         </aside>
 
-        <main className="main-scrollbox">{children}</main>
+        <main>{children}</main>
       </div>
     </div>
   );

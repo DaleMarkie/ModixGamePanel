@@ -22,32 +22,29 @@ export default function ServerSettingsFancy() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [settings, setSettings] = useState<Record<string, string | number | boolean>>({});
+  const [settings, setSettings] = useState<
+    Record<string, string | number | boolean>
+  >({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // -------------------
-  // Fetch active game first
-  // -------------------
+  // Fetch active game
   useEffect(() => {
     const fetchActiveGame = async () => {
       try {
         const res = await fetch("/api/active-game");
         if (!res.ok) throw new Error("Failed to get active game");
         const data = await res.json();
-        if (data.active_game?.appId) setGame(data.active_game.appId);
-        else setGame(""); // fallback if no active game
+        setGame(data.active_game?.appId || "");
       } catch (err: any) {
         console.error(err);
-        setGame(""); 
+        setGame("");
       }
     };
     fetchActiveGame();
   }, []);
 
-  // -------------------
-  // Fetch schema from backend
-  // -------------------
+  // Fetch schema
   useEffect(() => {
     if (!game) return;
 
@@ -63,13 +60,13 @@ export default function ServerSettingsFancy() {
         const data = await res.json();
         setCategories(data.categories);
 
-        // Initialize settings values
+        // Initialize settings
         const init: Record<string, any> = {};
-        data.categories.forEach((cat: Category) => {
+        data.categories.forEach((cat: Category) =>
           cat.settings.forEach((s: Setting) => {
             init[s.name] = s.default;
-          });
-        });
+          })
+        );
         setSettings(init);
       } catch (err: any) {
         setError(err.message);
@@ -80,12 +77,16 @@ export default function ServerSettingsFancy() {
     fetchSchema();
   }, [game]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>, type: string, name: string) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    type: string,
+    name: string
+  ) => {
     let val: string | number | boolean;
     if (type === "checkbox") val = e.target.checked;
     else if (type === "number") val = Number(e.target.value);
     else val = e.target.value;
-    setSettings(prev => ({ ...prev, [name]: val }));
+    setSettings((prev) => ({ ...prev, [name]: val }));
   };
 
   const handleSave = async () => {
@@ -108,47 +109,62 @@ export default function ServerSettingsFancy() {
     }
   };
 
-  if (!game) return <p>No active game selected. Please select a game first.</p>;
-  if (loading) return <p>Loading settings...</p>;
-  if (error) return <p className="error-text">{error}</p>;
-
   return (
     <div className="fancy-wrapper">
       <header>
-        <h1>⚙️ {game === "108600" ? "Project Zomboid" : game} Server Settings</h1>
+        <h1>
+          ⚙️{" "}
+          {game === "108600" ? "Project Zomboid" : game || "No Game Selected"}{" "}
+          Server Settings
+        </h1>
         <p>Editing settings for the active game.</p>
       </header>
-      <main>
-        {categories.map(cat => (
-          <section key={cat.category}>
-            <h2>{cat.category}</h2>
-            {cat.description && <p>{cat.description}</p>}
-            {cat.settings.map(s => (
-              <label key={s.name}>
-                {s.label}:
-                {s.type === "checkbox" ? (
-                  <input
-                    type="checkbox"
-                    checked={!!settings[s.name]}
-                    onChange={e => handleChange(e, s.type, s.name)}
-                  />
-                ) : (
-                  <input
-                    type={s.type}
-                    value={settings[s.name] as string | number}
-                    onChange={e => handleChange(e, s.type, s.name)}
-                  />
-                )}
-              </label>
-            ))}
-          </section>
-        ))}
-      </main>
+
+      {/* Status messages */}
+      <div className="status-messages">
+        {!game && <p>No active game selected. Please select a game first.</p>}
+        {loading && <p>Loading settings...</p>}
+        {error && <p className="error-text">{error}</p>}
+        {message && <p>{message}</p>}
+      </div>
+
+      {/* Settings content */}
+      {!loading && !error && game && (
+        <main>
+          {categories.map((cat) => (
+            <section key={cat.category}>
+              <h2>{cat.category}</h2>
+              {cat.description && <p>{cat.description}</p>}
+              {cat.settings.map((s) => (
+                <label key={s.name}>
+                  {s.label}:
+                  {s.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      checked={!!settings[s.name]}
+                      onChange={(e) => handleChange(e, s.type, s.name)}
+                    />
+                  ) : (
+                    <input
+                      type={s.type}
+                      value={settings[s.name] as string | number}
+                      onChange={(e) => handleChange(e, s.type, s.name)}
+                    />
+                  )}
+                </label>
+              ))}
+            </section>
+          ))}
+        </main>
+      )}
+
       <footer>
-        <button onClick={handleSave} disabled={saving}>
+        <button
+          onClick={handleSave}
+          disabled={saving || !game || loading || !!error}
+        >
           {saving ? "Saving..." : "💾 Save Settings"}
         </button>
-        {message && <p>{message}</p>}
       </footer>
     </div>
   );

@@ -286,3 +286,351 @@ main {
 .auth-button:hover {
   background-color: #1b5e20; /* darker green on hover */
 }
+.sidebar-menu-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.menu-item {
+  list-style: none;
+  margin: 4px 0;
+}
+
+.menu-link,
+.menu-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  color: #ddd;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.menu-link:hover,
+.menu-button:hover {
+  background: #2a2a2a;
+  transform: translateX(2px);
+}
+
+.has-submenu .menu-button {
+  background: #1f1f1f;
+  font-weight: 600;
+}
+
+.chevron {
+  transition: transform 0.2s;
+}
+
+.chevron.rotated {
+  transform: rotate(90deg);
+  color: #4caf50;
+}
+
+.submenu {
+  list-style: none;
+  margin: 4px 0 4px 8px;
+  padding-left: 0;
+  display: none;
+}
+
+.submenu.expanded {
+  display: block;
+}
+
+.submenu-link {
+  background: #2a2a2a;
+  border-left: 3px solid #4caf50;
+  margin: 2px 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.submenu-link:hover {
+  background: #333;
+}
+/* Fullscreen background */
+.dashboard-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Keep overlay for dimming */
+.dashboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+/* Fullscreen background (image or gradient, only one at a time) */
+.dashboard-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2; /* behind everything */
+  background-size: cover; /* ensures full screen */
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* Example gradient class */
+.background-gradient {
+  background: linear-gradient(135deg, #4caf50, #5566ff);
+}
+
+/* Example image class */
+.background-image {
+  background: url("https://i.ibb.co/cMPwcn8/logo.png") center center / cover
+    no-repeat;
+}
+
+/* Dashboard overlay (dim) stays above background */
+.dashboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+
+/* Center container scrolls internally, does not affect background */
+.dashboard-container {
+  position: fixed;
+  margin: 0 auto;
+  display: flex;
+  max-width: 1280px;
+  width: 100%;
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
+  min-height: 100vh;
+  overflow: hidden; /* internal scroll only */
+}
+
+/* Scrollable main content */
+main {
+  flex-grow: 1;
+  padding: 20px 30px;
+  color: var(--text-main);
+  overflow-y: auto; /* scroll only the main content */
+  max-height: 100vh;
+}
+
+/* Sidebar stays fixed, scrollable */
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+:root {
+  --primary: #4caf50;
+  --accent: #5566ff;
+  --bg-dark: #121212;
+  --bg-card: #181818;
+  --bg-sidebar: #1c1c1c;
+  --text-main: #eee;
+  --text-muted: #999;
+  --radius: 8px;
+  --transition: 0.3s ease;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-main);
+}
+
+.dashboard-root {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 64px 16px 16px;
+}
+
+.dashboard-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.dashboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+
+.dashboard-container {
+  display: flex;
+  position: relative;
+  max-width: 1280px;
+  width: 100%;
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  background: var(--bg-sidebar);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #222;
+  transition: width var(--transition);
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.sidebar.open {
+  width: 250px;
+  padding: 12px;
+}
+
+.sidebar.closed {
+  width: 60px;
+  padding: 8px 0;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sidebar-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.sidebar-title {
+  font-weight: 700;
+}
+
+.sidebar-toggle-button {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.sidebar-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: none;
+  background: #2c2c2c;
+  color: var(--text-main);
+}
+
+.sidebar-menu-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-menu-container.collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.menu-link,
+.menu-button {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ddd;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.menu-link:hover,
+.menu-button:hover {
+  background: #2a2a2a;
+}
+
+.menu-link.icon-only,
+.menu-button.icon-only {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.menu-link.icon-only span,
+.menu-button.icon-only span {
+  display: none;
+}
+
+.menu-link.icon-only i,
+.menu-button.icon-only i {
+  font-size: 20px;
+}
+
+.submenu {
+  list-style: none;
+  padding-left: 12px;
+  display: none;
+}
+
+.submenu.expanded {
+  display: block;
+}
+
+.sidebar-footer {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #222;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+}
+
+main {
+  flex-grow: 1;
+  padding: 20px 30px;
+  overflow-y: auto;
+  min-height: 100vh;
+  color: var(--text-main);
+}

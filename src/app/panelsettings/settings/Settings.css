@@ -1,0 +1,94 @@
+.panel-settings-container {
+  padding: 2rem;
+  color: var(--text-main, #fff);
+  background: var(--bg-main, #111);
+  min-height: 100vh;
+}
+
+.settings-title {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #aaffaa;
+}
+
+.settings-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.setting-card {
+  background: var(--bg-card, #1b1b1b);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  width: 250px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.setting-card h3 {
+  margin-bottom: 1rem;
+  color: #8ef58e;
+}
+
+.setting-card p {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #ccc);
+}
+
+.settings-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.save-btn,
+.preview-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: 0.3s;
+}
+
+.save-btn {
+  background-color: #2e7d32;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background-color: #388e3c;
+}
+
+.preview-btn {
+  background-color: #444;
+  color: #fff;
+}
+
+.preview-btn:hover {
+  background-color: #555;
+}
+
+.preview-box {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.preview-header {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  color: #fff;
+  font-weight: bold;
+}

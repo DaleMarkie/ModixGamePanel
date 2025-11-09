@@ -5,7 +5,7 @@ import "./login.css";
 import { recordLogin } from "../activity/Activity";
 
 const LOCAL_USERS_KEY = "modix_local_users";
-const SESSION_KEY = "modix_active_session";
+const SESSION_KEY = "modix_aactive_session";
 
 interface LocalUser {
   username: string;
