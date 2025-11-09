@@ -32,26 +32,9 @@ export const navLinks: NavItem[] = [
     ],
   },
 
-  // --- Player Tools ---
-  {
-    label: "👥 Players",
-    href: "/players",
-    submenu: [
-      { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
-      { label: "🔎 Player Search", href: "/steamplayermanager" },
-      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-      { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
-      {
-        label: "🚫 Bans & Restrictions",
-        href: "/PlayerManagement/PlayerBanned",
-      },
-      { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
-    ],
-  },
-
   // --- Server Management ---
   {
-    label: "🎮 Server Management",
+    label: "🎮 My Server",
     href: "/server",
     submenu: [
       { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
@@ -69,6 +52,23 @@ export const navLinks: NavItem[] = [
           },
         ],
       },
+    ],
+  },
+
+  // --- Player Tools ---
+  {
+    label: "👥 Players",
+    href: "/players",
+    submenu: [
+      { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
+      { label: "🔎 Player Search", href: "/steamplayermanager" },
+      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
+      { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
+      {
+        label: "🚫 Bans & Restrictions",
+        href: "/PlayerManagement/PlayerBanned",
+      },
+      { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
     ],
   },
 
@@ -135,7 +135,6 @@ export const navLinks: NavItem[] = [
     submenu: [
       { label: "🗝️ API Keys", href: "/panelsettings/tokens" },
       { label: "🎨 Theme Customization", href: "/panelsettings/thememanager" },
-      { label: "⬆️ Change Log", href: "/panelsettings/changelogs" },
     ],
   },
 

@@ -5,7 +5,7 @@ import "./ThemeManager.css";
 
 const THEME_KEY = "modix_dashboard_theme";
 
-// Image presets
+// Image backgrounds
 const imagePresets = [
   { label: "Default", url: "" },
   {
@@ -17,7 +17,7 @@ const imagePresets = [
   { label: "Zomboid 4", url: "https://i.imgur.com/wmJt0aK.jpg" },
 ];
 
-// Gradient presets
+// Gradient backgrounds
 const gradientPresets = [
   {
     label: "Neon Green",
@@ -97,7 +97,7 @@ const defaultTheme = {
 export default function ThemeManager() {
   const [theme, setTheme] = useState(defaultTheme);
 
-  // Load saved theme
+  // Load saved theme on mount
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
@@ -106,6 +106,13 @@ export default function ThemeManager() {
       applyTheme(savedTheme);
     }
   }, []);
+
+  // Apply theme globally whenever it changes
+  useEffect(() => {
+    applyTheme(theme);
+    // Save immediately to localStorage for persistence across pages
+    localStorage.setItem(THEME_KEY, JSON.stringify(theme));
+  }, [theme]);
 
   const applyTheme = (t: typeof defaultTheme) => {
     const body = document.body;
@@ -119,18 +126,9 @@ export default function ThemeManager() {
     }
   };
 
-  // Save button handler
-  const handleSave = () => {
-    localStorage.setItem(THEME_KEY, JSON.stringify(theme));
-    applyTheme(theme);
-    alert("Theme saved and applied globally!");
-  };
-
-  // Reset button handler
   const handleReset = () => {
-    localStorage.removeItem(THEME_KEY);
     setTheme(defaultTheme);
-    applyTheme(defaultTheme);
+    localStorage.removeItem(THEME_KEY);
   };
 
   return (
@@ -185,7 +183,7 @@ export default function ThemeManager() {
         })}
       </div>
 
-      {/* Custom inputs */}
+      {/* Custom URL input */}
       <div className="input-group">
         <label>Custom Background URL:</label>
         <input
@@ -218,17 +216,12 @@ export default function ThemeManager() {
         />
       </div>
 
-      {/* Save / Reset */}
       <div className="action-buttons">
-        <button className="save-button" onClick={handleSave}>
-          💾 Save
-        </button>
         <button className="reset-button" onClick={handleReset}>
           ♻️ Reset
         </button>
       </div>
 
-      {/* Live preview */}
       <div
         className="preview-box"
         style={{

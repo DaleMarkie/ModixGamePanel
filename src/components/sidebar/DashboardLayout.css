@@ -243,11 +243,11 @@ body {
 /* Main Content (Right Screen Box) */
 main {
   flex-grow: 1;
-  margin: 12px;
+  margin: 0px;
   background: #222;
   color: var(--text-main);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 0px;
   box-sizing: border-box;
   overflow-y: auto;
   max-height: calc(100vh - 64px); /* keep visible below top padding */
@@ -259,7 +259,7 @@ main {
 main .content-inner {
   min-height: 4%;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 0px;
 }
 
 /* Fullscreen Background */
