@@ -14,14 +14,15 @@ export default function DashboardLayout({ children }) {
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [theme, setTheme] = useState({
-    background: "",
-    gradient: "",
+    background: "", // image background
+    gradient: "", // gradient background
     logo: "https://i.ibb.co/cMPwcn8/logo.png",
     title: "Modix Game Panel",
     icons: {},
     menuOrder: [],
   });
 
+  // Load theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
@@ -54,20 +55,25 @@ export default function DashboardLayout({ children }) {
 
   const filteredNavLinks = useMemo(() => {
     const lowerSearch = searchTerm.toLowerCase();
+
     const filterLinks = (links) =>
       links
         .map(({ label, href = "", submenu }) => {
           if (!currentUser && label.toLowerCase() !== "support") return null;
+
           const matchesSearch =
             !searchTerm ||
             label.toLowerCase().includes(lowerSearch) ||
             (href && href.toLowerCase().includes(lowerSearch));
+
           const hasPermission =
             !allowedPages ||
             allowedPages.includes(label) ||
             (href && allowedPages.includes(href.replace(/^\//, ""))) ||
             (href && allowedPages.includes(href));
+
           const filteredSubmenu = submenu ? filterLinks(submenu) : null;
+
           if (
             (matchesSearch && hasPermission) ||
             (filteredSubmenu && filteredSubmenu.length > 0)
@@ -77,6 +83,7 @@ export default function DashboardLayout({ children }) {
           return null;
         })
         .filter(Boolean);
+
     return filterLinks(navLinks);
   }, [searchTerm, allowedPages, currentUser]);
 
@@ -98,13 +105,11 @@ export default function DashboardLayout({ children }) {
                 aria-expanded={isOpen}
                 aria-controls={`submenu-${label}`}
                 onClick={() => toggleSubMenu(href || label)}
-                className={`menu-button ${isOpen ? "open" : ""} ${
-                  !sidebarOpen ? "icon-only" : ""
-                }`}
-                title={!sidebarOpen ? label : ""}
+                className={`menu-button ${isOpen ? "open" : ""}`}
               >
-                {iconClass && <i className={`fa ${iconClass}`}></i>}
-                {sidebarOpen && <span>{label}</span>}
+                <span>
+                  {iconClass && <i className={`fa ${iconClass}`}></i>} {label}
+                </span>
                 <FaChevronRight
                   className={`chevron ${isOpen ? "rotated" : ""}`}
                   aria-hidden="true"
@@ -122,14 +127,10 @@ export default function DashboardLayout({ children }) {
           ) : (
             <a
               href={href}
-              className={`menu-link ${!sidebarOpen ? "icon-only" : ""} ${
-                level > 0 ? "submenu-link" : ""
-              }`}
-              title={!sidebarOpen ? label : ""}
-              style={{ paddingLeft: sidebarOpen ? `${level * 16 + 12}px` : "" }}
+              className={`menu-link ${level > 0 ? "submenu-link" : ""}`}
+              style={{ paddingLeft: `${level * 16 + 12}px` }}
             >
-              {iconClass && <i className={`fa ${iconClass}`}></i>}
-              {sidebarOpen && <span>{label}</span>}
+              {iconClass && <i className={`fa ${iconClass}`}></i>} {label}
             </a>
           )}
         </li>
@@ -138,20 +139,24 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="dashboard-root">
+      {/* Fullscreen Background (gradient or image) */}
       <div
         className="dashboard-background"
         style={{
-          backgroundImage:
-            theme.gradient && theme.gradient !== ""
-              ? theme.gradient
-              : theme.background && theme.background !== ""
-              ? `url(${theme.background})`
-              : "none",
+          background: theme.gradient
+            ? theme.gradient // gradient takes priority
+            : theme.background
+            ? `url(${theme.background}) no-repeat center center / cover`
+            : "#111",
         }}
       />
+
+      {/* Overlay */}
       <div className="dashboard-overlay" />
 
+      {/* Content */}
       <div className="dashboard-container">
+        {/* Sidebar */}
         <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <div
             className="sidebar-header"
@@ -169,77 +174,75 @@ export default function DashboardLayout({ children }) {
               {sidebarOpen && (
                 <span className="sidebar-title">{theme.title}</span>
               )}
+              <button
+                className="sidebar-toggle-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSidebarOpen((v) => !v);
+                }}
+              >
+                <FaBars />
+              </button>
             </div>
-            <button
-              className="sidebar-toggle-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSidebarOpen((v) => !v);
-              }}
-            >
-              <FaBars />
-            </button>
           </div>
 
           {sidebarOpen && (
-            <div className="sidebar-auth-top">
-              {currentUser ? (
-                <button
-                  className="auth-button"
-                  onClick={() => {
-                    localStorage.removeItem(USER_KEY);
-                    window.location.reload();
-                  }}
-                >
-                  🔓 Logout (
-                  {currentUser.username || currentUser.name || "User"})
-                </button>
-              ) : (
-                <a href="/auth/login" className="auth-button">
-                  🔒 Login
-                </a>
-              )}
-            </div>
+            <>
+              <div className="sidebar-search">
+                <input
+                  type="search"
+                  placeholder="Search menu..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <nav className="sidebar-menu-container">
+                {filteredNavLinks.length > 0 ? (
+                  <ul>
+                    {theme.menuOrder.length > 0
+                      ? renderMenuItems(
+                          filteredNavLinks.sort(
+                            (a, b) =>
+                              theme.menuOrder.indexOf(a.label) -
+                              theme.menuOrder.indexOf(b.label)
+                          )
+                        )
+                      : renderMenuItems(filteredNavLinks)}
+                  </ul>
+                ) : (
+                  <p style={{ padding: "1rem", color: "#888" }}>
+                    ⚠️{" "}
+                    <strong>You must be logged in to gain permissions.</strong>
+                  </p>
+                )}
+              </nav>
+
+              <SidebarUserInfo />
+
+              <footer className="sidebar-footer">
+                {currentUser ? (
+                  <button
+                    className="auth-button"
+                    onClick={() => {
+                      localStorage.removeItem(USER_KEY);
+                      window.location.reload();
+                    }}
+                  >
+                    🔓 Logout (
+                    {currentUser.username || currentUser.name || "User"})
+                  </button>
+                ) : (
+                  <a href="/auth/login" className="auth-button">
+                    🔒 Login
+                  </a>
+                )}
+              </footer>
+            </>
           )}
-
-          <div className="sidebar-search">
-            <input
-              type="search"
-              placeholder="Search menu..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <nav
-            className={`sidebar-menu-container ${
-              !sidebarOpen ? "collapsed" : ""
-            }`}
-          >
-            {filteredNavLinks.length > 0 ? (
-              <ul>
-                {theme.menuOrder.length > 0
-                  ? renderMenuItems(
-                      filteredNavLinks.sort(
-                        (a, b) =>
-                          theme.menuOrder.indexOf(a.label) -
-                          theme.menuOrder.indexOf(b.label)
-                      )
-                    )
-                  : renderMenuItems(filteredNavLinks)}
-              </ul>
-            ) : (
-              <p style={{ padding: "1rem", color: "#888" }}>
-                ⚠️ <strong>You must be logged in to gain permissions.</strong>
-              </p>
-            )}
-          </nav>
-
-          <SidebarUserInfo />
-
-          <footer className="sidebar-footer">v1.12</footer>
         </aside>
 
+        {/* Main content */}
         <main>{children}</main>
       </div>
     </div>

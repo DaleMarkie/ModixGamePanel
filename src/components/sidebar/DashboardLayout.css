@@ -15,7 +15,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: 4%;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg-dark);
   color: var(--text-main);
@@ -27,27 +27,23 @@ body {
   justify-content: center;
   align-items: flex-start;
   padding: 64px 16px 16px;
-}
-
-.dashboard-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(18, 18, 18, 0.7);
-  z-index: 0;
+  height: 4%;
+  box-sizing: border-box;
 }
 
 .dashboard-container {
-  position: relative;
   display: flex;
   width: 100%;
+  height: 80px;
   max-width: 1280px;
   background-color: var(--bg-card);
   border-radius: 16px;
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
     inset 0 0 30px rgba(255, 255, 255, 0.05);
-  min-height: 100vh;
+  min-height: 80vh;
   overflow: hidden;
   z-index: 1;
+  position: fixed;
 }
 
 /* Sidebar */
@@ -60,6 +56,7 @@ body {
   transition: width var(--transition), padding var(--transition);
   overflow: hidden;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .sidebar.open {
@@ -72,7 +69,7 @@ body {
   padding: 8px 6px;
 }
 
-/* Header */
+/* Sidebar Header */
 .sidebar-header {
   display: flex;
   flex-direction: column;
@@ -80,10 +77,6 @@ body {
   margin-bottom: 12px;
   cursor: pointer;
   outline: none;
-}
-
-.sidebar-header.closed {
-  align-items: center;
 }
 
 .sidebar-logo-row {
@@ -118,7 +111,7 @@ body {
   color: #66ff66;
 }
 
-/* Search */
+/* Sidebar Search */
 .sidebar-search {
   width: 100%;
   margin-bottom: 14px;
@@ -140,10 +133,11 @@ body {
   background: #3a3a3a;
 }
 
-/* Menu */
+/* Sidebar Menu with top & bottom caps */
 .sidebar-menu-container {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
+  padding: 1rem 0.5rem; /* top + bottom padding to avoid cutoff */
   scrollbar-width: thin;
   scrollbar-color: #555 transparent;
 }
@@ -151,147 +145,13 @@ body {
 .sidebar-menu-container::-webkit-scrollbar {
   width: 8px;
 }
+
 .sidebar-menu-container::-webkit-scrollbar-thumb {
   background-color: #555;
   border-radius: 6px;
 }
 
 /* Menu Items */
-.menu-item {
-  margin-bottom: 8px;
-}
-
-.menu-link {
-  display: block;
-  padding: 10px 16px;
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: var(--text-main);
-  font-weight: 600;
-  transition: background-color var(--transition), color var(--transition);
-}
-
-.menu-link:hover {
-  background-color: var(--primary);
-  color: white;
-}
-
-/* Submenus */
-.menu-button {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text-main);
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color var(--transition);
-}
-
-.menu-button:hover {
-  background: #237a30;
-}
-
-.menu-button.open {
-  background: #2a6e3a;
-}
-
-.chevron {
-  transition: transform var(--transition);
-}
-
-.chevron.rotated {
-  transform: rotate(90deg);
-}
-
-.submenu {
-  overflow: hidden;
-  transition: max-height 0.35s ease;
-}
-
-.submenu.collapsed {
-  max-height: 0;
-}
-
-.submenu.expanded {
-  max-height: 1000px;
-}
-
-/* Footer */
-.sidebar-footer {
-  margin-top: 16px;
-  padding-top: 8px;
-  border-top: 1px solid #222;
-  font-size: 13px;
-  color: #666;
-  text-align: center;
-}
-
-/* Main Content */
-main {
-  flex-grow: 1;
-  padding: 20px 30px;
-  background: #222;
-  color: var(--text-main);
-  min-height: 100vh;
-  overflow-y: auto;
-}
-.sidebar-auth {
-  margin: 1rem;
-  text-align: center;
-}
-
-.login-button,
-.logout-button {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: #5566ff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.login-button:hover,
-.logout-button:hover {
-  background-color: #4455dd;
-}
-/* Login/Logout button at top */
-.sidebar-auth-top {
-  margin: 1rem;
-  text-align: center;
-}
-
-.auth-button {
-  display: inline-block;
-  width: 90%;
-  padding: 8px 12px;
-  background-color: #2e7d32; /* dark green */
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.auth-button:hover {
-  background-color: #1b5e20; /* darker green on hover */
-}
-.sidebar-menu-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem;
-}
-
 .menu-item {
   list-style: none;
   margin: 4px 0;
@@ -305,7 +165,7 @@ main {
   text-decoration: none;
   color: #ddd;
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   transition: background 0.2s, transform 0.1s;
 }
 
@@ -326,7 +186,7 @@ main {
 
 .chevron.rotated {
   transform: rotate(90deg);
-  color: #4caf50;
+  color: var(--primary);
 }
 
 .submenu {
@@ -342,7 +202,7 @@ main {
 
 .submenu-link {
   background: #2a2a2a;
-  border-left: 3px solid #4caf50;
+  border-left: 3px solid var(--primary);
   margin: 2px 0;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
@@ -351,20 +211,71 @@ main {
 .submenu-link:hover {
   background: #333;
 }
-/* Fullscreen background */
+
+/* Sidebar Footer / Auth */
+.sidebar-footer {
+  margin-top: 16px;
+  padding: 12px 0; /* ensure bottom cap */
+  border-top: 1px solid #222;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+}
+
+.auth-button {
+  display: inline-block;
+  width: 90%;
+  padding: 8px 12px;
+  background-color: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.auth-button:hover {
+  background-color: #1b5e20;
+}
+
+/* Main Content (Right Screen Box) */
+main {
+  flex-grow: 1;
+  margin: 12px;
+  background: #222;
+  color: var(--text-main);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-height: calc(100vh - 64px); /* keep visible below top padding */
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+/* Optional: inner content container for padding + scrollbar */
+main .content-inner {
+  min-height: 4%;
+  box-sizing: border-box;
+  padding: 5px;
+}
+
+/* Fullscreen Background */
 .dashboard-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 1vh;
   z-index: -1;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
-/* Keep overlay for dimming */
+/* Overlay */
 .dashboard-overlay {
   position: fixed;
   top: 0;
@@ -373,264 +284,4 @@ main {
   height: 100vh;
   background: rgba(0, 0, 0, 0.3);
   z-index: 0;
-}
-/* Fullscreen background (image or gradient, only one at a time) */
-.dashboard-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -2; /* behind everything */
-  background-size: cover; /* ensures full screen */
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-/* Example gradient class */
-.background-gradient {
-  background: linear-gradient(135deg, #4caf50, #5566ff);
-}
-
-/* Example image class */
-.background-image {
-  background: url("https://i.ibb.co/cMPwcn8/logo.png") center center / cover
-    no-repeat;
-}
-
-/* Dashboard overlay (dim) stays above background */
-.dashboard-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: -1;
-}
-
-/* Center container scrolls internally, does not affect background */
-.dashboard-container {
-  position: fixed;
-  margin: 0 auto;
-  display: flex;
-  max-width: 1280px;
-  width: 100%;
-  background-color: var(--bg-card);
-  border-radius: 16px;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
-    inset 0 0 30px rgba(255, 255, 255, 0.05);
-  min-height: 100vh;
-  overflow: hidden; /* internal scroll only */
-}
-
-/* Scrollable main content */
-main {
-  flex-grow: 1;
-  padding: 20px 30px;
-  color: var(--text-main);
-  overflow-y: auto; /* scroll only the main content */
-  max-height: 100vh;
-}
-
-/* Sidebar stays fixed, scrollable */
-.sidebar {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-:root {
-  --primary: #4caf50;
-  --accent: #5566ff;
-  --bg-dark: #121212;
-  --bg-card: #181818;
-  --bg-sidebar: #1c1c1c;
-  --text-main: #eee;
-  --text-muted: #999;
-  --radius: 8px;
-  --transition: 0.3s ease;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--bg-dark);
-  color: var(--text-main);
-}
-
-.dashboard-root {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 64px 16px 16px;
-}
-
-.dashboard-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -2;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.dashboard-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: -1;
-}
-
-.dashboard-container {
-  display: flex;
-  position: relative;
-  max-width: 1280px;
-  width: 100%;
-  background-color: var(--bg-card);
-  border-radius: 16px;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
-    inset 0 0 30px rgba(255, 255, 255, 0.05);
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.sidebar {
-  background: var(--bg-sidebar);
-  color: var(--text-main);
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #222;
-  transition: width var(--transition);
-  overflow-y: auto;
-  height: 100vh;
-}
-
-.sidebar.open {
-  width: 250px;
-  padding: 12px;
-}
-
-.sidebar.closed {
-  width: 60px;
-  padding: 8px 0;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.sidebar-logo-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.sidebar-title {
-  font-weight: 700;
-}
-
-.sidebar-toggle-button {
-  background: transparent;
-  border: none;
-  color: var(--primary);
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.sidebar-search input {
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  border: none;
-  background: #2c2c2c;
-  color: var(--text-main);
-}
-
-.sidebar-menu-container {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.sidebar-menu-container.collapsed {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.menu-link,
-.menu-button {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #ddd;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.menu-link:hover,
-.menu-button:hover {
-  background: #2a2a2a;
-}
-
-.menu-link.icon-only,
-.menu-button.icon-only {
-  justify-content: center;
-  padding: 10px 0;
-}
-
-.menu-link.icon-only span,
-.menu-button.icon-only span {
-  display: none;
-}
-
-.menu-link.icon-only i,
-.menu-button.icon-only i {
-  font-size: 20px;
-}
-
-.submenu {
-  list-style: none;
-  padding-left: 12px;
-  display: none;
-}
-
-.submenu.expanded {
-  display: block;
-}
-
-.sidebar-footer {
-  margin-top: 16px;
-  padding-top: 8px;
-  border-top: 1px solid #222;
-  text-align: center;
-  font-size: 13px;
-  color: #666;
-}
-
-main {
-  flex-grow: 1;
-  padding: 20px 30px;
-  overflow-y: auto;
-  min-height: 100vh;
-  color: var(--text-main);
 }
