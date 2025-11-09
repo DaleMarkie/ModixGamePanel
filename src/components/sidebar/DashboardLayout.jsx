@@ -22,6 +22,16 @@ export default function DashboardLayout({ children }) {
     menuOrder: [],
   });
 
+  // Track user state for React-only refresh
+  const [currentUserState, setCurrentUserState] = useState(() => {
+    try {
+      const stored = localStorage.getItem(USER_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
   // Load theme on mount
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
@@ -35,7 +45,6 @@ export default function DashboardLayout({ children }) {
       }
     }
 
-    // Listen for theme changes from ThemeManager
     const handleThemeUpdate = (e) => {
       if (e.detail) {
         setTheme(e.detail);
@@ -44,41 +53,23 @@ export default function DashboardLayout({ children }) {
     };
     window.addEventListener("themeUpdate", handleThemeUpdate);
 
-    return () => {
-      window.removeEventListener("themeUpdate", handleThemeUpdate);
-    };
+    return () => window.removeEventListener("themeUpdate", handleThemeUpdate);
   }, []);
 
-  // Apply theme to body
   const applyTheme = (t) => {
     const body = document.body;
-    if (t.gradient) {
-      body.style.background = t.gradient;
-    } else if (t.background) {
+    if (t.gradient) body.style.background = t.gradient;
+    else if (t.background) {
       body.style.background = `url(${t.background}) no-repeat center center fixed`;
       body.style.backgroundSize = "cover";
-    } else {
-      body.style.background = "";
-    }
+    } else body.style.background = "";
   };
 
-  const currentUser = useMemo(() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  }, []);
-
   const allowedPages =
-    currentUser?.role === "Owner" ? null : currentUser?.pages || [];
+    currentUserState?.role === "Owner" ? null : currentUserState?.pages || [];
 
   const toggleSubMenu = (href) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [href]: !prev[href],
-    }));
+    setOpenMenus((prev) => ({ ...prev, [href]: !prev[href] }));
   };
 
   const filteredNavLinks = useMemo(() => {
@@ -86,7 +77,8 @@ export default function DashboardLayout({ children }) {
     const filterLinks = (links) =>
       links
         .map(({ label, href = "", submenu }) => {
-          if (!currentUser && label.toLowerCase() !== "support") return null;
+          if (!currentUserState && label.toLowerCase() !== "support")
+            return null;
 
           const matchesSearch =
             !searchTerm ||
@@ -112,7 +104,7 @@ export default function DashboardLayout({ children }) {
         .filter(Boolean);
 
     return filterLinks(navLinks);
-  }, [searchTerm, allowedPages, currentUser]);
+  }, [searchTerm, allowedPages, currentUserState]);
 
   const renderMenuItems = (items, level = 0) =>
     items.map(({ label, href = "", submenu }) => {
@@ -243,16 +235,20 @@ export default function DashboardLayout({ children }) {
               <SidebarUserInfo />
 
               <footer className="sidebar-footer">
-                {currentUser ? (
+                {currentUserState ? (
                   <button
                     className="auth-button"
                     onClick={() => {
+                      // Remove user and refresh React state only
                       localStorage.removeItem(USER_KEY);
-                      window.location.reload();
+                      setCurrentUserState(null);
                     }}
                   >
                     🔓 Logout (
-                    {currentUser.username || currentUser.name || "User"})
+                    {currentUserState.username ||
+                      currentUserState.name ||
+                      "User"}
+                    )
                   </button>
                 ) : (
                   <a href="/auth/login" className="auth-button">

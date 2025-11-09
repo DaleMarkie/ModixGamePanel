@@ -39,7 +39,6 @@ export const navLinks: NavItem[] = [
     submenu: [
       { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
       { label: "💾 Backups", href: "/servermanagement/backup" },
-      { label: "🧠 Auto Restart", href: "/servermanagement/autorestart" },
       {
         label: "🎮 Steam Tools",
         href: "/tools/steamparser",
