@@ -40,7 +40,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.8),
     inset 0 0 30px rgba(255, 255, 255, 0.05);
-  min-height: 80vh;
+  min-height: 85vh;
   overflow: hidden;
   z-index: 1;
   position: fixed;
