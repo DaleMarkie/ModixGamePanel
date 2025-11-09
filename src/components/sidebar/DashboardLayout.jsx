@@ -14,15 +14,14 @@ export default function DashboardLayout({ children }) {
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [theme, setTheme] = useState({
-    background: "", // image background
-    gradient: "", // gradient background
+    background: "",
+    gradient: "",
     logo: "https://i.ibb.co/cMPwcn8/logo.png",
     title: "Modix Game Panel",
     icons: {},
     menuOrder: [],
   });
 
-  // Load theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
@@ -139,24 +138,20 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="dashboard-root">
-      {/* Fullscreen Background (gradient or image) */}
       <div
         className="dashboard-background"
         style={{
           background: theme.gradient
-            ? theme.gradient // gradient takes priority
+            ? theme.gradient
             : theme.background
             ? `url(${theme.background}) no-repeat center center / cover`
             : "#111",
         }}
       />
 
-      {/* Overlay */}
       <div className="dashboard-overlay" />
 
-      {/* Content */}
       <div className="dashboard-container">
-        {/* Sidebar */}
         <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <div
             className="sidebar-header"
@@ -243,7 +238,19 @@ export default function DashboardLayout({ children }) {
         </aside>
 
         {/* Main content */}
-        <main>{children}</main>
+        <main>
+          <div className="content-inner">{children}</div>
+          <div
+            style={{
+              marginTop: "16px",
+              textAlign: "center",
+              fontSize: "12px",
+              color: "#888",
+            }}
+          >
+            © Modix Game Panel. 2024 - 2025
+          </div>
+        </main>
       </div>
     </div>
   );
