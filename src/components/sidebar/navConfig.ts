@@ -19,24 +19,12 @@ export const navLinks: NavItem[] = [
     href: "/terminal",
   },
 
-  // --- Mod Creation Suite ---
-  {
-    label: "🧩 My Mods",
-    href: "/tools/modcreation",
-    submenu: [
-      { label: "📦 My Mods", href: "/FileBrowser" },
-      { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
-      { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
-      { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
-    ],
-  },
-
   // --- Server Management ---
   {
     label: "🎮 My Server",
     href: "/server",
     submenu: [
+      { label: "🎮 Change Game", href: "/games" },
       { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
       { label: "💾 Backups", href: "/servermanagement/backup" },
       {
@@ -51,6 +39,19 @@ export const navLinks: NavItem[] = [
           },
         ],
       },
+    ],
+  },
+
+  // --- Mod Creation Suite ---
+  {
+    label: "🧩 My Mods",
+    href: "/tools/modcreation",
+    submenu: [
+      { label: "📦 My Mods", href: "/FileBrowser" },
+      { label: "🗂️ Workshop Manager", href: "/workshop" },
+      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
+      { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
+      { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
     ],
   },
 
@@ -83,9 +84,7 @@ export const navLinks: NavItem[] = [
     href: "/tools/security",
     submenu: [
       { label: "🛡️ DDoS Manager", href: "/security/ddosmanager" },
-      { label: "🔑 Admin Tokens", href: "/security/admin" },
       { label: "🚧 Firewall Rules", href: "/security/firewall" },
-      { label: "🕵️ Audit Logs", href: "/security/audit" },
     ],
   },
 
