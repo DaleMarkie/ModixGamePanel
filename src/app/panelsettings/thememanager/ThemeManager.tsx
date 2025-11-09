@@ -5,7 +5,7 @@ import "./ThemeManager.css";
 
 const THEME_KEY = "modix_dashboard_theme";
 
-// Image backgrounds
+// Image presets
 const imagePresets = [
   { label: "Default", url: "" },
   {
@@ -17,7 +17,7 @@ const imagePresets = [
   { label: "Zomboid 4", url: "https://i.imgur.com/wmJt0aK.jpg" },
 ];
 
-// Gradient backgrounds
+// Gradient presets
 const gradientPresets = [
   {
     label: "Neon Green",
@@ -39,6 +39,49 @@ const gradientPresets = [
   {
     label: "Cyber Pink",
     gradient: "linear-gradient(135deg, #ff00cc, #333399)",
+  },
+  {
+    label: "Deep Space",
+    gradient: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+  },
+  { label: "Nightfall", gradient: "linear-gradient(135deg, #232526, #414345)" },
+  {
+    label: "Dark Ocean",
+    gradient: "linear-gradient(135deg, #000428, #004e92)",
+  },
+  { label: "Eclipse", gradient: "linear-gradient(135deg, #141e30, #243b55)" },
+  {
+    label: "Vampire Red",
+    gradient: "linear-gradient(135deg, #3a0000, #800000)",
+  },
+  {
+    label: "Twilight Blue",
+    gradient: "linear-gradient(135deg, #0f2027, #2c5364)",
+  },
+  {
+    label: "Shadow Purple",
+    gradient: "linear-gradient(135deg, #2c003e, #4b0082)",
+  },
+  {
+    label: "Midnight Teal",
+    gradient: "linear-gradient(135deg, #003333, #004d4d)",
+  },
+  {
+    label: "Obsidian",
+    gradient: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+  },
+  {
+    label: "Burnt Umber",
+    gradient: "linear-gradient(135deg, #5a3f37, #2c7744)",
+  },
+  { label: "Dark Ruby", gradient: "linear-gradient(135deg, #4b0000, #8b0000)" },
+  {
+    label: "Stormy Sky",
+    gradient: "linear-gradient(135deg, #2c3e50, #34495e)",
+  },
+  {
+    label: "Cosmic Dust",
+    gradient: "linear-gradient(135deg, #1e130c, #3a1c0b, #5d2c06)",
   },
 ];
 
@@ -64,11 +107,6 @@ export default function ThemeManager() {
     }
   }, []);
 
-  // Apply theme on change
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
   const applyTheme = (t: typeof defaultTheme) => {
     const body = document.body;
     if (t.gradient) {
@@ -81,31 +119,18 @@ export default function ThemeManager() {
     }
   };
 
+  // Save button handler
   const handleSave = () => {
     localStorage.setItem(THEME_KEY, JSON.stringify(theme));
-    alert("Theme saved!");
+    applyTheme(theme);
+    alert("Theme saved and applied globally!");
   };
 
+  // Reset button handler
   const handleReset = () => {
     localStorage.removeItem(THEME_KEY);
     setTheme(defaultTheme);
-  };
-
-  const handleIconChange = (label: string, value: string) => {
-    setTheme((prev) => ({ ...prev, icons: { ...prev.icons, [label]: value } }));
-  };
-
-  const handleReorder = (label: string, direction: "up" | "down") => {
-    const index = theme.menuOrder.indexOf(label);
-    if (index === -1) return;
-    const newOrder = [...theme.menuOrder];
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    if (swapIndex < 0 || swapIndex >= newOrder.length) return;
-    [newOrder[index], newOrder[swapIndex]] = [
-      newOrder[swapIndex],
-      newOrder[index],
-    ];
-    setTheme((prev) => ({ ...prev, menuOrder: newOrder }));
+    applyTheme(defaultTheme);
   };
 
   return (
@@ -116,7 +141,7 @@ export default function ThemeManager() {
         icons, and menu order.
       </p>
 
-      {/* IMAGE PRESETS */}
+      {/* Image presets */}
       <h2 className="section-title">🖼️ Image Backgrounds</h2>
       <div className="preset-row">
         {imagePresets.map((p) => {
@@ -140,7 +165,7 @@ export default function ThemeManager() {
         })}
       </div>
 
-      {/* GRADIENT PRESETS */}
+      {/* Gradient presets */}
       <h2 className="section-title">🌈 Gradient Backgrounds</h2>
       <div className="preset-row">
         {gradientPresets.map((p) => {
@@ -191,24 +216,6 @@ export default function ThemeManager() {
           value={theme.title}
           onChange={(e) => setTheme({ ...theme, title: e.target.value })}
         />
-      </div>
-
-      {/* Menu icons */}
-      <div className="menu-icons-section">
-        <h2>Menu Icons (FontAwesome class)</h2>
-        {theme.menuOrder.map((label) => (
-          <div key={label} className="menu-icon-row">
-            <span className="menu-label">{label}</span>
-            <input
-              type="text"
-              placeholder="fa-icon-class"
-              value={theme.icons[label] || ""}
-              onChange={(e) => handleIconChange(label, e.target.value)}
-            />
-            <button onClick={() => handleReorder(label, "up")}>⬆️</button>
-            <button onClick={() => handleReorder(label, "down")}>⬇️</button>
-          </div>
-        ))}
       </div>
 
       {/* Save / Reset */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FaChevronRight, FaBars } from "react-icons/fa";
 import { navLinks } from "./navConfig";
 import SidebarUserInfo from "./SidebarUserInfo";
@@ -22,16 +22,45 @@ export default function DashboardLayout({ children }) {
     menuOrder: [],
   });
 
+  // Load theme on mount
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
       try {
-        setTheme(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setTheme(parsed);
+        applyTheme(parsed);
       } catch {
         console.error("Failed to parse saved theme");
       }
     }
+
+    // Listen for theme changes from ThemeManager
+    const handleThemeUpdate = (e) => {
+      if (e.detail) {
+        setTheme(e.detail);
+        applyTheme(e.detail);
+      }
+    };
+    window.addEventListener("themeUpdate", handleThemeUpdate);
+
+    return () => {
+      window.removeEventListener("themeUpdate", handleThemeUpdate);
+    };
   }, []);
+
+  // Apply theme to body
+  const applyTheme = (t) => {
+    const body = document.body;
+    if (t.gradient) {
+      body.style.background = t.gradient;
+    } else if (t.background) {
+      body.style.background = `url(${t.background}) no-repeat center center fixed`;
+      body.style.backgroundSize = "cover";
+    } else {
+      body.style.background = "";
+    }
+  };
 
   const currentUser = useMemo(() => {
     try {
@@ -54,7 +83,6 @@ export default function DashboardLayout({ children }) {
 
   const filteredNavLinks = useMemo(() => {
     const lowerSearch = searchTerm.toLowerCase();
-
     const filterLinks = (links) =>
       links
         .map(({ label, href = "", submenu }) => {
@@ -136,19 +164,18 @@ export default function DashboardLayout({ children }) {
       );
     });
 
+  const activeBackground = theme.gradient
+    ? theme.gradient
+    : theme.background
+    ? `url(${theme.background}) no-repeat center center / cover`
+    : "#111";
+
   return (
     <div className="dashboard-root">
       <div
         className="dashboard-background"
-        style={{
-          background: theme.gradient
-            ? theme.gradient
-            : theme.background
-            ? `url(${theme.background}) no-repeat center center / cover`
-            : "#111",
-        }}
+        style={{ background: activeBackground }}
       />
-
       <div className="dashboard-overlay" />
 
       <div className="dashboard-container">
@@ -237,7 +264,6 @@ export default function DashboardLayout({ children }) {
           )}
         </aside>
 
-        {/* Main content */}
         <main>
           <div className="content-inner">{children}</div>
           <div
