@@ -23,6 +23,11 @@ export default function Games() {
   const [batchPath, setBatchPath] = useState("");
   const [search, setSearch] = useState("");
 
+  const setActiveGameNow = (gameId: string) => {
+    setActiveGame(gameId);
+    localStorage.setItem("activeGameId", gameId);
+  };
+
   useEffect(() => {
     const list: Game[] = [
       {
@@ -44,7 +49,7 @@ export default function Games() {
         supported: false,
         description:
           "Coming soon — build, explore, and survive in a blocky world.",
-        steamUrl: "https://store.steampowered.com/app/ minecraft",
+        steamUrl: "https://store.steampowered.com/app/minecraft",
         discordUrl: "https://discord.gg/minecraft",
       },
       {
@@ -82,6 +87,8 @@ export default function Games() {
     ];
 
     const saved = localStorage.getItem("gamesPaths");
+    const activeId = localStorage.getItem("activeGameId");
+
     if (saved) {
       const parsed = JSON.parse(saved);
       const merged = list.map((g) => {
@@ -89,22 +96,31 @@ export default function Games() {
         return savedGame ? { ...g, batchPath: savedGame.batchPath } : g;
       });
       setGames(merged);
-      const active = merged.find((g) => g.batchPath);
-      if (active) setActiveGame(active.id);
+      if (activeId) setActiveGame(activeId);
+      else {
+        const active = merged.find((g) => g.batchPath);
+        if (active) setActiveGame(active.id);
+      }
     } else {
       setGames(list);
+      if (activeId) setActiveGame(activeId);
     }
   }, []);
 
-  const filteredGames = games.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredGames = games
+    .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (a.id === activeGame) return -1;
+      if (b.id === activeGame) return 1;
+      return 0;
+    });
 
   const openModal = (game: Game) => {
     if (!game.supported) return;
     setSelectedGame(game);
     setBatchPath(game.batchPath || "");
     setShowModal(true);
+    setActiveGameNow(game.id);
   };
 
   const createSession = () => {
@@ -114,7 +130,7 @@ export default function Games() {
     );
     setGames(updatedGames);
     localStorage.setItem("gamesPaths", JSON.stringify(updatedGames));
-    setActiveGame(selectedGame?.id || null);
+    setActiveGameNow(selectedGame?.id || null);
     setShowModal(false);
     alert(`Session for ${selectedGame?.name} created!`);
   };
@@ -185,6 +201,21 @@ export default function Games() {
                     className="discord-btn"
                   >
                     <FaDiscord /> Discord
+                  </a>
+                )}
+                {game.id === "108600" && (
+                  <a
+                    href="https://pzwiki.net/wiki/Main_Page"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pzwiki-btn"
+                  >
+                    <img
+                      src="https://pzwiki.net/w/images/pzwlogo.png"
+                      alt="PZwiki"
+                      className="pzwiki-logo"
+                    />
+                    PZwiki
                   </a>
                 )}
               </div>

@@ -274,3 +274,24 @@
 .discord-btn:hover {
   background: #5b6eae;
 }
+.pzwiki-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background-color: #2d2d2d;
+  color: #fff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.pzwiki-btn:hover {
+  background-color: #444;
+}
+
+.pzwiki-logo {
+  width: 20px;
+  height: 20px;
+}
