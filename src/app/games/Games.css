@@ -1,209 +1,276 @@
-/* ===== Base Page ===== */
 .games-page {
   padding: 40px;
-  color: #e6ffec;
-  background: #081015;
-  min-height: 100vh;
+  color: #e0e0e0;
   font-family: "Inter", sans-serif;
 }
 
-/* ===== Header ===== */
 .games-header {
   text-align: center;
-  margin-bottom: 20px;
-  color: #eee;
-}
-
-.games-header h2 {
-  font-size: 1.8rem;
-  margin-bottom: 8px;
-  color: #fff;
-}
-
-.games-description {
-  max-width: 720px;
-  margin: 0 auto;
-  font-size: 0.95rem;
-  color: #ccc;
-  line-height: 1.6;
-  background: rgba(40, 40, 40, 0.6);
-  padding: 14px 18px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-}
-
-.games-description .discord-link {
-  color: #7289da;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s ease, text-shadow 0.2s ease;
-}
-
-.games-description .discord-link:hover {
-  color: #a8b6ff;
-  text-shadow: 0 0 6px rgba(114, 137, 218, 0.7);
-  text-decoration: underline;
-}
-
-/* ===== Search ===== */
-.games-search {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.games-search input {
-  width: 320px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid #1e3f28;
-  background: #0e1c12;
-  color: #d9ffe0;
-  font-size: 1rem;
-  transition: all 0.25s ease;
-}
-
-.games-search input:focus {
-  outline: none;
-  border-color: #00a652;
-  box-shadow: 0 0 8px rgba(0, 255, 128, 0.4);
-  background: #0d2b18;
-}
-
-/* ===== OS Filter Buttons ===== */
-.os-filter {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
   margin-bottom: 30px;
 }
 
-.os-filter button {
-  padding: 8px 18px;
+.subtitle {
+  color: #aaa;
+  font-size: 0.95rem;
+}
+
+.search-input {
+  margin-top: 12px;
+  padding: 8px 12px;
+  width: 250px;
   border-radius: 8px;
-  border: 1px solid #1e3f28;
-  background: #0e1c12;
-  color: #d9ffe0;
-  cursor: pointer;
-  transition: 0.25s ease;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #eee;
 }
 
-.os-filter button:hover {
-  background: #0d2b18;
-  border-color: #00a652;
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb;
 }
 
-.os-filter .active-filter {
-  background: #00ff80;
-  color: #001a0f;
-  border-color: #00b357;
-}
-
-/* ===== Games Grid ===== */
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 25px;
-  justify-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 22px;
+  justify-content: center;
 }
 
-/* ===== Game Cards ===== */
 .game-card {
-  background: #0b1a11;
-  border: 1px solid #1d3f28;
-  border-radius: 14px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   overflow: hidden;
-  width: 100%;
-  max-width: 300px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .game-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 16px rgba(0, 255, 128, 0.5);
-  border-color: #00b357;
+  transform: translateY(-3px);
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
 }
 
-.game-image-container {
+.game-thumb {
   position: relative;
-}
-
-.game-image {
-  object-fit: cover;
   width: 100%;
-  height: 140px;
+  height: 150px;
+  overflow: hidden;
 }
 
-.game-info {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.game-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.85);
+  transition: 0.3s ease;
 }
 
-.game-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #00ff80;
+.game-card:hover .game-thumb img {
+  filter: brightness(1);
 }
 
-/* ===== Activate Button ===== */
-.start-btn {
-  background: linear-gradient(90deg, #00a652, #00ff80);
+.overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.launch-btn {
+  background: #01531c;
+  color: white;
   border: none;
-  color: #001a0f;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-  align-self: stretch;
-  text-align: center;
-}
-
-.start-btn:hover {
-  background: linear-gradient(90deg, #00c960, #00ff95);
-  transform: scale(1.03);
-}
-
-/* ===== Coming Soon Label ===== */
-.coming-soon {
-  display: inline-block;
-  background-color: #1c1c1c;
-  color: #ccc;
+  font-weight: 600;
   font-size: 0.85rem;
+  transition: background 0.2s ease;
+}
+
+.launch-btn:hover {
+  background: #2563eb;
+}
+
+.launch-btn.active {
+  background: #16a34a;
+}
+
+.game-details {
+  padding: 14px 16px;
+  flex: 1;
+}
+
+.game-details h3 {
+  font-size: 1rem;
+  margin: 0 0 6px;
+  color: #fff;
+}
+
+.game-details p {
+  font-size: 0.85rem;
+  color: #aaa;
+  line-height: 1.4;
+  height: 48px;
+  overflow: hidden;
+}
+
+.active-badge {
+  display: inline-block;
+  margin-top: 10px;
+  background: #16a34a33;
+  border: 1px solid #16a34a99;
+  color: #16a34a;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+}
+
+/* Coming soon */
+.coming-soon .game-thumb {
+  filter: grayscale(80%);
+}
+
+.coming-soon-text {
+  background: #444;
+  color: #ccc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Steam button */
+.steam-btn-container {
+  margin-top: 6px;
+}
+
+.steam-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #1b2838;
+  color: #fff;
   padding: 6px 12px;
   border-radius: 8px;
-  opacity: 0.85;
-  cursor: default;
-  border: 1px solid #2a2a2a;
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
-/* ===== No Results ===== */
-.no-results {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: #7df7a4;
-  margin-top: 40px;
+.steam-btn:hover {
+  background: #2563eb;
 }
-.deactivate-btn {
-  background: linear-gradient(90deg, #ff4d4d, #ff0000);
-  border: none;
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  display: flex;
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 700px;
+  width: 90%;
+  color: #ddd;
+}
+
+.modal-left img {
+  height: 100%;
+  width: 260px;
+  object-fit: cover;
+}
+
+.modal-right {
+  flex: 1;
+  padding: 24px;
+}
+
+.modal-right h3 {
+  margin-bottom: 8px;
   color: #fff;
-  padding: 10px 14px;
+}
+
+.modal-right ul {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+}
+
+.input-field {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 8px;
-  font-size: 0.9rem;
+  color: #eee;
+  padding: 8px;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #01531c;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.confirm-btn,
+.cancel-btn {
+  background: #01531c;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-  align-self: stretch;
-  text-align: center;
+  transition: 0.2s;
 }
 
-.deactivate-btn:hover {
-  background: linear-gradient(90deg, #ff6666, #ff1a1a);
-  transform: scale(1.03);
+.cancel-btn {
+  background: #444;
+}
+
+.confirm-btn:hover {
+  background: #01531c;
+}
+.cancel-btn:hover {
+  background: #555;
+}
+.game-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.discord-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #7289da;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.discord-btn:hover {
+  background: #5b6eae;
 }

@@ -4,6 +4,12 @@ import React, { useState, useEffect, useRef } from "react";
 import "./terminal.css";
 import Performance from "@/app/monitoring/performance/Performance";
 
+interface TerminalProps {
+  batchFile: string; // Path to batch/sh file
+  os?: "windows" | "linux";
+  title?: string; // Optional session name
+}
+
 interface ServerCommand {
   cmd: string;
   label: string;
@@ -19,46 +25,22 @@ const SERVER_COMMANDS: ServerCommand[] = [
 ];
 
 const MAX_LOGS = 500;
-const MAX_RECENT_BATCHES = 3;
 
-const Terminal: React.FC = () => {
-  const [os, setOS] = useState<OS>("windows");
+const Terminal: React.FC<TerminalProps> = ({
+  batchFile,
+  os = "windows",
+  title,
+}) => {
   const [status, setStatus] = useState("stopped");
   const [isServerRunning, setIsServerRunning] = useState(false);
-  const [logsByTab, setLogsByTab] = useState<Record<TabType, string[]>>({
-    server: ["[System] Terminal ready."],
-    system: ["[System] System ready."],
-  });
-  const [activeTab, setActiveTab] = useState<TabType>("server");
+  const [logs, setLogs] = useState<string[]>(["[System] Terminal ready."]);
   const [command, setCommand] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [batchFile, setBatchFile] = useState("");
-  const [showBatchPrompt, setShowBatchPrompt] = useState(false);
-  const [recentBatches, setRecentBatches] = useState<string[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
   const eventSourceRef = useRef<EventSource | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
-  const RECENT_KEY = `recentPZBatches_${os}`;
-  const SELECTED_KEY = `selectedPZBatch_${os}`;
-
-  // --- Initialize recent batches & last selected ---
-  useEffect(() => {
-    const recent = localStorage.getItem(RECENT_KEY);
-    if (recent) setRecentBatches(JSON.parse(recent));
-
-    const selected = localStorage.getItem(SELECTED_KEY);
-    if (selected) setBatchFile(selected);
-    if (!selected) setShowBatchPrompt(true);
-
-    // Restore logs
-    const savedLogs = localStorage.getItem("terminalLogs");
-    if (savedLogs) setLogsByTab(JSON.parse(savedLogs));
-
-    // Reconnect logs automatically if server is running
-    reconnectLogs();
-  }, [os]);
 
   // --- Auto-scroll ---
   const scrollToBottom = () => {
@@ -67,175 +49,98 @@ const Terminal: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [logsByTab, activeTab]);
+  }, [logs]);
 
-  // --- Logs helper ---
-  const addLog = (text: string, tab: TabType = "server", timestamp = true) => {
+  const addLog = (text: string, timestamp = true) => {
     const line = timestamp
       ? `[${new Date().toLocaleTimeString()}] ${text}`
       : text;
-    setLogsByTab((prev) => {
-      const updated = { ...prev, [tab]: [...prev[tab], line].slice(-MAX_LOGS) };
-      if (tab === "server" && text.toLowerCase().includes("error")) {
-        updated.system = [...prev.system, line].slice(-MAX_LOGS);
-      }
-      localStorage.setItem("terminalLogs", JSON.stringify(updated));
-      return updated;
-    });
+    setLogs((prev) => [...prev.slice(-MAX_LOGS), line]);
   };
 
-  const parseLog = (log: string) => {
-    const match = log.match(/^(\[[0-9: ]+[APM]*\])?\s*(\[[^\]]+\])?(.*)$/i);
-    if (!match) return { timestamp: "", tag: "", rest: log };
-    const [, timestamp, tag, rest] = match;
-    return { timestamp: timestamp || "", tag: tag || "", rest: rest || "" };
-  };
+  const startServer = async () => {
+    if (!batchFile) {
+      addLog("[Error] No batch file provided!", false);
+      return alert("Batch/sh file path required!");
+    }
 
-  const getTagClass = (tag: string) => {
-    const t = tag.toLowerCase();
-    if (!t) return "log-default";
-    if (t.includes("error")) return "log-error";
-    if (t.includes("system")) return "log-system";
-    if (tag.startsWith(">")) return "log-command";
-    return "log-default";
-  };
-
-  // --- Batch management ---
-  const addRecentBatch = (file: string) => {
-    const updated = [file, ...recentBatches.filter((f) => f !== file)].slice(
-      0,
-      MAX_RECENT_BATCHES
-    );
-    setRecentBatches(updated);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
-  };
-
-  const validateBatch = async (file: string) => {
-    if (!file) return false;
     try {
-      const res = await fetch(`${API_BASE}/validate-batch`, {
+      addLog(`[System] Starting server with: ${batchFile}`);
+      const res = await fetch(`${API_BASE}/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchFile: file, os }),
+        body: JSON.stringify({ batchFile, os }),
       });
       const data = await res.json();
-      return data.valid;
-    } catch {
-      return false;
-    }
-  };
-
-  // --- Server start ---
-  const startServer = async (file?: string) => {
-    try {
-      const batchToUse = file || batchFile;
-      if (!batchToUse || !batchToUse.trim()) {
-        addLog("[Error] Please provide a valid batch file path!", "system");
-        alert("Please enter your .bat or .sh file path!");
-        return;
-      }
-
-      addLog(`[System] Validating batch file: ${batchToUse}`);
-      const valid = await validateBatch(batchToUse);
-      if (!valid) {
-        addLog(
-          `[Error] Invalid or missing batch file: ${batchToUse}`,
-          "system"
-        );
-        return;
-      }
-
-      localStorage.setItem(SELECTED_KEY, batchToUse);
-      setBatchFile(batchToUse);
-      addRecentBatch(batchToUse);
-
-      addLog("[System] Starting Project Zomboid server...");
-      const startRes = await fetch(`${API_BASE}/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchFile: batchToUse }),
-      });
-      const startData = await startRes.json();
-      if (startData.error) {
-        addLog(`[Error] ${startData.error}`, "server");
+      if (data.error) {
+        addLog(`[Error] ${data.error}`);
         setStatus("Error");
         return;
       }
 
       setIsServerRunning(true);
       setStatus("Running");
-      reconnectLogs();
+      connectLogStream();
     } catch (err: any) {
-      console.error(err);
-      addLog(`[Error] Failed to start server: ${err.message || err}`, "system");
-      setIsServerRunning(false);
-      setStatus("Error");
+      addLog(`[Error] Failed to start server: ${err.message || err}`, false);
     }
   };
 
-  // --- Stop server ---
   const stopServer = async () => {
     try {
-      const res = await fetch(`${API_BASE}/stop`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/stop`, {
+        method: "POST",
+      });
       const data = await res.json();
       if (data.error) {
-        addLog(`[Error] ${data.error}`, "system");
+        addLog(`[Error] ${data.error}`);
         return;
       }
-
-      addLog("[System] Server stopped manually.", "system");
+      addLog("[System] Server stopped.");
       setIsServerRunning(false);
       setStatus("Stopped");
-
       eventSourceRef.current?.close();
       eventSourceRef.current = null;
-
-      localStorage.removeItem(SELECTED_KEY);
-      setShowBatchPrompt(true);
     } catch {
-      addLog("[Error] Failed to stop server.", "system");
+      addLog("[Error] Failed to stop server.");
     }
   };
 
-  // --- Send command ---
   const sendCommand = async (cmd: string) => {
+    if (!cmd) return;
     try {
       await fetch(`${API_BASE}/command`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ command: cmd }),
       });
-      addLog(`> ${cmd}`, "server");
+      addLog(`> ${cmd}`);
     } catch {
-      addLog("[Error] Command failed", "server");
+      addLog("[Error] Command failed.");
     }
   };
 
   const submitCommand = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!command.trim()) return;
-    sendCommand(command.trim());
+    sendCommand(command);
     setCommand("");
   };
 
-  // --- Reconnect logs ---
-  const reconnectLogs = () => {
+  const connectLogStream = () => {
     if (eventSourceRef.current) eventSourceRef.current.close();
     const es = new EventSource(`${API_BASE}/terminal/log-stream`);
     eventSourceRef.current = es;
-    es.onopen = () =>
-      addLog("[System] Connected to live log stream.", "system");
-    es.onerror = () =>
-      addLog("[Warning] Lost connection to log stream.", "system");
+
+    es.onopen = () => addLog("[System] Connected to live log stream.");
+    es.onerror = () => addLog("[Warning] Lost connection to log stream.");
+
     es.onmessage = (e) => {
       const msg = e.data.trim();
       if (!msg) return;
-      addLog(msg, "server", false);
-      if (
-        msg.includes("Server stopped") ||
-        msg.includes("[SYSTEM] Server stopped")
-      ) {
-        addLog("[System] Server has stopped.", "system");
+      addLog(msg, false);
+
+      if (msg.includes("Server stopped")) {
+        addLog("[System] Server has stopped.");
         setIsServerRunning(false);
         setStatus("Stopped");
         es.close();
@@ -244,88 +149,24 @@ const Terminal: React.FC = () => {
     };
   };
 
-  const filteredLogs = logsByTab[activeTab].filter((l) =>
+  const filteredLogs = logs.filter((l) =>
     l.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- Batch modal ---
-  if (showBatchPrompt)
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2>
-            Select Project Zomboid {os === "windows" ? ".bat" : ".sh"} File
-          </h2>
-          <div className="os-selector">
-            <button
-              className={os === "windows" ? "active" : ""}
-              onClick={() => setOS("windows")}
-            >
-              Windows
-            </button>
-            <button
-              className={os === "linux" ? "active" : ""}
-              onClick={() => setOS("linux")}
-            >
-              Linux
-            </button>
-          </div>
-          <input
-            type="text"
-            placeholder={
-              os === "windows" ? "C:\\path\\server.bat" : "/path/server.sh"
-            }
-            value={batchFile}
-            onChange={(e) => setBatchFile(e.target.value)}
-          />
-          {recentBatches.length > 0 && (
-            <div className="recent-batches">
-              <h4>Most Recent {os === "windows" ? "Batches" : "Scripts"}</h4>
-              {recentBatches.map((f, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setBatchFile(f);
-                    startServer(f);
-                    setShowBatchPrompt(false);
-                  }}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          )}
-          <button
-            className="confirm-btn"
-            onClick={() => {
-              if (!batchFile) return alert("Batch/sh path required");
-              localStorage.setItem(SELECTED_KEY, batchFile);
-              setShowBatchPrompt(false);
-            }}
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    );
-
-  // --- Main terminal UI ---
   return (
-    <div className="terminal-layout">
-      <header className="terminal-header">
-        <div className={`status ${status.toLowerCase().replace(/\s/g, "-")}`}>
+    <div className="terminal-instance">
+      {title && <h3 className="terminal-title">{title}</h3>}
+
+      <header className={`terminal-header ${status.toLowerCase()}`}>
+        <div className={`status-indicator ${status.toLowerCase()}`}>
           ● {status}
         </div>
         <div className="header-controls">
-          <button onClick={() => startServer()} disabled={isServerRunning}>
+          <button onClick={startServer} disabled={isServerRunning}>
             Start
           </button>
           <button onClick={stopServer} disabled={!isServerRunning}>
             Stop
-          </button>
-          <button onClick={() => setShowBatchPrompt(true)}>Change Batch</button>
-          <button onClick={reconnectLogs} disabled={!isServerRunning}>
-            Reconnect Logs
           </button>
           <input
             type="text"
@@ -339,78 +180,48 @@ const Terminal: React.FC = () => {
         </div>
       </header>
 
-      <div className="terminal-tabs">
-        {(["system", "server"] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === "server" ? "Server" : "System"}
-          </button>
-        ))}
-      </div>
-
       <div className="terminal-logs">
         {filteredLogs.length ? (
-          filteredLogs.map((log, i) => {
-            const { timestamp, tag, rest } = parseLog(log);
-            return (
-              <pre key={i}>
-                {timestamp && <span className="log-default">{timestamp} </span>}
-                {tag && <span className={getTagClass(tag)}>{tag}</span>}
-                <span className="log-default">{rest}</span>
-              </pre>
-            );
-          })
+          filteredLogs.map((log, i) => <pre key={i}>{log}</pre>)
         ) : (
-          <p>No matching logs</p>
+          <p>No logs available</p>
         )}
         <div ref={logsEndRef} />
       </div>
 
       <form className="command-form" onSubmit={submitCommand}>
-        {activeTab === "server" && (
-          <select
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val) {
-                sendCommand(val);
-                e.target.value = "";
-              }
-            }}
-            defaultValue=""
-          >
-            <option disabled value="">
-              Select command...
+        <select
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val) {
+              sendCommand(val);
+              e.target.value = "";
+            }
+          }}
+          defaultValue=""
+        >
+          <option disabled value="">
+            Select command...
+          </option>
+          {SERVER_COMMANDS.map((c) => (
+            <option key={c.cmd} value={c.cmd}>
+              {c.label}
             </option>
-            {SERVER_COMMANDS.map((c) => (
-              <option key={c.cmd} value={c.cmd}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        )}
+          ))}
+        </select>
         <input
           type="text"
-          placeholder={
-            activeTab === "server" ? "Server command..." : "System command..."
-          }
+          placeholder="Enter command..."
           value={command}
           onChange={(e) => setCommand(e.target.value)}
         />
         <button type="submit">Send</button>
-        <button
-          type="button"
-          onClick={() => setLogsByTab((prev) => ({ ...prev, [activeTab]: [] }))}
-        >
+        <button type="button" onClick={() => setLogs([])}>
           Clear
         </button>
         <button
           type="button"
-          onClick={() =>
-            navigator.clipboard.writeText(logsByTab[activeTab].join("\n"))
-          }
+          onClick={() => navigator.clipboard.writeText(logs.join("\n"))}
         >
           Copy
         </button>

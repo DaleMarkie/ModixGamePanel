@@ -1,125 +1,242 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { FaSteam, FaDiscord } from "react-icons/fa";
 import "./Games.css";
 
 interface Game {
-  id: number;
+  id: string;
   name: string;
   image: string;
   supported: boolean;
-  appId: string;
+  batchPath?: string;
+  description: string;
+  steamUrl?: string;
+  discordUrl?: string;
 }
 
 export default function Games() {
   const [games, setGames] = useState<Game[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [batchPath, setBatchPath] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const list: Game[] = [
       {
-        id: 1,
+        id: "108600",
         name: "Project Zomboid",
         image:
           "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
         supported: true,
-        appId: "108600",
+        description:
+          "Ultimate zombie survival — manage your own apocalyptic world with friends.",
+        steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
+        discordUrl: "https://discord.com/invite/theindiestone",
       },
       {
-        id: 2,
+        id: "minecraft",
+        name: "Minecraft",
+        image:
+          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
+        supported: false,
+        description:
+          "Coming soon — build, explore, and survive in a blocky world.",
+        steamUrl: "https://store.steampowered.com/app/ minecraft",
+        discordUrl: "https://discord.gg/minecraft",
+      },
+      {
+        id: "dayz",
+        name: "DayZ",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
+        supported: false,
+        description:
+          "Coming soon — survive in a deadly post-apocalyptic world.",
+        steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
+        discordUrl: "https://discord.com/invite/dayz",
+      },
+      {
+        id: "294100",
         name: "RimWorld",
         image:
           "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/294100/header.jpg",
         supported: true,
-        appId: "294100",
+        description:
+          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
+        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
+        discordUrl: "https://discord.com/invite/rimworld",
       },
       {
-        id: 3,
-        name: "ARK: Survival Evolved",
+        id: "rust",
+        name: "RUST",
         image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/346110/header.jpg",
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
         supported: false,
-        appId: "346110",
-      },
-      {
-        id: 4,
-        name: "Unturned",
-        image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/304930/header.jpg",
-        supported: false,
-        appId: "304930",
-      },
-      {
-        id: 5,
-        name: "Valheim",
-        image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/892970/header.jpg",
-        supported: false,
-        appId: "892970",
+        description: "Coming soon — multiplayer survival crafting and PvP.",
+        steamUrl: "https://store.steampowered.com/app/252490/Rust/",
+        discordUrl: "https://discord.com/invite/rust",
       },
     ];
-    setGames(list);
 
-    fetch("/api/games")
-      .then((res) => res.json())
-      .then((data) => setActiveGame(data.active_game?.appId ?? null))
-      .catch(console.error);
+    const saved = localStorage.getItem("gamesPaths");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const merged = list.map((g) => {
+        const savedGame = parsed.find((sg: Game) => sg.id === g.id);
+        return savedGame ? { ...g, batchPath: savedGame.batchPath } : g;
+      });
+      setGames(merged);
+      const active = merged.find((g) => g.batchPath);
+      if (active) setActiveGame(active.id);
+    } else {
+      setGames(list);
+    }
   }, []);
 
-  const handleSetActive = async (game: Game) => {
-    if (!game.supported) return;
-    const newAppId = activeGame === game.appId ? null : game.appId;
-    setActiveGame(newAppId);
+  const filteredGames = games.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase())
+  );
 
-    try {
-      const res = await fetch("/api/set-active-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appId: newAppId }),
-      });
-      const data = await res.json();
-      if (!res.ok) alert(data.error || "Failed to set active game");
-      window.dispatchEvent(
-        new CustomEvent("activeGameChanged", { detail: newAppId })
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to connect to backend.");
-    }
+  const openModal = (game: Game) => {
+    if (!game.supported) return;
+    setSelectedGame(game);
+    setBatchPath(game.batchPath || "");
+    setShowModal(true);
+  };
+
+  const createSession = () => {
+    if (!batchPath.trim()) return alert("Please provide the batch file path!");
+    const updatedGames = games.map((g) =>
+      g.id === selectedGame?.id ? { ...g, batchPath } : g
+    );
+    setGames(updatedGames);
+    localStorage.setItem("gamesPaths", JSON.stringify(updatedGames));
+    setActiveGame(selectedGame?.id || null);
+    setShowModal(false);
+    alert(`Session for ${selectedGame?.name} created!`);
   };
 
   return (
     <div className="games-page">
       <div className="games-header">
-        <h2>Supported Games</h2>
-        <p>Select a supported game to update your panel and workshop mods.</p>
+        <h1>🎮 Supported Games</h1>
+        <p className="subtitle">
+          Select a game below to manage and launch your dedicated server.
+        </p>
+
+        <input
+          type="text"
+          placeholder="Search games..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="search-input"
+        />
       </div>
 
       <div className="games-grid">
-        {games.map((game) => (
+        {filteredGames.map((game) => (
           <div
             key={game.id}
-            className={`game-card ${!game.supported ? "coming-soon-card" : ""}`}
+            className={`game-card ${!game.supported ? "coming-soon" : ""}`}
           >
-            <img src={game.image} alt={game.name} className="game-image" />
-            <div className="game-info">
+            <div className="game-thumb">
+              <img src={game.image} alt={game.name} />
+              <div className="overlay">
+                {game.supported ? (
+                  <button
+                    className={`launch-btn ${
+                      activeGame === game.id ? "active" : ""
+                    }`}
+                    onClick={() => openModal(game)}
+                  >
+                    {activeGame === game.id
+                      ? "🟢 Active Game"
+                      : "🚀 Make Active"}
+                  </button>
+                ) : (
+                  <span className="coming-soon-text">⏳ Coming Soon</span>
+                )}
+              </div>
+            </div>
+
+            <div className="game-details">
               <h3>{game.name}</h3>
-              {game.supported ? (
-                <button
-                  className={`toggle-btn ${
-                    activeGame === game.appId ? "active" : ""
-                  }`}
-                  onClick={() => handleSetActive(game)}
-                >
-                  {activeGame === game.appId ? "Active" : "Activate"}
-                </button>
-              ) : (
-                <span className="coming-soon">Coming Soon</span>
+              <p>{game.description}</p>
+
+              <div className="game-buttons">
+                {game.steamUrl && (
+                  <a
+                    href={game.steamUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="steam-btn"
+                  >
+                    <FaSteam /> Steam
+                  </a>
+                )}
+                {game.discordUrl && (
+                  <a
+                    href={game.discordUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="discord-btn"
+                  >
+                    <FaDiscord /> Discord
+                  </a>
+                )}
+              </div>
+
+              {activeGame === game.id && (
+                <span className="active-badge">Active Session</span>
               )}
             </div>
           </div>
         ))}
       </div>
+
+      {showModal && selectedGame && (
+        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-left">
+              <img src={selectedGame.image} alt={selectedGame.name} />
+            </div>
+            <div className="modal-right">
+              <h3>{selectedGame.name}</h3>
+              <p>Minimum requirements for server:</p>
+              <ul>
+                <li>CPU: Quad Core</li>
+                <li>RAM: 8 GB</li>
+                <li>Disk: 5 GB free</li>
+                <li>OS: Windows 10+</li>
+              </ul>
+
+              <label>Batch file path:</label>
+              <input
+                type="text"
+                value={batchPath}
+                onChange={(e) => setBatchPath(e.target.value)}
+                className="input-field"
+                placeholder="C:/Servers/start_server.bat"
+              />
+
+              <div className="modal-actions">
+                <button className="confirm-btn" onClick={createSession}>
+                  ✅ Create Session
+                </button>
+                <button
+                  className="cancel-btn"
+                  onClick={() => setShowModal(false)}
+                >
+                  ✖ Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
