@@ -13,8 +13,8 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [errorSearch, setErrorSearch] = useState(""); // 🔍 right window search
-  const [selectedError, setSelectedError] = useState(null); // modal
+  const [errorSearch, setErrorSearch] = useState("");
+  const [selectedError, setSelectedError] = useState(null);
   const [theme, setTheme] = useState({
     background: "",
     gradient: "",
@@ -52,7 +52,6 @@ export default function DashboardLayout({ children }) {
       }
     };
     window.addEventListener("themeUpdate", handleThemeUpdate);
-
     return () => window.removeEventListener("themeUpdate", handleThemeUpdate);
   }, []);
 
@@ -168,12 +167,33 @@ export default function DashboardLayout({ children }) {
     ? `url(${theme.background}) no-repeat center center / cover`
     : "#111";
 
-  // Mock database for game errors
+  // Mock database for game errors with tags
   const mockErrorDatabase = [
-    { code: "ERR1001", desc: "Failed to initialize Steam API." },
-    { code: "ERR2002", desc: "Missing mod dependency." },
-    { code: "ERR3003", desc: "Server config file not found." },
-    { code: "ERR4004", desc: "Workshop item failed to download." },
+    {
+      code: "API not starting",
+      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
+      tags: ["API", "Python", "Dependency", "Error", "Debug"],
+    },
+    {
+      code: "ERR2002",
+      desc: "Missing mod dependency.",
+      tags: ["Mod", "Dependency", "Installation"],
+    },
+    {
+      code: "ERR3003",
+      desc: "Server config file not found.",
+      tags: ["Server", "Config", "FileNotFound"],
+    },
+    {
+      code: "ERR4004",
+      desc: "Workshop item failed to download.",
+      tags: ["Workshop", "Download", "Error", "Mod"],
+    },
+    {
+      code: "What Is Terminal?",
+      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
+      tags: ["API", "Python", "Dependency", "Error", "Debug"],
+    },
   ];
 
   const filteredErrors = useMemo(() => {
@@ -182,7 +202,8 @@ export default function DashboardLayout({ children }) {
     return mockErrorDatabase.filter(
       (e) =>
         e.code.toLowerCase().includes(term) ||
-        e.desc.toLowerCase().includes(term)
+        e.desc.toLowerCase().includes(term) ||
+        e.tags.some((tag) => tag.toLowerCase().includes(term))
     );
   }, [errorSearch]);
 
@@ -286,6 +307,13 @@ export default function DashboardLayout({ children }) {
                     style={{ cursor: "pointer" }}
                   >
                     <strong>{e.code}</strong> — {e.desc}
+                    <div className="error-tags">
+                      {e.tags.map((tag) => (
+                        <span key={tag} className="error-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 ))
               ) : (
@@ -309,6 +337,13 @@ export default function DashboardLayout({ children }) {
                 </button>
                 <h2>{selectedError.code}</h2>
                 <p>{selectedError.desc}</p>
+                <div className="error-tags">
+                  {selectedError.tags.map((tag) => (
+                    <span key={tag} className="error-tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           )}
