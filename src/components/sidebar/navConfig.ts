@@ -51,7 +51,7 @@ export const navLinks: NavItem[] = [
 
   // --- Mod Creation Suite ---
   {
-    label: "🧩 My Mods",
+    label: "🧩 Mods",
     href: "/tools/modcreation",
     submenu: [
       { label: "📦 My Mods", href: "/FileBrowser" },
