@@ -170,19 +170,9 @@ export default function DashboardLayout({ children }) {
   // Mock database for game errors with tags
   const mockErrorDatabase = [
     {
-      code: "API not starting",
-      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
-      tags: ["Panel", "API", "Backend", "Error"],
-    },
-    {
-      code: "ERR2002",
-      desc: "Missing mod dependency.",
-      tags: ["Mod", "Dependency", "Installation"],
-    },
-    {
-      code: "ERR3003",
-      desc: "Server config file not found.",
-      tags: ["Server", "Config", "FileNotFound"],
+      code: "What Is Modix Game Panel?",
+      desc: "Modix Game Panel is a long-term project by DaleMarkie (aka OV3RLORD), built to redefine server management for Project Zomboid and beyond. Over the past year, I’ve crafted a powerful, intuitive, and stylish panel from scratch, combining modern UI design with robust features. Modix offers complete server control, automated mod management, real time monitoring, and seamless updates all in one place. Modix is completely free for personal use under the personal license. Commercial use is not permitted, but you can request a commercial license through our Discord community. Click Support for more information. Looking forward, Modix will expand to support other Steam games and experimental Linux servers with Docker, making it a versatile, all-in-one game server solution. This is a long-term project that will continue to evolve, delivering more features, enhanced usability, and an even better experience for server administrators over time.",
+      tags: ["Getting Started", "Modix"],
     },
     {
       code: "Dashboard?",
@@ -306,12 +296,12 @@ export default function DashboardLayout({ children }) {
     },
     {
       code: "Theme Manager?",
-      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      desc: "The Theme Manager in Modix Game Panel lets you fully customize your dashboard with image or gradient backgrounds, custom logos, and sidebar titles, giving you complete control over the panel’s look and feel. Select from preset backgrounds or enter your own URL, choose from stylish gradients, and see all changes applied in real time. Your custom theme is saved automatically for persistence across sessions, and you can reset to default anytime. With a live preview, instant application, and intuitive interface, the Theme Manager makes personalizing your Modix dashboard fast, easy, and visually immersive, enhancing both functionality and style or dig into the code and change it up for yourself.",
       tags: ["Panel Settings", "Documentation "],
     },
     {
       code: "Staff Chat?",
-      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      desc: "The Staff Chat in Modix Game Panel is a real-time communication hub for server staff (Owners, Admins, SubUsers) that allows sending messages, tagging users with @username, replying in threads, and highlighting important or pinned messages, with emoji reactions and optional Discord-style webhook integration for alerts; it saves chat locally, automatically scrolls to the latest messages, includes a live preview of replies, and restricts access to authorized staff while providing a safety warning to avoid sharing sensitive information, making it perfect for coordinating team activities, tracking server workflows, and managing communication efficiently.",
       tags: ["Staff Chat", "Documentation "],
     },
   ];
