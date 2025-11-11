@@ -16,14 +16,13 @@ interface Category {
   settings: Setting[];
 }
 
-// Default Steam Dedicated Server paths
 const defaultPaths: Record<string, string> = {
   "108600": "C:/Steam/steamapps/common/Project Zomboid Dedicated Server",
   "294100": "C:/Steam/steamapps/common/RimWorld",
   minecraft: "C:/Steam/minecraft_server",
 };
 
-export default function ServerSettings() {
+export default function ServerSettingsNew() {
   const [game, setGame] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [settings, setSettings] = useState<
@@ -31,6 +30,7 @@ export default function ServerSettings() {
   >({});
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const schemas: Record<string, Category[]> = {
     "108600": [
@@ -131,7 +131,6 @@ export default function ServerSettings() {
     ],
   };
 
-  // Load active game from localStorage
   useEffect(() => {
     const active = localStorage.getItem("activeGameId") || "";
     setGame(active);
@@ -144,7 +143,6 @@ export default function ServerSettings() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Load settings for active game
   useEffect(() => {
     if (!game) return;
     setLoading(true);
@@ -157,7 +155,6 @@ export default function ServerSettings() {
     }
     setCategories(schema);
 
-    // Load saved settings or defaults
     const saved = localStorage.getItem(`settings_${game}`);
     if (saved) setSettings(JSON.parse(saved));
     else {
@@ -172,6 +169,11 @@ export default function ServerSettings() {
       init["serverPath"] = defaultPaths[game] || "";
       setSettings(init);
     }
+
+    const initExpanded: Record<string, boolean> = {};
+    schema.forEach((cat) => (initExpanded[cat.category] = true));
+    setExpanded(initExpanded);
+
     setLoading(false);
   }, [game]);
 
@@ -187,6 +189,10 @@ export default function ServerSettings() {
     setSettings((prev) => ({ ...prev, [name]: val }));
   };
 
+  const toggleCategory = (catName: string) => {
+    setExpanded((prev) => ({ ...prev, [catName]: !prev[catName] }));
+  };
+
   const handleSave = () => {
     if (!game) return;
     localStorage.setItem(`settings_${game}`, JSON.stringify(settings));
@@ -195,10 +201,9 @@ export default function ServerSettings() {
   };
 
   return (
-    <div className="server-settings-wrapper">
+    <div className="server-settings-new">
       <header>
         <h1>
-          ⚙️{" "}
           {game === "108600"
             ? "Project Zomboid"
             : game === "294100"
@@ -206,61 +211,75 @@ export default function ServerSettings() {
             : game || "No Game Selected"}{" "}
           Server Settings
         </h1>
-        <p>Editing settings for the currently selected game.</p>
+        <p>Organize and configure your server quickly.</p>
       </header>
 
-      {loading && <p className="status">Loading settings...</p>}
-      {message && <p className="status message">{message}</p>}
-      {!loading && !game && (
-        <p className="status">No game selected. Please select a game first.</p>
-      )}
+      {loading && <div className="status">Loading settings...</div>}
+      {message && <div className="status message">{message}</div>}
+      {!loading && !game && <div className="status">No game selected</div>}
 
       {!loading && game && (
-        <main>
-          <section className="server-path-card">
-            <h2>Server Path</h2>
-            <input
-              type="text"
-              value={settings["serverPath"] || ""}
-              onChange={(e) => handleChange(e, "text", "serverPath")}
-              placeholder="Server installation path"
-            />
-          </section>
+        <div className="settings-layout">
+          {/* Left Panel */}
+          <div className="left-panel">
+            <div className="card server-path-card">
+              <h2>Server Path</h2>
+              <input
+                type="text"
+                value={settings["serverPath"] || ""}
+                onChange={(e) => handleChange(e, "text", "serverPath")}
+                placeholder="Server installation path"
+              />
+            </div>
+          </div>
 
-          {categories.map((cat) => (
-            <section className="category-card" key={cat.category}>
-              <h2>{cat.category}</h2>
-              {cat.description && (
-                <p className="category-desc">{cat.description}</p>
-              )}
-              {cat.settings.map((s) => (
-                <label key={s.name} className="setting-item">
-                  {s.label}:
-                  {s.type === "checkbox" ? (
-                    <input
-                      type="checkbox"
-                      checked={!!settings[s.name]}
-                      onChange={(e) => handleChange(e, s.type, s.name)}
-                    />
-                  ) : (
-                    <input
-                      type={s.type}
-                      value={settings[s.name] as string | number}
-                      onChange={(e) => handleChange(e, s.type, s.name)}
-                    />
-                  )}
-                </label>
-              ))}
-            </section>
-          ))}
-        </main>
+          {/* Right Panel */}
+          <div className="right-panel">
+            {categories.map((cat) => (
+              <div className="card category-card" key={cat.category}>
+                <div
+                  className="category-header"
+                  onClick={() => toggleCategory(cat.category)}
+                >
+                  <h2>{cat.category}</h2>
+                  <span>{expanded[cat.category] ? "▾" : "▸"}</span>
+                </div>
+                {expanded[cat.category] && (
+                  <div className="category-body">
+                    {cat.description && <p>{cat.description}</p>}
+                    {cat.settings.map((s) => (
+                      <label key={s.name} className="setting-item">
+                        <span>{s.label}</span>
+                        {s.type === "checkbox" ? (
+                          <input
+                            type="checkbox"
+                            checked={!!settings[s.name]}
+                            onChange={(e) => handleChange(e, s.type, s.name)}
+                          />
+                        ) : (
+                          <input
+                            type={s.type}
+                            value={settings[s.name] as string | number}
+                            onChange={(e) => handleChange(e, s.type, s.name)}
+                          />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <footer>
-        <button onClick={handleSave} disabled={!game}>
-          💾 Save Settings
-        </button>
-      </footer>
+      <button
+        className="save-floating-btn"
+        onClick={handleSave}
+        disabled={!game}
+      >
+        💾 Save
+      </button>
     </div>
   );
 }

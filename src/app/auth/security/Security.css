@@ -1,0 +1,173 @@
+.security-page {
+  background-color: #0e0e0e;
+  color: #e0e0e0;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 40px auto;
+  border: 1px solid rgba(0, 255, 100, 0.1);
+  font-family: "Inter", sans-serif;
+}
+
+.security-title {
+  font-size: 1.8rem;
+  color: #00ff9c;
+  text-align: center;
+  margin-bottom: 25px;
+  letter-spacing: 1px;
+}
+
+.security-section {
+  background: #151515;
+  border: 1px solid rgba(0, 255, 100, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.security-section h3 {
+  color: #00ff9c;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.password-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-box input {
+  background: #0f0f0f;
+  color: #fff;
+  border: 1px solid rgba(0, 255, 100, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.95rem;
+}
+
+.password-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-btn,
+.save-btn,
+.twofactor-btn,
+.terminate-btn,
+.delete-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-btn {
+  background-color: #00ff9c;
+  color: #000;
+}
+
+.save-btn:hover {
+  background-color: #00e689;
+}
+
+.toggle-btn {
+  background: #1e1e1e;
+  color: #00ff9c;
+  border: 1px solid rgba(0, 255, 100, 0.2);
+}
+
+.toggle-btn:hover {
+  background: #00ff9c;
+  color: #000;
+}
+
+.twofactor-btn {
+  background-color: #00ff9c;
+  color: #000;
+}
+
+.twofactor-btn.enabled {
+  background: #1e1e1e;
+  color: #00ff9c;
+  border: 1px solid rgba(0, 255, 100, 0.4);
+}
+
+.twofactor-btn:hover {
+  transform: scale(1.02);
+}
+
+.sessions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sessions-list li {
+  background: #101010;
+  padding: 12px 15px;
+  border: 1px solid rgba(0, 255, 100, 0.15);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terminate-btn {
+  background: transparent;
+  color: #00ff9c;
+  border: 1px solid rgba(0, 255, 100, 0.3);
+}
+
+.terminate-btn:hover {
+  background: #00ff9c;
+  color: #000;
+}
+
+/* Login activity table */
+.login-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.95rem;
+}
+
+.login-table th,
+.login-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 255, 100, 0.1);
+}
+
+.login-table th {
+  color: #00ff9c;
+  font-weight: bold;
+  background: #101010;
+}
+
+.login-table tr:hover td {
+  background-color: #1a1a1a;
+}
+
+.danger-zone {
+  border: 1px solid rgba(255, 50, 50, 0.3);
+  background: #170000;
+}
+
+.delete-btn {
+  background: #ff4c4c;
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background: #d93636;
+}

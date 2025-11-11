@@ -8,7 +8,7 @@ export interface ActivityLog {
   user: string;
   action: string;
   timestamp: string;
-  duration?: string; // For logout events
+  duration?: string;
 }
 
 const ACTIVITY_LOG_KEY = "modix_activity_logs";
@@ -35,7 +35,7 @@ const addLog = (user: string, action: string, duration?: string) => {
     timestamp: new Date().toLocaleString(),
     duration,
   };
-  logs.unshift(newLog); // newest first
+  logs.unshift(newLog);
   saveActivityLogs(logs);
 };
 
@@ -78,6 +78,7 @@ export const recordLogout = (username: string) => {
 // ---------------------------
 export default function Activity() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   useEffect(() => {
     setLogs(getActivityLogs());
@@ -89,6 +90,33 @@ export default function Activity() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  const getUserStats = (username: string) => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const userLogs = logs.filter((log) => log.user === username);
+    const loginsPastWeek = userLogs.filter(
+      (log) => log.action === "Signed in" && new Date(log.timestamp) >= weekAgo
+    ).length;
+
+    const pageCounts: Record<string, number> = {};
+    userLogs.forEach((log) => {
+      if (log.action.startsWith("Viewed page: ")) {
+        const page = log.action.replace("Viewed page: ", "");
+        pageCounts[page] = (pageCounts[page] || 0) + 1;
+      }
+    });
+
+    let mostVisitedPage = "N/A";
+    if (Object.keys(pageCounts).length > 0) {
+      mostVisitedPage = Object.entries(pageCounts).sort(
+        (a, b) => b[1] - a[1]
+      )[0][0];
+    }
+
+    return { loginsPastWeek, mostVisitedPage };
+  };
+
   return (
     <section className="card activity-card">
       <h3>📜 Activity Logs</h3>
@@ -98,13 +126,17 @@ export default function Activity() {
             {logs.map((log) => (
               <li key={log.id}>
                 <span className="log-time">[{log.timestamp}]</span>{" "}
-                <span className="log-user">{log.user}</span> —{" "}
-                <span className="log-action">{log.action}</span>
+                <span
+                  className="log-user clickable"
+                  onClick={() =>
+                    setSelectedUser(selectedUser === log.user ? null : log.user)
+                  }
+                >
+                  {log.user}
+                </span>{" "}
+                — <span className="log-action">{log.action}</span>
                 {log.duration && (
-                  <span className="log-duration">
-                    {" "}
-                    (Session: {log.duration})
-                  </span>
+                  <span className="log-duration"> (Session: {log.duration})</span>
                 )}
               </li>
             ))}
@@ -113,6 +145,33 @@ export default function Activity() {
           <p>No activity recorded.</p>
         )}
       </div>
+
+      {selectedUser && (
+        <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4>📊 {selectedUser} Stats (Past 7 Days)</h4>
+            {logs.length > 0 ? (
+              (() => {
+                const stats = getUserStats(selectedUser);
+                return (
+                  <>
+                    <p>Logins: {stats.loginsPastWeek}</p>
+                    <p>Most Visited Page: {stats.mostVisitedPage}</p>
+                  </>
+                );
+              })()
+            ) : (
+              <p>No stats available.</p>
+            )}
+            <button className="modal-close" onClick={() => setSelectedUser(null)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

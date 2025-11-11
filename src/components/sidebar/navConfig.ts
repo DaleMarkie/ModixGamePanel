@@ -11,6 +11,13 @@ export const navLinks: NavItem[] = [
   {
     label: "👤 Account",
     href: "/auth/myaccount",
+    submenu: [
+      { label: "📊 Dashboard", href: "/auth/myaccount" },
+      { label: "📜 Activity", href: "/auth/activity" },
+      { label: "🧾 My License", href: "/auth/License" },
+      { label: "👥 Sub-Users", href: "/auth/subusers" },
+      { label: "⚙️ Settings", href: "/auth/myaccount/settings" },
+    ],
   },
 
   // --- Console / Live Terminal ---
