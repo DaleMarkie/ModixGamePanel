@@ -387,7 +387,7 @@ main .content-inner {
 }
 
 .error-tag {
-  background-color: #333; /* Dark background for tag */
+  background-color: #00570c; /* Dark background for tag */
   color: #fff; /* White text */
   font-size: 0.75rem;
   padding: 2px 6px;
@@ -397,6 +397,6 @@ main .content-inner {
 }
 
 .error-tag:hover {
-  background-color: #555; /* Slightly lighter on hover */
+  background-color: #00570c; /* Slightly lighter on hover */
   cursor: default;
 }

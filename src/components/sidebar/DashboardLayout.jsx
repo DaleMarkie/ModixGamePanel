@@ -185,19 +185,134 @@ export default function DashboardLayout({ children }) {
       tags: ["Server", "Config", "FileNotFound"],
     },
     {
-      code: "ERR4004",
-      desc: "Workshop item failed to download.",
-      tags: ["Workshop", "Download", "Error", "Mod"],
+      code: "Dashboard?",
+      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
+      tags: ["My Account"],
     },
     {
-      code: "Terminal?",
+      code: "Activity?",
+      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
+      tags: ["My Account"],
+    },
+    {
+      code: "My License",
+      desc: "Workshop item failed to download.",
+      tags: ["My Account"],
+    },
+    {
+      code: "Staff Accounts",
+      desc: "Workshop item failed to download.",
+      tags: ["My Account"],
+    },
+    {
+      code: "Settings",
+      desc: "Workshop item failed to download.",
+      tags: ["My Account"],
+    },
+    {
+      code: "Console?",
       desc: "The Terminal component is a powerful, all in one web based console that gives users complete control over their Project Zomboid server, allowing them to start, stop, and manage the server with a single click, send live server commands like saving the world, listing or kicking players, banning users, and reloading scripts, while also providing real time log streaming with search and auto scroll features, the ability to clear or copy logs, and integrated performance monitoring, enabling both new and experienced users to efficiently run, monitor, and troubleshoot their server entirely from the browser without ever touching the command line.",
-      tags: ["Terminal", "Documentation "],
+      tags: ["Console", "Documentation "],
     },
     {
       code: "ModManager?",
       desc: "The Mod Manager is an all in one browser based tool that allows users to browse, search, and organize their game mods, create, edit, move, or delete files and folders within mods, manage favorites, customize colors, open multiple files in a live code editor with syntax highlighting, save changes in real time, and instantly refresh mod data all without leaving the panel, giving complete control over mod development and server content.",
-      tags: ["ModManager", "Documentation "],
+      tags: ["My Mods", "Documentation "],
+    },
+    {
+      code: "Change Game?",
+      desc: "You can browse and manage all supported game servers available in your panel. Each game card provides a quick overview, including the game’s description, Steam and Discord links, and whether it’s currently supported. By selecting your game, some of the panel settings will automatically update for example, your Mods, Workshop, and Server Settings so you can seamlessly manage everything without extra steps. You can search for games, view upcoming titles marked as “Coming Soon,” and activate your preferred game server directly from the interface. For supported games like Project Zomboid, you can also create a new server session by specifying the batch file path, giving you full control to launch and manage your dedicated server. Easily access community resources, guides, and official wikis right from the page, making setup and management simple for both new and experienced users.",
+      tags: ["My Server", "Documentation "],
+    },
+    {
+      code: "Server Settings?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Server", "Documentation "],
+    },
+    {
+      code: "BackUp?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Server", "Documentation "],
+    },
+    {
+      code: "Workshop Manager?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Mods", "Documentation "],
+    },
+    {
+      code: "Check Mod Updates?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Mods", "Documentation "],
+    },
+    {
+      code: "Create Mod?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Mods", "Documentation "],
+    },
+    {
+      code: "Manage Assets",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["My Mods", "Documentation "],
+    },
+    {
+      code: "Players?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Players", "Documentation "],
+    },
+    {
+      code: "Monitoring?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Monitoring", "Documentation "],
+    },
+    {
+      code: "Ddos Manager?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Security", "Documentation "],
+    },
+    {
+      code: "FireWall Rules?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Security", "Documentation "],
+    },
+    {
+      code: "Check Ports?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Network", "Documentation "],
+    },
+    {
+      code: "Custom Scripts?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Automation", "Documentation "],
+    },
+    {
+      code: "Scheduled Jobs?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Automation", "Documentation "],
+    },
+    {
+      code: "Webhooks & API?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Automation", "Documentation "],
+    },
+    {
+      code: "Game Tools?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Game Tools", "Documentation "],
+    },
+    {
+      code: "API Keys?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Panel Settings", "Documentation "],
+    },
+    {
+      code: "Theme Manager?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Panel Settings", "Documentation "],
+    },
+    {
+      code: "Staff Chat?",
+      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
+      tags: ["Staff Chat", "Documentation "],
     },
   ];
 
@@ -294,7 +409,7 @@ export default function DashboardLayout({ children }) {
             <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Search game code errors..."
+              placeholder="Quickly search our documentation for Modix tips, guides, and game server error fixes."
               value={errorSearch}
               onChange={(e) => setErrorSearch(e.target.value)}
             />
@@ -332,19 +447,117 @@ export default function DashboardLayout({ children }) {
             <div
               className="error-modal-overlay"
               onClick={() => setSelectedError(null)}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.7)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 9999,
+                padding: "1rem",
+                backdropFilter: "blur(4px)",
+                animation: "fadeIn 0.25s ease-in-out",
+              }}
             >
-              <div className="error-modal" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="error-modal"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: "relative",
+                  backgroundColor: "#1e1e1e",
+                  color: "#eee",
+                  borderRadius: "14px",
+                  width: "100%",
+                  maxWidth: "600px",
+                  maxHeight: "80vh",
+                  overflowY: "auto",
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
+                  padding: "2rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  transition: "transform 0.2s ease",
+                }}
+              >
+                {/* Close Button */}
                 <button
                   className="error-modal-close"
                   onClick={() => setSelectedError(null)}
+                  style={{
+                    position: "absolute",
+                    top: "12px",
+                    right: "12px",
+                    background: "transparent",
+                    border: "none",
+                    fontSize: "1.7rem",
+                    color: "#ff6b6b",
+                    cursor: "pointer",
+                    transition: "color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#ff4c4c")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#ff6b6b")
+                  }
                 >
                   <FaTimes />
                 </button>
-                <h2>{selectedError.code}</h2>
-                <p>{selectedError.desc}</p>
-                <div className="error-tags">
+
+                {/* Header */}
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "1.5rem",
+                    color: "#ff6b6b",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  ⚠️ {selectedError.code}
+                </h2>
+
+                {/* Description */}
+                <p style={{ lineHeight: 1.6, fontSize: "1rem", color: "#ccc" }}>
+                  {selectedError.desc}
+                </p>
+
+                {/* Tags */}
+                <div
+                  className="error-tags"
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginTop: "0.5rem",
+                  }}
+                >
                   {selectedError.tags.map((tag) => (
-                    <span key={tag} className="error-tag">
+                    <span
+                      key={tag}
+                      style={{
+                        backgroundColor: "#333",
+                        color: "#fff",
+                        padding: "5px 10px",
+                        borderRadius: "8px",
+                        fontSize: "0.85rem",
+                        cursor: "default",
+                        transition: "transform 0.15s, background 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#444";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#333";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
                       {tag}
                     </span>
                   ))}
