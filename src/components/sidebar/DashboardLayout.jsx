@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { FaChevronRight, FaBars } from "react-icons/fa";
+import { FaChevronRight, FaBars, FaSearch, FaTimes } from "react-icons/fa";
 import { navLinks } from "./navConfig";
 import SidebarUserInfo from "./SidebarUserInfo";
 import "./DashboardLayout.css";
@@ -13,6 +13,8 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [errorSearch, setErrorSearch] = useState(""); // 🔍 right window search
+  const [selectedError, setSelectedError] = useState(null); // modal
   const [theme, setTheme] = useState({
     background: "",
     gradient: "",
@@ -104,14 +106,12 @@ export default function DashboardLayout({ children }) {
     return filterLinks(navLinks);
   }, [searchTerm, allowedPages, currentUserState]);
 
-  // Render menu items, always show icons, labels only if sidebarOpen
   const renderMenuItems = (items, level = 0) =>
     items.map(({ label, href = "", submenu }) => {
       const isOpen = !!openMenus[href];
       const hasSubmenu = submenu && submenu.length > 0;
       const iconClass = theme.icons?.[label];
 
-      // Always render clickable button/link
       return (
         <li
           key={href || label}
@@ -141,8 +141,6 @@ export default function DashboardLayout({ children }) {
               {sidebarOpen && hasSubmenu && (
                 <ul
                   id={`submenu-${label}`}
-                  role="region"
-                  aria-label={`${label} submenu`}
                   className={`submenu ${isOpen ? "expanded" : "collapsed"}`}
                 >
                   {renderMenuItems(submenu, level + 1)}
@@ -170,6 +168,24 @@ export default function DashboardLayout({ children }) {
     ? `url(${theme.background}) no-repeat center center / cover`
     : "#111";
 
+  // Mock database for game errors
+  const mockErrorDatabase = [
+    { code: "ERR1001", desc: "Failed to initialize Steam API." },
+    { code: "ERR2002", desc: "Missing mod dependency." },
+    { code: "ERR3003", desc: "Server config file not found." },
+    { code: "ERR4004", desc: "Workshop item failed to download." },
+  ];
+
+  const filteredErrors = useMemo(() => {
+    if (!errorSearch) return [];
+    const term = errorSearch.toLowerCase();
+    return mockErrorDatabase.filter(
+      (e) =>
+        e.code.toLowerCase().includes(term) ||
+        e.desc.toLowerCase().includes(term)
+    );
+  }, [errorSearch]);
+
   return (
     <div className="dashboard-root">
       <div
@@ -179,20 +195,14 @@ export default function DashboardLayout({ children }) {
       <div className="dashboard-overlay" />
 
       <div className="dashboard-container">
+        {/* Sidebar */}
         <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <div
             className="sidebar-header"
-            tabIndex={0}
             onClick={() => setSidebarOpen((v) => !v)}
-            role="button"
-            aria-pressed={sidebarOpen}
           >
             <div className="sidebar-logo-row">
-              <img
-                alt="Modix Logo"
-                className="sidebar-logo"
-                src={theme.logo || "https://i.ibb.co/cMPwcn8/logo.png"}
-              />
+              <img alt="Modix Logo" className="sidebar-logo" src={theme.logo} />
               {sidebarOpen && (
                 <span className="sidebar-title">{theme.title}</span>
               )}
@@ -208,7 +218,6 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
 
-          {/* Hide search when collapsed */}
           {sidebarOpen && (
             <div className="sidebar-search">
               <input
@@ -252,18 +261,60 @@ export default function DashboardLayout({ children }) {
           </footer>
         </aside>
 
+        {/* Main Content */}
         <main>
-          <div className="content-inner">{children}</div>
-          <div
-            style={{
-              marginTop: "16px",
-              textAlign: "center",
-              fontSize: "12px",
-              color: "#888",
-            }}
-          >
-            © Modix Game Panel. 2024 - 2025
+          {/* Top Right Error Search */}
+          <div className="error-search-bar">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search game code errors..."
+              value={errorSearch}
+              onChange={(e) => setErrorSearch(e.target.value)}
+            />
           </div>
+
+          {/* Display Results */}
+          {errorSearch && (
+            <div className="error-results">
+              {filteredErrors.length > 0 ? (
+                filteredErrors.map((e) => (
+                  <div
+                    key={e.code}
+                    className="error-item"
+                    onClick={() => setSelectedError(e)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <strong>{e.code}</strong> — {e.desc}
+                  </div>
+                ))
+              ) : (
+                <div className="error-item">No matching errors found.</div>
+              )}
+            </div>
+          )}
+
+          {/* Modal Popup */}
+          {selectedError && (
+            <div
+              className="error-modal-overlay"
+              onClick={() => setSelectedError(null)}
+            >
+              <div className="error-modal" onClick={(e) => e.stopPropagation()}>
+                <button
+                  className="error-modal-close"
+                  onClick={() => setSelectedError(null)}
+                >
+                  <FaTimes />
+                </button>
+                <h2>{selectedError.code}</h2>
+                <p>{selectedError.desc}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="content-inner">{children}</div>
+          <div className="footer-text">© Modix Game Panel. 2024 - 2025</div>
         </main>
       </div>
     </div>

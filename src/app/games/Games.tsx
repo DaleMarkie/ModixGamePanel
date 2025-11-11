@@ -68,7 +68,7 @@ export default function Games() {
         name: "RimWorld",
         image:
           "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/294100/header.jpg",
-        supported: true,
+        supported: false,
         description:
           "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
         steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
