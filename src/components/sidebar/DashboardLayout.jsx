@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }) {
     {
       code: "API not starting",
       desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
-      tags: ["API", "Python", "Dependency", "Error", "Debug"],
+      tags: ["Panel", "API", "Backend", "Error"],
     },
     {
       code: "ERR2002",
@@ -190,9 +190,14 @@ export default function DashboardLayout({ children }) {
       tags: ["Workshop", "Download", "Error", "Mod"],
     },
     {
-      code: "What Is Terminal?",
-      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
-      tags: ["API", "Python", "Dependency", "Error", "Debug"],
+      code: "Terminal?",
+      desc: "The Terminal component is a powerful, all in one web based console that gives users complete control over their Project Zomboid server, allowing them to start, stop, and manage the server with a single click, send live server commands like saving the world, listing or kicking players, banning users, and reloading scripts, while also providing real time log streaming with search and auto scroll features, the ability to clear or copy logs, and integrated performance monitoring, enabling both new and experienced users to efficiently run, monitor, and troubleshoot their server entirely from the browser without ever touching the command line.",
+      tags: ["Terminal", "Documentation "],
+    },
+    {
+      code: "ModManager?",
+      desc: "The Mod Manager is an all in one browser based tool that allows users to browse, search, and organize their game mods, create, edit, move, or delete files and folders within mods, manage favorites, customize colors, open multiple files in a live code editor with syntax highlighting, save changes in real time, and instantly refresh mod data all without leaving the panel, giving complete control over mod development and server content.",
+      tags: ["ModManager", "Documentation "],
     },
   ];
 
