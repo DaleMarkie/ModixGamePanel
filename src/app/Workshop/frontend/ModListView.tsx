@@ -1,17 +1,22 @@
 import React, { useState, useMemo } from "react";
 import ModCard from "./ModCard"; // Your existing mod card component
+import { FaSearch } from "react-icons/fa";
 
-const ModListView = ({ mods }) => {
+interface ModListViewProps {
+  mods: Array<any>;
+}
+
+const ModListView: React.FC<ModListViewProps> = ({ mods }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter mods based on search term only
+  // Filter mods based on search term
   const filteredMods = useMemo(() => {
     if (!searchTerm.trim()) return mods;
 
     const lowerSearch = searchTerm.toLowerCase();
     return mods.filter(
       (mod) =>
-        (mod.name && mod.name.toLowerCase().includes(lowerSearch)) ||
+        (mod.title && mod.title.toLowerCase().includes(lowerSearch)) ||
         (mod.modId && mod.modId.toString().includes(lowerSearch))
     );
   }, [mods, searchTerm]);
@@ -19,42 +24,65 @@ const ModListView = ({ mods }) => {
   return (
     <div
       style={{
-        padding: 20,
-        color: "white",
-        fontFamily:
-          "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        padding: "20px",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        color: "#eee",
+        minHeight: "100vh",
+        backgroundColor: "#121212",
       }}
     >
-      {/* Header with Title and Search */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 16,
+          marginBottom: 24,
           gap: 12,
         }}
       >
-        <h2 style={{ fontSize: 28, margin: 0 }}>Workshop</h2>
-
-        <input
-          type="search"
-          placeholder="Search mods..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+        <h2
           style={{
-            flexGrow: 1,
-            maxWidth: 300,
-            padding: "8px 12px",
-            borderRadius: 8,
-            border: "1px solid #555",
-            backgroundColor: "#111",
-            color: "white",
-            fontSize: 16,
+            fontSize: 30,
+            fontWeight: 700,
+            margin: 0,
+            color: "#1DB954",
           }}
-          aria-label="Search mods"
-        />
+        >
+          Workshop
+        </h2>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexGrow: 1,
+            maxWidth: 350,
+            backgroundColor: "#1e1e1e",
+            padding: "6px 12px",
+            borderRadius: 10,
+            border: "1px solid #333",
+            transition: "all 0.2s",
+          }}
+        >
+          <FaSearch style={{ marginRight: 8, color: "#888" }} />
+          <input
+            type="search"
+            placeholder="Search mods..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flexGrow: 1,
+              border: "none",
+              outline: "none",
+              backgroundColor: "transparent",
+              color: "#eee",
+              fontSize: 16,
+            }}
+            aria-label="Search mods"
+          />
+        </div>
       </div>
 
       {/* Empty State */}
@@ -69,14 +97,14 @@ const ModListView = ({ mods }) => {
           }}
         >
           {searchTerm
-            ? "No mods match your search."
-            : "No mods available."}
+            ? "🔍 No mods match your search."
+            : "📦 No mods available."}
         </p>
       ) : (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
             gap: 20,
           }}
         >
@@ -84,15 +112,14 @@ const ModListView = ({ mods }) => {
             <ModCard
               key={mod.modId || mod.id}
               mod={mod}
-              onClick={() =>
-                console.log("View mod:", mod.modId || mod.id)
+              inList={false} // default, replace as needed
+              isInstalled={false} // default, replace as needed
+              onClick={() => console.log("View mod:", mod.modId || mod.id)}
+              onToggleInList={() =>
+                console.log("Toggle mod in list:", mod.modId || mod.id)
               }
-              onContextMenu={(e) => {
-                e.preventDefault();
-                console.log("Right-click mod:", mod.modId || mod.id);
-              }}
-              onAdd={(modId) =>
-                console.log("Add to server:", modId)
+              onAddToServer={() =>
+                console.log("Add to server:", mod.modId || mod.id)
               }
             />
           ))}
