@@ -30,6 +30,7 @@ from backend.modupdates_api import router as modupdates_router
 from backend.discord_api import router as discord_router
 from backend.API.Core.auth import auth_router
 from backend.games_api import router as games_router
+from backend.API.Core.settings_api import server_settings
 # ---------------------------
 # FastAPI App
 # ---------------------------
@@ -140,6 +141,7 @@ app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 app.include_router(games_router, prefix="/api/games", tags=["Games"])
+app.include_router(server_settings.router, prefix="/api/server_settings")
 # ---------------------------
 # Health & Port Check
 # ---------------------------
