@@ -1,131 +1,216 @@
+/* serversettings.css */
+
+/* General page */
 .server-settings-new {
-  padding: 2rem;
-  background: #0d0d0d;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #e0e0e0;
-  font-family: "Inter", sans-serif;
-  position: relative;
+  background: #121212;
+  padding: 1rem;
 }
 
-header h1 {
-  font-size: 2rem;
-  color: #00ffab;
-  margin-bottom: 0.2rem;
-}
-
-header p {
-  font-size: 0.9rem;
-  color: #aaa;
-  margin-bottom: 2rem;
-}
-
+/* Status messages */
 .status {
-  font-size: 0.9rem;
-  color: #ccc;
-  margin-bottom: 1rem;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-align: center;
+  background: #1e1e1e;
 }
 
 .status.message {
-  color: #0f0;
+  background: #1b442d;
+  color: #a3f9a3;
+}
+
+/* Header */
+.server-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 2px solid #444;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.header-left p {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #a0a0a0;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #1f1f1f;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: #2b2b2b;
+}
+
+.wiki-btn {
+  color: #ffd600;
   font-weight: bold;
 }
 
+/* Settings layout */
 .settings-layout {
-  display: flex;
-  gap: 2rem;
-}
-
-/* Left Panel */
-.left-panel {
-  flex: 1;
-}
-
-/* Right Panel */
-.right-panel {
-  flex: 2;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.card {
-  background: #1a1a1a;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 15px rgba(0, 255, 171, 0.15);
-  transition: all 0.2s;
+/* Right Panel */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(0, 255, 171, 0.3);
+/* Category card */
+.card.category-card {
+  background: #1e1e1e;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #333;
+  transition: border 0.2s;
 }
 
-.server-path-card input {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  margin-top: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid #444;
-  background: #222;
-  color: #e0e0e0;
+.card.category-card:hover {
+  border: 1px solid #555;
 }
 
-.category-card .category-header {
+/* Category header */
+.category-header {
+  background: #2a2a2a;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
 }
 
-.category-card .category-header h2 {
-  color: #00ffab;
+.category-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .category-body {
-  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+.category-desc {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Setting items */
 .setting-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
+  gap: 0.25rem;
+}
+
+.setting-item span {
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .setting-item input[type="text"],
 .setting-item input[type="number"] {
-  padding: 0.5rem 0.7rem;
-  border-radius: 6px;
+  background: #2a2a2a;
   border: 1px solid #444;
-  background: #222;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.5rem;
   color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.setting-item input[type="text"]:focus,
+.setting-item input[type="number"]:focus {
+  outline: none;
+  border-color: #ffd600;
 }
 
 .setting-item input[type="checkbox"] {
-  width: auto;
-  transform: scale(1.2);
-  margin-top: 0.3rem;
-  accent-color: #00ffab;
+  width: 18px;
+  height: 18px;
 }
 
+/* Optional small description below input */
+.setting-desc {
+  font-size: 0.75rem;
+  color: #888;
+  margin-left: 0.25rem;
+}
+
+/* Floating save button */
 .save-floating-btn {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: #00ffab;
-  color: #0d0d0d;
-  font-weight: bold;
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
-  cursor: pointer;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #ffd600;
+  color: #121212;
   border: none;
-  transition: all 0.2s;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 .save-floating-btn:hover {
-  background: #00cc86;
+  background: #ffea00;
 }
 
-.save-floating-btn:disabled {
-  background: #444;
-  cursor: not-allowed;
+/* Responsive tweaks */
+@media screen and (max-width: 768px) {
+  .server-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-right {
+    gap: 0.25rem;
+  }
 }
