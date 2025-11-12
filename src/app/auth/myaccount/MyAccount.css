@@ -1,233 +1,192 @@
-/* MyAccount.css - Clean Dark Green Theme */
-
+/* Container */
 .myaccount-container {
-  background-color: #111418; /* true deep neutral dark */
-  color: #e0e0e0;
-  min-height: 100vh;
-  padding: 2rem;
+  padding: 1rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Header */
-.account-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.account-header h1 {
-  font-size: 2rem;
-  color: #baffd4;
-  text-shadow: none;
-}
-
-/* Logout Button */
-.logout-btn {
-  background-color: #ff4c4c;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  box-shadow: none;
-}
-
-.logout-btn:hover {
-  background-color: #e04343;
-  box-shadow: none;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.tab {
-  background-color: #1b1f26;
-  border: 1px solid #1f2a22;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 600;
   color: #e0e0e0;
-  transition: background 0.3s ease;
-}
-
-.tab:hover {
-  background-color: #203a2b;
-  box-shadow: none;
-  color: #baffd4;
-}
-
-.tab.active {
-  background-color: #254830;
-  border-color: #00ff88;
-  box-shadow: none;
-  color: #baffd4;
-}
-
-.tab-disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  background-color: #121212;
+  min-height: 100vh;
 }
 
 /* Info Cards */
 .dashboard-user-info {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
 }
 
 .info-card {
-  background-color: #161a20;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  flex: 1 1 200px;
   display: flex;
+  background: #1a1a1a;
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  flex: 1 1 180px;
   align-items: center;
-  gap: 1rem;
-  transition: transform 0.3s ease;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .info-card:hover {
-  transform: scale(1.03);
-  box-shadow: none;
+  background: #2a2a2a;
+  transform: translateY(-1px);
 }
 
-.info-card i {
-  font-size: 1.8rem;
-  color: #00ff88;
-  text-shadow: none;
+.info-icon {
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
 }
 
-/* Text */
+.info-details {
+  display: flex;
+  flex-direction: column;
+}
+
 .info-label {
-  font-size: 0.85rem;
-  color: #aaa;
+  font-size: 0.7rem;
+  color: #888;
 }
 
 .info-value {
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-size: 0.85rem;
 }
 
 .status-active {
-  color: #00ff88;
-  text-shadow: none;
+  color: #4caf50;
 }
 
 .status-inactive {
   color: #f44336;
 }
 
-/* Dashboard Cards */
-.dashboard-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.dashboard-card {
-  background-color: #161a20;
-  border: 1px solid #1f2a22;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  flex: 1 1 300px;
-  transition: transform 0.3s ease;
-}
-
-.dashboard-card:hover {
-  transform: scale(1.02);
-  box-shadow: none;
-}
-
-.dashboard-card h3 {
+/* Recent Activity */
+.recent-activity {
+  background: #1e1e1e;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
   margin-bottom: 1rem;
-  color: #00ff88;
-  text-shadow: none;
 }
 
-/* Lists */
-.dashboard-card ul {
+.recent-activity h2 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: #4caf50;
+}
+
+.recent-activity ul {
   list-style: none;
   padding-left: 0;
+  font-size: 0.85rem;
+  color: #ccc;
 }
 
-.dashboard-card ul li {
+.recent-activity li {
+  padding: 0.2rem 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.recent-activity li:last-child {
+  border-bottom: none;
+}
+
+.recent-activity p {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Account Links Section */
+.account-links {
+  background: #1e1e1e;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  text-align: center;
+  line-height: 1.4;
+  border-left: 4px solid #4caf50;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-links:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.account-links p {
   margin-bottom: 0.5rem;
-  padding-left: 0.8rem;
-  position: relative;
+  font-size: 0.9rem;
+  color: #cfcfcf;
 }
 
-.dashboard-card ul li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: #00ff88;
-  text-shadow: none;
+/* Buttons */
+.link-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-/* Tables */
-.login-history-table,
-.subusers-table,
-.subscriptions-table,
-.activity-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid #252b33;
-  text-align: left;
-}
-
-th {
-  color: #00ff88;
-  text-shadow: none;
-}
-
-.no-logs {
-  color: #aaa;
-  font-style: italic;
-}
-
-/* Add Buttons */
-.add-subuser-btn,
-.add-subscription-btn {
-  background-color: #00ff88;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.4rem;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 5px;
   font-weight: bold;
-  cursor: pointer;
-  color: #0a0a0a;
-  transition: background 0.3s ease;
+  text-decoration: none;
+  color: #fff;
+  font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
 }
 
-.add-subuser-btn:hover,
-.add-subscription-btn:hover {
-  background-color: #00e67a;
-  box-shadow: none;
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-discord {
+  background: #5865f2;
+}
+
+.btn-discord:hover {
+  background: #4752c4;
+}
+
+.btn-kofi {
+  background: #ff5e5b;
+}
+
+.btn-kofi:hover {
+  background: #e04848;
+}
+
+.btn-facebook {
+  background: #3b5998;
+}
+
+.btn-facebook:hover {
+  background: #2d4373;
+}
+
+.btn svg {
+  font-size: 0.9rem;
+}
+
+/* Not logged in */
+.not-logged {
+  padding: 1rem;
+  color: #f44336;
+  font-weight: bold;
+  text-align: center;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .dashboard-user-info,
-  .dashboard-row {
+  .dashboard-user-info {
     flex-direction: column;
   }
 
-  .tab {
-    flex: 1 1 45%;
+  .info-card {
+    flex: 1 1 100%;
+  }
+
+  .link-buttons {
+    flex-direction: column;
+    gap: 0.4rem;
   }
 }

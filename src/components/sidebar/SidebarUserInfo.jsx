@@ -19,7 +19,7 @@ function SidebarUserInfo() {
       <div style={{ display: "flex", flexDirection: "column" }}>
         <span style={{ fontSize: "12px", color: "#888" }}>Version</span>
         <span style={{ fontSize: "14px", color: "#eee", fontWeight: 500 }}>
-          1.1.2
+          1.1.3
         </span>
       </div>
     </section>

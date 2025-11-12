@@ -57,8 +57,6 @@ export const navLinks: NavItem[] = [
       { label: "📦 My Mods", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
       { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
-      { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
-      { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
     ],
   },
 
@@ -68,7 +66,10 @@ export const navLinks: NavItem[] = [
     href: "/players",
     submenu: [
       { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
-      { label: "🔎 Player Search", href: "/steamplayermanager" },
+      {
+        label: "🔎 Player Search",
+        href: "/PlayerManagement/steamplayermanager",
+      },
       { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
       { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
       {

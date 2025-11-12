@@ -26,7 +26,7 @@ const saveActivityLogs = (logs: ActivityLog[]) => {
   localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(logs));
 };
 
-const addLog = (user: string, action: string, duration?: string) => {
+export const addLog = (user: string, action: string, duration?: string) => {
   const logs = getActivityLogs();
   const newLog: ActivityLog = {
     id: crypto.randomUUID(),
@@ -40,15 +40,12 @@ const addLog = (user: string, action: string, duration?: string) => {
 };
 
 // ---------------------------
-// Page View Tracking
+// Page View / Login / Logout
 // ---------------------------
 export const recordPageView = (username: string, page: string) => {
   addLog(username, `Viewed page: ${page}`);
 };
 
-// ---------------------------
-// Login / Logout
-// ---------------------------
 export const recordLogin = (username: string) => {
   addLog(username, "Signed in");
   localStorage.setItem(
@@ -79,6 +76,7 @@ export const recordLogout = (username: string) => {
 export default function Activity() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [filterUser, setFilterUser] = useState<string>("All");
 
   useEffect(() => {
     setLogs(getActivityLogs());
@@ -117,13 +115,38 @@ export default function Activity() {
     return { loginsPastWeek, mostVisitedPage };
   };
 
+  const users = Array.from(new Set(logs.map((log) => log.user)));
+
+  const displayedLogs =
+    filterUser === "All" ? logs : logs.filter((log) => log.user === filterUser);
+
   return (
     <section className="card activity-card">
       <h3>📜 Activity Logs</h3>
+
+      {/* Filter */}
+      {users.length > 1 && (
+        <div className="filter-user">
+          <label>Filter by user: </label>
+          <select
+            value={filterUser}
+            onChange={(e) => setFilterUser(e.target.value)}
+          >
+            <option value="All">All</option>
+            {users.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Logs */}
       <div className="logs-container">
-        {logs.length > 0 ? (
+        {displayedLogs.length > 0 ? (
           <ul>
-            {logs.map((log) => (
+            {displayedLogs.map((log) => (
               <li key={log.id}>
                 <span className="log-time">[{log.timestamp}]</span>{" "}
                 <span
@@ -136,7 +159,10 @@ export default function Activity() {
                 </span>{" "}
                 — <span className="log-action">{log.action}</span>
                 {log.duration && (
-                  <span className="log-duration"> (Session: {log.duration})</span>
+                  <span className="log-duration">
+                    {" "}
+                    (Session: {log.duration})
+                  </span>
                 )}
               </li>
             ))}
@@ -146,12 +172,10 @@ export default function Activity() {
         )}
       </div>
 
+      {/* Stats Modal */}
       {selectedUser && (
         <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h4>📊 {selectedUser} Stats (Past 7 Days)</h4>
             {logs.length > 0 ? (
               (() => {
@@ -166,7 +190,10 @@ export default function Activity() {
             ) : (
               <p>No stats available.</p>
             )}
-            <button className="modal-close" onClick={() => setSelectedUser(null)}>
+            <button
+              className="modal-close"
+              onClick={() => setSelectedUser(null)}
+            >
               Close
             </button>
           </div>

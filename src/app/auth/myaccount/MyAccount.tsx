@@ -1,6 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {
+  FaDiscord,
+  FaFacebook,
+  FaHeart,
+  FaGamepad,
+  FaHourglass,
+} from "react-icons/fa";
 import "./MyAccount.css";
 import { getServerUrl } from "@/app/config";
 
@@ -44,6 +51,30 @@ const MyAccount = () => {
     return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
   };
 
+  const getLongestSession = () => {
+    if (!userLogs.length) return "N/A";
+    const sessions = userLogs
+      .filter((log) => log.duration)
+      .map((log) => {
+        const parts = log.duration.split(/[ms ]+/).map(Number);
+        return parts[0] * 60 + (parts[1] || 0); // convert to seconds
+      });
+    if (!sessions.length) return "N/A";
+    const maxSeconds = Math.max(...sessions);
+    const mins = Math.floor(maxSeconds / 60);
+    const secs = maxSeconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
+
+  const getActiveGame = () => {
+    if (!userLogs.length) return "None";
+    const gameLog = userLogs
+      .slice()
+      .reverse()
+      .find((log) => log.action.startsWith("Playing game:"));
+    return gameLog ? gameLog.action.replace("Playing game: ", "") : "None";
+  };
+
   if (!user)
     return (
       <div className="not-logged">Please log in to access your account.</div>
@@ -62,16 +93,23 @@ const MyAccount = () => {
     { label: "Joined", value: formatDate(user.created_at), icon: "📅" },
     { label: "Last Login", value: formatDate(user.last_login), icon: "⏰" },
     { label: "Account ID", value: user.id || "N/A", icon: "🆔" },
-    { label: "Plan / License", value: user.license?.plan || "Free / N/A", icon: "🎫" },
+    {
+      label: "Plan / License",
+      value: user.license?.plan || "Free / N/A",
+      icon: "🎫",
+    },
     { label: "Active Sessions", value: userLogs.length || "0", icon: "💻" },
+    { label: "Active Game", value: getActiveGame(), icon: <FaGamepad /> },
+    {
+      label: "Longest Session",
+      value: getLongestSession(),
+      icon: <FaHourglass />,
+    },
   ];
 
   return (
     <div className="myaccount-container">
-      <header className="account-header">
-        <h1>⚙️ My Account Overview</h1>
-      </header>
-
+      {/* Info Cards */}
       <section className="dashboard-user-info">
         {infoCards.map((info, idx) => (
           <div key={idx} className="info-card">
@@ -84,6 +122,54 @@ const MyAccount = () => {
             </div>
           </div>
         ))}
+      </section>
+
+      {/* Recent Activity */}
+      <section className="recent-activity">
+        <h2>📜 Recent Activity</h2>
+        {userLogs.length ? (
+          <ul>
+            {userLogs.slice(0, 5).map((log, idx) => (
+              <li key={idx}>
+                {new Date(log.timestamp).toLocaleString()} — {log.action}{" "}
+                {log.duration ? `(Session: ${log.duration})` : ""}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No recent activity.</p>
+        )}
+      </section>
+
+      {/* Social / Support Links */}
+      <section className="account-links">
+        <p>💌 Connect with Modix:</p>
+        <div className="link-buttons">
+          <a
+            href="https://discord.gg/EwWZUSR9tM"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-discord"
+          >
+            <FaDiscord /> Join Discord
+          </a>
+          <a
+            href="https://ko-fi.com/modixgamepanel"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-kofi"
+          >
+            <FaHeart /> Support on Ko-fi
+          </a>
+          <a
+            href="https://www.facebook.com/modixgamepanel/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-facebook"
+          >
+            <FaFacebook /> Facebook
+          </a>
+        </div>
       </section>
     </div>
   );
