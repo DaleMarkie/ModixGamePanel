@@ -6,7 +6,7 @@ interface ModCardProps {
     title: string;
     image?: string;
     description?: string;
-    lastUpdate?: string; // ISO timestamp
+    lastUpdate?: string;
     version?: string;
     folderPath?: string;
   };
@@ -29,209 +29,163 @@ const ModCard: React.FC<ModCardProps> = ({
 }) => {
   const [readMore, setReadMore] = useState(false);
 
-  const badges = useMemo(() => {
-    const result = [];
-    result.push({
-      text: isInstalled ? "✅ Added" : "📁 Not Active",
-      color: isInstalled ? "#1DB954" : "#FF6B6B",
-    });
-    if (mod.version)
-      result.push({ text: `📦 ${mod.version}`, color: "#FFD93D" });
-    if (mod.lastUpdate)
-      result.push({
-        text: `🕒 ${new Date(mod.lastUpdate).toLocaleDateString()}`,
-        color: "#6C5CE7",
-      });
-    return result;
-  }, [isInstalled, mod.version, mod.lastUpdate]);
+  const badges = useMemo(
+    () => [
+      {
+        text: isInstalled ? "✅ Added" : "📁 Not Active",
+        color: isInstalled ? "#1DB954" : "#FF6B6B",
+      },
+      ...(mod.version ? [{ text: `📦 ${mod.version}`, color: "#FFD93D" }] : []),
+      ...(mod.lastUpdate
+        ? [
+            {
+              text: `🕒 ${new Date(mod.lastUpdate).toLocaleDateString()}`,
+              color: "#6C5CE7",
+            },
+          ]
+        : []),
+    ],
+    [isInstalled, mod.version, mod.lastUpdate]
+  );
 
   const handleOpenFolder = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isInstalled && mod.folderPath && onOpenFolder) {
-      onOpenFolder(mod.folderPath);
-    }
+    isInstalled && mod.folderPath && onOpenFolder?.(mod.folderPath);
   };
 
   return (
     <div
       onClick={onClick}
       style={{
+        display: "flex",
+        gap: 12,
+        padding: 10,
         background: "rgba(30,30,30,0.85)",
-        backdropFilter: "blur(8px)",
-        borderRadius: 16,
-        overflow: "hidden",
+        borderRadius: 10,
         border: "1px solid #333",
         cursor: "pointer",
-        display: "flex",
-        flexDirection: "column",
-        maxWidth: 320,
-        position: "relative",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+        transition: "background 0.2s",
       }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.transform = "scale(1.02)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow =
-          "0 8px 20px rgba(0,0,0,0.6)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.transform = "scale(1)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow =
-          "0 4px 12px rgba(0,0,0,0.5)";
-      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.background = "rgba(40,40,40,0.9)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.background = "rgba(30,30,30,0.85)")
+      }
     >
-      {/* Badges */}
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          alignItems: "flex-end",
-        }}
-      >
-        {badges.map((b) => (
-          <span
-            key={b.text}
-            style={{
-              background: `linear-gradient(135deg, ${b.color} 0%, #333 100%)`,
-              color: "#fff",
-              padding: "4px 10px",
-              borderRadius: 20,
-              fontSize: 11,
-              fontWeight: 600,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-            }}
-          >
-            {b.text}
-          </span>
-        ))}
-      </div>
-
-      {/* Cover Image */}
+      {/* Image */}
       <img
-        src={mod.image || "https://via.placeholder.com/300x160?text=No+Image"}
+        src={mod.image || "https://via.placeholder.com/80x80?text=No+Image"}
         alt={mod.title}
-        style={{
-          width: "100%",
-          height: 160,
-          objectFit: "cover",
-          transition: "transform 0.3s",
-        }}
+        style={{ width: 80, height: 80, borderRadius: 6, objectFit: "cover" }}
       />
 
+      {/* Content */}
       <div
         style={{
-          padding: 16,
+          flex: 1,
           display: "flex",
           flexDirection: "column",
-          flexGrow: 1,
+          justifyContent: "space-between",
         }}
       >
-        <h3
+        <div>
+          <h3 style={{ color: "#1DB954", margin: 0, fontSize: "0.95rem" }}>
+            {mod.title}
+          </h3>
+          <p style={{ fontSize: 10, color: "#aaa", margin: "2px 0" }}>
+            🆔 {mod.modId}
+          </p>
+          {mod.description && (
+            <p style={{ fontSize: 11, color: "#ccc", margin: "4px 0" }}>
+              {readMore
+                ? mod.description
+                : mod.description.slice(0, 80) +
+                  (mod.description.length > 80 ? "..." : "")}
+              {mod.description.length > 80 && (
+                <span
+                  style={{
+                    color: "#1DB954",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    marginLeft: 4,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setReadMore(!readMore);
+                  }}
+                >
+                  [{readMore ? "less" : "more"}]
+                </span>
+              )}
+            </p>
+          )}
+        </div>
+
+        {/* Badges & Buttons */}
+        <div
           style={{
-            color: "#1DB954",
-            margin: 0,
-            fontWeight: 700,
-            fontSize: "1.1rem",
-            textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 6,
           }}
         >
-          {mod.title}
-        </h3>
+          <div style={{ display: "flex", gap: 4 }}>
+            {badges.map((b) => (
+              <span
+                key={b.text}
+                style={{
+                  background: `linear-gradient(135deg, ${b.color} 0%, #333 100%)`,
+                  color: "#fff",
+                  padding: "2px 6px",
+                  borderRadius: 10,
+                  fontSize: 9,
+                  fontWeight: 600,
+                }}
+              >
+                {b.text}
+              </span>
+            ))}
+          </div>
 
-        <p style={{ fontSize: 11, color: "#aaa", margin: "4px 0" }}>
-          🆔 {mod.modId}
-        </p>
-
-        {/* Description */}
-        <p
-          style={{
-            fontSize: 12,
-            color: "#ccc",
-            marginBottom: 12,
-            lineHeight: 1.4,
-          }}
-        >
-          {readMore
-            ? mod.description
-            : mod.description?.slice(0, 90) +
-              (mod.description?.length > 90 ? "..." : "")}
-          {mod.description?.length > 90 && (
-            <span
-              style={{
-                color: "#1DB954",
-                marginLeft: 6,
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
+          <div style={{ display: "flex", gap: 4 }}>
+            <button
               onClick={(e) => {
                 e.stopPropagation();
-                setReadMore(!readMore);
+                onToggleInList();
+              }}
+              style={{
+                padding: "4px 8px",
+                fontSize: 10,
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                backgroundColor: inList ? "#444" : "#333",
+                color: "#fff",
               }}
             >
-              [{readMore ? "less" : "more"}]
-            </span>
-          )}
-        </p>
+              {inList ? "📂 Remove" : "📁 Add"}
+            </button>
 
-        {/* Buttons */}
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleInList();
-            }}
-            style={{
-              flex: 1,
-              borderRadius: 8,
-              padding: "8px 12px",
-              backgroundColor: inList ? "#444" : "#333",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#555")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = inList ? "#444" : "#333")
-            }
-          >
-            {inList ? "📂 Remove" : "📁 Add"}
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              isInstalled ? handleOpenFolder(e) : onAddToServer();
-            }}
-            style={{
-              flex: 1,
-              borderRadius: 8,
-              padding: "8px 12px",
-              backgroundColor: isInstalled ? "#1DB954" : "#333",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = isInstalled
-                ? "#1ed760"
-                : "#555")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = isInstalled
-                ? "#1DB954"
-                : "#333")
-            }
-          >
-            {isInstalled ? "📂 Open Folder" : "➕ Add to Server"}
-          </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                isInstalled ? handleOpenFolder(e) : onAddToServer();
+              }}
+              style={{
+                padding: "4px 8px",
+                fontSize: 10,
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                backgroundColor: isInstalled ? "#1DB954" : "#333",
+                color: "#fff",
+              }}
+            >
+              {isInstalled ? "📂 Open" : "➕ Add"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
