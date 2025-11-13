@@ -356,7 +356,7 @@ export default function WorkshopPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && fetchMods()}
-          placeholder="Search mods or enter Collection ID..."
+          placeholder="Search for mods on the Steam Workshop..."
           className="search-input"
         />
         <button
