@@ -120,7 +120,7 @@ export default function WorkshopPage() {
     [modColors]
   );
 
-  /** ------------------ server.ini helpers ------------------ **/
+  /** ------------------ Server.ini helpers ------------------ **/
   const parseInstalledMods = (content: string) => {
     const line = content
       .split("\n")
@@ -154,24 +154,34 @@ export default function WorkshopPage() {
     }
   };
 
-  /** ------------------ Modlist actions ------------------ **/
+  /** ------------------ Modlist persistence helper ------------------ **/
   const saveModlists = (
     updatedModlists: Record<string, string[]>,
-    listName: string
+    newActiveList?: string
   ) => {
     setModlists(updatedModlists);
     localStorage.setItem("modlists", JSON.stringify(updatedModlists));
-    setActiveList(listName);
-    localStorage.setItem("activeList", listName);
+    if (newActiveList) {
+      setActiveList(newActiveList);
+      localStorage.setItem("activeList", newActiveList);
+    }
   };
 
+  const toggleModInList = (modId: string) => {
+    if (!activeList || activeList === "__workshop__") return;
+    const current = modlists[activeList] || [];
+    const updated = current.includes(modId)
+      ? current.filter((id) => id !== modId)
+      : [...current, modId];
+    saveModlists({ ...modlists, [activeList]: updated }, activeList);
+  };
+
+  /** ------------------ Modlist actions ------------------ **/
   const createNewModlist = () => {
     const name = prompt("Enter a new modlist:");
     if (!name) return alert("Modlist name cannot be empty!");
     if (modlists[name]) return alert("Modlist already exists!");
-
-    const updated = { ...modlists, [name]: [] };
-    saveModlists(updated, name);
+    saveModlists({ ...modlists, [name]: [] }, name);
   };
 
   const renameModlist = () => {
@@ -179,7 +189,6 @@ export default function WorkshopPage() {
     const newName = prompt("New name for modlist:");
     if (!newName) return alert("Name cannot be empty!");
     if (modlists[newName]) return alert("Name already exists!");
-
     const updated: Record<string, string[]> = {
       ...modlists,
       [newName]: modlists[activeList],
@@ -191,13 +200,23 @@ export default function WorkshopPage() {
   const deleteModlist = () => {
     if (!activeList || activeList === "__workshop__") return;
     if (!window.confirm(`Delete modlist "${activeList}"?`)) return;
-
     const updated = { ...modlists };
     delete updated[activeList];
     saveModlists(updated, "__workshop__");
   };
 
-  /** ------------------ Fetch mods ------------------ **/
+  /** ------------------ Server.ini download ------------------ **/
+  const downloadServerIni = () => {
+    const blob = new Blob([serverIniContent], {
+      type: "text/plain;charset=utf-8",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = serverIniFile?.name || "server.ini";
+    link.click();
+  };
+
+  /** ------------------ Fetch mods (Steam Workshop) ------------------ **/
   const fetchModInfo = async (modId: string): Promise<Mod> => {
     try {
       const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`;
@@ -345,17 +364,6 @@ export default function WorkshopPage() {
     return mods;
   }, [mods, activeList, showListOnly, modlists]);
 
-  /** ------------------ Server.ini download ------------------ **/
-  const downloadServerIni = () => {
-    const blob = new Blob([serverIniContent], {
-      type: "text/plain;charset=utf-8",
-    });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = serverIniFile?.name || "server.ini";
-    link.click();
-  };
-
   return (
     <div className="workshop-container">
       {/* Search */}
@@ -408,10 +416,7 @@ export default function WorkshopPage() {
       <div className="modlist-bar">
         <select
           value={activeList}
-          onChange={(e) => {
-            setActiveList(e.target.value);
-            localStorage.setItem("activeList", e.target.value);
-          }}
+          onChange={(e) => setActiveList(e.target.value)}
         >
           <option value="__workshop__">Workshop</option>
           {Object.keys(modlists).map((name) => (
@@ -454,24 +459,10 @@ export default function WorkshopPage() {
               }
               isInstalled={installedMods.includes(mod.modId)}
               onClick={() => setSelectedMod(mod)}
-              onToggleInList={() => {
-                if (!activeList || activeList === "__workshop__") return;
-                const current = modlists[activeList] || [];
-                const updated = current.includes(mod.modId)
-                  ? current.filter((id) => id !== mod.modId)
-                  : [...current, mod.modId];
-                saveModlists(
-                  { ...modlists, [activeList]: updated },
-                  activeList
-                );
-              }}
+              onToggleInList={() => toggleModInList(mod.modId)}
               onAddToServer={() => addModToServer(mod.modId)}
               onSetColor={(color) =>
-                setModColors((prev) => {
-                  const updated = { ...prev, [mod.modId]: color };
-                  localStorage.setItem("modColors", JSON.stringify(updated));
-                  return updated;
-                })
+                setModColors((prev) => ({ ...prev, [mod.modId]: color }))
               }
             />
           </Suspense>
