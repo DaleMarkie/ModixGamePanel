@@ -8,7 +8,8 @@ interface ModCardProps {
     description?: string;
     lastUpdate?: string;
     version?: string;
-    folderPath?: string;
+    folderPath?: string; // Local Steam path
+    isWorkshop?: boolean; // True if fetched from Workshop
   };
   inList: boolean;
   isInstalled: boolean;
@@ -29,8 +30,8 @@ const ModCard: React.FC<ModCardProps> = ({
 }) => {
   const [readMore, setReadMore] = useState(false);
 
-  const badges = useMemo(
-    () => [
+  const badges = useMemo(() => {
+    const baseBadges = [
       {
         text: isInstalled ? "✅ Added" : "📁 Not Active",
         color: isInstalled ? "#1DB954" : "#FF6B6B",
@@ -44,13 +45,29 @@ const ModCard: React.FC<ModCardProps> = ({
             },
           ]
         : []),
-    ],
-    [isInstalled, mod.version, mod.lastUpdate]
-  );
+    ];
+
+    // Local / Workshop detection
+    if (mod.folderPath && mod.isWorkshop) {
+      baseBadges.push({ text: "💻 Local + Workshop", color: "#00BFFF" });
+    } else if (mod.folderPath) {
+      baseBadges.push({ text: "💻 Local", color: "#00BFFF" });
+    } else if (mod.isWorkshop) {
+      baseBadges.push({ text: "🌐 Workshop", color: "#FFAA00" });
+    }
+
+    return baseBadges;
+  }, [
+    isInstalled,
+    mod.version,
+    mod.lastUpdate,
+    mod.folderPath,
+    mod.isWorkshop,
+  ]);
 
   const handleOpenFolder = (e: React.MouseEvent) => {
     e.stopPropagation();
-    isInstalled && mod.folderPath && onOpenFolder?.(mod.folderPath);
+    if (mod.folderPath) onOpenFolder?.(mod.folderPath);
   };
 
   return (
@@ -171,7 +188,7 @@ const ModCard: React.FC<ModCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                isInstalled ? handleOpenFolder(e) : onAddToServer();
+                mod.folderPath ? handleOpenFolder(e) : onAddToServer();
               }}
               style={{
                 padding: "4px 8px",
@@ -179,11 +196,11 @@ const ModCard: React.FC<ModCardProps> = ({
                 borderRadius: 6,
                 border: "none",
                 cursor: "pointer",
-                backgroundColor: isInstalled ? "#1DB954" : "#333",
+                backgroundColor: mod.folderPath ? "#00BFFF" : "#1DB954",
                 color: "#fff",
               }}
             >
-              {isInstalled ? "📂 Open" : "➕ Add"}
+              {mod.folderPath ? "💻 Open" : "➕ Add"}
             </button>
           </div>
         </div>
