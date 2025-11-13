@@ -6,6 +6,7 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  Suspense,
 } from "react";
 import ModCard, { Mod } from "./ModCard";
 import ModModal from "./ModModal";
@@ -33,7 +34,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ modIds, onClose }) => {
     );
   };
 
-  const copyAll = () => {
+  const handleCopyAll = () => {
     navigator.clipboard
       ?.writeText(formattedIds)
       .then(() =>
@@ -54,7 +55,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ modIds, onClose }) => {
           className="modal-textarea"
         />
         <div className="modal-buttons">
-          <button onClick={copyAll} className="modal-button copy-button">
+          <button onClick={handleCopyAll} className="modal-button copy-button">
             📋 Copy All
           </button>
           <button onClick={onClose} className="modal-button close-button">
@@ -91,11 +92,9 @@ export default function WorkshopPage() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  useEffect(() => inputRef.current?.focus(), []);
 
-  // Load favorites, modlists, mod colors from localStorage
+  // Load favorites, modlists, mod colors, and active game
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favorites");
     if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
@@ -106,24 +105,23 @@ export default function WorkshopPage() {
     const savedColors = localStorage.getItem("modColors");
     if (savedColors) setModColors(JSON.parse(savedColors));
 
-    // Load active game from Games page
     const gameId = localStorage.getItem("activeGameId");
     if (gameId) setActiveGame(gameId);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  }, [favorites]);
+  useEffect(
+    () => localStorage.setItem("favorites", JSON.stringify(favorites)),
+    [favorites]
+  );
+  useEffect(
+    () => localStorage.setItem("modlists", JSON.stringify(modlists)),
+    [modlists]
+  );
+  useEffect(
+    () => localStorage.setItem("modColors", JSON.stringify(modColors)),
+    [modColors]
+  );
 
-  useEffect(() => {
-    localStorage.setItem("modlists", JSON.stringify(modlists));
-  }, [modlists]);
-
-  useEffect(() => {
-    localStorage.setItem("modColors", JSON.stringify(modColors));
-  }, [modColors]);
-
-  // Parse installed mods from server.ini
   const parseInstalledMods = (content: string) => {
     const line = content
       .split("\n")
@@ -167,7 +165,6 @@ export default function WorkshopPage() {
       const title =
         doc.querySelector(".workshopItemTitle")?.textContent?.trim() ||
         `Mod ${modId}`;
-
       const image =
         (
           doc.querySelector(
@@ -177,20 +174,17 @@ export default function WorkshopPage() {
         (doc.querySelector(".workshopItemPreviewImage img") as HTMLImageElement)
           ?.src ||
         "https://via.placeholder.com/260x140?text=No+Image";
-
       const lastUpdateText =
         doc.querySelector(".detailsStatRight")?.textContent?.trim() || null;
-
       let lastUpdate: string | undefined;
       if (lastUpdateText) {
         const parsedDate = Date.parse(lastUpdateText);
         if (!isNaN(parsedDate)) lastUpdate = new Date(parsedDate).toISOString();
       }
-
       const descriptionBlock =
         doc.querySelector(".workshopItemDescription")?.textContent || "";
       const versionMatch = descriptionBlock.match(/v?\d+(\.\d+)+/i);
-      let version: string | undefined = versionMatch?.[0];
+      const version: string | undefined = versionMatch?.[0];
 
       return {
         modId,
@@ -209,7 +203,7 @@ export default function WorkshopPage() {
     }
   };
 
-  // Fetch Workshop mods for the active game
+  // Fetch Workshop mods
   const fetchDefaultWorkshopMods = useCallback(async () => {
     if (!activeGame) return;
     setLoading(true);
@@ -220,8 +214,9 @@ export default function WorkshopPage() {
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
 
-      const items: Mod[] = [...doc.querySelectorAll(".workshopItem")].map(
-        (item) => {
+      const items: Mod[] = [...doc.querySelectorAll(".workshopItem")]
+        .slice(0, 500)
+        .map((item) => {
           const link = item.querySelector("a")?.href || "#";
           const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
           const title =
@@ -231,8 +226,7 @@ export default function WorkshopPage() {
             item.querySelector("img")?.src ||
             "https://via.placeholder.com/260x140?text=No+Image";
           return { modId, title, image };
-        }
-      );
+        });
 
       setMods(items);
     } catch {
@@ -277,17 +271,19 @@ export default function WorkshopPage() {
           items.push(await fetchModInfo(modId));
         }
       } else {
-        items = [...doc.querySelectorAll(".workshopItem")].map((item) => {
-          const link = item.querySelector("a")?.href || "#";
-          const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
-          const title =
-            item.querySelector(".workshopItemTitle")?.textContent.trim() ||
-            "Untitled";
-          const image =
-            item.querySelector("img")?.src ||
-            "https://via.placeholder.com/260x140?text=No+Image";
-          return { modId, title, image };
-        });
+        items = [...doc.querySelectorAll(".workshopItem")]
+          .slice(0, 500)
+          .map((item) => {
+            const link = item.querySelector("a")?.href || "#";
+            const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
+            const title =
+              item.querySelector(".workshopItemTitle")?.textContent.trim() ||
+              "Untitled";
+            const image =
+              item.querySelector("img")?.src ||
+              "https://via.placeholder.com/260x140?text=No+Image";
+            return { modId, title, image };
+          });
       }
 
       if (!items.length) throw new Error("No mods found.");
@@ -306,9 +302,8 @@ export default function WorkshopPage() {
   const displayedMods = useMemo(() => {
     if (activeList === "__workshop__") return mods;
     let list: Mod[] = mods;
-    if (showListOnly && activeList) {
+    if (showListOnly && activeList)
       list = list.filter((mod) => modlists[activeList]?.includes(mod.modId));
-    }
     return list;
   }, [mods, activeList, showListOnly, modlists]);
 
@@ -319,7 +314,6 @@ export default function WorkshopPage() {
     setModlists((prev) => ({ ...prev, [name]: [] }));
     setActiveList(name);
   };
-
   const renameModlist = () => {
     if (!activeList || activeList === "__workshop__") return;
     const newName = prompt("New name:");
@@ -332,7 +326,6 @@ export default function WorkshopPage() {
     });
     setActiveList(newName);
   };
-
   const deleteModlist = () => {
     if (!activeList || activeList === "__workshop__") return;
     if (!window.confirm(`Delete "${activeList}"?`)) return;
@@ -343,7 +336,6 @@ export default function WorkshopPage() {
     });
     setActiveList("");
   };
-
   const downloadServerIni = () => {
     const blob = new Blob([serverIniContent], {
       type: "text/plain;charset=utf-8",
@@ -402,7 +394,7 @@ export default function WorkshopPage() {
         )}
       </div>
 
-      {/* Modlists */}
+      {/* Modlists toggle */}
       <div className="modlist-bar">
         <select
           value={activeList}
@@ -437,29 +429,33 @@ export default function WorkshopPage() {
       {/* Mods grid */}
       <div className="mod-grid">
         {displayedMods.map((mod) => (
-          <ModCard
+          <Suspense
             key={mod.modId}
-            mod={mod}
-            inList={
-              activeList && activeList !== "__workshop__"
-                ? modlists[activeList]?.includes(mod.modId)
-                : false
-            }
-            isInstalled={installedMods.includes(mod.modId)}
-            onClick={() => setSelectedMod(mod)}
-            onToggleInList={() => {
-              if (!activeList || activeList === "__workshop__") return;
-              const current = modlists[activeList] || [];
-              const updated = current.includes(mod.modId)
-                ? current.filter((id) => id !== mod.modId)
-                : [...current, mod.modId];
-              setModlists((prev) => ({ ...prev, [activeList]: updated }));
-            }}
-            onAddToServer={() => addModToServer(mod.modId)}
-            onSetColor={(color) =>
-              setModColors((prev) => ({ ...prev, [mod.modId]: color }))
-            }
-          />
+            fallback={<div className="mod-card-placeholder" />}
+          >
+            <ModCard
+              mod={mod}
+              inList={
+                activeList && activeList !== "__workshop__"
+                  ? modlists[activeList]?.includes(mod.modId)
+                  : false
+              }
+              isInstalled={installedMods.includes(mod.modId)}
+              onClick={() => setSelectedMod(mod)}
+              onToggleInList={() => {
+                if (!activeList || activeList === "__workshop__") return;
+                const current = modlists[activeList] || [];
+                const updated = current.includes(mod.modId)
+                  ? current.filter((id) => id !== mod.modId)
+                  : [...current, mod.modId];
+                setModlists((prev) => ({ ...prev, [activeList]: updated }));
+              }}
+              onAddToServer={() => addModToServer(mod.modId)}
+              onSetColor={(color) =>
+                setModColors((prev) => ({ ...prev, [mod.modId]: color }))
+              }
+            />
+          </Suspense>
         ))}
       </div>
 
@@ -504,7 +500,6 @@ export default function WorkshopPage() {
                 .filter(Boolean)}
             />
           )}
-
           {popup === "logs" && (
             <ModLogs
               installedMods={installedMods.map((id) => {
