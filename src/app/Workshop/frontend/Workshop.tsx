@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import ModCard, { Mod } from "./ModCard";
 import ModModal from "./ModModal";
-
 import PopupModal from "./PopupModal";
 import ModUpdates from "./pages/ModUpdates/ModUpdates";
 import ModLogs from "./pages/ModLogs/ModLogs";
@@ -75,7 +74,7 @@ export default function WorkshopPage() {
 
   const [favorites, setFavorites] = useState<string[]>([]);
   const [modlists, setModlists] = useState<Record<string, string[]>>({});
-  const [activeList, setActiveList] = useState<string>("");
+  const [activeList, setActiveList] = useState<string>("__workshop__");
   const [showListOnly, setShowListOnly] = useState(false);
 
   const [selectedMod, setSelectedMod] = useState<Mod | null>(null);
@@ -86,7 +85,7 @@ export default function WorkshopPage() {
   const [serverIniContent, setServerIniContent] = useState("");
   const [installedMods, setInstalledMods] = useState<string[]>([]);
 
-  const [popup, setPopup] = useState<null>(null);
+  const [popup, setPopup] = useState<null | "updates" | "logs">(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +117,7 @@ export default function WorkshopPage() {
     localStorage.setItem("modColors", JSON.stringify(modColors));
   }, [modColors]);
 
+  // Parse installed mods from server.ini
   const parseInstalledMods = (content: string) => {
     const line = content
       .split("\n")
@@ -203,54 +203,66 @@ export default function WorkshopPage() {
     }
   };
 
-  // Fetch installed mods info
-  useEffect(() => {
-    if (!installedMods.length) return;
-    const fetchAllInstalledMods = async () => {
-      const installedInfo = await Promise.all(
-        installedMods.map((id) => fetchModInfo(id))
+  // Fetch default Workshop mods (trending) when the tab is active
+  const fetchDefaultWorkshopMods = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const url = `https://steamcommunity.com/workshop/browse/?appid=108600&browsesort=trend`;
+      const response = await fetch(`https://corsproxy.io/?${url}`);
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+
+      const items: Mod[] = [...doc.querySelectorAll(".workshopItem")].map(
+        (item) => {
+          const link = item.querySelector("a")?.href || "#";
+          const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
+          const title =
+            item.querySelector(".workshopItemTitle")?.textContent.trim() ||
+            "Untitled";
+          const image =
+            item.querySelector("img")?.src ||
+            "https://via.placeholder.com/260x140?text=No+Image";
+          return { modId, title, image };
+        }
       );
-      setMods((prev) => {
-        const filtered = prev.filter((m) => !installedMods.includes(m.modId));
-        return [...filtered, ...installedInfo];
-      });
-    };
-    fetchAllInstalledMods();
-  }, [installedMods]);
 
-  const downloadServerIni = () => {
-    const blob = new Blob([serverIniContent], {
-      type: "text/plain;charset=utf-8",
-    });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = serverIniFile?.name || "server.ini";
-    link.click();
-  };
+      setMods(items);
+    } catch {
+      setError("Failed to load Workshop mods.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const isCollectionId = (text: string) => /^\d{6,}$/.test(text.trim());
+  useEffect(() => {
+    if (activeList === "__workshop__") fetchDefaultWorkshopMods();
+  }, [activeList, fetchDefaultWorkshopMods]);
 
+  // Search mods by keyword or collection ID
   const fetchMods = useCallback(async () => {
-    const query = input.trim();
-    if (!query) return setError("Enter a mod keyword or Collection ID.");
+    if (!input.trim()) return fetchDefaultWorkshopMods();
     setLoading(true);
     setError("");
     setMods([]);
 
-    const url = isCollectionId(query)
-      ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-      : `https://steamcommunity.com/workshop/browse/?appid=108600&searchtext=${encodeURIComponent(
-          query
-        )}&browsesort=trend`;
+    const isCollectionId = /^\d{6,}$/.test(input.trim());
+    const query = input.trim();
 
     try {
+      const url = isCollectionId
+        ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
+        : `https://steamcommunity.com/workshop/browse/?appid=108600&searchtext=${encodeURIComponent(
+            query
+          )}&browsesort=trend`;
+
       const response = await fetch(`https://corsproxy.io/?${url}`);
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
 
       let items: Mod[] = [];
 
-      if (isCollectionId(query)) {
+      if (isCollectionId) {
         const modLinks = [...doc.querySelectorAll(".collectionItem a")];
         for (let linkEl of modLinks) {
           const modId = linkEl.href.match(/id=(\d+)/)?.[1];
@@ -278,20 +290,22 @@ export default function WorkshopPage() {
     } finally {
       setLoading(false);
     }
-  }, [input]);
+  }, [input, fetchDefaultWorkshopMods]);
 
   useEffect(() => {
-    fetchMods();
-  }, [fetchMods]);
+    if (activeList === "__workshop__") fetchMods();
+  }, [input, fetchMods, activeList]);
 
   const displayedMods = useMemo(() => {
-    if (activeList === "__installed__")
-      return mods.filter((mod) => installedMods.includes(mod.modId));
-    return showListOnly && activeList
-      ? mods.filter((mod) => (modlists[activeList] || []).includes(mod.modId))
-      : mods;
-  }, [showListOnly, activeList, modlists, mods, installedMods]);
+    if (activeList === "__workshop__") return mods;
+    let list: Mod[] = mods;
+    if (showListOnly && activeList) {
+      list = list.filter((mod) => modlists[activeList]?.includes(mod.modId));
+    }
+    return list;
+  }, [mods, activeList, showListOnly, modlists]);
 
+  // Modlist actions
   const createNewModlist = () => {
     const name = prompt("Enter a new modlist:");
     if (!name || modlists[name]) return alert("Invalid or duplicate name.");
@@ -300,7 +314,7 @@ export default function WorkshopPage() {
   };
 
   const renameModlist = () => {
-    if (!activeList || activeList === "__installed__") return;
+    if (!activeList || activeList === "__workshop__") return;
     const newName = prompt("New name:");
     if (!newName || modlists[newName])
       return alert("Invalid or duplicate name.");
@@ -313,7 +327,7 @@ export default function WorkshopPage() {
   };
 
   const deleteModlist = () => {
-    if (!activeList || activeList === "__installed__") return;
+    if (!activeList || activeList === "__workshop__") return;
     if (!window.confirm(`Delete "${activeList}"?`)) return;
     setModlists((prev) => {
       const updated = { ...prev };
@@ -321,6 +335,16 @@ export default function WorkshopPage() {
       return updated;
     });
     setActiveList("");
+  };
+
+  const downloadServerIni = () => {
+    const blob = new Blob([serverIniContent], {
+      type: "text/plain;charset=utf-8",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = serverIniFile?.name || "server.ini";
+    link.click();
   };
 
   return (
@@ -377,18 +401,16 @@ export default function WorkshopPage() {
           value={activeList}
           onChange={(e) => setActiveList(e.target.value)}
         >
-          <option value="">All Mods</option>
-          {installedMods.length > 0 && (
-            <option value="__installed__">Installed Mods</option>
-          )}
+          <option value="">All Local Mods</option>
           {Object.keys(modlists).map((name) => (
             <option key={name} value={name}>
               {name}
             </option>
           ))}
+          <option value="__workshop__">Workshop</option>
         </select>
         <button onClick={createNewModlist}>➕ New</button>
-        {activeList && activeList !== "__installed__" && (
+        {activeList && activeList !== "__workshop__" && activeList !== "" && (
           <>
             <button onClick={renameModlist}>✏ Rename</button>
             <button onClick={deleteModlist}>🗑 Delete</button>
@@ -412,14 +434,14 @@ export default function WorkshopPage() {
             key={mod.modId}
             mod={mod}
             inList={
-              activeList && activeList !== "__installed__"
+              activeList && activeList !== "__workshop__"
                 ? modlists[activeList]?.includes(mod.modId)
                 : false
             }
             isInstalled={installedMods.includes(mod.modId)}
             onClick={() => setSelectedMod(mod)}
             onToggleInList={() => {
-              if (!activeList || activeList === "__installed__") return;
+              if (!activeList || activeList === "__workshop__") return;
               const current = modlists[activeList] || [];
               const updated = current.includes(mod.modId)
                 ? current.filter((id) => id !== mod.modId)
@@ -443,7 +465,7 @@ export default function WorkshopPage() {
       {showExport && (
         <ExportModal
           modIds={
-            activeList && activeList !== "__installed__"
+            activeList && activeList !== "__workshop__"
               ? modlists[activeList] || []
               : installedMods
           }

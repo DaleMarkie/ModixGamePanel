@@ -31,7 +31,7 @@ const ModListView: React.FC<ModListViewProps> = ({ mods }) => {
         backgroundColor: "#121212",
       }}
     >
-      {/* Header */}
+      {/* Header with Search */}
       <div
         style={{
           display: "flex",
@@ -112,8 +112,8 @@ const ModListView: React.FC<ModListViewProps> = ({ mods }) => {
             <ModCard
               key={mod.modId || mod.id}
               mod={mod}
-              inList={false} // default, replace as needed
-              isInstalled={false} // default, replace as needed
+              inList={false}
+              isInstalled={false}
               onClick={() => console.log("View mod:", mod.modId || mod.id)}
               onToggleInList={() =>
                 console.log("Toggle mod in list:", mod.modId || mod.id)
