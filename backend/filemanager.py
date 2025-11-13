@@ -7,6 +7,9 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
+# ----------------------------
+# Config
+# ----------------------------
 BASE_STEAM_PATH = r"C:\Program Files (x86)\Steam\steamapps\workshop\content"
 ACTIVE_GAME_FILE = os.path.expanduser("~/Games/active_game.json")  # stores selected game
 
@@ -14,11 +17,19 @@ ACTIVE_GAME_FILE = os.path.expanduser("~/Games/active_game.json")  # stores sele
 # Helpers
 # ----------------------------
 def get_active_game():
+    """Read the currently active game ID"""
     if not os.path.exists(ACTIVE_GAME_FILE):
         return None
     with open(ACTIVE_GAME_FILE, "r") as f:
         data = json.load(f)
         return data.get("active_game_id")
+
+
+def set_active_game(game_id: str):
+    """Set the currently active game ID"""
+    os.makedirs(os.path.dirname(ACTIVE_GAME_FILE), exist_ok=True)
+    with open(ACTIVE_GAME_FILE, "w") as f:
+        json.dump({"active_game_id": game_id}, f)
 
 
 def list_mods(game_id: str):
@@ -67,6 +78,7 @@ def build_file_tree(root_path: str):
 # ----------------------------
 @router.get("/filemanager/workshop-mods")
 async def get_workshop_mods():
+    """Get mods for the active game"""
     active_game = get_active_game()
     if not active_game:
         return {"mods": []}
@@ -148,3 +160,21 @@ async def new_folder(payload: dict):
     path = os.path.join(base_path, folder_path, folder_name)
     os.makedirs(path, exist_ok=True)
     return {"status": "ok"}
+
+
+# ----------------------------
+# Active game management
+# ----------------------------
+@router.get("/filemanager/active-game")
+async def get_active_game_endpoint():
+    active_game = get_active_game()
+    return {"active_game": active_game}
+
+
+@router.post("/filemanager/active-game")
+async def set_active_game_endpoint(payload: dict):
+    game_id = payload.get("game_id")
+    if not game_id:
+        raise HTTPException(status_code=400, detail="Missing game_id")
+    set_active_game(game_id)
+    return {"status": "ok", "active_game": game_id}

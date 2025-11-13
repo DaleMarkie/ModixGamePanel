@@ -5,7 +5,6 @@ import "./ThemeManager.css";
 
 const THEME_KEY = "modix_dashboard_theme";
 
-// Image backgrounds
 const imagePresets = [
   { label: "Default", url: "" },
   {
@@ -17,225 +16,359 @@ const imagePresets = [
   { label: "Zomboid 4", url: "https://i.imgur.com/wmJt0aK.jpg" },
 ];
 
-// Gradient backgrounds
 const gradientPresets = [
-  {
-    label: "Neon Green",
-    gradient: "linear-gradient(135deg, #00ff99, #0077ff)",
-  },
+  { label: "Neon Green", gradient: "linear-gradient(135deg,#00ff99,#0077ff)" },
   {
     label: "Midnight Purple",
-    gradient: "linear-gradient(135deg, #3a0ca3, #7209b7)",
+    gradient: "linear-gradient(135deg,#3a0ca3,#7209b7)",
   },
-  { label: "Inferno", gradient: "linear-gradient(135deg, #ff512f, #dd2476)" },
-  {
-    label: "Ocean Blue",
-    gradient: "linear-gradient(135deg, #2193b0, #6dd5ed)",
-  },
+  { label: "Inferno", gradient: "linear-gradient(135deg,#ff512f,#dd2476)" },
+  { label: "Ocean Blue", gradient: "linear-gradient(135deg,#2193b0,#6dd5ed)" },
+  { label: "Cyber Pink", gradient: "linear-gradient(135deg,#ff00cc,#333399)" },
+  { label: "Eclipse", gradient: "linear-gradient(135deg,#141e30,#243b55)" },
   {
     label: "Dark Emerald",
-    gradient: "linear-gradient(135deg, #004d40, #00796b)",
-  },
-  {
-    label: "Cyber Pink",
-    gradient: "linear-gradient(135deg, #ff00cc, #333399)",
+    gradient: "linear-gradient(135deg,#004d40,#00796b)",
   },
   {
     label: "Deep Space",
-    gradient: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+    gradient: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
-  { label: "Nightfall", gradient: "linear-gradient(135deg, #232526, #414345)" },
-  {
-    label: "Dark Ocean",
-    gradient: "linear-gradient(135deg, #000428, #004e92)",
-  },
-  { label: "Eclipse", gradient: "linear-gradient(135deg, #141e30, #243b55)" },
-  {
-    label: "Vampire Red",
-    gradient: "linear-gradient(135deg, #3a0000, #800000)",
-  },
-  {
-    label: "Twilight Blue",
-    gradient: "linear-gradient(135deg, #0f2027, #2c5364)",
-  },
+  { label: "Vampire Red", gradient: "linear-gradient(135deg,#3a0000,#800000)" },
   {
     label: "Shadow Purple",
-    gradient: "linear-gradient(135deg, #2c003e, #4b0082)",
+    gradient: "linear-gradient(135deg,#2c003e,#4b0082)",
+  },
+
+  // Extra Gaming Panel Gradients
+  {
+    label: "Electric Blue",
+    gradient: "linear-gradient(135deg,#1e3c72,#2a5298)",
+  },
+  { label: "Neon Sunset", gradient: "linear-gradient(135deg,#ff7e5f,#feb47b)" },
+  {
+    label: "Pixel Storm",
+    gradient: "linear-gradient(135deg,#0f0c29,#302b63,#24243e)",
+  },
+  { label: "Retro Wave", gradient: "linear-gradient(135deg,#ff0080,#7928ca)" },
+  {
+    label: "Digital Lava",
+    gradient: "linear-gradient(135deg,#ff416c,#ff4b2b)",
   },
   {
-    label: "Midnight Teal",
-    gradient: "linear-gradient(135deg, #003333, #004d4d)",
+    label: "Glitch Green",
+    gradient: "linear-gradient(135deg,#00ff00,#00ffaa)",
+  },
+  { label: "Neon Violet", gradient: "linear-gradient(135deg,#8e2de2,#4a00e0)" },
+  {
+    label: "Cosmic Purple",
+    gradient: "linear-gradient(135deg,#4b6cb7,#182848)",
+  },
+  { label: "Arcade Pink", gradient: "linear-gradient(135deg,#ff5f6d,#ffc371)" },
+  {
+    label: "Cyber Grid",
+    gradient: "linear-gradient(135deg,#0f0c29,#302b63,#24243e)",
+  },
+  { label: "Rogue Red", gradient: "linear-gradient(135deg,#ff0000,#8b0000)" },
+  { label: "Dark Cyber", gradient: "linear-gradient(135deg,#232526,#414345)" },
+  { label: "Synthwave", gradient: "linear-gradient(135deg,#fc466b,#3f5efb)" },
+  {
+    label: "Plasma Blue",
+    gradient: "linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d)",
+  },
+  { label: "Night Rider", gradient: "linear-gradient(135deg,#0f0c29,#302b63)" },
+  {
+    label: "Techno Orange",
+    gradient: "linear-gradient(135deg,#f7971e,#ffd200)",
+  },
+  { label: "Neon Rage", gradient: "linear-gradient(135deg,#ff416c,#ff4b2b)" },
+  {
+    label: "Galactic Pink",
+    gradient: "linear-gradient(135deg,#ff6a00,#ee0979)",
   },
   {
-    label: "Obsidian",
-    gradient: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+    label: "Quantum Blue",
+    gradient: "linear-gradient(135deg,#11998e,#38ef7d)",
+  },
+  { label: "Holographic", gradient: "linear-gradient(135deg,#f0f,#0ff)" },
+  { label: "Vaporwave", gradient: "linear-gradient(135deg,#ff9a9e,#fad0c4)" },
+  {
+    label: "Electric Sunset",
+    gradient: "linear-gradient(135deg,#ff5f6d,#ffc371)",
   },
   {
-    label: "Burnt Umber",
-    gradient: "linear-gradient(135deg, #5a3f37, #2c7744)",
+    label: "Cybernetic",
+    gradient: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
-  { label: "Dark Ruby", gradient: "linear-gradient(135deg, #4b0000, #8b0000)" },
+  { label: "Glitch Red", gradient: "linear-gradient(135deg,#ff0000,#ff4b2b)" },
   {
-    label: "Stormy Sky",
-    gradient: "linear-gradient(135deg, #2c3e50, #34495e)",
+    label: "Dark Horizon",
+    gradient: "linear-gradient(135deg,#141e30,#243b55)",
   },
-  {
-    label: "Cosmic Dust",
-    gradient: "linear-gradient(135deg, #1e130c, #3a1c0b, #5d2c06)",
-  },
+  { label: "Neon Matrix", gradient: "linear-gradient(135deg,#00ff00,#006400)" },
+  { label: "Lava Flow", gradient: "linear-gradient(135deg,#ff512f,#dd2476)" },
+  { label: "Abyss", gradient: "linear-gradient(135deg,#000428,#004e92)" },
+  { label: "Frozen Grid", gradient: "linear-gradient(135deg,#00d2ff,#3a7bd5)" },
 ];
 
 const defaultTheme = {
   background: "",
   gradient: "",
+  video: "",
   logo: "https://i.ibb.co/cMPwcn8/logo.png",
   title: "Modix Game Panel",
-  icons: {},
-  menuOrder: [],
 };
 
 export default function ThemeManager() {
   const [theme, setTheme] = useState(defaultTheme);
+  const [draft, setDraft] = useState(defaultTheme);
+  const [tab, setTab] = useState("gradients");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [savedMessage, setSavedMessage] = useState("");
 
-  // Load saved theme on mount
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
-      const savedTheme = JSON.parse(saved);
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
+      const parsed = JSON.parse(saved);
+      setTheme(parsed);
+      setDraft(parsed);
+      applyTheme(parsed);
+    } else applyTheme(defaultTheme);
   }, []);
-
-  // Apply theme globally whenever it changes
-  useEffect(() => {
-    applyTheme(theme);
-    // Save immediately to localStorage for persistence across pages
-    localStorage.setItem(THEME_KEY, JSON.stringify(theme));
-  }, [theme]);
 
   const applyTheme = (t: typeof defaultTheme) => {
     const body = document.body;
-    if (t.gradient) {
+    body.style.background = "";
+    if (t.video) {
+      let videoEl = document.getElementById("bg-video") as HTMLVideoElement;
+      if (!videoEl) {
+        videoEl = document.createElement("video");
+        videoEl.id = "bg-video";
+        videoEl.autoplay = true;
+        videoEl.loop = true;
+        videoEl.muted = true;
+        videoEl.style.position = "fixed";
+        videoEl.style.top = "0";
+        videoEl.style.left = "0";
+        videoEl.style.width = "100%";
+        videoEl.style.height = "100%";
+        videoEl.style.objectFit = "cover";
+        videoEl.style.zIndex = "-1";
+        document.body.appendChild(videoEl);
+      }
+      videoEl.src = t.video;
+      videoEl.play();
+    } else if (t.gradient) {
       body.style.background = t.gradient;
     } else if (t.background) {
-      body.style.background = `url(${t.background}) no-repeat center center fixed`;
-      body.style.backgroundSize = "cover";
-    } else {
-      body.style.background = "";
+      body.style.background = `url(${t.background}) center/cover fixed no-repeat`;
     }
+
+    document.documentElement.style.setProperty(
+      "--sidebar-logo",
+      `url(${t.logo})`
+    );
+  };
+
+  const handleSave = () => {
+    setTheme(draft);
+    localStorage.setItem(THEME_KEY, JSON.stringify(draft));
+    applyTheme(draft);
+    setSavedMessage("✅ Theme saved successfully!");
+    setTimeout(() => setSavedMessage(""), 2000);
   };
 
   const handleReset = () => {
     setTheme(defaultTheme);
+    setDraft(defaultTheme);
     localStorage.removeItem(THEME_KEY);
+    applyTheme(defaultTheme);
+    setShowConfirm(false);
   };
 
+  const handlePreview = (preset: any) => {
+    const body = document.body;
+    body.style.background = "";
+    if (preset.url)
+      body.style.background = `url(${preset.url}) center/cover fixed`;
+    else if (preset.gradient) body.style.background = preset.gradient;
+  };
+
+  const handleMouseLeave = () => applyTheme(theme);
+
   return (
-    <main className="theme-manager-container">
+    <main className="theme-manager-container glass-panel">
       <h1 className="title">🎨 Theme Manager</h1>
       <p className="subtitle">
-        Customize your Modix Dashboard: background, gradients, logo, title,
-        icons, and menu order.
+        Customize your dashboard background, logo, and title. Click “Save
+        Changes” when ready.
       </p>
 
-      {/* Image presets */}
-      <h2 className="section-title">🖼️ Image Backgrounds</h2>
-      <div className="preset-row">
-        {imagePresets.map((p) => {
-          const isSelected = theme.background === p.url;
-          return (
-            <div
-              key={p.label}
-              className={`preset-box ${isSelected ? "selected" : ""}`}
-              style={{
-                backgroundImage: p.url ? `url(${p.url})` : "none",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              onClick={() =>
-                setTheme({ ...theme, background: p.url, gradient: "" })
-              }
-            >
-              <span className="preset-label">{p.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Gradient presets */}
-      <h2 className="section-title">🌈 Gradient Backgrounds</h2>
-      <div className="preset-row">
-        {gradientPresets.map((p) => {
-          const isSelected = theme.gradient === p.gradient;
-          return (
-            <div
-              key={p.label}
-              className={`preset-box gradient ${isSelected ? "selected" : ""}`}
-              style={{ backgroundImage: p.gradient }}
-              onClick={() =>
-                setTheme({ ...theme, gradient: p.gradient, background: "" })
-              }
-            >
-              <span className="preset-label">{p.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Custom URL input */}
-      <div className="input-group">
-        <label>Custom Background URL:</label>
-        <input
-          type="text"
-          placeholder="Enter image URL..."
-          value={theme.background}
-          onChange={(e) =>
-            setTheme({ ...theme, background: e.target.value, gradient: "" })
-          }
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Sidebar Logo URL:</label>
-        <input
-          type="text"
-          placeholder="Logo URL..."
-          value={theme.logo}
-          onChange={(e) => setTheme({ ...theme, logo: e.target.value })}
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Sidebar Title:</label>
-        <input
-          type="text"
-          placeholder="Sidebar Title..."
-          value={theme.title}
-          onChange={(e) => setTheme({ ...theme, title: e.target.value })}
-        />
-      </div>
-
-      <div className="action-buttons">
-        <button className="reset-button" onClick={handleReset}>
-          ♻️ Reset
+      {/* Tabs */}
+      <div className="tab-bar">
+        <button
+          className={tab === "images" ? "active" : ""}
+          onClick={() => setTab("images")}
+        >
+          🖼️ Images
+        </button>
+        <button
+          className={tab === "gradients" ? "active" : ""}
+          onClick={() => setTab("gradients")}
+        >
+          🌈 Gradients
+        </button>
+        <button
+          className={tab === "custom" ? "active" : ""}
+          onClick={() => setTab("custom")}
+        >
+          ⚙️ Custom
         </button>
       </div>
 
-      <div
-        className="preview-box"
-        style={{
-          background:
-            theme.gradient ||
-            (theme.background ? `url(${theme.background})` : "none"),
-          backgroundAttachment: "fixed",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <img src={theme.logo} alt="Logo Preview" className="preview-logo" />
-        <h3 className="preview-title">{theme.title}</h3>
+      {/* Image tab */}
+      {tab === "images" && (
+        <div className="preset-row">
+          {imagePresets.map((p) => (
+            <div
+              key={p.label}
+              className={`preset-box ${
+                draft.background === p.url ? "selected" : ""
+              }`}
+              style={{
+                backgroundImage: `url(${p.url})`,
+                backgroundSize: "cover",
+              }}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  background: p.url,
+                  gradient: "",
+                  video: "",
+                })
+              }
+              onMouseEnter={() => handlePreview(p)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <span className="preset-label">{p.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Gradient tab */}
+      {tab === "gradients" && (
+        <div className="preset-row">
+          {gradientPresets.map((p) => (
+            <div
+              key={p.label}
+              className={`preset-box gradient ${
+                draft.gradient === p.gradient ? "selected" : ""
+              }`}
+              style={{ backgroundImage: p.gradient }}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  gradient: p.gradient,
+                  background: "",
+                  video: "",
+                })
+              }
+              onMouseEnter={() => handlePreview(p)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <span className="preset-label">{p.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Custom tab */}
+      {tab === "custom" && (
+        <>
+          <div className="input-group">
+            <label>Custom Background URL / Video (.mp4)</label>
+            <input
+              type="text"
+              placeholder="Enter image or video URL..."
+              value={draft.background || draft.video}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.endsWith(".mp4"))
+                  setDraft({
+                    ...draft,
+                    video: val,
+                    background: "",
+                    gradient: "",
+                  });
+                else
+                  setDraft({
+                    ...draft,
+                    background: val,
+                    gradient: "",
+                    video: "",
+                  });
+              }}
+            />
+          </div>
+          <div className="input-group">
+            <label>Sidebar Logo URL</label>
+            <input
+              type="text"
+              placeholder="Enter logo URL..."
+              value={draft.logo}
+              onChange={(e) => setDraft({ ...draft, logo: e.target.value })}
+            />
+          </div>
+          <div className="input-group">
+            <label>Sidebar Title</label>
+            <input
+              type="text"
+              placeholder="Enter title..."
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            />
+          </div>
+          <div className="action-buttons">
+            <button className="save-button" onClick={handleSave}>
+              💾 Save Custom
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Main actions */}
+      <div className="action-buttons">
+        <button className="save-button" onClick={handleSave}>
+          💾 Save Changes
+        </button>
+        <button className="reset-button" onClick={() => setShowConfirm(true)}>
+          ♻️ Reset Theme
+        </button>
       </div>
+
+      {savedMessage && <div className="save-message">{savedMessage}</div>}
+
+      {/* Confirmation modal */}
+      {showConfirm && (
+        <div className="confirm-modal">
+          <div className="modal-content">
+            <h3>Reset Theme?</h3>
+            <p>This will restore default colors, background, and logo.</p>
+            <div className="modal-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button className="confirm-btn" onClick={handleReset}>
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

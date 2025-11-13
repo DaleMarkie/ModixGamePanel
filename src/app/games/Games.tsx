@@ -23,9 +23,21 @@ export default function Games() {
   const [batchPath, setBatchPath] = useState("");
   const [search, setSearch] = useState("");
 
-  const setActiveGameNow = (gameId: string) => {
+  // --- Sync active game with backend ---
+  const setActiveGameNow = async (gameId: string) => {
     setActiveGame(gameId);
     localStorage.setItem("activeGameId", gameId);
+
+    // Call backend to save active game
+    try {
+      await fetch("/api/filemanager/active-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: gameId }),
+      });
+    } catch (err) {
+      console.error("Failed to update active game on backend", err);
+    }
   };
 
   useEffect(() => {
@@ -42,24 +54,12 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/theindiestone",
       },
       {
-        id: "minecraft",
-        name: "Minecraft",
-        image:
-          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
-        supported: false,
-        description:
-          "Coming soon — build, explore, and survive in a blocky world.",
-        steamUrl: "https://store.steampowered.com/app/minecraft",
-        discordUrl: "https://discord.gg/minecraft",
-      },
-      {
         id: "dayz",
         name: "DayZ",
         image:
           "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
-        supported: false,
-        description:
-          "Coming soon — survive in a deadly post-apocalyptic world.",
+        supported: true,
+        description: "Survive in a deadly post-apocalyptic world.",
         steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
         discordUrl: "https://discord.com/invite/dayz",
       },
@@ -67,22 +67,12 @@ export default function Games() {
         id: "294100",
         name: "RimWorld",
         image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/294100/header.jpg",
+          "https://shared.cloudflare.steampowered.com/store_item_assets/steam/apps/294100/header.jpg",
         supported: true,
         description:
           "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
         steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
         discordUrl: "https://discord.com/invite/rimworld",
-      },
-      {
-        id: "rust",
-        name: "RUST",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
-        supported: false,
-        description: "Coming soon — multiplayer survival crafting and PvP.",
-        steamUrl: "https://store.steampowered.com/app/252490/Rust/",
-        discordUrl: "https://discord.com/invite/rust",
       },
     ];
 
@@ -112,7 +102,7 @@ export default function Games() {
     .sort((a, b) => {
       if (a.id === activeGame) return -1;
       if (b.id === activeGame) return 1;
-      return 0;
+      return a.name.localeCompare(b.name);
     });
 
   const openModal = (game: Game) => {
@@ -201,21 +191,6 @@ export default function Games() {
                     className="discord-btn"
                   >
                     <FaDiscord /> Discord
-                  </a>
-                )}
-                {game.id === "108600" && (
-                  <a
-                    href="https://pzwiki.net/wiki/Main_Page"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pzwiki-btn"
-                  >
-                    <img
-                      src="https://pzwiki.net/w/images/pzwlogo.png"
-                      alt="PZwiki"
-                      className="pzwiki-logo"
-                    />
-                    PZwiki
                   </a>
                 )}
               </div>
