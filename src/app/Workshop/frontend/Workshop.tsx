@@ -87,6 +87,8 @@ export default function WorkshopPage() {
 
   const [popup, setPopup] = useState<null | "updates" | "logs">(null);
 
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -103,6 +105,10 @@ export default function WorkshopPage() {
 
     const savedColors = localStorage.getItem("modColors");
     if (savedColors) setModColors(JSON.parse(savedColors));
+
+    // Load active game from Games page
+    const gameId = localStorage.getItem("activeGameId");
+    if (gameId) setActiveGame(gameId);
   }, []);
 
   useEffect(() => {
@@ -203,12 +209,13 @@ export default function WorkshopPage() {
     }
   };
 
-  // Fetch default Workshop mods (trending) when the tab is active
+  // Fetch Workshop mods for the active game
   const fetchDefaultWorkshopMods = useCallback(async () => {
+    if (!activeGame) return;
     setLoading(true);
     setError("");
     try {
-      const url = `https://steamcommunity.com/workshop/browse/?appid=108600&browsesort=trend`;
+      const url = `https://steamcommunity.com/workshop/browse/?appid=${activeGame}&browsesort=trend`;
       const response = await fetch(`https://corsproxy.io/?${url}`);
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
@@ -233,15 +240,15 @@ export default function WorkshopPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeGame]);
 
   useEffect(() => {
     if (activeList === "__workshop__") fetchDefaultWorkshopMods();
   }, [activeList, fetchDefaultWorkshopMods]);
 
-  // Search mods by keyword or collection ID
   const fetchMods = useCallback(async () => {
     if (!input.trim()) return fetchDefaultWorkshopMods();
+    if (!activeGame) return;
     setLoading(true);
     setError("");
     setMods([]);
@@ -252,7 +259,7 @@ export default function WorkshopPage() {
     try {
       const url = isCollectionId
         ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-        : `https://steamcommunity.com/workshop/browse/?appid=108600&searchtext=${encodeURIComponent(
+        : `https://steamcommunity.com/workshop/browse/?appid=${activeGame}&searchtext=${encodeURIComponent(
             query
           )}&browsesort=trend`;
 
@@ -290,7 +297,7 @@ export default function WorkshopPage() {
     } finally {
       setLoading(false);
     }
-  }, [input, fetchDefaultWorkshopMods]);
+  }, [input, fetchDefaultWorkshopMods, activeGame]);
 
   useEffect(() => {
     if (activeList === "__workshop__") fetchMods();
