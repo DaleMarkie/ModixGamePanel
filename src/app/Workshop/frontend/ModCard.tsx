@@ -14,8 +14,8 @@ interface ModCardProps {
   inList: boolean;
   isInstalled: boolean;
   onClick: () => void;
-  onToggleInList: () => void;
-  onAddToServer: () => void;
+  onToggleInList: () => void; // Add/Remove from selected mod list
+  onAddToServer: () => void; // Install / Add to server
   onOpenFolder?: (folderPath: string) => void;
 }
 
@@ -47,14 +47,12 @@ const ModCard: React.FC<ModCardProps> = ({
         : []),
     ];
 
-    // Local / Workshop detection
-    if (mod.folderPath && mod.isWorkshop) {
+    if (mod.folderPath && mod.isWorkshop)
       baseBadges.push({ text: "💻 Local + Workshop", color: "#00BFFF" });
-    } else if (mod.folderPath) {
+    else if (mod.folderPath)
       baseBadges.push({ text: "💻 Local", color: "#00BFFF" });
-    } else if (mod.isWorkshop) {
+    else if (mod.isWorkshop)
       baseBadges.push({ text: "🌐 Workshop", color: "#FFAA00" });
-    }
 
     return baseBadges;
   }, [
@@ -68,6 +66,17 @@ const ModCard: React.FC<ModCardProps> = ({
   const handleOpenFolder = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (mod.folderPath) onOpenFolder?.(mod.folderPath);
+  };
+
+  const handleAddToServerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (mod.folderPath) handleOpenFolder(e);
+    else {
+      const proceed = window.confirm(
+        "⚠️ The Install/Add to Server feature is still under development. Continue?"
+      );
+      if (proceed) onAddToServer();
+    }
   };
 
   return (
@@ -167,6 +176,7 @@ const ModCard: React.FC<ModCardProps> = ({
           </div>
 
           <div style={{ display: "flex", gap: 4 }}>
+            {/* Add/Remove from mod list */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -185,11 +195,9 @@ const ModCard: React.FC<ModCardProps> = ({
               {inList ? "📂 Remove" : "📁 Add"}
             </button>
 
+            {/* Install / Open */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                mod.folderPath ? handleOpenFolder(e) : onAddToServer();
-              }}
+              onClick={handleAddToServerClick}
               style={{
                 padding: "4px 8px",
                 fontSize: 10,
@@ -200,7 +208,7 @@ const ModCard: React.FC<ModCardProps> = ({
                 color: "#fff",
               }}
             >
-              {mod.folderPath ? "💻 Open" : "➕ Add"}
+              {mod.folderPath ? "💻 Open" : "➕ Install"}
             </button>
           </div>
         </div>
