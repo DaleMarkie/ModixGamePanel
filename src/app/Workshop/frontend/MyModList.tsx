@@ -4,24 +4,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Folder, AlertCircle, PlusCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const LOCAL_STORAGE_KEY = "modFolders";
+
 const MyModList: React.FC = () => {
-  const [modFolders, setModFolders] = useState<string[]>([]);
+  const [modFolders, setModFolders] = useState<string[]>(() => {
+    // Load from localStorage initially
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Fetch from server but merge with localStorage to prevent overwrites
   useEffect(() => {
     fetch("/api/mymods")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch mod folders");
         return res.json();
       })
-      .then((data) => {
-        setModFolders(data);
+      .then((data: string[]) => {
+        // Merge with local storage without duplicates
+        const merged = Array.from(new Set([...data, ...modFolders]));
+        setModFolders(merged);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
         setError("");
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  // Save to localStorage whenever modFolders change
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(modFolders));
+  }, [modFolders]);
 
   // Loading state
   if (loading) {

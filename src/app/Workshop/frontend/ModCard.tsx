@@ -10,6 +10,8 @@ interface ModCardProps {
     version?: string;
     folderPath?: string; // Local Steam path
     isWorkshop?: boolean; // True if fetched from Workshop
+    rating?: number; // Steam Workshop rating (0-5)
+    votes?: number; // number of votes
   };
   inList: boolean;
   isInstalled: boolean;
@@ -122,6 +124,8 @@ const ModCard: React.FC<ModCardProps> = ({
           <p style={{ fontSize: 10, color: "#aaa", margin: "2px 0" }}>
             🆔 {mod.modId}
           </p>
+
+          {/* Description */}
           {mod.description && (
             <p style={{ fontSize: 11, color: "#ccc", margin: "4px 0" }}>
               {readMore
@@ -157,7 +161,8 @@ const ModCard: React.FC<ModCardProps> = ({
             marginTop: 6,
           }}
         >
-          <div style={{ display: "flex", gap: 4 }}>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {/* Existing badges */}
             {badges.map((b) => (
               <span
                 key={b.text}
@@ -173,6 +178,22 @@ const ModCard: React.FC<ModCardProps> = ({
                 {b.text}
               </span>
             ))}
+
+            {/* Steam Workshop rating */}
+            {mod.rating !== undefined && (
+              <span
+                style={{
+                  background: `linear-gradient(135deg, #FFD700 0%, #333 100%)`,
+                  color: "#000",
+                  padding: "2px 6px",
+                  borderRadius: 10,
+                  fontSize: 9,
+                  fontWeight: 600,
+                }}
+              >
+                ⭐ {mod.rating.toFixed(1)} ({mod.votes ?? 0})
+              </span>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: 4 }}>
