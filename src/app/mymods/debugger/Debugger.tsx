@@ -31,7 +31,6 @@ export default function DebuggerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Collapsibles
   const [showMods, setShowMods] = useState(true);
   const [showLogs, setShowLogs] = useState(true);
   const [showNotes, setShowNotes] = useState(true);
@@ -53,16 +52,40 @@ export default function DebuggerPage() {
   // Auto-refresh mods every 5 seconds
   useEffect(() => {
     if (!activeServer) return;
-
     let isMounted = true;
 
     const fetchMods = async () => {
       try {
         setLoading(true);
+
+        // Fetch installed server mods
         const res = await fetch(`/api/servers/${activeServer}/mods`);
-        if (!res.ok) throw new Error("Failed to fetch mods");
-        const data: ModData = await res.json();
-        if (isMounted) setMods(data);
+        if (!res.ok) throw new Error("Failed to fetch server mods");
+        const serverMods: ModData = await res.json();
+
+        // Fetch Steam Workshop mods
+        const workshopRes = await fetch(
+          `/api/servers/${activeServer}/workshop-mods`
+        );
+        let workshopMods: string[] = [];
+        if (workshopRes.ok) {
+          workshopMods = await workshopRes.json(); // returns array of mod IDs
+        }
+
+        // Merge server mods + workshop mods
+        const combinedMods: ModData = { ...serverMods };
+        workshopMods.forEach((modId) => {
+          if (!combinedMods[modId]) {
+            combinedMods[modId] = {
+              status: "needs_update",
+              priority: "Medium",
+              log: "",
+              notes: [],
+            };
+          }
+        });
+
+        if (isMounted) setMods(combinedMods);
       } catch (err: unknown) {
         if (isMounted) {
           const message =
@@ -176,7 +199,7 @@ export default function DebuggerPage() {
 
       {activeServer && (
         <>
-          {/* Collapsible Mods */}
+          {/* Mods Section */}
           <section className="debugger-section">
             <h2
               className="section-title"
@@ -186,7 +209,6 @@ export default function DebuggerPage() {
             </h2>
             {showMods && (
               <>
-                {/* Filters */}
                 <section className="filters">
                   <label>Status:</label>
                   <select
@@ -217,7 +239,6 @@ export default function DebuggerPage() {
                   </select>
                 </section>
 
-                {/* Mods List */}
                 <ul className="mod-list">
                   {filteredMods.length === 0 ? (
                     <p className="mod-log empty">No mods match filters.</p>
@@ -306,7 +327,7 @@ export default function DebuggerPage() {
             )}
           </section>
 
-          {/* Collapsible Logs */}
+          {/* Logs Section */}
           <section className="debugger-section">
             <h2
               className="section-title"
@@ -321,7 +342,7 @@ export default function DebuggerPage() {
             )}
           </section>
 
-          {/* Collapsible Global Notes */}
+          {/* Global Notes Section */}
           <section className="debugger-section">
             <h2
               className="section-title"

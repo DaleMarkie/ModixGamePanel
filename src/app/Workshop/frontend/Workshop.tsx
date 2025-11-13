@@ -13,7 +13,6 @@ import ModModal from "./ModModal";
 import PopupModal from "./PopupModal";
 import ModUpdates from "./pages/ModUpdates/ModUpdates";
 import ModLogs from "./pages/ModLogs/ModLogs";
-
 import "./Workshop.css";
 
 interface ExportModalProps {
@@ -92,6 +91,19 @@ export default function WorkshopPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => inputRef.current?.focus(), []);
 
+  /** ------------------ Sync with Games page ------------------ **/
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const gameId = localStorage.getItem("activeGameId");
+      setActiveGame(gameId);
+      setInput(""); // reset search for new game
+      setMods([]);
+    };
+    window.addEventListener("storage", handleStorageChange);
+    handleStorageChange(); // initial load
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   /** ------------------ Load saved data ------------------ **/
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favorites");
@@ -105,9 +117,6 @@ export default function WorkshopPage() {
 
     const savedActiveList = localStorage.getItem("activeList");
     if (savedActiveList) setActiveList(savedActiveList);
-
-    const gameId = localStorage.getItem("activeGameId");
-    if (gameId) setActiveGame(gameId);
   }, []);
 
   /** ------------------ Persist data ------------------ **/
@@ -120,11 +129,10 @@ export default function WorkshopPage() {
     [modColors]
   );
   useEffect(() => localStorage.setItem("activeList", activeList), [activeList]);
-
-  // <-- FIX: Auto-save modlists whenever it changes
-  useEffect(() => {
-    localStorage.setItem("modlists", JSON.stringify(modlists));
-  }, [modlists]);
+  useEffect(
+    () => localStorage.setItem("modlists", JSON.stringify(modlists)),
+    [modlists]
+  );
 
   /** ------------------ server.ini helpers ------------------ **/
   const parseInstalledMods = (content: string) => {
@@ -242,16 +250,21 @@ export default function WorkshopPage() {
   }, [activeGame]);
 
   const fetchMods = useCallback(async () => {
-    if (!input.trim()) return fetchDefaultWorkshopMods();
     if (!activeGame) return;
     setLoading(true);
     setError("");
     setMods([]);
-
-    const isCollectionId = /^\d{6,}$/.test(input.trim());
     const query = input.trim();
 
     try {
+      let items: Mod[] = [];
+      const isCollectionId = /^\d{6,}$/.test(query);
+
+      if (!query) {
+        await fetchDefaultWorkshopMods();
+        return;
+      }
+
       const url = isCollectionId
         ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
         : `https://steamcommunity.com/workshop/browse/?appid=${activeGame}&searchtext=${encodeURIComponent(
@@ -261,8 +274,6 @@ export default function WorkshopPage() {
       const response = await fetch(`https://corsproxy.io/?${url}`);
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
-
-      let items: Mod[] = [];
 
       if (isCollectionId) {
         const modLinks = [...doc.querySelectorAll(".collectionItem a")];
@@ -296,9 +307,11 @@ export default function WorkshopPage() {
     }
   }, [input, fetchDefaultWorkshopMods, activeGame]);
 
+  // Auto-fetch whenever activeGame changes
   useEffect(() => {
-    if (activeList === "__workshop__") fetchMods();
-  }, [input, fetchMods, activeList]);
+    if (!activeGame) return;
+    fetchMods();
+  }, [activeGame, fetchMods]);
 
   /** ------------------ Displayed mods ------------------ **/
   const displayedMods = useMemo(() => {
@@ -354,6 +367,7 @@ export default function WorkshopPage() {
     link.click();
   };
 
+  /** ------------------ Render ------------------ **/
   return (
     <div className="workshop-container">
       {/* Search */}
@@ -520,9 +534,7 @@ export default function WorkshopPage() {
             <ModLogs
               installedMods={installedMods.map((id) => {
                 const mod = mods.find((m) => m.modId === id);
-                return mod
-                  ? { modId: mod.modId, title: mod.title }
-                  : { modId: id, title: `Mod ${id}` };
+                return mod ? { ...mod } : { modId: id, title: id };
               })}
             />
           )}

@@ -56,6 +56,7 @@ export const navLinks: NavItem[] = [
     submenu: [
       { label: "📦 My Mods", href: "/FileBrowser" },
       { label: "🗂️ Workshop Manager", href: "/workshop" },
+      { label: "🔍 Mod Debugger", href: "/mymods/debugger" },
       { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
     ],
   },
