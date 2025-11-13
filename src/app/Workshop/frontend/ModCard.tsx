@@ -8,17 +8,19 @@ interface ModCardProps {
     description?: string;
     lastUpdate?: string;
     version?: string;
+    workshopVersion?: string; // latest Workshop version
     folderPath?: string; // Local Steam path
-    isWorkshop?: boolean; // True if fetched from Workshop
-    rating?: number; // Steam Workshop rating (0-5)
-    votes?: number; // number of votes
+    isWorkshop?: boolean;
+    rating?: number;
+    votes?: number;
   };
   inList: boolean;
   isInstalled: boolean;
   onClick: () => void;
-  onToggleInList: () => void; // Add/Remove from selected mod list
-  onAddToServer: () => void; // Install / Add to server
+  onToggleInList: () => void;
+  onAddToServer: () => void; // fallback for UI, not used if SteamCMD works
   onOpenFolder?: (folderPath: string) => void;
+  activeGameAppId: string; // Current active game AppID
 }
 
 const ModCard: React.FC<ModCardProps> = ({
@@ -29,26 +31,46 @@ const ModCard: React.FC<ModCardProps> = ({
   onToggleInList,
   onAddToServer,
   onOpenFolder,
+  activeGameAppId,
 }) => {
   const [readMore, setReadMore] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   const badges = useMemo(() => {
-    const baseBadges = [
-      {
-        text: isInstalled ? "✅ Added" : "📁 Not Active",
-        color: isInstalled ? "#1DB954" : "#FF6B6B",
-      },
-      ...(mod.version ? [{ text: `📦 ${mod.version}`, color: "#FFD93D" }] : []),
-      ...(mod.lastUpdate
-        ? [
-            {
-              text: `🕒 ${new Date(mod.lastUpdate).toLocaleDateString()}`,
-              color: "#6C5CE7",
-            },
-          ]
-        : []),
-    ];
+    const baseBadges: { text: string; color: string }[] = [];
 
+    // Installation status
+    if (mod.folderPath && isInstalled) {
+      baseBadges.push({ text: "✅ Installed", color: "#1DB954" });
+    } else if (mod.folderPath && !isInstalled) {
+      baseBadges.push({ text: "📁 Not Active", color: "#FF6B6B" });
+    } else {
+      baseBadges.push({ text: "📁 Not Installed", color: "#FF6B6B" });
+    }
+
+    // Version badge
+    if (mod.version)
+      baseBadges.push({ text: `📦 ${mod.version}`, color: "#FFD93D" });
+    // Version mismatch warning
+    if (
+      mod.version &&
+      mod.workshopVersion &&
+      mod.version !== mod.workshopVersion
+    ) {
+      baseBadges.push({
+        text: `⚠️ Outdated (${mod.workshopVersion})`,
+        color: "#FFAA00",
+      });
+    }
+
+    // Last update
+    if (mod.lastUpdate)
+      baseBadges.push({
+        text: `🕒 ${new Date(mod.lastUpdate).toLocaleDateString()}`,
+        color: "#6C5CE7",
+      });
+
+    // Local + Workshop
     if (mod.folderPath && mod.isWorkshop)
       baseBadges.push({ text: "💻 Local + Workshop", color: "#00BFFF" });
     else if (mod.folderPath)
@@ -58,11 +80,12 @@ const ModCard: React.FC<ModCardProps> = ({
 
     return baseBadges;
   }, [
-    isInstalled,
-    mod.version,
-    mod.lastUpdate,
     mod.folderPath,
     mod.isWorkshop,
+    mod.version,
+    mod.workshopVersion,
+    mod.lastUpdate,
+    isInstalled,
   ]);
 
   const handleOpenFolder = (e: React.MouseEvent) => {
@@ -70,14 +93,38 @@ const ModCard: React.FC<ModCardProps> = ({
     if (mod.folderPath) onOpenFolder?.(mod.folderPath);
   };
 
-  const handleAddToServerClick = (e: React.MouseEvent) => {
+  const handleInstallMod = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (mod.folderPath) handleOpenFolder(e);
-    else {
-      const proceed = window.confirm(
-        "⚠️ The Install/Add to Server feature is still under development. Continue?"
-      );
-      if (proceed) onAddToServer();
+    if (mod.folderPath) {
+      handleOpenFolder(e);
+      return;
+    }
+
+    const proceed = window.confirm(
+      `⚠️ This will download "${mod.title}" from Steam Workshop via SteamCMD. Continue?`
+    );
+    if (!proceed) return;
+
+    try {
+      setInstalling(true);
+      const response = await fetch("/api/install-mod", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modId: mod.modId, appId: activeGameAppId }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Failed to install mod.");
+      }
+
+      alert(`✅ "${mod.title}" installed successfully!`);
+      onAddToServer(); // Update UI / list
+    } catch (err: any) {
+      console.error(err);
+      alert(`❌ Error installing mod: ${err.message}`);
+    } finally {
+      setInstalling(false);
     }
   };
 
@@ -101,14 +148,12 @@ const ModCard: React.FC<ModCardProps> = ({
         (e.currentTarget.style.background = "rgba(30,30,30,0.85)")
       }
     >
-      {/* Image */}
       <img
         src={mod.image || "https://via.placeholder.com/80x80?text=No+Image"}
         alt={mod.title}
         style={{ width: 80, height: 80, borderRadius: 6, objectFit: "cover" }}
       />
 
-      {/* Content */}
       <div
         style={{
           flex: 1,
@@ -124,8 +169,6 @@ const ModCard: React.FC<ModCardProps> = ({
           <p style={{ fontSize: 10, color: "#aaa", margin: "2px 0" }}>
             🆔 {mod.modId}
           </p>
-
-          {/* Description */}
           {mod.description && (
             <p style={{ fontSize: 11, color: "#ccc", margin: "4px 0" }}>
               {readMore
@@ -152,7 +195,6 @@ const ModCard: React.FC<ModCardProps> = ({
           )}
         </div>
 
-        {/* Badges & Buttons */}
         <div
           style={{
             display: "flex",
@@ -162,7 +204,6 @@ const ModCard: React.FC<ModCardProps> = ({
           }}
         >
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {/* Existing badges */}
             {badges.map((b) => (
               <span
                 key={b.text}
@@ -178,8 +219,6 @@ const ModCard: React.FC<ModCardProps> = ({
                 {b.text}
               </span>
             ))}
-
-            {/* Steam Workshop rating */}
             {mod.rating !== undefined && (
               <span
                 style={{
@@ -197,7 +236,6 @@ const ModCard: React.FC<ModCardProps> = ({
           </div>
 
           <div style={{ display: "flex", gap: 4 }}>
-            {/* Add/Remove from mod list */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -216,9 +254,9 @@ const ModCard: React.FC<ModCardProps> = ({
               {inList ? "📂 Remove" : "📁 Add"}
             </button>
 
-            {/* Install / Open */}
             <button
-              onClick={handleAddToServerClick}
+              onClick={handleInstallMod}
+              disabled={installing}
               style={{
                 padding: "4px 8px",
                 fontSize: 10,
@@ -227,9 +265,14 @@ const ModCard: React.FC<ModCardProps> = ({
                 cursor: "pointer",
                 backgroundColor: mod.folderPath ? "#00BFFF" : "#1DB954",
                 color: "#fff",
+                opacity: installing ? 0.6 : 1,
               }}
             >
-              {mod.folderPath ? "💻 Open" : "➕ Install"}
+              {mod.folderPath
+                ? "💻 Open"
+                : installing
+                ? "⏳ Installing..."
+                : "➕ Install"}
             </button>
           </div>
         </div>

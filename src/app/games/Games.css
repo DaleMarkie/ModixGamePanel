@@ -1,3 +1,4 @@
+/* ------------------ General Page ------------------ */
 .games-page {
   padding: 40px;
   color: #e0e0e0;
@@ -29,6 +30,7 @@
   border-color: #2563eb;
 }
 
+/* ------------------ Game Grid ------------------ */
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
@@ -36,6 +38,7 @@
   justify-content: center;
 }
 
+/* ------------------ Game Card ------------------ */
 .game-card {
   background: rgba(20, 20, 25, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -53,6 +56,7 @@
   box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
 }
 
+/* ------------------ Game Thumb ------------------ */
 .game-thumb {
   position: relative;
   width: 100%;
@@ -98,6 +102,7 @@
   background: #16a34a;
 }
 
+/* ------------------ Game Details ------------------ */
 .game-details {
   padding: 14px 16px;
   flex: 1;
@@ -128,7 +133,7 @@
   border-radius: 6px;
 }
 
-/* Coming soon */
+/* ------------------ Coming Soon ------------------ */
 .coming-soon .game-thumb {
   filter: grayscale(80%);
 }
@@ -142,30 +147,61 @@
   font-size: 0.85rem;
 }
 
-/* Steam button */
-.steam-btn-container {
-  margin-top: 6px;
-}
-
-.steam-btn {
+/* ------------------ Buttons ------------------ */
+.steam-btn,
+.discord-btn,
+.pzwiki-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #1b2838;
-  color: #fff;
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.8rem;
-  text-decoration: none;
   font-weight: 600;
+  text-decoration: none;
   transition: background 0.2s;
+}
+
+.steam-btn {
+  background: #1b2838;
+  color: #fff;
 }
 
 .steam-btn:hover {
   background: #2563eb;
 }
 
-/* Modal */
+.discord-btn {
+  background: #7289da;
+  color: #fff;
+}
+
+.discord-btn:hover {
+  background: #5b6eae;
+}
+
+.pzwiki-btn {
+  background-color: #2d2d2d;
+  color: #fff;
+  font-weight: 500;
+}
+
+.pzwiki-btn:hover {
+  background-color: #444;
+}
+
+.pzwiki-logo {
+  width: 20px;
+  height: 20px;
+}
+
+.game-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* ------------------ Modal ------------------ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -200,11 +236,6 @@
 .modal-right h3 {
   margin-bottom: 8px;
   color: #fff;
-}
-
-.modal-right ul {
-  margin: 8px 0 16px;
-  padding-left: 20px;
 }
 
 .input-field {
@@ -246,52 +277,87 @@
 }
 
 .confirm-btn:hover {
-  background: #01531c;
+  background: #16a34a;
 }
+
 .cancel-btn:hover {
   background: #555;
 }
-.game-buttons {
+
+/* ------------------ Fancy Minimum Requirements ------------------ */
+.requirements-container {
   display: flex;
-  gap: 8px;
-  margin-top: 6px;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.discord-btn {
-  display: inline-flex;
+.requirement {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.req-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  background: #7289da;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  text-decoration: none;
   font-weight: 600;
-  transition: background 0.2s;
+  color: #eee;
+  font-size: 0.9rem;
 }
 
-.discord-btn:hover {
-  background: #5b6eae;
+.status-icon {
+  font-size: 1.2rem;
+  transition: transform 0.2s;
 }
-.pzwiki-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background-color: #2d2d2d;
+
+.status-icon.met {
+  color: #16a34a;
+  text-shadow: 0 0 6px #16a34a66;
+}
+
+.status-icon.unmet {
+  color: #dc2626;
+  text-shadow: 0 0 6px #dc262666;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #222;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+.progress-fill.met {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  box-shadow: 0 0 6px #16a34a66;
+}
+
+.progress-fill.unmet {
+  background: linear-gradient(90deg, #dc2626, #f87171);
+  box-shadow: 0 0 6px #dc262666;
+}
+
+.req-details {
+  font-size: 0.8rem;
+  color: #aaa;
+  display: flex;
+  justify-content: space-between;
+}
+
+.req-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 12px;
   color: #fff;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.pzwiki-btn:hover {
-  background-color: #444;
-}
-
-.pzwiki-logo {
-  width: 20px;
-  height: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }

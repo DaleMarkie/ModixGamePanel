@@ -17,7 +17,8 @@ interface ModInfo {
   description: string;
   path: string;
   localVersion: string;
-  lastModified: number; // timestamp for live detection
+  lastModified: number;
+  updated?: boolean;
 }
 
 type ErrorCode =
@@ -27,41 +28,59 @@ type ErrorCode =
   | "NETWORK_ERROR"
   | "UNKNOWN_ERROR";
 
-export default function ModUpdates() {
+interface ModUpdatesProps {
+  activeGameId: string;
+}
+
+export default function ModUpdates({ activeGameId }: ModUpdatesProps) {
   const [mods, setMods] = useState<ModInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{
     code: ErrorCode;
     message: string;
   } | null>(null);
+  const [notifications, setNotifications] = useState<string[]>([]);
 
   const BACKEND_URL = "http://127.0.0.1:2010";
 
   const fetchMods = async () => {
+    if (!activeGameId) return;
+
+    setLoading(true);
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/mods/updates`);
+      const response = await axios.get(
+        `${BACKEND_URL}/api/mods/updates?gameId=${activeGameId}`
+      );
       const data = response.data.mods || [];
 
       if (!data.length) {
         throw {
           code: "NO_MODS_FOUND",
-          message: "No Project Zomboid Workshop mods found locally.",
+          message: "No Workshop mods found for this game.",
         };
       }
 
       setMods((prev) => {
         return data.map((mod: any) => {
+          const lastModified = new Date(mod.localVersion).getTime();
           const prevMod = prev.find((m) => m.id === mod.id);
+
+          // Trigger notification if mod updated
+          if (prevMod && prevMod.lastModified !== lastModified) {
+            setNotifications((n) => [
+              ...n,
+              `Mod "${mod.name}" has a new update available!`,
+            ]);
+          }
+
           return {
             id: mod.id,
             name: mod.name,
             description: mod.description,
             path: mod.folder,
             localVersion: mod.localVersion,
-            lastModified: new Date(mod.localVersion).getTime(), // or mod.lastModified from backend
-            updated: prevMod
-              ? prevMod.lastModified !== new Date(mod.localVersion).getTime()
-              : false,
+            lastModified,
+            updated: prevMod ? prevMod.lastModified !== lastModified : false,
           };
         });
       });
@@ -69,7 +88,6 @@ export default function ModUpdates() {
       setError(null);
     } catch (err: any) {
       console.error("⚠️ ModUpdates Error:", err);
-
       if (err.response) {
         const status = err.response.status;
         if (status === 404) {
@@ -103,71 +121,79 @@ export default function ModUpdates() {
 
   useEffect(() => {
     fetchMods();
-
-    // Poll every 15 seconds
-    const interval = setInterval(fetchMods, 15000);
+    const interval = setInterval(fetchMods, 15000); // Poll every 15s
     return () => clearInterval(interval);
-  }, []);
+  }, [activeGameId]);
 
   const retryLoad = () => window.location.reload();
 
-  if (loading) {
-    return (
-      <div className="mod-updates-page loading">
-        <FaSyncAlt className="spin" />
-        <p>Loading Steam Workshop mods...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mod-updates-page error">
-        <FaExclamationTriangle className="error-icon" />
-        <h2>Error: {error.code}</h2>
-        <p>{error.message}</p>
-        <button className="retry-btn" onClick={retryLoad}>
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="mod-updates-page">
-      <h1 className="page-title">
-        <FaPuzzlePiece /> Steam Workshop Mod Updates
-      </h1>
-      <div className="mods-grid">
-        {mods.map((mod) => (
-          <div
-            key={mod.id}
-            className={`mod-card ${mod.updated ? "updated" : ""}`}
-          >
-            <div className="mod-header">
-              <h3>{mod.name}</h3>
-              {mod.updated && (
-                <span className="status-badge update">
-                  <FaArrowCircleUp /> Updated!
-                </span>
-              )}
-              {!mod.updated && (
-                <span className="status-badge ok">
-                  <FaCheckCircle /> Installed
-                </span>
-              )}
-            </div>
+      {loading && (
+        <div className="loading">
+          <FaSyncAlt className="spin" />
+          <p>Loading Steam Workshop mods...</p>
+        </div>
+      )}
 
-            <p className="mod-description">{mod.description}</p>
-            <div className="version-info">
-              <strong>Local Version:</strong> {mod.localVersion}
+      {error && (
+        <div className="error">
+          <FaExclamationTriangle className="error-icon" />
+          <h2>Error: {error.code}</h2>
+          <p>{error.message}</p>
+          <button className="retry-btn" onClick={retryLoad}>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <h1 className="page-title">
+            <FaPuzzlePiece /> Steam Workshop Mod Updates
+          </h1>
+
+          {/* Notification Area */}
+          {notifications.length > 0 && (
+            <div className="mod-notifications">
+              {notifications.map((msg, idx) => (
+                <div key={idx} className="notification">
+                  <FaArrowCircleUp /> {msg}
+                </div>
+              ))}
             </div>
-            <div className="path-info">
-              <strong>Folder:</strong> {mod.path}
-            </div>
+          )}
+
+          <div className="mods-grid">
+            {mods.map((mod) => (
+              <div
+                key={mod.id}
+                className={`mod-card ${mod.updated ? "updated" : ""}`}
+              >
+                <div className="mod-header">
+                  <h3>{mod.name}</h3>
+                  {mod.updated ? (
+                    <span className="status-badge update">
+                      <FaArrowCircleUp /> Updated!
+                    </span>
+                  ) : (
+                    <span className="status-badge ok">
+                      <FaCheckCircle /> Installed
+                    </span>
+                  )}
+                </div>
+                <p className="mod-description">{mod.description}</p>
+                <div className="version-info">
+                  <strong>Local Version:</strong> {mod.localVersion}
+                </div>
+                <div className="path-info">
+                  <strong>Folder:</strong> {mod.path}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 }

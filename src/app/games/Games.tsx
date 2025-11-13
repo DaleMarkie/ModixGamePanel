@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaSteam, FaDiscord } from "react-icons/fa";
+import {
+  FaSteam,
+  FaDiscord,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
+} from "react-icons/fa";
 import "./Games.css";
 
 interface Game {
@@ -23,12 +29,16 @@ export default function Games() {
   const [batchPath, setBatchPath] = useState("");
   const [search, setSearch] = useState("");
 
-  // --- Sync active game with backend ---
+  const [userSpecs, setUserSpecs] = useState({
+    cpuCores: 0,
+    ramGB: 0,
+    os: "",
+  });
+
   const setActiveGameNow = async (gameId: string) => {
     setActiveGame(gameId);
     localStorage.setItem("activeGameId", gameId);
 
-    // Call backend to save active game
     try {
       await fetch("/api/filemanager/active-game", {
         method: "POST",
@@ -39,6 +49,13 @@ export default function Games() {
       console.error("Failed to update active game on backend", err);
     }
   };
+
+  useEffect(() => {
+    const cpuCores = navigator.hardwareConcurrency || 0;
+    const ramGB = navigator.deviceMemory || 0;
+    const os = navigator.platform || navigator.userAgent;
+    setUserSpecs({ cpuCores, ramGB, os });
+  }, []);
 
   useEffect(() => {
     const list: Game[] = [
@@ -66,8 +83,7 @@ export default function Games() {
       {
         id: "294100",
         name: "RimWorld",
-        image:
-          "https://shared.cloudflare.steampowered.com/store_item_assets/steam/apps/294100/header.jpg",
+        image: "https://wallpapercave.com/wp/wp3935722.png",
         supported: true,
         description:
           "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
@@ -125,6 +141,32 @@ export default function Games() {
     alert(`Session for ${selectedGame?.name} created!`);
   };
 
+  const checkRequirement = (label: string) => {
+    switch (label) {
+      case "CPU":
+        return userSpecs.cpuCores >= 4;
+      case "RAM":
+        return userSpecs.ramGB >= 8;
+      case "OS":
+        return userSpecs.os.toLowerCase().includes("win");
+      default:
+        return null;
+    }
+  };
+
+  const requirementPercent = (label: string) => {
+    switch (label) {
+      case "CPU":
+        return Math.min((userSpecs.cpuCores / 8) * 100, 100); // show relative to 8 cores max
+      case "RAM":
+        return Math.min((userSpecs.ramGB / 16) * 100, 100); // relative to 16GB
+      case "Disk":
+        return 0; // cannot detect
+      default:
+        return 0;
+    }
+  };
+
   return (
     <div className="games-page">
       <div className="games-header">
@@ -132,7 +174,6 @@ export default function Games() {
         <p className="subtitle">
           Select a game below to manage and launch your dedicated server.
         </p>
-
         <input
           type="text"
           placeholder="Search games..."
@@ -209,15 +250,67 @@ export default function Games() {
             <div className="modal-left">
               <img src={selectedGame.image} alt={selectedGame.name} />
             </div>
+
             <div className="modal-right">
               <h3>{selectedGame.name}</h3>
-              <p>Minimum requirements for server:</p>
-              <ul>
-                <li>CPU: Quad Core</li>
-                <li>RAM: 8 GB</li>
-                <li>Disk: 5 GB free</li>
-                <li>OS: Windows 10+</li>
-              </ul>
+              <p className="req-title">Minimum Requirements</p>
+
+              <div className="requirements-container">
+                {[
+                  { label: "CPU", required: 4, unit: "cores" },
+                  { label: "RAM", required: 8, unit: "GB" },
+                  { label: "Disk", required: 5, unit: "GB" },
+                  { label: "OS", required: "Windows 10+", unit: "" },
+                ].map((req) => {
+                  const met = checkRequirement(req.label);
+                  return (
+                    <div key={req.label} className="requirement">
+                      <div className="req-header">
+                        <span>{req.label}</span>
+                        {req.label !== "Disk" ? (
+                          <span
+                            className={`status-icon ${met ? "met" : "unmet"}`}
+                          >
+                            {met ? (
+                              <FaCheckCircle color="limegreen" />
+                            ) : (
+                              <FaTimesCircle color="red" />
+                            )}
+                          </span>
+                        ) : (
+                          <FaInfoCircle
+                            title="Cannot detect disk in browser"
+                            color="gray"
+                          />
+                        )}
+                      </div>
+
+                      {req.label !== "OS" && req.label !== "Disk" && (
+                        <div className="progress-bar">
+                          <div
+                            className={`progress-fill ${met ? "met" : "unmet"}`}
+                            style={{
+                              width: `${requirementPercent(req.label)}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      <div className="req-details">
+                        {req.label === "OS"
+                          ? `Required: ${req.required} | Your OS: ${userSpecs.os}`
+                          : req.label === "Disk"
+                          ? `Required: ${req.required} ${req.unit} | Your Disk: ℹ️`
+                          : `Required: ${req.required} ${req.unit} | Your: ${
+                              req.label === "CPU"
+                                ? userSpecs.cpuCores
+                                : userSpecs.ramGB
+                            } ${req.unit}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
               <label>Batch file path:</label>
               <input
