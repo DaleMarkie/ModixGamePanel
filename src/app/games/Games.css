@@ -585,3 +585,40 @@
   visibility: visible;
   opacity: 1;
 }
+
+
+
+
+
+
+
+
+
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-buttons button {
+  background: #1c1f26;
+  border: 1px solid #333;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: #ccc;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.filter-buttons button:hover {
+  background: #262a33;
+}
+
+.filter-buttons .active-filter {
+  background: #006400; /* Dark green */
+  border-color: #006400; /* Dark green border */
+  color: #fff; /* White text */
+}
+

@@ -35,9 +35,9 @@ export default function Games() {
     os: "",
   });
 
-  const setActiveGameNow = async (gameId: string) => {
+  const setActiveGameNow = async (gameId: string | null) => {
     setActiveGame(gameId);
-    localStorage.setItem("activeGameId", gameId);
+    if (gameId) localStorage.setItem("activeGameId", gameId);
 
     try {
       await fetch("/api/filemanager/active-game", {
@@ -60,15 +60,15 @@ export default function Games() {
   useEffect(() => {
     const list: Game[] = [
       {
-        id: "108600",
-        name: "Project Zomboid",
+        id: "251570",
+        name: "7 Days to Die",
         image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
         supported: true,
         description:
-          "Ultimate zombie survival — manage your own apocalyptic world with friends.",
-        steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
-        discordUrl: "https://discord.com/invite/theindiestone",
+          "Open-world zombie survival game with crafting, building, and RPG elements.",
+        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
+        discordUrl: "https://discord.com/invite/7daystodie",
       },
       {
         id: "1909850",
@@ -82,38 +82,6 @@ export default function Games() {
         discordUrl: "https://discord.gg/arma",
       },
       {
-        id: "221100",
-        name: "DayZ",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
-        supported: true,
-        description: "Survive in a deadly post-apocalyptic world.",
-        steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
-        discordUrl: "https://discord.com/invite/dayz",
-      },
-      {
-        id: "251570",
-        name: "7 Days to Die",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
-        supported: true,
-        description:
-          "Open-world zombie survival game with crafting, building, and RPG elements.",
-        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
-        discordUrl: "https://discord.com/invite/7daystodie",
-      },
-      {
-        id: "393380",
-        name: "Squad",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
-        supported: true,
-        description:
-          "Team-based military shooter emphasizing realism and cooperation.",
-        steamUrl: "https://store.steampowered.com/app/393380/Squad/",
-        discordUrl: "https://discord.gg/squad",
-      },
-      {
         id: "107410",
         name: "Arma 3",
         image:
@@ -123,16 +91,6 @@ export default function Games() {
           "Military tactical shooter focused on realism and large-scale combat.",
         steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
         discordUrl: "https://discord.gg/arma",
-      },
-      {
-        id: "294100",
-        name: "RimWorld",
-        image: "https://wallpapercave.com/wp/wp3935722.png",
-        supported: true,
-        description:
-          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
-        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
-        discordUrl: "https://discord.com/invite/rimworld",
       },
       {
         id: "346110",
@@ -158,46 +116,24 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/conanexiles",
       },
       {
-        id: "530870",
-        name: "Empyrion: Galactic Survival",
+        id: "221100",
+        name: "DayZ",
         image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/530870/header.jpg",
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
         supported: true,
-        description:
-          "Space survival game with exploration, crafting, and mods.",
-        steamUrl:
-          "https://store.steampowered.com/app/530870/Empyrion_Galactic_Survival/",
-        discordUrl: "https://discord.com/invite/empyrion",
+        description: "Survive in a deadly post-apocalyptic world.",
+        steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
+        discordUrl: "https://discord.com/invite/dayz",
       },
       {
-        id: "513710",
-        name: "SCUM",
+        id: "325980",
+        name: "The Isle",
         image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/513710/header.jpg",
+          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/376210/header.jpg?t=1653237914",
         supported: true,
-        description: "Hardcore survival multiplayer game.",
-        steamUrl: "https://store.steampowered.com/app/513710/SCUM/",
-        discordUrl: "https://discord.com/invite/scum",
-      },
-      {
-        id: "333930",
-        name: "Eco",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/333930/header.jpg",
-        supported: true,
-        description: "Complex multiplayer with economy, building, and mods.",
-        steamUrl: "https://store.steampowered.com/app/333930/Eco/",
-        discordUrl: "https://discord.com/invite/eco",
-      },
-      {
-        id: "526870",
-        name: "Satisfactory",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
-        supported: true,
-        description: "Factory-building multiplayer game with mod support.",
-        steamUrl: "https://store.steampowered.com/app/526870/Satisfactory/",
-        discordUrl: "https://discord.com/invite/satisfactory",
+        description: "Multiplayer dinosaur survival game in an open world.",
+        steamUrl: "https://store.steampowered.com/app/325980/The_Isle/",
+        discordUrl: "https://discord.gg/theisle",
       },
       {
         id: "275850",
@@ -211,25 +147,24 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/nomanssky",
       },
       {
-        id: "325980",
-        name: "The Isle",
+        id: "minecraft",
+        name: "Minecraft",
         image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/325980/header.jpg",
+          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
         supported: true,
-        description: "Multiplayer dinosaur survival game in an open world.",
-        steamUrl: "https://store.steampowered.com/app/325980/The_Isle/",
-        discordUrl: "https://discord.gg/theisle",
+        description: "Sandbox game about building, exploration, and survival.",
+        steamUrl: "https://www.minecraft.net/",
+        discordUrl: "https://discord.gg/minecraft",
       },
       {
-        id: "244850",
-        name: "Space Engineers",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
+        id: "294100",
+        name: "RimWorld",
+        image: "https://wallpapercave.com/wp/wp3935722.png",
         supported: true,
         description:
-          "Sandbox game about engineering, construction, exploration, and survival in space and planets.",
-        steamUrl: "https://store.steampowered.com/app/244850/Space_Engineers/",
-        discordUrl: "https://discord.gg/spaceengineers",
+          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
+        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
+        discordUrl: "https://discord.com/invite/rimworld",
       },
       {
         id: "252490",
@@ -243,14 +178,57 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/playrust",
       },
       {
-        id: "minecraft",
-        name: "Minecraft",
+        id: "526870",
+        name: "Satisfactory",
         image:
-          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
         supported: true,
-        description: "Sandbox game about building, exploration, and survival.",
-        steamUrl: "https://www.minecraft.net/",
-        discordUrl: "https://discord.gg/minecraft",
+        description: "Factory-building multiplayer game with mod support.",
+        steamUrl: "https://store.steampowered.com/app/526870/Satisfactory/",
+        discordUrl: "https://discord.com/invite/satisfactory",
+      },
+      {
+        id: "513710",
+        name: "SCUM",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/513710/header.jpg",
+        supported: true,
+        description: "Hardcore survival multiplayer game.",
+        steamUrl: "https://store.steampowered.com/app/513710/SCUM/",
+        discordUrl: "https://discord.com/invite/scum",
+      },
+      {
+        id: "393380",
+        name: "Squad",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
+        supported: true,
+        description:
+          "Team-based military shooter emphasizing realism and cooperation.",
+        steamUrl: "https://store.steampowered.com/app/393380/Squad/",
+        discordUrl: "https://discord.gg/squad",
+      },
+      {
+        id: "244850",
+        name: "Space Engineers",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
+        supported: true,
+        description:
+          "Sandbox game about engineering, construction, exploration, and survival in space and planets.",
+        steamUrl: "https://store.steampowered.com/app/244850/Space_Engineers/",
+        discordUrl: "https://discord.gg/spaceengineers",
+      },
+      {
+        id: "108600",
+        name: "Project Zomboid",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+        supported: true,
+        description:
+          "Ultimate zombie survival — manage your own apocalyptic world with friends.",
+        steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
+        discordUrl: "https://discord.com/invite/theindiestone",
       },
       {
         id: "892970",
@@ -275,10 +253,11 @@ export default function Games() {
         return savedGame ? { ...g, batchPath: savedGame.batchPath } : g;
       });
       setGames(merged);
+
       if (activeId) setActiveGame(activeId);
       else {
-        const active = merged.find((g) => g.batchPath);
-        if (active) setActiveGame(active.id);
+        const firstWithPath = merged.find((g) => g.batchPath);
+        if (firstWithPath) setActiveGame(firstWithPath.id);
       }
     } else {
       setGames(list);
@@ -286,6 +265,7 @@ export default function Games() {
     }
   }, []);
 
+  // Cleaned filteredGames: only search + active game sorting
   const filteredGames = games
     .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
@@ -304,11 +284,11 @@ export default function Games() {
 
   const createSession = () => {
     if (!batchPath.trim()) return alert("Please provide the batch file path!");
-    const updatedGames = games.map((g) =>
+    const updated = games.map((g) =>
       g.id === selectedGame?.id ? { ...g, batchPath } : g
     );
-    setGames(updatedGames);
-    localStorage.setItem("gamesPaths", JSON.stringify(updatedGames));
+    setGames(updated);
+    localStorage.setItem("gamesPaths", JSON.stringify(updated));
     setActiveGameNow(selectedGame?.id || null);
     setShowModal(false);
     alert(`Session for ${selectedGame?.name} created!`);
@@ -333,8 +313,6 @@ export default function Games() {
         return Math.min((userSpecs.cpuCores / 8) * 100, 100);
       case "RAM":
         return Math.min((userSpecs.ramGB / 16) * 100, 100);
-      case "Disk":
-        return 0;
       default:
         return 0;
     }
@@ -347,6 +325,7 @@ export default function Games() {
         <p className="subtitle">
           Select a game below to manage and launch your dedicated server.
         </p>
+
         <input
           type="text"
           placeholder="Search games..."
@@ -397,6 +376,7 @@ export default function Games() {
                     <FaSteam /> Steam
                   </a>
                 )}
+
                 {game.discordUrl && (
                   <a
                     href={game.discordUrl}
@@ -436,17 +416,14 @@ export default function Games() {
                   { label: "OS", required: "Windows 10+", unit: "" },
                 ].map((req) => {
                   const met = checkRequirement(req.label);
-
-                  const unmetReason =
+                  const reason =
                     req.label === "CPU"
                       ? `You have ${userSpecs.cpuCores} cores — at least ${req.required} are required.`
                       : req.label === "RAM"
                       ? `You have ${userSpecs.ramGB}GB — at least ${req.required}GB is required.`
                       : req.label === "OS"
                       ? `Your OS is detected as "${userSpecs.os}" — Windows 10 or newer is required.`
-                      : req.label === "Disk"
-                      ? `Browser cannot detect disk space — you must have at least ${req.required}GB free.`
-                      : "";
+                      : `Cannot detect disk, but ${req.required}GB free is needed.`;
 
                   return (
                     <div key={req.label} className="requirement">
@@ -463,10 +440,7 @@ export default function Games() {
                             )}
                           </span>
                         ) : (
-                          <FaInfoCircle
-                            title="Cannot detect disk in browser"
-                            color="gray"
-                          />
+                          <FaInfoCircle color="gray" />
                         )}
                       </div>
 
@@ -482,18 +456,10 @@ export default function Games() {
                       )}
 
                       <div className="req-details">
-                        {req.label === "OS"
-                          ? `Required: ${req.required} | Your OS: ${userSpecs.os}`
-                          : req.label === "Disk"
-                          ? `Required: ${req.required} ${req.unit} | Your Disk: ℹ️`
-                          : `Required: ${req.required} ${req.unit} | Yours: ${
-                              req.label === "CPU"
-                                ? userSpecs.cpuCores
-                                : userSpecs.ramGB
-                            } ${req.unit}`}
+                        Required: {req.required} {req.unit}
                       </div>
 
-                      {!met && <p className="req-warning">⚠ {unmetReason}</p>}
+                      {!met && <p className="req-warning">⚠ {reason}</p>}
                     </div>
                   );
                 })}
@@ -508,23 +474,9 @@ export default function Games() {
                 placeholder="C:/Servers/start_server.bat"
               />
 
-              {/* Status label just above the button */}
-              <div
-                className={`game-status ${
-                  selectedGame.id === "dayz" ? "wip" : "operational"
-                }`}
-              >
-                {selectedGame.id === "dayz" ? (
-                  <>
-                    WIP — certain parts of the panel may not work with this game
-                    yet.
-                  </>
-                ) : (
-                  <>
-                    Fully Operational — Selecting this game will automatically
-                    update Workshop, My Mods, and Server Settings.
-                  </>
-                )}
+              <div className="game-status operational">
+                Fully Operational — Selecting this game automatically updates
+                all pages.
               </div>
 
               <div className="modal-actions">

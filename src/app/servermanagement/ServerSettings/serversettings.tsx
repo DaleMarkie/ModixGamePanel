@@ -47,7 +47,7 @@ const GAMES: Record<string, any> = {
   },
   "346110": {
     name: "The Isle",
-    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQziPQFcILczAjFul8_5o7jhlh1mXe0SADmmQ&s",
     steam: "https://store.steampowered.com/app/346110/The_Isle/",
     discord: "https://discord.com/invite/theisle",
   },
