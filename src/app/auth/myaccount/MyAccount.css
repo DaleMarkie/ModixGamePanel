@@ -7,8 +7,53 @@
   min-height: 100vh;
 }
 
+/* Top Menu */
+.account-top-menu {
+  background: #1a1a1a;
+  padding: 10px 20px;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.account-top-menu ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.account-top-menu ul li button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 6px 4px;
+}
+
+.account-top-menu ul li button:hover,
+.account-top-menu ul li button.active {
+  color: #00bfff;
+  border-bottom: 2px solid #00bfff;
+}
+
+/* Dashboard Content Layout */
+.page-content {
+  margin-top: 20px;
+}
+
+.dashboard-page h2,
+.dashboard-page h3 {
+  margin-bottom: 10px;
+}
+
 /* Info Cards */
-.dashboard-user-info {
+.dashboard-user-info,
+.info-cards-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
@@ -17,11 +62,11 @@
 
 .info-card {
   display: flex;
+  align-items: center;
   background: #1a1a1a;
   border-radius: 6px;
   padding: 0.5rem 0.8rem;
   flex: 1 1 180px;
-  align-items: center;
   transition: background 0.2s, transform 0.2s;
 }
 
@@ -47,6 +92,7 @@
 
 .info-value {
   font-size: 0.85rem;
+  font-weight: bold;
 }
 
 .status-active {
@@ -63,6 +109,7 @@
   padding: 0.8rem 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
+  border-left: 4px solid #4caf50;
 }
 
 .recent-activity h2 {
@@ -92,7 +139,7 @@
   color: #888;
 }
 
-/* Account Links Section */
+/* Links / Social Section */
 .account-links {
   background: #1e1e1e;
   padding: 0.8rem 1rem;
@@ -122,7 +169,8 @@
   gap: 0.5rem;
 }
 
-.btn {
+.btn,
+.link-buttons a {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -131,43 +179,47 @@
   font-weight: bold;
   text-decoration: none;
   color: #fff;
+  background: #333;
   font-size: 0.85rem;
   transition: background 0.2s, transform 0.2s;
 }
 
-.btn:hover {
+.btn:hover,
+.link-buttons a:hover {
   transform: translateY(-1px);
+  background: #025721;
 }
 
+/* Individual button colors */
 .btn-discord {
-  background: #5865f2;
+  background: #5865f2 !important;
 }
 
 .btn-discord:hover {
-  background: #4752c4;
+  background: #4752c4 !important;
 }
 
 .btn-kofi {
-  background: #ff5e5b;
+  background: #ff5e5b !important;
 }
 
 .btn-kofi:hover {
-  background: #e04848;
+  background: #e04848 !important;
 }
 
 .btn-facebook {
-  background: #3b5998;
+  background: #3b5998 !important;
 }
 
 .btn-facebook:hover {
-  background: #2d4373;
+  background: #2d4373 !important;
 }
 
 .btn svg {
   font-size: 0.9rem;
 }
 
-/* Not logged in */
+/* Not logged */
 .not-logged {
   padding: 1rem;
   color: #f44336;
