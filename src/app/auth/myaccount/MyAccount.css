@@ -242,3 +242,82 @@
     gap: 0.4rem;
   }
 }
+/* ----------------------------------------
+    Quick Actions Section
+-----------------------------------------*/
+.quick-actions {
+  background: #1e1e1e;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #00bfff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-actions:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.quick-actions h2 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: #00bfff;
+}
+
+.quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.quick-buttons button,
+.quick-buttons a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 5px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #fff;
+  background: #333;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.quick-buttons button:hover,
+.quick-buttons a:hover {
+  transform: translateY(-1px);
+  background: #025721;
+}
+
+.quick-buttons button svg,
+.quick-buttons a svg {
+  font-size: 0.9rem;
+}
+
+/* Optional: Quick button specific colors */
+.quick-buttons .btn-settings {
+  background: #005309;
+}
+
+.quick-buttons .btn-settings:hover {
+  background: #0f5d01;
+}
+
+.quick-buttons .btn-ticket {
+  background: #ff9800;
+}
+
+.quick-buttons .btn-ticket:hover {
+  background: #e07b00;
+}
+
+@media (max-width: 768px) {
+  .quick-buttons {
+    flex-direction: column;
+  }
+}

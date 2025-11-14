@@ -7,23 +7,20 @@ import {
   FaHeart,
   FaGamepad,
   FaHourglass,
+  FaCogs,
+  FaTicketAlt,
 } from "react-icons/fa";
 import "./MyAccount.css";
 import { getServerUrl } from "@/app/config";
 
 // 👉 SETTINGS PAGE IMPORT
 import MySettings from "@/app/auth/myaccount/settings/mySettings";
+import mySubscriptions from "@/app/auth/myaccount/subscriptions/mySubscriptions";
 import License from "@/app/auth/myaccount/license/License";
+
 /* ----------------------------------------
     PAGE COMPONENTS
 -----------------------------------------*/
-
-const SupportPage = () => (
-  <div className="page-section">
-    <h2>🛠 Support</h2>
-    <p>Submit tickets or contact support here.</p>
-  </div>
-);
 
 const ChangeLogPage = () => (
   <div className="page-section">
@@ -34,7 +31,7 @@ const ChangeLogPage = () => (
 
 const LicensesPage = () => (
   <div className="page-section">
-    <h2>📄 Licenses</h2>
+    <h2>📄 License</h2>
     <p>View your active plan and license details.</p>
   </div>
 );
@@ -109,6 +106,7 @@ const DashboardPage = ({ user, userLogs }: any) => {
 
   return (
     <div className="dashboard-page">
+      {/* Info Cards */}
       <div className="info-cards-grid">
         {infoCards.map((info, idx) => (
           <div key={idx} className="info-card">
@@ -123,30 +121,17 @@ const DashboardPage = ({ user, userLogs }: any) => {
         ))}
       </div>
 
-      <section className="recent-activity page-section">
-        <h2>📜 Recent Activity</h2>
-        {userLogs.length ? (
-          <ul>
-            {userLogs.slice(0, 5).map((log, idx) => (
-              <li key={idx}>
-                {new Date(log.timestamp).toLocaleString()} — {log.action}{" "}
-                {log.duration ? `(Session: ${log.duration})` : ""}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No recent activity.</p>
-        )}
-      </section>
-
-      <section className="account-links page-section">
-        <p>💌 Connect with Modix:</p>
-        <div className="link-buttons">
+      {/* NEW: Quick Actions */}
+      <section className="quick-actions page-section">
+        <h2>⚡ Quick Actions</h2>
+        <div className="quick-buttons">
+          <button onClick={() => window.alert("Open Support")}>
+            <FaTicketAlt /> Submit Ticket
+          </button>
           <a
             href="https://discord.gg/EwWZUSR9tM"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-discord"
           >
             <FaDiscord /> Join Discord
           </a>
@@ -154,17 +139,8 @@ const DashboardPage = ({ user, userLogs }: any) => {
             href="https://ko-fi.com/modixgamepanel"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-kofi"
           >
             <FaHeart /> Support on Ko-fi
-          </a>
-          <a
-            href="https://www.facebook.com/modixgamepanel/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-facebook"
-          >
-            <FaFacebook /> Facebook
           </a>
         </div>
       </section>
@@ -222,8 +198,6 @@ const MyAccount = () => {
     switch (activePage) {
       case "dashboard":
         return <DashboardPage user={user} userLogs={userLogs} />;
-      case "support":
-        return <SupportPage />;
       case "changelog":
         return <ChangeLogPage />;
       case "license":
@@ -244,25 +218,7 @@ const MyAccount = () => {
               className={activePage === "dashboard" ? "active" : ""}
               onClick={() => setActivePage("dashboard")}
             >
-              Dashboard
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={activePage === "support" ? "active" : ""}
-              onClick={() => setActivePage("support")}
-            >
-              Support
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={activePage === "changelog" ? "active" : ""}
-              onClick={() => setActivePage("changelog")}
-            >
-              Change Log
+              Overview
             </button>
           </li>
 
@@ -271,7 +227,25 @@ const MyAccount = () => {
               className={activePage === "license" ? "active" : ""}
               onClick={() => setActivePage("license")}
             >
-              Licenses
+              Credentials
+            </button>
+          </li>
+
+          <li>
+            <button
+              className={activePage === "Billing / Payments" ? "active" : ""}
+              onClick={() => setActivePage("Billing / Payments")}
+            >
+              Billing
+            </button>
+          </li>
+
+          <li>
+            <button
+              className={activePage === "mySubscriptions" ? "active" : ""}
+              onClick={() => setActivePage("mySubscriptions")}
+            >
+              Subscriptions
             </button>
           </li>
 
@@ -281,7 +255,37 @@ const MyAccount = () => {
               className={activePage === "settings" ? "active" : ""}
               onClick={() => setActivePage("settings")}
             >
-              Settings
+              History
+            </button>
+          </li>
+
+          {/* NEW SETTINGS TAB */}
+          <li>
+            <button
+              className={activePage === "fd" ? "false" : ""}
+              onClick={() => setActivePage("df")}
+            >
+              Support
+            </button>
+          </li>
+
+          {/* NEW SETTINGS TAB */}
+          <li>
+            <button
+              className={activePage === "Achievements" ? "false" : ""}
+              onClick={() => setActivePage("df")}
+            >
+              Achievements
+            </button>
+          </li>
+
+          {/* NEW SETTINGS TAB */}
+          <li>
+            <button
+              className={activePage === "Achievements" ? "false" : ""}
+              onClick={() => setActivePage("df")}
+            >
+              Updates
             </button>
           </li>
         </ul>
