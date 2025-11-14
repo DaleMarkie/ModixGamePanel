@@ -13,32 +13,116 @@ interface Setting {
   description?: string;
 }
 
-interface Category {
-  category: string;
-  description: string;
-  settings: Setting[];
-}
-
 // Games list
-const GAMES = {
+const GAMES: Record<string, any> = {
   "108600": {
     name: "Project Zomboid",
     logo: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
     steam: "https://store.steampowered.com/app/108600/Project_Zomboid/",
     discord: "https://discord.com/invite/theindiestone",
-    wiki: "https://pzwiki.net/wiki/Main_Page",
+  },
+  "221100": {
+    name: "DayZ",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
+    steam: "https://store.steampowered.com/app/221100/DayZ/",
+    discord: "https://discord.com/invite/dayz",
   },
   "294100": {
     name: "RimWorld",
-    logo: "https://shared.cloudflare.steampowered.com/store_item_assets/steam/apps/294100/header.jpg",
+    logo: "https://wallpapercave.com/wp/wp3935722.png",
     steam: "https://store.steampowered.com/app/294100/RimWorld/",
     discord: "https://discord.com/invite/rimworld",
+  },
+  "8230": {
+    name: "7 Days to Die",
+    logo: "https://cdn.akamai.steamstatic.com/steam/apps/251570/header.jpg",
+    steam: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
+    discord: "https://discord.com/invite/7daystodie",
+  },
+  "548430": {
+    name: "Squad",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
+    steam: "https://store.steampowered.com/app/393380/Squad/",
+    discord: "https://discord.com/invite/join-squad",
+  },
+  "346110": {
+    name: "The Isle",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+    steam: "https://store.steampowered.com/app/346110/The_Isle/",
+    discord: "https://discord.com/invite/theisle",
+  },
+  "304930": {
+    name: "Space Engineers",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
+    steam: "https://store.steampowered.com/app/244850/Space_Engineers/",
+    discord: "https://discord.com/invite/spaceengineers",
+  },
+  "252490": {
+    name: "Rust",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+    steam: "https://store.steampowered.com/app/252490/Rust/",
+    discord: "https://discord.com/invite/playrust",
   },
   minecraft: {
     name: "Minecraft",
     logo: "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
-    steam: "https://store.steampowered.com/app/minecraft",
+    steam: "",
     discord: "https://discord.gg/minecraft",
+  },
+  "892970": {
+    name: "Valheim",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
+    steam: "https://store.steampowered.com/app/892970/Valheim/",
+    discord: "https://discord.com/invite/valheim",
+  },
+  "107410": {
+    name: "Arma 3",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
+    steam: "https://store.steampowered.com/app/107410/Arma_3/",
+    discord: "https://discord.com/invite/arma",
+  },
+  "346110": {
+    name: "ARK: Survival Evolved",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+    steam: "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
+    discord: "https://discord.com/invite/ark",
+  },
+  "440900": {
+    name: "Conan Exiles",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/440900/header.jpg",
+    steam: "https://store.steampowered.com/app/440900/Conan_Exiles/",
+    discord: "https://discord.com/invite/conanexiles",
+  },
+  "530870": {
+    name: "Empyrion: Galactic Survival",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/530870/header.jpg",
+    steam:
+      "https://store.steampowered.com/app/530870/Empyrion_Galactic_Survival/",
+    discord: "https://discord.com/invite/empyrion",
+  },
+  "513710": {
+    name: "SCUM",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/513710/header.jpg",
+    steam: "https://store.steampowered.com/app/513710/SCUM/",
+    discord: "https://discord.com/invite/scum",
+  },
+  "333930": {
+    name: "Eco",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/333930/header.jpg",
+    steam: "https://store.steampowered.com/app/333930/Eco/",
+    discord: "https://discord.com/invite/eco",
+  },
+  "275850": {
+    name: "Satisfactory",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
+    steam: "https://store.steampowered.com/app/526870/Satisfactory/",
+    discord: "https://discord.com/invite/satisfactory",
+  },
+  "275850": {
+    name: "No Man's Sky",
+    logo: "https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg",
+    steam: "https://store.steampowered.com/app/275850/No_Mans_Sky/",
+    discord: "https://discord.com/invite/nomanssky",
   },
 };
 
@@ -94,7 +178,12 @@ export default function ServerSettings() {
       });
   };
 
-  const gameInfo = GAMES[activeGame];
+  const gameInfo = GAMES[activeGame] || {
+    name: "Unknown Game",
+    logo: "https://via.placeholder.com/150x80?text=No+Logo",
+    steam: "",
+    discord: "",
+  };
 
   return (
     <div className="server-settings-new">
@@ -115,15 +204,6 @@ export default function ServerSettings() {
           {gameInfo.discord && (
             <a href={gameInfo.discord} target="_blank" className="icon-btn">
               <FaDiscord /> Discord
-            </a>
-          )}
-          {gameInfo.wiki && (
-            <a
-              href={gameInfo.wiki}
-              target="_blank"
-              className="icon-btn wiki-btn"
-            >
-              Wiki
             </a>
           )}
         </div>

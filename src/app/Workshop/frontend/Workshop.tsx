@@ -301,7 +301,9 @@ export default function WorkshopPage() {
       if (!items.length) throw new Error("No mods found.");
       setMods(items);
     } catch {
-      setError("Failed to load mods. Try again.");
+      setError(
+        "Oops! We couldn't load mods. Check if the active game supports Steam Workshop or has mods available."
+      );
     } finally {
       setLoading(false);
     }

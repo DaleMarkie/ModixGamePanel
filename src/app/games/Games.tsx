@@ -71,7 +71,7 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/theindiestone",
       },
       {
-        id: "dayz",
+        id: "221100",
         name: "DayZ",
         image:
           "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
@@ -89,6 +89,168 @@ export default function Games() {
           "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
         steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
         discordUrl: "https://discord.com/invite/rimworld",
+      },
+      {
+        id: "393380",
+        name: "Squad",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
+        supported: true,
+        description:
+          "Team-based military shooter emphasizing realism and cooperation.",
+        steamUrl: "https://store.steampowered.com/app/393380/Squad/",
+        discordUrl: "https://discord.gg/squad",
+      },
+      {
+        id: "251570",
+        name: "7 Days to Die",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
+        supported: true,
+        description:
+          "Open-world zombie survival game with crafting, building, and RPG elements.",
+        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
+        discordUrl: "https://discord.com/invite/7daystodie",
+      },
+      {
+        id: "346110",
+        name: "ARK: Survival Evolved",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+        supported: true,
+        description:
+          "Dinosaur survival game with building, crafting, and extensive modding support.",
+        steamUrl:
+          "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
+        discordUrl: "https://discord.com/invite/ark",
+      },
+      {
+        id: "440900",
+        name: "Conan Exiles",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/440900/header.jpg",
+        supported: true,
+        description:
+          "Survival game with building, crafting, and modding support.",
+        steamUrl: "https://store.steampowered.com/app/440900/Conan_Exiles/",
+        discordUrl: "https://discord.com/invite/conanexiles",
+      },
+      {
+        id: "530870",
+        name: "Empyrion: Galactic Survival",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/530870/header.jpg",
+        supported: true,
+        description:
+          "Space survival game with exploration, crafting, and mods.",
+        steamUrl:
+          "https://store.steampowered.com/app/530870/Empyrion_Galactic_Survival/",
+        discordUrl: "https://discord.com/invite/empyrion",
+      },
+      {
+        id: "513710",
+        name: "SCUM",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/513710/header.jpg",
+        supported: true,
+        description: "Hardcore survival multiplayer game.",
+        steamUrl: "https://store.steampowered.com/app/513710/SCUM/",
+        discordUrl: "https://discord.com/invite/scum",
+      },
+      {
+        id: "333930",
+        name: "Eco",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/333930/header.jpg",
+        supported: true,
+        description: "Complex multiplayer with economy, building, and mods.",
+        steamUrl: "https://store.steampowered.com/app/333930/Eco/",
+        discordUrl: "https://discord.com/invite/eco",
+      },
+      {
+        id: "526870",
+        name: "Satisfactory",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
+        supported: true,
+        description: "Factory-building multiplayer game with mod support.",
+        steamUrl: "https://store.steampowered.com/app/526870/Satisfactory/",
+        discordUrl: "https://discord.com/invite/satisfactory",
+      },
+      {
+        id: "275850",
+        name: "No Man's Sky",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg",
+        supported: true,
+        description:
+          "Exploration and survival in a procedurally generated universe.",
+        steamUrl: "https://store.steampowered.com/app/275850/No_Mans_Sky/",
+        discordUrl: "https://discord.com/invite/nomanssky",
+      },
+      {
+        id: "325980",
+        name: "The Isle",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/325980/header.jpg",
+        supported: true,
+        description: "Multiplayer dinosaur survival game in an open world.",
+        steamUrl: "https://store.steampowered.com/app/325980/The_Isle/",
+        discordUrl: "https://discord.gg/theisle",
+      },
+      {
+        id: "244850",
+        name: "Space Engineers",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
+        supported: true,
+        description:
+          "Sandbox game about engineering, construction, exploration, and survival in space and planets.",
+        steamUrl: "https://store.steampowered.com/app/244850/Space_Engineers/",
+        discordUrl: "https://discord.gg/spaceengineers",
+      },
+      {
+        id: "252490",
+        name: "Rust",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+        supported: true,
+        description:
+          "Survival multiplayer game with crafting, building, and PvP elements.",
+        steamUrl: "https://store.steampowered.com/app/252490/Rust/",
+        discordUrl: "https://discord.com/invite/playrust",
+      },
+      {
+        id: "minecraft",
+        name: "Minecraft",
+        image:
+          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
+        supported: true,
+        description: "Sandbox game about building, exploration, and survival.",
+        steamUrl: "https://www.minecraft.net/",
+        discordUrl: "https://discord.gg/minecraft",
+      },
+      {
+        id: "892970",
+        name: "Valheim",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
+        supported: true,
+        description:
+          "Viking-themed survival and exploration game in a procedurally-generated world.",
+        steamUrl: "https://store.steampowered.com/app/892970/Valheim/",
+        discordUrl: "https://discord.gg/valheim",
+      },
+      {
+        id: "107410",
+        name: "Arma 3",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
+        supported: true,
+        description:
+          "Military tactical shooter focused on realism and large-scale combat.",
+        steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
+        discordUrl: "https://discord.gg/arma",
       },
     ];
 
