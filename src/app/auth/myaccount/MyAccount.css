@@ -1,4 +1,6 @@
-/* Container */
+/* ----------------------------------------
+    GLOBAL CONTAINER
+-----------------------------------------*/
 .myaccount-container {
   padding: 1rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -7,7 +9,9 @@
   min-height: 100vh;
 }
 
-/* Top Menu */
+/* ----------------------------------------
+    TOP MENU
+-----------------------------------------*/
 .account-top-menu {
   background: #1a1a1a;
   padding: 10px 20px;
@@ -41,18 +45,16 @@
   border-bottom: 2px solid #00bfff;
 }
 
-/* Dashboard Content Layout */
+/* ----------------------------------------
+    PAGE CONTENT
+-----------------------------------------*/
 .page-content {
   margin-top: 20px;
 }
 
-.dashboard-page h2,
-.dashboard-page h3 {
-  margin-bottom: 10px;
-}
-
-/* Info Cards */
-.dashboard-user-info,
+/* ----------------------------------------
+    INFO CARDS
+-----------------------------------------*/
 .info-cards-grid {
   display: flex;
   flex-wrap: wrap;
@@ -103,43 +105,117 @@
   color: #f44336;
 }
 
-/* Recent Activity */
-.recent-activity {
+/* ----------------------------------------
+    NOTIFICATIONS / ALERTS
+-----------------------------------------*/
+.notifications {
   background: #1e1e1e;
   padding: 0.8rem 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid #00bfff;
 }
 
-.recent-activity h2 {
+.notifications h2 {
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
-  color: #4caf50;
+  color: #00bfff;
 }
 
-.recent-activity ul {
+.notifications ul {
   list-style: none;
   padding-left: 0;
   font-size: 0.85rem;
   color: #ccc;
 }
 
-.recent-activity li {
+.notification-item {
+  display: flex;
+  align-items: center;
   padding: 0.2rem 0;
   border-bottom: 1px solid #2a2a2a;
 }
 
-.recent-activity li:last-child {
+.notification-item:last-child {
   border-bottom: none;
 }
 
-.recent-activity p {
-  font-size: 0.85rem;
-  color: #888;
+.notification-icon {
+  margin-right: 0.5rem;
+  font-size: 1rem;
 }
 
-/* Links / Social Section */
+/* ----------------------------------------
+    GAMIFICATION / BADGES
+-----------------------------------------*/
+.gamification {
+  background: #1e1e1e;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #ff9800;
+}
+
+.gamification h2 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: #ff9800;
+}
+
+.badges-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.badge-card {
+  background: #2a2a2a;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  flex: 1 1 200px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.badge-card:hover {
+  transform: translateY(-1px);
+  background: #3a3a3a;
+}
+
+.badge-icon {
+  font-size: 1.3rem;
+}
+
+.badge-info {
+  flex: 1;
+}
+
+.badge-name {
+  display: block;
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.progress-bar {
+  background: #121212;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: #00bfff;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ----------------------------------------
+    ACCOUNT LINKS / SOCIAL
+-----------------------------------------*/
 .account-links {
   background: #1e1e1e;
   padding: 0.8rem 1rem;
@@ -161,7 +237,6 @@
   color: #cfcfcf;
 }
 
-/* Buttons */
 .link-buttons {
   display: flex;
   justify-content: center;
@@ -190,7 +265,6 @@
   background: #025721;
 }
 
-/* Individual button colors */
 .btn-discord {
   background: #5865f2 !important;
 }
@@ -219,7 +293,9 @@
   font-size: 0.9rem;
 }
 
-/* Not logged */
+/* ----------------------------------------
+    NOT LOGGED IN MESSAGE
+-----------------------------------------*/
 .not-logged {
   padding: 1rem;
   color: #f44336;
@@ -227,13 +303,17 @@
   text-align: center;
 }
 
-/* Responsive */
+/* ----------------------------------------
+    RESPONSIVE
+-----------------------------------------*/
 @media (max-width: 768px) {
-  .dashboard-user-info {
+  .info-cards-grid,
+  .badges-grid {
     flex-direction: column;
   }
 
-  .info-card {
+  .info-card,
+  .badge-card {
     flex: 1 1 100%;
   }
 
