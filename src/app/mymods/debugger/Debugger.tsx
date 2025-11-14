@@ -24,6 +24,7 @@ type ModData = Record<string, ModInfo>;
 
 export default function DebuggerPage() {
   const [activeServer, setActiveServer] = useState<string | null>(null);
+  const [activeGame, setActiveGame] = useState<string | null>(null); // <-- active game
   const [mods, setMods] = useState<ModData>({});
   const [statusFilter, setStatusFilter] = useState<ModStatus | "">("");
   const [priorityFilter, setPriorityFilter] = useState<ModPriority | "">("");
@@ -49,9 +50,23 @@ export default function DebuggerPage() {
     fetchActiveServer();
   }, []);
 
+  // Fetch active game
+  useEffect(() => {
+    async function fetchActiveGame() {
+      try {
+        const res = await fetch("/api/active-game");
+        const data: { game?: string } = await res.json();
+        setActiveGame(data.game || null);
+      } catch {
+        console.error("Failed to detect active game");
+      }
+    }
+    fetchActiveGame();
+  }, []);
+
   // Auto-refresh mods every 5 seconds
   useEffect(() => {
-    if (!activeServer) return;
+    if (!activeServer || !activeGame) return;
     let isMounted = true;
 
     const fetchMods = async () => {
@@ -69,7 +84,7 @@ export default function DebuggerPage() {
         );
         let workshopMods: string[] = [];
         if (workshopRes.ok) {
-          workshopMods = await workshopRes.json(); // returns array of mod IDs
+          workshopMods = await workshopRes.json();
         }
 
         // Merge server mods + workshop mods
@@ -104,11 +119,11 @@ export default function DebuggerPage() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [activeServer]);
+  }, [activeServer, activeGame]);
 
   // Update mod status
   async function updateModStatus(modName: string, newStatus: ModStatus) {
-    if (!activeServer) return;
+    if (!activeServer || !activeGame) return;
     try {
       const updated = { ...mods[modName], status: newStatus };
       await fetch(
@@ -116,7 +131,7 @@ export default function DebuggerPage() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updated),
+          body: JSON.stringify({ ...updated, game: activeGame }),
         }
       );
       setMods((prev) => ({ ...prev, [modName]: updated }));
@@ -127,7 +142,7 @@ export default function DebuggerPage() {
 
   // Update mod priority
   async function updateModPriority(modName: string, newPriority: ModPriority) {
-    if (!activeServer) return;
+    if (!activeServer || !activeGame) return;
     try {
       const updated = { ...mods[modName], priority: newPriority };
       await fetch(
@@ -135,7 +150,7 @@ export default function DebuggerPage() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updated),
+          body: JSON.stringify({ ...updated, game: activeGame }),
         }
       );
       setMods((prev) => ({ ...prev, [modName]: updated }));
@@ -147,7 +162,7 @@ export default function DebuggerPage() {
   // Add a quick note
   async function addNote(modName: string) {
     const text = noteInputs[modName]?.trim();
-    if (!text || !activeServer) return;
+    if (!text || !activeServer || !activeGame) return;
     try {
       const res = await fetch(
         `/api/servers/${activeServer}/mods/${encodeURIComponent(
@@ -156,7 +171,7 @@ export default function DebuggerPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, author: "Staff" }),
+          body: JSON.stringify({ text, author: "Staff", game: activeGame }),
         }
       );
       if (!res.ok) throw new Error("Failed to add note");
@@ -187,7 +202,12 @@ export default function DebuggerPage() {
         <h1 className="debugger-title">🛠️ Mod Debugger</h1>
         {activeServer ? (
           <p className="debugger-subtitle">
-            Connected to <b>{activeServer}</b>
+            Connected to <b>{activeServer}</b>{" "}
+            {activeGame && (
+              <>
+                | Active Game: <b>{activeGame}</b>
+              </>
+            )}
           </p>
         ) : (
           <p className="debugger-subtitle">⚠️ No active server running.</p>
@@ -197,7 +217,7 @@ export default function DebuggerPage() {
       {error && <p className="error-message">{error}</p>}
       {loading && <p className="loading-text">Loading mods...</p>}
 
-      {activeServer && (
+      {activeServer && activeGame && (
         <>
           {/* Mods Section */}
           <section className="debugger-section">

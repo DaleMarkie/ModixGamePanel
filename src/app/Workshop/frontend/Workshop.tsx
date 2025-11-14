@@ -302,7 +302,7 @@ export default function WorkshopPage() {
       setMods(items);
     } catch {
       setError(
-        "Oops! We couldn't load mods. Check if the active game supports Steam Workshop or has mods available."
+        "Oops! We couldn't load mods. Check if the active game supports Steam Workshop"
       );
     } finally {
       setLoading(false);

@@ -71,6 +71,17 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/theindiestone",
       },
       {
+        id: "1909850",
+        name: "Arma Reforger",
+        image:
+          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1874880/capsule_616x353.jpg?t=1762168272",
+        supported: true,
+        description:
+          "Modern military sandbox game — host your own dedicated servers and experience tactical multiplayer.",
+        steamUrl: "https://store.steampowered.com/app/1909850/Arma_Reforger/",
+        discordUrl: "https://discord.gg/arma",
+      },
+      {
         id: "221100",
         name: "DayZ",
         image:
@@ -81,14 +92,15 @@ export default function Games() {
         discordUrl: "https://discord.com/invite/dayz",
       },
       {
-        id: "294100",
-        name: "RimWorld",
-        image: "https://wallpapercave.com/wp/wp3935722.png",
+        id: "251570",
+        name: "7 Days to Die",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
         supported: true,
         description:
-          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
-        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
-        discordUrl: "https://discord.com/invite/rimworld",
+          "Open-world zombie survival game with crafting, building, and RPG elements.",
+        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
+        discordUrl: "https://discord.com/invite/7daystodie",
       },
       {
         id: "393380",
@@ -102,15 +114,25 @@ export default function Games() {
         discordUrl: "https://discord.gg/squad",
       },
       {
-        id: "251570",
-        name: "7 Days to Die",
+        id: "107410",
+        name: "Arma 3",
         image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
         supported: true,
         description:
-          "Open-world zombie survival game with crafting, building, and RPG elements.",
-        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
-        discordUrl: "https://discord.com/invite/7daystodie",
+          "Military tactical shooter focused on realism and large-scale combat.",
+        steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
+        discordUrl: "https://discord.gg/arma",
+      },
+      {
+        id: "294100",
+        name: "RimWorld",
+        image: "https://wallpapercave.com/wp/wp3935722.png",
+        supported: true,
+        description:
+          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
+        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
+        discordUrl: "https://discord.com/invite/rimworld",
       },
       {
         id: "346110",
@@ -240,17 +262,6 @@ export default function Games() {
           "Viking-themed survival and exploration game in a procedurally-generated world.",
         steamUrl: "https://store.steampowered.com/app/892970/Valheim/",
         discordUrl: "https://discord.gg/valheim",
-      },
-      {
-        id: "107410",
-        name: "Arma 3",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
-        supported: true,
-        description:
-          "Military tactical shooter focused on realism and large-scale combat.",
-        steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
-        discordUrl: "https://discord.gg/arma",
       },
     ];
 

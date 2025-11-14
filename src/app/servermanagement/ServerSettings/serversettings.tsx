@@ -124,6 +124,12 @@ const GAMES: Record<string, any> = {
     steam: "https://store.steampowered.com/app/275850/No_Mans_Sky/",
     discord: "https://discord.com/invite/nomanssky",
   },
+  "1909850": {
+    name: "Arma Reforger",
+    logo: "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1874880/capsule_616x353.jpg?t=1762168272",
+    steam: "https://store.steampowered.com/app/1909850/Arma_Reforger/",
+    discord: "https://discord.gg/arma",
+  },
 };
 
 export default function ServerSettings() {
