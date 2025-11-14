@@ -7,8 +7,6 @@ import {
   FaHeart,
   FaGamepad,
   FaHourglass,
-  FaExclamationTriangle,
-  FaTrophy,
 } from "react-icons/fa";
 import "./MyAccount.css";
 import { getServerUrl } from "@/app/config";
@@ -16,7 +14,6 @@ import { getServerUrl } from "@/app/config";
 // 👉 SETTINGS PAGE IMPORT
 import MySettings from "@/app/auth/myaccount/settings/mySettings";
 import License from "@/app/auth/myaccount/license/License";
-
 /* ----------------------------------------
     PAGE COMPONENTS
 -----------------------------------------*/
@@ -28,50 +25,12 @@ const SupportPage = () => (
   </div>
 );
 
-const ChangeLogPage = () => {
-  const logs = [
-    {
-      version: "v1.5.2",
-      date: "2025-11-10",
-      details: "Improved dashboard layout, fixed minor bugs.",
-      icon: "✅",
-    },
-    {
-      version: "v1.5.1",
-      date: "2025-10-28",
-      details: "Added new settings page for header customization.",
-      icon: "⚙️",
-    },
-    {
-      version: "v1.5.0",
-      date: "2025-10-20",
-      details: "Full mod manager overhaul with thumbnails and tags.",
-      icon: "🆕",
-    },
-    {
-      version: "v1.4.9",
-      date: "2025-10-10",
-      details: "Fixed server stats display on dashboard.",
-      icon: "🐛",
-    },
-  ];
-
-  return (
-    <div className="page-section changelog">
-      <h2>📝 Change Log</h2>
-      <ul>
-        {logs.map((log, idx) => (
-          <li key={idx} className="changelog-item">
-            <span className="changelog-icon">{log.icon}</span>
-            <div className="changelog-content">
-              <strong>{log.version}</strong> ({log.date}): {log.details}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+const ChangeLogPage = () => (
+  <div className="page-section">
+    <h2>📝 Change Log</h2>
+    <p>All updates, fixes, and improvements listed here.</p>
+  </div>
+);
 
 const LicensesPage = () => (
   <div className="page-section">
@@ -84,40 +43,42 @@ const LicensesPage = () => (
     DASHBOARD PAGE
 -----------------------------------------*/
 
-const DashboardPage = ({ user }: any) => {
+const DashboardPage = ({ user, userLogs }: any) => {
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? "N/A" : d.toLocaleString();
   };
 
-  /* Example notifications / alerts */
-  const notifications = [
-    {
-      type: "maintenance",
-      message: "Server maintenance scheduled for 2025-11-20.",
-      icon: <FaExclamationTriangle />,
-      color: "#ff9800",
-    },
-    {
-      type: "license",
-      message: "Your license expires in 5 days.",
-      icon: <FaExclamationTriangle />,
-      color: "#f44336",
-    },
-    {
-      type: "mod",
-      message: "Mod X requires update for current version.",
-      icon: <FaExclamationTriangle />,
-      color: "#ffc107",
-    },
-  ];
+  const getLongestSession = () => {
+    if (!userLogs.length) return "N/A";
 
-  /* Example gamification badges / progress */
-  const badges = [
-    { name: "Active 7 Days", icon: <FaTrophy />, progress: 100 },
-    { name: "Configured Server", icon: <FaTrophy />, progress: 75 },
-  ];
+    const sessions = userLogs
+      .filter((log: any) => log.duration)
+      .map((log: any) => {
+        const parts = log.duration.split(/[ms ]+/).map(Number);
+        return parts[0] * 60 + (parts[1] || 0);
+      });
+
+    if (!sessions.length) return "N/A";
+
+    const maxSeconds = Math.max(...sessions);
+    const mins = Math.floor(maxSeconds / 60);
+    const secs = maxSeconds % 60;
+
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
+
+  const getActiveGame = () => {
+    if (!userLogs.length) return "None";
+
+    const gameLog = userLogs
+      .slice()
+      .reverse()
+      .find((log: any) => log.action.startsWith("Playing game:"));
+
+    return gameLog ? gameLog.action.replace("Playing game: ", "") : "None";
+  };
 
   const infoCards = [
     { label: "Username", value: user.username || "N/A", icon: "👤" },
@@ -137,6 +98,13 @@ const DashboardPage = ({ user }: any) => {
       value: user.license?.plan || "Free / N/A",
       icon: "🎫",
     },
+    { label: "Active Sessions", value: userLogs.length || "0", icon: "💻" },
+    { label: "Active Game", value: getActiveGame(), icon: <FaGamepad /> },
+    {
+      label: "Longest Session",
+      value: getLongestSession(),
+      icon: <FaHourglass />,
+    },
   ];
 
   return (
@@ -155,40 +123,20 @@ const DashboardPage = ({ user }: any) => {
         ))}
       </div>
 
-      {/* 🔹 Notifications / Alerts */}
-      <section className="notifications page-section">
-        <h2>🔔 Notifications / Alerts</h2>
-        <ul>
-          {notifications.map((note, idx) => (
-            <li key={idx} className="notification-item">
-              <span className="notification-icon" style={{ color: note.color }}>
-                {note.icon}
-              </span>{" "}
-              {note.message}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* 🔹 Gamification / Engagement */}
-      <section className="gamification page-section">
-        <h2>🏆 Achievements / Progress</h2>
-        <div className="badges-grid">
-          {badges.map((badge, idx) => (
-            <div key={idx} className="badge-card">
-              <div className="badge-icon">{badge.icon}</div>
-              <div className="badge-info">
-                <span className="badge-name">{badge.name}</span>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${badge.progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <section className="recent-activity page-section">
+        <h2>📜 Recent Activity</h2>
+        {userLogs.length ? (
+          <ul>
+            {userLogs.slice(0, 5).map((log, idx) => (
+              <li key={idx}>
+                {new Date(log.timestamp).toLocaleString()} — {log.action}{" "}
+                {log.duration ? `(Session: ${log.duration})` : ""}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No recent activity.</p>
+        )}
       </section>
 
       <section className="account-links page-section">
@@ -230,6 +178,7 @@ const DashboardPage = ({ user }: any) => {
 
 const MyAccount = () => {
   const [user, setUser] = useState<any>(null);
+  const [userLogs, setUserLogs] = useState<any[]>([]);
   const [activePage, setActivePage] = useState<string>("dashboard");
 
   useEffect(() => {
@@ -245,6 +194,24 @@ const MyAccount = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const token = localStorage.getItem("modix_token");
+        const res = await fetch(`${getServerUrl()}/api/auth/logs`, {
+          headers: { Authorization: token || "" },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setUserLogs(data.logs || []);
+      } catch (err) {
+        console.error("Failed to fetch logs", err);
+      }
+    };
+
+    if (user) fetchLogs();
+  }, [user]);
+
   if (!user)
     return (
       <div className="not-logged">Please log in to access your account.</div>
@@ -254,7 +221,7 @@ const MyAccount = () => {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard":
-        return <DashboardPage user={user} />;
+        return <DashboardPage user={user} userLogs={userLogs} />;
       case "support":
         return <SupportPage />;
       case "changelog":
@@ -262,9 +229,9 @@ const MyAccount = () => {
       case "license":
         return <License />;
       case "settings":
-        return <MySettings />;
+        return <MySettings />; // 👉 SHOWS SETTINGS PAGE HERE
       default:
-        return <DashboardPage user={user} />;
+        return <DashboardPage user={user} userLogs={userLogs} />;
     }
   };
 
@@ -304,10 +271,11 @@ const MyAccount = () => {
               className={activePage === "license" ? "active" : ""}
               onClick={() => setActivePage("license")}
             >
-              My License
+              Licenses
             </button>
           </li>
 
+          {/* NEW SETTINGS TAB */}
           <li>
             <button
               className={activePage === "settings" ? "active" : ""}
