@@ -9,12 +9,22 @@ import "./DashboardLayout.css";
 const USER_KEY = "modix_user";
 const THEME_KEY = "modix_dashboard_theme";
 
+// Manually defined tags — nothing is auto-added
+const displayTags = [
+  { key: "Getting Started", label: "📘 Getting Started" },
+  { key: "Frontend Issue", label: "🛠 Frontend Issue" },
+  { key: "Backend Issue", label: "🖥 Backend Issue" },
+  { key: "Game Server Issue", label: "⚠️ Game Server Issue" },
+  { key: "Reported Bugs", label: "⚠️ Reported Bugs" },
+];
+
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [errorSearch, setErrorSearch] = useState("");
   const [selectedError, setSelectedError] = useState(null);
+  const [activeTag, setActiveTag] = useState("");
   const [theme, setTheme] = useState({
     background: "",
     gradient: "",
@@ -32,6 +42,398 @@ export default function DashboardLayout({ children }) {
       return null;
     }
   });
+
+  const mockErrorDatabase = [
+    {
+      code: "What Is Modix Game Panel?",
+      desc: "Modix Game Panel is a long-term project by DaleMarkie (aka OV3RLORD), built to redefine server management for Project Zomboid and beyond. Over the past year, I’ve crafted a powerful, intuitive, and stylish panel from scratch, combining modern UI design with robust features. Modix offers complete server control, automated mod management, real time monitoring, and seamless updates all in one place. Modix is completely free for personal use under the personal license. Commercial use is not permitted, but you can request a commercial license through our Discord community. Click Support for more information. Looking forward, Modix will expand to support other Steam games and experimental Linux servers with Docker, making it a versatile, all-in-one game server solution. This is a long-term project that will continue to evolve, delivering more features, enhanced usability, and an even better experience for server administrators over time.",
+      tags: ["Getting Started", "Modix"],
+    },
+    {
+      code: "What Is Account?",
+      desc: "The Account section allows users to manage their personal Modix profile, configure permissions, and maintain security credentials. Here, you can view your account details, change your password, configure two-factor authentication, and review login history to monitor access activity. Staff roles can also be managed here if you have admin privileges, giving you the ability to assign or revoke access to specific parts of the panel.",
+      tags: ["Getting Started", "Modix"],
+    },
+    {
+      code: "Dashboard?",
+      desc: "The Dashboard provides a comprehensive overview of your server and panel status. It includes real-time server health, system performance metrics (CPU, RAM, Disk usage), active players, and mod update status. If the API fails to start, the dashboard may show incomplete or missing data. In that case, open your terminal or check the `console.txt` file to review error messages. Common issues include missing Python modules, incorrect configuration paths, or network restrictions. Always follow the traceback carefully to pinpoint the root cause.",
+      tags: ["Getting Started"],
+    },
+    {
+      code: "Activity?",
+      desc: "This experimental feature is designed to track staff activity within the Modix Game Panel. It logs when staff members sign in, sign out, view pages, and the duration of their sessions. An interactive activity feed displays weekly stats, showing login frequency, most visited pages, and engagement patterns. Administrators can click on a staff member to view detailed metrics, providing insights into how the team interacts with the panel and identifying potential workflow optimizations.",
+      tags: ["Getting Started"],
+    },
+    {
+      code: "My License",
+      desc: "The License section displays your current Modix license type, usage restrictions, and validity period. Personal licenses are free and intended for private servers, while commercial use requires a paid license. You can request a commercial license through the Modix Discord community. The panel also indicates if your license is active or expired and provides guidance on how to upgrade or renew.",
+      tags: ["Getting Started"],
+    },
+    {
+      code: "Staff Accounts",
+      desc: "Manage all staff members assigned to your server, including roles, permissions, and access levels. You can create new accounts, remove inactive staff, and configure detailed permissions for each user, such as access to the terminal, mod manager, or server settings. This ensures that sensitive operations are limited to trusted personnel only.",
+      tags: ["Getting Started"],
+    },
+    {
+      code: "Settings",
+      desc: "The Settings page allows full customization of the Modix Panel and server integration. Here, you can configure UI themes, header and text colors, server paths, batch file locations, and default Steam Workshop settings. Additional options include toggling debug mode, enabling real-time log streaming, configuring notification preferences, and managing panel security settings such as login restrictions and IP whitelists.",
+      tags: ["Getting Started"],
+    },
+    {
+      code: "Console?",
+      desc: "The Terminal component is a powerful, web-based console that provides complete control over your Project Zomboid server. Users can start, stop, restart, and shut down the server with a single click. Commands like saving the world, kicking or banning players, reloading scripts, and running custom server commands are supported. Logs are streamed in real time, with search, auto-scroll, and copy/clear functionality. Performance metrics such as memory usage, tick rate, and server uptime are displayed alongside the console. This enables both new and experienced administrators to monitor, manage, and troubleshoot the server entirely from the browser.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "My Mods?",
+      desc: "The Mod Manager is an all-in-one tool for browsing, searching, and organizing your game mods. Users can create, edit, move, or delete files and folders within mods, manage favorites, customize color labels, and open multiple files in a live code editor with syntax highlighting. Changes are saved in real time, and mod data refreshes instantly. The Mod Manager also allows exporting mod IDs for server.ini integration, checking mod updates, reviewing changelogs, debugging mods, monitoring for conflicts, and adjusting load order. All these actions are handled from a single, intuitive interface, giving full control over mod management and server content.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Change Game?",
+      desc: "The Change Game feature lets users select from all supported games within the panel. Each game card displays a summary including description, Steam/Discord links, and supported status. Selecting a game automatically updates related panel settings like mods, workshop integration, and server configuration paths. For supported games like Project Zomboid, users can create a new server session, define batch file paths, and launch dedicated servers directly. Community resources, guides, and official wikis are accessible directly from this page for convenient setup and management.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Server Settings?",
+      desc: "The Server Settings page allows administrators to configure core server options such as Server Name, Max Players, PvP settings, Zombie Count, XP multipliers, and more. Panel features like Mods, Workshop, and game-specific settings update dynamically based on selected game. The interface uses left and right panels for intuitive management, category toggling for easier navigation, and single-click save functionality. Both new and experienced users can reliably set up and run servers without manually editing configuration files.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "BackUp?",
+      desc: "⚠️ This section is still in development. When completed, it will allow full server backup and restore capabilities, including automated scheduling, selective world/mod backup, and one-click restoration.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Steam Install?",
+      desc: "⚠️ This section is still in development. The future functionality will allow installing Project Zomboid and other supported games directly via SteamCMD from the panel, with progress monitoring and automated dependency checks.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Steam Update?",
+      desc: "⚠️ This section is still in development. Once complete, it will handle automated updates of games and mods through SteamCMD, ensuring servers remain current without manual intervention.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Workshop Manager?",
+      desc: "Manage Steam Workshop mods by creating modlists, adding/removing mods, renaming or deleting entries, exporting mod IDs for server.ini, checking for updates, and reviewing changelogs. The interface also provides conflict alerts and load order customization, giving administrators full control over workshop integration.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Check Mod Updates?",
+      desc: "⚠️ Still in development. When functional, it will allow checking installed mods for updates, viewing version differences, and optionally applying updates directly through the panel.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Create Mod?",
+      desc: "⚠️ Still in development. Once implemented, this feature will enable creating new mods, editing assets, configuring metadata, and integrating mods seamlessly with server.ini and the Workshop system.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Manage Assets",
+      desc: "⚠️ Still in development. Will allow administrators to manage mod assets including images, scripts, and configuration files, with live preview and version control support.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Player List?",
+      desc: "⚠️ Still in development. This feature will allow administrators to view, sort, and manage all connected players, including permissions, roles, and activity statistics.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Player Search?",
+      desc: "⚠️ Still in development. Will enable searching for specific players across sessions and servers, supporting advanced filtering by role, status, or activity.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "ChatLog?",
+      desc: "⚠️ Still in development. Will provide detailed access to server chat logs, including timestamps, message content, user info, and moderation tools.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Ddos Manager?",
+      desc: "⚠️ Experimental. Monitors incoming network traffic in real time, showing server status, traffic intensity, and attacking IPs. Helps administrators detect and mitigate potential DDoS attacks, though still under testing.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "FireWall Rules?",
+      desc: "⚠️ Still in development. Future functionality will allow configuring firewall rules to restrict access to server ports and services directly from the panel.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Connection Logs",
+      desc: "⚠️ Still in development. Will track all inbound and outbound connections, logging IPs, ports, protocols, and timestamps for auditing and troubleshooting purposes.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Check Ports?",
+      desc: "The Game Server Ports Checker allows you to verify if default or custom ports are open and reachable. This helps identify connection issues, troubleshoot firewalls or NAT restrictions, and ensure no other applications are blocking essential ports. For example, Project Zomboid defaults to 16261 for TCP and UDP; you can test using built-in network utilities or external tools.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Custom Scripts?",
+      desc: "⚠️ Still in development. Intended to allow creating, managing, and automating custom server scripts for scheduled or event-driven tasks. Will support shell scripts, Python scripts, and batch files.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Scheduled Jobs?",
+      desc: "⚠️ Still in development. Will allow scheduling recurring server tasks such as backups, restarts, mod updates, and maintenance scripts, with logs and notification tracking.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Webhooks & API?",
+      desc: "The Webhooks & API page allows creating, editing, and sending Discord-style embed messages. You can configure name, title, description, colors, images, thumbnails, and webhook URLs. The live editor shows real-time previews, and the sidebar manages multiple embeds. Ideal for announcements, updates, and server notifications.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Game Tools?",
+      desc: "⚠️ Still in development. Will provide utilities for configuring and managing game servers, adjusting server parameters, and accessing additional tools for optimization and maintenance.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "API Keys?",
+      desc: "Manage API tokens for secure developer access, automation, and integration. Supports token creation, viewing, hiding, and regeneration. Tokens are required for programmatic interaction with the Modix backend, such as starting/stopping servers or retrieving stats.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Theme Manager?",
+      desc: "Customize dashboard backgrounds, gradients, logos, sidebar titles, and colors. Changes are applied in real-time, saved automatically, and can be reset to defaults. Supports live previews and allows advanced users to modify styles directly.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Staff Chat?",
+      desc: "A real-time communication hub for server staff (Owners, Admins, SubUsers). Supports messaging, tagging, threaded replies, emoji reactions, optional Discord webhooks, live previews, and scroll management. Access is restricted to authorized staff to prevent sensitive information leaks.",
+      tags: ["Getting Started", "Documentation"],
+    },
+    {
+      code: "Workshop?",
+      desc: "Manage Steam Workshop mods for your server with full control. Search, add/remove mods, view titles, descriptions, images, versions, last update, export mod IDs, check updates, review logs, monitor conflicts, adjust load order, and highlight important mods. All tools are designed for Steam Workshop content.",
+      tags: ["Getting Started", "Workshop"],
+    },
+    // --- Game Server Issues ---
+    // --- Project Zomboid Game Server Issues (Windows) ---
+    {
+      code: "Server Crashes on Startup",
+      desc: "💥 The server crashes immediately on launch. Often caused by incompatible mods, corrupted files, or incorrect Java installation. Check `console.txt` for errors and disable mods temporarily.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Java Path Incorrect",
+      desc: "☕ The batch file cannot find Java. Ensure Java 17+ is installed and the path in your `StartServer64.bat` points to the correct `java.exe`.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Hangs on Loading",
+      desc: "🕒 The server freezes while loading a world. Causes include large worlds, too many mods, or corrupted save data. Try a clean save or reduce mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Port Already in Use",
+      desc: "🔌 The default server port (16261) is occupied. Close other instances or change `DefaultPort` in `servertest.ini`.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Firewall Blocking Server",
+      desc: "🔥 Windows Firewall may block server connections. Add exceptions for Java and your server port to allow players to connect.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Not Saving World",
+      desc: "💾 The world is not saving. Causes include read-only folder permissions or insufficient disk space. Check save folder permissions.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Crash Logs Overwriting",
+      desc: "📝 Crash logs are being overwritten or not generated. Ensure the server folder has write permissions and monitor `Zomboid\\Logs`.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Mods Not Loading",
+      desc: "🧩 Some mods fail to load. Ensure the correct Workshop IDs are listed in `servertest.ini` and mods are installed in `Zomboid\\Workshop`.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "World Corruption",
+      desc: "💀 A saved world is corrupted. Restore backups from `Zomboid\\Saves\\Multiplayer` or start a new world to prevent crashes.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Memory Usage High",
+      desc: "🧠 The server consumes too much RAM, causing slow performance. Increase system memory or reduce mods and players.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Workshop Download Fails",
+      desc: "⏳ SteamCMD fails to download mods. Check network connectivity, SteamCMD login, and validate Workshop IDs.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Cannot Connect Locally",
+      desc: "🌐 Local clients cannot connect. Ensure server is running, firewall allows the port, and `servertest.ini` has correct IP (leave blank for auto).",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Cannot Connect Remotely",
+      desc: "🌍 Remote players cannot join. Verify port forwarding, firewall exceptions, and that the public IP is correct.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Freezes During Gameplay",
+      desc: "🕹️ The server hangs while players are online. Could be caused by heavy mods, AI calculations, or insufficient CPU/RAM.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Backup Fails",
+      desc: "💾 Automatic backups do not run. Check permissions on the backup folder and ensure enough free space is available.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Save File Too Large",
+      desc: "📂 The world save file exceeds size limits. Reduce world complexity, mods, or map expansions to avoid crashes.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Logs Not Updating",
+      desc: "📄 The console or logs do not show new activity. Ensure write permissions on `Zomboid\\Logs` and that the server is running.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Backup Corrupted",
+      desc: "💀 A backup file is damaged. Restore an earlier backup or manually copy world files to a safe location.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Performance Lag",
+      desc: "⚡ The server experiences high latency or slow updates. Reduce number of players, mods, or increase CPU/RAM resources.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Save File Permission Denied",
+      desc: "🔒 The server cannot write to the save folder. Check folder permissions and run the server with administrative rights.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "SteamCMD Not Found",
+      desc: "🛠️ SteamCMD executable is missing or not installed. Download and place it in the correct folder, then update Workshop mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Crashes After Mod Update",
+      desc: "🔄 After updating a mod, the server fails to start. Rollback the mod or verify compatibility with other installed mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Zombie AI Glitches",
+      desc: "🧟 Unexpected AI behavior occurs, often due to mod conflicts or corrupted scripts. Disable problematic mods and test.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Item Duplication Bug",
+      desc: "📦 Players report duplicated items. Check mods and server scripts that affect inventory, as some may conflict.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Disconnects Players",
+      desc: "⚠️ Players are disconnected randomly. Causes include high latency, server overload, or firewall/router issues.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Invalid Config File",
+      desc: "⚙️ The `servertest.ini` or `SandboxVars.lua` file contains syntax errors. Check formatting and restore from backup if needed.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Console Frozen",
+      desc: "🖥️ The console window stops responding. This may happen with heavy logs or memory issues. Restart the server and monitor log size.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Workshop Mod Conflict",
+      desc: "⚔️ Two or more mods conflict, causing crashes or broken gameplay. Check mod load order and disable conflicting mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Time Incorrect",
+      desc: "⏰ In-game time is wrong or jumps unexpectedly. Usually caused by mods or server clock settings. Verify `servertest.ini` time settings.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Invalid Server Name",
+      desc: "🏷️ Server name in `servertest.ini` contains illegal characters or is too long. Rename and restart the server.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Admin Commands Not Working",
+      desc: "🛡️ Server admin commands fail to execute. Ensure your SteamID is listed in `admin.txt` and that commands are typed correctly.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Player Data Not Saving",
+      desc: "💾 Player stats and items are lost on disconnect. Causes include write permission issues or corrupted player files in `Zomboid\\Saves\\Multiplayer\\username`.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Resource Leak",
+      desc: "🔧 Memory or file handles are not released, eventually causing slowdowns. Monitor server process and restart periodically.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "World Generation Fails",
+      desc: "🌍 The server fails to generate a new world. Could be caused by missing map files, invalid mods, or corrupted templates.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Lua Script Errors",
+      desc: "📜 Custom Lua scripts cause runtime errors. Check `Lua.log` for details and disable problematic scripts.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Does Not Respond to Ping",
+      desc: "🏓 Players cannot see the server in the server list. Ensure UDP port is open and `DefaultPort` is correct.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Players Cannot Pick Up Items",
+      desc: "🛒 Inventory bugs occur. Often due to mod conflicts or corrupted world files. Check for mod updates or remove conflicting mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Crashes During Night",
+      desc: "🌙 Nighttime in-game triggers crashes. Could be due to lighting mods or AI pathing issues. Check logs and disable related mods.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "World Not Syncing Between Clients",
+      desc: "🔄 Clients see different world states. Causes include desynced mods, corrupted saves, or network instability.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Does Not Shut Down Properly",
+      desc: "🛑 Closing the server leaves the process running. Always use `shutdown` command or batch script with `pause` to stop cleanly.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Logs Flooded",
+      desc: "📈 Excessive logs cause console to lag. Enable log rotation or reduce debug-level logging.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Players Experience Rubberbanding",
+      desc: "🏃‍♂️ Players teleport or lag in place. Often caused by network latency, overloaded CPU, or mod issues.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Cannot Load Lua Map",
+      desc: "🗺️ Custom Lua maps fail to load. Ensure map files exist in `Zomboid\\Maps` and are compatible with current server version.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+    {
+      code: "Server Crashes on Mod Load",
+      desc: "📦 Loading certain mods crashes the server. Check mod dependencies, version compatibility, and try loading mods one at a time.",
+      tags: ["Game Server Issue", "Project Zomboid"],
+    },
+  ];
+
+  const allTags = useMemo(() => displayTags.map((t) => t.key), []);
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
@@ -167,285 +569,30 @@ export default function DashboardLayout({ children }) {
     ? `url(${theme.background}) no-repeat center center / cover`
     : "#111";
 
-  // Mock database for game errors with tags
-  const mockErrorDatabase = [
-    {
-      code: "What Is Modix Game Panel?",
-      desc: "Modix Game Panel is a long-term project by DaleMarkie (aka OV3RLORD), built to redefine server management for Project Zomboid and beyond. Over the past year, I’ve crafted a powerful, intuitive, and stylish panel from scratch, combining modern UI design with robust features. Modix offers complete server control, automated mod management, real time monitoring, and seamless updates all in one place. Modix is completely free for personal use under the personal license. Commercial use is not permitted, but you can request a commercial license through our Discord community. Click Support for more information. Looking forward, Modix will expand to support other Steam games and experimental Linux servers with Docker, making it a versatile, all-in-one game server solution. This is a long-term project that will continue to evolve, delivering more features, enhanced usability, and an even better experience for server administrators over time.",
-      tags: ["Getting Started", "Modix"],
-    },
-    {
-      code: "Dashboard?",
-      desc: "If the API fails to start, open your terminal and review the error messages carefully. They usually indicate either a coding issue—like a syntax error, undefined variable, or incorrect import—or a missing Python module. For missing modules, the error will appear as `ModuleNotFoundError: No module named 'X'`. You can fix this by running `pip install X`. Always read the full traceback, as it shows the exact file and line number where the problem occurred, helping you quickly identify whether it’s a bug in your code or a missing dependency.",
-      tags: ["My Account"],
-    },
-    {
-      code: "Activity?",
-      desc: "This experimental feature is designed to track staff activity within the Modix Game Panel logging when staff members sign in, sign out, view pages, and how long their sessions last then displaying an interactive activity feed where you can click on any staff member to view their past week stats, including login frequency and most visited pages, providing early insights into staff engagement and panel usage.",
-      tags: ["My Account"],
-    },
-    {
-      code: "My License",
-      desc: "Workshop item failed to download.",
-      tags: ["My Account"],
-    },
-    {
-      code: "Staff Accounts",
-      desc: "Workshop item failed to download.",
-      tags: ["My Account"],
-    },
-    {
-      code: "Settings",
-      desc: "Workshop item failed to download.",
-      tags: ["My Account"],
-    },
-    {
-      code: "Console?",
-      desc: "The Terminal component is a powerful, all in one web based console that gives users complete control over their Project Zomboid server, allowing them to start, stop, and manage the server with a single click, send live server commands like saving the world, listing or kicking players, banning users, and reloading scripts, while also providing real time log streaming with search and auto scroll features, the ability to clear or copy logs, and integrated performance monitoring, enabling both new and experienced users to efficiently run, monitor, and troubleshoot their server entirely from the browser without ever touching the command line.",
-      tags: ["Console", "Documentation "],
-    },
-    {
-      code: "My Mods?",
-      desc: "The Mod Manager is an all in one browser based tool that allows users to browse, search, and organize their game mods, create, edit, move, or delete files and folders within mods, manage favorites, customize colors, open multiple files in a live code editor with syntax highlighting, save changes in real time, and instantly refresh mod data all without leaving the panel, giving complete control over mod development and server content.",
-      tags: ["Mods", "Documentation "],
-    },
-    {
-      code: "Change Game?",
-      desc: "You can browse and manage all supported game servers available in your panel. Each game card provides a quick overview, including the game’s description, Steam and Discord links, and whether it’s currently supported. By selecting your game, some of the panel settings will automatically update for example, your Mods, Workshop, and Server Settings so you can seamlessly manage everything without extra steps. You can search for games, view upcoming titles marked as “Coming Soon,” and activate your preferred game server directly from the interface. For supported games like Project Zomboid, you can also create a new server session by specifying the batch file path, giving you full control to launch and manage your dedicated server. Easily access community resources, guides, and official wikis right from the page, making setup and management simple for both new and experienced users.",
-      tags: ["My Server", "Documentation "],
-    },
-    {
-      code: "Server Settings?",
-      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
-      tags: ["My Server", "Documentation "],
-    },
-    {
-      code: "BackUp?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet.",
-      tags: ["My Server", "Documentation "],
-    },
-    {
-      code: "Steam Install?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet.",
-      tags: ["Steam Tools", "Documentation "],
-    },
-    {
-      code: "Steam Update?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet.",
-      tags: ["Steam Tools", "Documentation "],
-    },
-    {
-      code: "Workshop Manager?",
-      desc: "This is where you can easily configure and organize your game server for your selected game. By choosing a game, the panel automatically loads all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Some panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Use the intuitive left and right panels to manage your server path and detailed settings, toggle categories for easier navigation, and save your changes with a single click. Whether you’re new or experienced, this page simplifies server setup and ensures you can get your server running smoothly.",
-      tags: ["My Mods", "Documentation "],
-    },
-    {
-      code: "Check Mod Updates?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It will allow users to check for updates to installed mods and manage mod versions in the future.",
-      tags: ["My Mods", "Documentation"],
-    },
-    {
-      code: "Create Mod?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It will allow users to create new mods and customize their content for the selected game in a future update.",
-      tags: ["My Mods", "Documentation"],
-    },
-    {
-      code: "Manage Assets",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It will provide tools to manage mod assets, such as images, scripts, or configurations, once fully implemented.",
-      tags: ["My Mods", "Documentation"],
-    },
-    {
-      code: "Player List?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It is intended to allow management of players, including permissions, roles, and statistics, in a future update.",
-      tags: ["Players", "Documentation"],
-    },
-    {
-      code: "Player Search?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It is intended to allow management of players, including permissions, roles, and statistics, in a future update.",
-      tags: ["Players", "Documentation"],
-    },
-    {
-      code: "ChatLog?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It is intended to allow management of players, including permissions, roles, and statistics, in a future update.",
-      tags: ["Monitoring", "Documentation "],
-    },
-    {
-      code: "Ddos Manager?",
-      desc: "⚠️ The DDoS Traffic Monitor is an experimental tool that tracks incoming network traffic in real-time, showing 🟢 server status, 📊 traffic intensity, and 🔴 attacking IPs, helping you detect and monitor potential DDoS threats while noting that this feature is still in testing and may not catch all attacks.",
-      tags: ["Security", "Documentation "],
-    },
-    {
-      code: "FireWall Rules?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet.",
-      tags: ["Security", "Documentation "],
-    },
-    {
-      code: "Connection Logs",
-      desc: "⚠️ This section is still in development and may not be fully functional yet.",
-      tags: ["Security", "Documentation "],
-    },
-    {
-      code: "Check Ports?",
-      desc: "The Game Server Ports Checker allows you to quickly verify whether the default ports for popular game servers like Project Zomboid, DayZ, and RimWorld, as well as any custom ports you specify, are open and reachable from your network. This helps you identify connection issues, ensure your server is properly configured, troubleshoot firewall or router restrictions, and confirm that no other applications are blocking essential ports, making server setup and maintenance much easier and more reliable.",
-      tags: ["Network", "Documentation "],
-    },
-    {
-      code: "Custom Scripts?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It is intended to allow users to create, manage, and automate custom server scripts for their selected game. Full functionality will be available in a future update.",
-      tags: ["Automation", "Documentation"],
-    },
-    {
-      code: "Scheduled Jobs?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. It is intended to allow users to schedule recurring tasks and server jobs for their selected game. Full functionality will be available in a future update.",
-      tags: ["Automation", "Documentation"],
-    },
-    {
-      code: "Webhooks & API?",
-      desc: "Modix Game Panel allows users to create, edit, save, and send custom Discord-style embed messages through webhooks. Users can configure each embed with a name, title, description, color, thumbnail, image, and webhook URL, all in a live editor. The page provides a sidebar to manage multiple embeds, a live preview of the embed with selected colors and media, and action buttons to send or save embeds. This panel simplifies the process of crafting rich messages for server notifications, updates, or announcements, making it ideal for server administrators who want full control over their communications.",
-      tags: ["Automation", "Documentation "],
-    },
-    {
-      code: "Game Tools?",
-      desc: "⚠️ This section is still in development and may not be fully functional yet. Eventually, it will allow you to easily configure and organize your game server for your selected game. By choosing a game, the panel will automatically load all relevant settings, including core server options like Server Name, Max Players, and gameplay-specific options such as Zombie Count or XP Multiplier for Project Zomboid. Panel settings, including Mods, Workshop, and other game-specific configurations, will also update automatically based on your selected game. Users will be able to manage server paths and detailed settings through intuitive panels, toggle categories for easier navigation, and save changes with a single click. This page is intended to simplify server setup and ensure smooth operation, whether you are new or experienced.",
-      tags: ["Game Tools", "Documentation"],
-    },
-    {
-      code: "API Keys?",
-      desc: "The API & Developer Access panel in Modix Game Panel allows users to securely manage their API tokens for accessing developer endpoints. It provides the ability to view, generate, and copy API tokens, with optional hiding for security. Tokens are required to interact programmatically with the Modix backend, enabling automation of server controls like starting, stopping, and checking server status, as well as retrieving system stats. The component displays available API endpoints with their methods and descriptions, gives warnings to keep tokens private, and supports easy token regeneration. This panel is ideal for developers and advanced users who want to integrate, automate, or extend the Modix Game Panel functionality. Please note: this page is still in development and may not be fully functional.",
-      tags: ["Panel Settings", "Documentation "],
-    },
-    {
-      code: "Theme Manager?",
-      desc: "The Theme Manager in Modix Game Panel lets you fully customize your dashboard with image or gradient backgrounds, custom logos, and sidebar titles, giving you complete control over the panel’s look and feel. Select from preset backgrounds or enter your own URL, choose from stylish gradients, and see all changes applied in real time. Your custom theme is saved automatically for persistence across sessions, and you can reset to default anytime. With a live preview, instant application, and intuitive interface, the Theme Manager makes personalizing your Modix dashboard fast, easy, and visually immersive, enhancing both functionality and style or dig into the code and change it up for yourself.",
-      tags: ["Panel Settings", "Documentation "],
-    },
-    {
-      code: "Staff Chat?",
-      desc: "The Staff Chat in Modix Game Panel is a real-time communication hub for server staff (Owners, Admins, SubUsers) that allows sending messages, tagging users with @username, replying in threads, and highlighting important or pinned messages, with emoji reactions and optional Discord-style webhook integration for alerts; it saves chat locally, automatically scrolls to the latest messages, includes a live preview of replies, and restricts access to authorized staff while providing a safety warning to avoid sharing sensitive information, making it perfect for coordinating team activities, tracking server workflows, and managing communication efficiently.",
-      tags: ["Staff Chat", "Documentation "],
-    },
-    {
-      code: "Workshop?",
-      desc: "It lets you manage your Steam Workshop mods for your server with full control and ease. You can search for mods or enter Workshop Collection IDs, view detailed information including title, description, image, version, and last update, and directly manage installed mods via server.ini. It allows creating, renaming, deleting, and organizing modlists, exporting mod IDs for server.ini, checking mod updates and changelogs, reviewing mod logs, monitoring alerts for conflicts or issues, debugging mods, and managing load order. Additional features include adding mods to your server, highlighting mods with custom colors, and filtering displayed mods by lists or installation status. Every tool is designed specifically for Steam Workshop content, giving you complete organization, insight, and control to maintain a stable and optimized server experience.",
-      tags: ["Workshop", "Documentation"],
-    },
-    {
-      code: "Not Enough Space",
-      desc: "💾 This error means your system has run out of storage space, preventing the server from saving logs, worlds, or mods. To fix this, delete unused backups, remove large crash logs, or clear mod download caches in `Zomboid\\Workshop`. If you're running on a dedicated machine, free up disk space on the drive containing your server files.",
-      tags: ["Project Zomboid", "Server Issue", "Storage"],
-    },
-    {
-      code: "Port Already in Use",
-      desc: "🔌 The port your server is trying to use (e.g., 16261) is already taken by another process or an old instance still running in the background. Stop any running Project Zomboid servers, or change the port number in `servertest.ini` under `DefaultPort` and restart your server. You can check which program is using the port with `netstat -aon | findstr 16261` in Command Prompt.",
-      tags: ["Network", "Server Startup", "Project Zomboid"],
-    },
-    {
-      code: "Failed to Bind Socket",
-      desc: "🌐 This error indicates that the server couldn’t connect to the network socket, usually caused by an invalid IP binding or blocked port. Make sure the IP in `server.ini` is valid (or leave it blank to auto-bind), disable conflicting firewall rules, and run the Modix panel or batch file as Administrator.",
-      tags: ["Network", "Server Issue", "Project Zomboid"],
-    },
-    {
-      code: "Missing Workshop Mods",
-      desc: "🧩 The server can’t find one or more Workshop mods listed in your `servertest.ini`. This often happens when a Workshop ID is invalid or hasn’t been downloaded. Recheck your Workshop IDs, ensure each one exists on Steam, and verify your SteamCMD installation is up to date and logged in correctly.",
-      tags: ["Mods", "Workshop", "Project Zomboid"],
-    },
-    {
-      code: "Java Not Found",
-      desc: '☕ The server cannot start because Java is missing or your batch file is pointing to the wrong Java path. Project Zomboid on Windows requires Java 17 or newer. Install Java 17, then open your server’s start batch file (e.g., `StartServer64.bat`) and update the Java path to match your installation — for example: `"C:\\Program Files\\Java\\jdk-17\\bin\\java.exe"`. Save the batch file, then restart it to apply the fix.',
-      tags: ["Java", "Server Startup", "Batch File", "Windows"],
-    },
-    {
-      code: "Access Denied",
-      desc: "🔒 The server doesn’t have permission to access or modify certain files. Run the Modix panel or your batch file as Administrator, or ensure that your Windows user account has full control over the Project Zomboid server folder in its file properties.",
-      tags: ["Permissions", "File System", "Windows"],
-    },
-    {
-      code: "Server Not Responding",
-      desc: "🕒 The server may have frozen or crashed during startup. Check your console window or `console.txt` for errors. Common causes include broken mods or corrupted saves. Try disabling mods temporarily or creating a new test server to verify that the core setup works.",
-      tags: ["Crash", "Startup", "Project Zomboid"],
-    },
-    {
-      code: "SteamCMD Timeout",
-      desc: "⏳ SteamCMD took too long to download required game files or mods. This can happen due to poor connection or Steam downtime. Restart SteamCMD or your Modix panel, and try again later. You can also run SteamCMD manually with `+login anonymous +app_update 108600 validate` to confirm it works.",
-      tags: ["SteamCMD", "Mods", "Network", "Windows"],
-    },
-    {
-      code: "Corrupted Save File",
-      desc: "💀 A world or save file is corrupted and cannot be loaded. This is often caused by an improper shutdown or crash. Restore a previous backup from `Zomboid\\Saves\\Multiplayer` or delete the corrupted world folder to generate a new one cleanly.",
-      tags: ["World", "Save Data", "Project Zomboid"],
-    },
-    {
-      code: "Memory Allocation Failed",
-      desc: "🧠 The server ran out of available memory (RAM) while starting up or hosting players. Edit your batch file and increase the memory arguments — for example: `-Xms2G -Xmx4G` to allocate more RAM. Close unnecessary apps before launching, or upgrade your system memory if the issue persists.",
-      tags: ["Memory", "Performance", "Windows"],
-    },
-    {
-      code: "Failed to Connect to Backend",
-      desc: "🌐 The panel could not reach the Flask backend API. This usually means the backend server (port 2010) isn’t running, or the API URL is incorrect. Make sure the Flask backend is started, check that the API base URL in your React configuration matches your server address (e.g., `http://localhost:2010`), and that your firewall or proxy isn’t blocking requests.",
-      tags: ["React", "API", "Connection", "Frontend"],
-    },
-    {
-      code: "CORS Policy Blocked Request",
-      desc: "🚫 Your browser blocked a request due to CORS restrictions. This happens when the backend doesn’t include proper headers like `Access-Control-Allow-Origin`. To fix it, open your Flask backend and enable CORS with `from flask_cors import CORS` and `CORS(app)` right after app creation.",
-      tags: ["CORS", "API", "Frontend", "React"],
-    },
-    {
-      code: "Component Failed to Load",
-      desc: "⚙️ A React component failed to render because of a missing import, syntax error, or incorrect file path. Check the browser console for details (`Ctrl+Shift+I` → Console tab). Ensure all component imports are spelled correctly, and that `.css` and `.tsx/.jsx` files exist in the expected directories.",
-      tags: ["React", "UI", "Frontend"],
-    },
-    {
-      code: "Blank Screen on Load",
-      desc: "🧩 The page loads but displays a blank screen. This can occur due to a fatal JavaScript error or broken router path. Open the console and look for red error messages. Fix any syntax errors or missing imports, and make sure your routes (e.g., `/dashboard`, `/terminal`) are properly defined in `App.jsx` or `App.tsx`.",
-      tags: ["React Router", "UI", "Frontend"],
-    },
-    {
-      code: "State Not Updating",
-      desc: "🔁 A UI element or component isn’t updating even after an action. This typically happens when state variables are not updated correctly using React hooks. Verify that you’re using `setState` or `useState` properly, and avoid mutating state directly (e.g., use `setItems([...items, newItem])` instead of modifying `items.push`).",
-      tags: ["React", "Hooks", "State Management"],
-    },
-    {
-      code: "Infinite Re-render Detected",
-      desc: "♻️ The component is stuck in a re-render loop. This usually happens when `useEffect` is missing a dependency array or contains a state update that triggers itself. Fix it by adding a dependency array (e.g., `useEffect(() => { ... }, [])`) or moving updates out of the render cycle.",
-      tags: ["React", "Hooks", "Performance"],
-    },
-    {
-      code: "404 Page Not Found",
-      desc: "🚷 A route was not recognized by the React Router. Double-check your route configuration and make sure your navigation links match existing routes. Add a fallback `<Route path='*' element={<NotFoundPage />}/>` to handle invalid URLs gracefully.",
-      tags: ["Routing", "React", "Frontend"],
-    },
-    {
-      code: "LocalStorage Not Accessible",
-      desc: "🗄️ The panel couldn’t access localStorage, often due to browser privacy settings or running the panel in incognito mode. Try reopening in normal mode or checking that cookies and local data are allowed. If using embedded iframes, enable same-origin storage access.",
-      tags: ["LocalStorage", "Browser", "Frontend"],
-    },
-    {
-      code: "Network Request Failed",
-      desc: "📡 This error appears when a fetch or axios request can’t reach the target API. It may be due to a wrong URL, server downtime, or missing SSL certificate. Check your browser console for the failing endpoint and verify the backend server is running and accessible at that URL.",
-      tags: ["Network", "React", "API"],
-    },
-    {
-      code: "Uncaught TypeError",
-      desc: "💥 A variable or function was used incorrectly, such as calling a method on `undefined` or `null`. Check the line number in the browser console and trace where the variable is set. Add proper checks (e.g., `if (data) {...}`) before using values that might not exist yet.",
-      tags: ["JavaScript", "React", "Frontend"],
-    },
-    {
-      code: "Cannot Connect to Web Panel",
-      desc: "🌐 The React web panel isn’t loading, which usually means it can’t reach the backend or the server URL is incorrect. To fix this: 1) Ensure the Flask backend is running on port 2010, 2) Confirm that the panel URL in your browser matches the server address (e.g., `http://localhost:2010` or your server’s IP), 3) Make sure your firewall allows traffic on that port, and 4) If using a remote server, verify that port forwarding or NAT rules are correctly configured.",
-      tags: ["Web Panel", "Connection", "React", "Frontend"],
-    }
-  ];
-
   const filteredErrors = useMemo(() => {
-    if (!errorSearch) return [];
-    const term = errorSearch.toLowerCase();
-    return mockErrorDatabase.filter(
-      (e) =>
-        e.code.toLowerCase().includes(term) ||
-        e.desc.toLowerCase().includes(term) ||
-        e.tags.some((tag) => tag.toLowerCase().includes(term))
-    );
-  }, [errorSearch]);
+    let result = mockErrorDatabase;
+
+    if (activeTag) {
+      result = result.filter((e) => e.tags.includes(activeTag));
+    }
+
+    if (errorSearch) {
+      const term = errorSearch.toLowerCase();
+      result = result.filter(
+        (e) =>
+          e.code.toLowerCase().includes(term) ||
+          e.desc.toLowerCase().includes(term) ||
+          e.tags.some((tag) => tag.toLowerCase().includes(term))
+      );
+    }
+
+    return result;
+  }, [errorSearch, activeTag]);
+
+  const getTagLabel = (key) => {
+    const found = displayTags.find((t) => t.key === key);
+    return found ? found.label : key;
+  };
 
   return (
     <div className="dashboard-root">
@@ -535,8 +682,45 @@ export default function DashboardLayout({ children }) {
             />
           </div>
 
+          {/* Tag Filters */}
+          {(errorSearch || filteredErrors.length > 0) && (
+            <div
+              className="error-tag-filters"
+              style={{
+                margin: "0.5rem 0",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <button
+                onClick={() => setActiveTag("")}
+                className={`tag-filter-button ${
+                  activeTag === "" ? "active" : ""
+                }`}
+              >
+                All
+              </button>
+              {displayTags.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() =>
+                    setActiveTag((prev) => (prev === key ? "" : key))
+                  }
+                  className={`tag-filter-button ${
+                    activeTag === key ? "active" : ""
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Display Results */}
-          {errorSearch && (
+          {errorSearch || activeTag ? (
             <div className="error-results">
               {filteredErrors.length > 0 ? (
                 filteredErrors.map((e) => (
@@ -544,142 +728,60 @@ export default function DashboardLayout({ children }) {
                     key={e.code}
                     className="error-item"
                     onClick={() => setSelectedError(e)}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.25rem",
+                    }}
                   >
-                    <strong>{e.code}</strong> — {e.desc}
-                    <div className="error-tags">
+                    <strong>{e.code}</strong>
+                    <p>{e.desc}</p>
+                    <div
+                      className="error-tags"
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                      }}
+                    >
                       {e.tags.map((tag) => (
                         <span key={tag} className="error-tag">
-                          {tag}
+                          {getTagLabel(tag)}
                         </span>
                       ))}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="error-item">No errors or help documentation found. If stuck, reach out to us on our discord.</div>
+                <div className="error-item">
+                  No errors or help documentation found. If stuck, reach out to
+                  us on our discord.
+                </div>
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Modal Popup */}
           {selectedError && (
             <div
               className="error-modal-overlay"
               onClick={() => setSelectedError(null)}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.7)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 9999,
-                padding: "1rem",
-                backdropFilter: "blur(4px)",
-                animation: "fadeIn 0.25s ease-in-out",
-              }}
             >
-              <div
-                className="error-modal"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: "relative",
-                  backgroundColor: "#1e1e1e",
-                  color: "#eee",
-                  borderRadius: "14px",
-                  width: "100%",
-                  maxWidth: "600px",
-                  maxHeight: "80vh",
-                  overflowY: "auto",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.6)",
-                  padding: "2rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "1rem",
-                  transition: "transform 0.2s ease",
-                }}
-              >
-                {/* Close Button */}
+              <div className="error-modal" onClick={(e) => e.stopPropagation()}>
                 <button
                   className="error-modal-close"
                   onClick={() => setSelectedError(null)}
-                  style={{
-                    position: "absolute",
-                    top: "12px",
-                    right: "12px",
-                    background: "transparent",
-                    border: "none",
-                    fontSize: "1.7rem",
-                    color: "#ff6b6b",
-                    cursor: "pointer",
-                    transition: "color 0.2s ease",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#ff4c4c")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#ff6b6b")
-                  }
                 >
                   <FaTimes />
                 </button>
 
-                {/* Header */}
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: "1.5rem",
-                    color: "#ff6b6b",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
-                  ⚠️ {selectedError.code}
-                </h2>
+                <h2>⚠️ {selectedError.code}</h2>
+                <p>{selectedError.desc}</p>
 
-                {/* Description */}
-                <p style={{ lineHeight: 1.6, fontSize: "1rem", color: "#ccc" }}>
-                  {selectedError.desc}
-                </p>
-
-                {/* Tags */}
-                <div
-                  className="error-tags"
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "8px",
-                    marginTop: "0.5rem",
-                  }}
-                >
+                <div className="error-tags">
                   {selectedError.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      style={{
-                        backgroundColor: "#333",
-                        color: "#fff",
-                        padding: "5px 10px",
-                        borderRadius: "8px",
-                        fontSize: "0.85rem",
-                        cursor: "default",
-                        transition: "transform 0.15s, background 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#444";
-                        e.currentTarget.style.transform = "scale(1.05)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#333";
-                        e.currentTarget.style.transform = "scale(1)";
-                      }}
-                    >
-                      {tag}
-                    </span>
+                    <span key={tag}>{getTagLabel(tag)}</span>
                   ))}
                 </div>
               </div>
