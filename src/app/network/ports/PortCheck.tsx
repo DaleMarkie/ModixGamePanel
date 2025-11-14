@@ -1,5 +1,7 @@
 "use client";
+
 import React, { useEffect, useState, useCallback } from "react";
+import "./PortCheck.css"; // <-- import your fancy CSS here
 
 interface ServerPort {
   name: string;
@@ -42,23 +44,20 @@ export default function GamePortChecker(): JSX.Element {
   }, [fetchPorts]);
 
   return (
-    <div className="p-6 bg-zinc-900 rounded-xl shadow-lg w-full max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-4 text-white">
-        🎮 Game Server Ports Checker
-      </h2>
+    <div className="game-port-checker p-6 rounded-xl shadow-lg w-full max-w-4xl mx-auto">
+      <h2>🎮 Game Server Ports Checker</h2>
 
-      <p className="mb-4 text-zinc-300">
+      <p>
         This tool checks whether the default ports for popular game servers are
         open and reachable from your network. Currently supported games include:
         <strong> Project Zomboid, DayZ, RimWorld</strong>, and you can also test
         any custom ports.
       </p>
-      <p className="mb-4 text-zinc-300">
+      <p>
         <strong>Tip:</strong> If a port shows as{" "}
-        <span className="font-bold text-red-400">CLOSED ❌</span>, you may need
-        to:
+        <span className="status-closed">CLOSED ❌</span>, you may need to:
       </p>
-      <ul className="mb-4 list-disc list-inside text-zinc-300">
+      <ul>
         <li>Open the port in your server&apos;s firewall.</li>
         <li>Forward the port on your router to the server machine.</li>
         <li>Ensure no other application is already using that port.</li>
@@ -70,40 +69,33 @@ export default function GamePortChecker(): JSX.Element {
           value={host}
           onChange={(e) => setHost(e.target.value)}
           placeholder="Server Host (default 127.0.0.1)"
-          className="flex-1 p-2 rounded bg-zinc-800 text-white border border-zinc-700"
         />
         <input
           type="text"
           value={customPorts}
           onChange={(e) => setCustomPorts(e.target.value)}
           placeholder="Custom Ports (comma-separated)"
-          className="flex-1 p-2 rounded bg-zinc-800 text-white border border-zinc-700"
         />
-        <button
-          onClick={fetchPorts}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-bold"
-        >
-          Check Ports
-        </button>
+        <button onClick={fetchPorts}>Check Ports</button>
       </div>
 
       {loading ? (
-        <p className="text-white">Checking ports...</p>
+        <div className="loading">Checking ports...</div>
       ) : (
-        <table className="w-full text-left border-collapse">
+        <table>
           <thead>
-            <tr className="border-b border-zinc-700 text-white">
-              <th className="p-2">Game / Port</th>
-              <th className="p-2">Port</th>
-              <th className="p-2">Status</th>
+            <tr>
+              <th>Game / Port</th>
+              <th>Port</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {servers.map(({ name, port, status }) => (
-              <tr key={`${name}-${port}`} className="border-t border-zinc-800">
-                <td className="p-2 text-white">{name}</td>
-                <td className="p-2 text-white">{port}</td>
-                <td className="p-2 font-bold text-white">
+              <tr key={`${name}-${port}`}>
+                <td>{name}</td>
+                <td>{port}</td>
+                <td className={status === "open" ? "status-open" : "status-closed"}>
                   {status === "open" ? "✅ OPEN" : "❌ CLOSED"}
                 </td>
               </tr>

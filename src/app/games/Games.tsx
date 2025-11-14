@@ -157,11 +157,11 @@ export default function Games() {
   const requirementPercent = (label: string) => {
     switch (label) {
       case "CPU":
-        return Math.min((userSpecs.cpuCores / 8) * 100, 100); // show relative to 8 cores max
+        return Math.min((userSpecs.cpuCores / 8) * 100, 100);
       case "RAM":
-        return Math.min((userSpecs.ramGB / 16) * 100, 100); // relative to 16GB
+        return Math.min((userSpecs.ramGB / 16) * 100, 100);
       case "Disk":
-        return 0; // cannot detect
+        return 0;
       default:
         return 0;
     }
@@ -263,6 +263,18 @@ export default function Games() {
                   { label: "OS", required: "Windows 10+", unit: "" },
                 ].map((req) => {
                   const met = checkRequirement(req.label);
+
+                  const unmetReason =
+                    req.label === "CPU"
+                      ? `You have ${userSpecs.cpuCores} cores — at least ${req.required} are required.`
+                      : req.label === "RAM"
+                      ? `You have ${userSpecs.ramGB}GB — at least ${req.required}GB is required.`
+                      : req.label === "OS"
+                      ? `Your OS is detected as "${userSpecs.os}" — Windows 10 or newer is required.`
+                      : req.label === "Disk"
+                      ? `Browser cannot detect disk space — you must have at least ${req.required}GB free.`
+                      : "";
+
                   return (
                     <div key={req.label} className="requirement">
                       <div className="req-header">
@@ -301,12 +313,14 @@ export default function Games() {
                           ? `Required: ${req.required} | Your OS: ${userSpecs.os}`
                           : req.label === "Disk"
                           ? `Required: ${req.required} ${req.unit} | Your Disk: ℹ️`
-                          : `Required: ${req.required} ${req.unit} | Your: ${
+                          : `Required: ${req.required} ${req.unit} | Yours: ${
                               req.label === "CPU"
                                 ? userSpecs.cpuCores
                                 : userSpecs.ramGB
                             } ${req.unit}`}
                       </div>
+
+                      {!met && <p className="req-warning">⚠ {unmetReason}</p>}
                     </div>
                   );
                 })}
@@ -323,7 +337,7 @@ export default function Games() {
 
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={createSession}>
-                  ✅ Create Session
+                  ✅ Active Session
                 </button>
                 <button
                   className="cancel-btn"

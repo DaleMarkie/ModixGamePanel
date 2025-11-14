@@ -1,107 +1,123 @@
-:root {
-  --bg-dark: #121212;
-  --text-light: #eee;
-  --text-muted: #888;
-  --border-light: #333;
-  --status-open: #00ff00;
-  --status-closed: #ff0000;
-  --btn-bg: #222;
-  --btn-border: #444;
-  --btn-hover-bg: #555;
+/* PortCheck.css - Sleek Dark Green Buttons & Modern Table */
+
+.game-port-checker {
+  padding: 2rem;
+  max-width: 960px;
+  margin: 2rem auto;
+  border-radius: 1rem;
+  background: #1a1a1a; /* solid dark background */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease-in-out;
 }
 
-body {
-  background-color: var(--bg-dark);
-  color: var(--text-light);
-  font-family: monospace, monospace;
-  margin: 2rem;
+.game-port-checker:hover {
+  transform: translateY(-2px);
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
+.game-port-checker h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e; /* dark green header */
+  margin-bottom: 1rem;
 }
 
-h1 {
-  font-weight: 900;
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
-  user-select: none;
+.game-port-checker p,
+.game-port-checker ul {
+  color: #c7d2fe;
+  line-height: 1.5;
+  margin-bottom: 1rem;
 }
 
-table {
+.game-port-checker ul {
+  padding-left: 1.5rem;
+}
+
+.game-port-checker input {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #333;
+  background: #262626;
+  color: #e5e7eb;
+  font-size: 1rem;
+  flex: 1;
+  transition: border-color 0.2s ease;
+}
+
+.game-port-checker input:focus {
+  border-color: #22c55e;
+  outline: none;
+  background: #2c2c2c;
+}
+
+.game-port-checker button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 700;
+  font-size: 1rem;
+  background-color: #16a34a; /* solid dark green */
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.game-port-checker button:hover {
+  background-color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.game-port-checker table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 2rem;
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #262626;
 }
 
-th,
-td {
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--border-light);
+.game-port-checker th,
+.game-port-checker td {
+  padding: 0.75rem 1rem;
   text-align: left;
 }
 
-th {
-  color: var(--text-muted);
-  font-weight: 700;
-  font-size: 1rem;
-  user-select: none;
+.game-port-checker thead {
+  background: #1f1f1f;
 }
 
-td {
+.game-port-checker th {
+  color: #c7d2fe;
   font-weight: 600;
-  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  border-radius: 3px;
+.game-port-checker tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.game-port-checker tbody tr:nth-child(even) {
+  background-color: #232323;
+}
+
+.game-port-checker tbody tr:hover {
+  background-color: #2a2a2a;
 }
 
 .status-open {
-  background-color: var(--status-open);
+  color: #22c55e;
+  font-weight: 600;
 }
 
 .status-closed {
-  background-color: var(--status-closed);
+  color: #ef4444;
+  font-weight: 600;
 }
 
-button {
-  background-color: var(--btn-bg);
-  border: 1px solid var(--btn-border);
-  color: var(--text-light);
-  padding: 0.5rem 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-}
-
-button:hover {
-  background-color: var(--btn-hover-bg);
-}
-
-button:disabled {
-  background-color: #111;
-  border-color: #222;
-  color: #555;
-  cursor: default;
-}
-
-input[type="text"],
-input[type="number"] {
-  background-color: #222;
-  border: 1px solid var(--border-light);
-  color: var(--text-light);
-  padding: 0.5rem;
-  font-family: monospace, monospace;
-  font-weight: 700;
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 1rem;
-  border-radius: 0;
-  user-select: text;
+.loading {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #22c55e;
+  text-align: center;
+  padding: 1rem 0;
 }

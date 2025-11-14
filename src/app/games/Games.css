@@ -361,3 +361,43 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* ------------------ Requirement Unmet Warning ------------------ */
+.req-warning {
+  margin-top: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(220, 38, 38, 0.25),
+    rgba(185, 28, 28, 0.15)
+  );
+  border-left: 3px solid #dc2626;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #fca5a5;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.25s ease-out;
+  backdrop-filter: blur(2px);
+}
+
+/* Icon inside warning */
+.req-warning::before {
+  content: "⚠";
+  font-size: 1rem;
+  color: #f87171;
+  text-shadow: 0 0 4px rgba(220, 38, 38, 0.8);
+}
+
+/* Smooth fade effect */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
