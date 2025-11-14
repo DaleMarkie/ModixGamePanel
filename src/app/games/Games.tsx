@@ -251,7 +251,7 @@ export default function Games() {
               <img src={selectedGame.image} alt={selectedGame.name} />
             </div>
 
-            <div className="modal-right">
+            <div className="modal-right modal-scrollbox">
               <h3>{selectedGame.name}</h3>
               <p className="req-title">Minimum Requirements</p>
 
@@ -335,9 +335,28 @@ export default function Games() {
                 placeholder="C:/Servers/start_server.bat"
               />
 
+              {/* Status label just above the button */}
+              <div
+                className={`game-status ${
+                  selectedGame.id === "dayz" ? "wip" : "operational"
+                }`}
+              >
+                {selectedGame.id === "dayz" ? (
+                  <>
+                    WIP — certain parts of the panel may not work with this game
+                    yet.
+                  </>
+                ) : (
+                  <>
+                    Fully Operational — Selecting this game will automatically
+                    update Workshop, My Mods, and Server Settings.
+                  </>
+                )}
+              </div>
+
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={createSession}>
-                  ✅ Active Session
+                  ✅ Activate Session
                 </button>
                 <button
                   className="cancel-btn"

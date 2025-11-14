@@ -401,3 +401,187 @@
     transform: translateY(0);
   }
 }
+.modal {
+  display: flex;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 80%;
+  max-width: 900px;
+  max-height: 80%;
+}
+
+.modal-left {
+  width: 45%;
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.modal-left img {
+  max-width: 100%;
+  border-radius: 5px;
+}
+
+.modal-right {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.modal-scrollbox {
+  overflow-y: auto;
+  max-height: 550px; /* Adjust height as needed */
+  padding-right: 0.5rem;
+}
+
+/* Optional scrollbar styling */
+.modal-scrollbox::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scrollbox::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.modal-scrollbox::-webkit-scrollbar-track {
+  background: #222;
+}
+.game-status {
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  display: inline-block;
+  font-size: 0.9rem;
+}
+
+.game-status.operational {
+  background-color: #28a745;
+  color: white;
+}
+
+.game-status.wip {
+  background-color: #ffc107;
+  color: black;
+}
+.game-status {
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  display: inline-block;
+  font-size: 0.9rem;
+}
+
+.game-status.operational {
+  background-color: #28a745;
+  color: white;
+}
+
+.game-status.wip {
+  background-color: #ffc107;
+  color: black;
+}
+
+/* Tooltip wrapper */
+.tooltip {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltip-text {
+  visibility: hidden;
+  width: 240px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  padding: 0.5rem;
+  border-radius: 5px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%; /* Position above the label */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Arrow points down */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+/* Show tooltip on hover */
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+/* Tooltip wrapper */
+.tooltip {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Tooltip text with enhanced readability */
+.tooltip .tooltip-text {
+  visibility: hidden;
+  width: 260px; /* slightly wider for multiline */
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  padding: 0.6rem;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 10;
+  bottom: 130%; /* above the label */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  pointer-events: none;
+  white-space: normal; /* allow wrapping */
+}
+
+/* Bold important words */
+.tooltip .tooltip-text b {
+  color: #f9fafb;
+  font-weight: 700;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Arrow points down */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+/* Show tooltip on hover */
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
