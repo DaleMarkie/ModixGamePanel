@@ -7,11 +7,11 @@ interface Player {
   name: string;
   lastSeen: string;
   totalHours: number;
-  currentGame?: string; // which game player is connected to
+  currentGame?: string;
 }
 
 interface AllPlayersProps {
-  activeGame: string; // the game currently selected in Modix
+  activeGame: string; // ID or name of the active game
 }
 
 const AllPlayers: React.FC<AllPlayersProps> = ({ activeGame }) => {
@@ -21,13 +21,20 @@ const AllPlayers: React.FC<AllPlayersProps> = ({ activeGame }) => {
 
   const API_BASE = "http://localhost:2010/api/projectzomboid";
 
+  // SSE: Stream live player updates
   useEffect(() => {
+    if (!activeGame) return;
+
     const es = new EventSource(`${API_BASE}/players-stream`);
 
     es.onmessage = (event) => {
-      const data: Player[] = JSON.parse(event.data);
-      setPlayers(data);
-      setConnected(true);
+      try {
+        const data: Player[] = JSON.parse(event.data);
+        setPlayers(data);
+        setConnected(true);
+      } catch (err) {
+        console.error("Failed to parse SSE player data:", err);
+      }
     };
 
     es.onerror = () => {
@@ -36,21 +43,32 @@ const AllPlayers: React.FC<AllPlayersProps> = ({ activeGame }) => {
     };
 
     return () => es.close();
-  }, []);
+  }, [activeGame]);
 
-  // Filter players for search + only those on active game
-  const filteredPlayers = players.filter(
-    (p) =>
-      p.currentGame === activeGame &&
-      (p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.lastSeen.toLowerCase().includes(search.toLowerCase()))
-  );
+  // Filter players for current active game + search term
+  const filteredPlayers = players
+    .filter(
+      (p) =>
+        p.currentGame === activeGame &&
+        (p.name.toLowerCase().includes(search.toLowerCase()) ||
+          p.lastSeen.toLowerCase().includes(search.toLowerCase()))
+    )
+    .sort(
+      (a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime()
+    ); // sort newest first
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold text-green-400 flex items-center gap-2">
         <User className="w-8 h-8 text-green-500" />
-        Players on {activeGame} {connected ? "●" : "○"}
+        Players on {activeGame || "No Active Game"}{" "}
+        <span
+          className={`ml-2 ${
+            connected ? "text-green-400" : "text-red-500"
+          } font-bold`}
+        >
+          {connected ? "● Connected" : "○ Disconnected"}
+        </span>
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -76,34 +94,31 @@ const AllPlayers: React.FC<AllPlayersProps> = ({ activeGame }) => {
       <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg">
         {filteredPlayers.length === 0 ? (
           <p className="text-green-400 text-center mt-10 text-lg">
-            No players connected to {activeGame}.
+            No players connected to {activeGame || "this server"}.
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPlayers
-              .slice()
-              .reverse()
-              .map((player, i) => (
-                <div
-                  key={i}
-                  className="bg-zinc-800 border border-green-700 rounded-2xl shadow-md p-4 flex flex-col gap-2 hover:bg-zinc-700 transition-all duration-200"
-                >
-                  <p className="text-xl font-semibold text-green-300">
-                    {player.name}
-                  </p>
-                  <p className="text-sm text-zinc-400 flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-green-400" />
-                    Last seen: {player.lastSeen}
-                  </p>
-                  <p className="text-sm text-green-500">
-                    Total hours: {player.totalHours}
-                  </p>
-                  <p className="text-sm text-green-400 flex items-center gap-1">
-                    <Gamepad className="w-4 h-4" />
-                    Playing: {player.currentGame || "Unknown"}
-                  </p>
-                </div>
-              ))}
+            {filteredPlayers.map((player, i) => (
+              <div
+                key={i}
+                className="bg-zinc-800 border border-green-700 rounded-2xl shadow-md p-4 flex flex-col gap-2 hover:bg-zinc-700 transition-all duration-200"
+              >
+                <p className="text-xl font-semibold text-green-300">
+                  {player.name}
+                </p>
+                <p className="text-sm text-zinc-400 flex items-center gap-1">
+                  <Clock className="w-4 h-4 text-green-400" />
+                  Last seen: {player.lastSeen}
+                </p>
+                <p className="text-sm text-green-500">
+                  Total hours: {player.totalHours}
+                </p>
+                <p className="text-sm text-green-400 flex items-center gap-1">
+                  <Gamepad className="w-4 h-4" />
+                  Playing: {player.currentGame || "Unknown"}
+                </p>
+              </div>
+            ))}
           </div>
         )}
       </div>
