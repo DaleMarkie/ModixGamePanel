@@ -195,7 +195,7 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .save-floating-btn:hover {
@@ -212,5 +212,143 @@
 
   .header-right {
     gap: 0.25rem;
+  }
+}
+
+/* ------------------ MOBILE RESPONSIVE SERVER SETTINGS ------------------ */
+@media screen and (max-width: 1024px) {
+  .server-settings-new {
+    padding: 0.75rem;
+  }
+
+  .server-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-left p {
+    font-size: 0.85rem;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .icon-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .game-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* Category cards stack nicely */
+  .card.category-card {
+    width: 100%;
+  }
+
+  .category-header h2 {
+    font-size: 1rem;
+  }
+
+  .category-body {
+    gap: 0.5rem;
+  }
+
+  .category-desc {
+    font-size: 0.8rem;
+  }
+
+  .setting-item span {
+    font-size: 0.9rem;
+  }
+
+  .setting-item input[type="text"],
+  .setting-item input[type="number"] {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.45rem;
+  }
+
+  .setting-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .setting-desc {
+    font-size: 0.7rem;
+  }
+
+  .save-floating-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Extra small screens (phones) */
+@media screen and (max-width: 480px) {
+  .server-header {
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.3rem;
+  }
+
+  .header-left p {
+    font-size: 0.8rem;
+  }
+
+  .game-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .category-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .category-body {
+    gap: 0.4rem;
+  }
+
+  .category-desc {
+    font-size: 0.75rem;
+  }
+
+  .setting-item span {
+    font-size: 0.85rem;
+  }
+
+  .setting-item input[type="text"],
+  .setting-item input[type="number"] {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .setting-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+
+  .setting-desc {
+    font-size: 0.65rem;
+  }
+
+  .save-floating-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    bottom: 0.75rem;
+    right: 0.75rem;
   }
 }
