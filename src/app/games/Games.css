@@ -586,15 +586,6 @@
   opacity: 1;
 }
 
-
-
-
-
-
-
-
-
-
 .filter-buttons {
   display: flex;
   gap: 10px;
@@ -622,3 +613,242 @@
   color: #fff; /* White text */
 }
 
+/* ------------------ MOBILE RESPONSIVE GAMES PAGE ------------------ */
+@media (max-width: 1024px) {
+  .games-page {
+    padding: 20px;
+  }
+
+  .search-input {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  /* Game grid shrinks for tablets */
+  .games-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .game-card {
+    flex-direction: column;
+  }
+
+  .game-thumb {
+    height: 130px;
+  }
+
+  .game-details h3 {
+    font-size: 0.95rem;
+  }
+
+  .game-details p {
+    font-size: 0.8rem;
+    height: 40px;
+  }
+
+  .game-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .launch-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .steam-btn,
+  .discord-btn,
+  .pzwiki-btn {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+
+  /* Modals scale down */
+  .modal {
+    flex-direction: column;
+    width: 90%;
+    max-height: 90%;
+  }
+
+  .modal-left,
+  .modal-right {
+    width: 100%;
+  }
+
+  .modal-left img {
+    max-height: 200px;
+    margin-bottom: 12px;
+  }
+
+  .modal-right {
+    padding: 12px;
+  }
+
+  .modal-scrollbox {
+    max-height: 300px;
+  }
+
+  .input-field {
+    font-size: 0.85rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .confirm-btn,
+  .cancel-btn {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 6px 0;
+  }
+
+  /* Requirements smaller */
+  .requirements-container {
+    gap: 10px;
+  }
+
+  .req-header {
+    font-size: 0.85rem;
+  }
+
+  .req-title {
+    font-size: 0.9rem;
+  }
+
+  .req-details {
+    font-size: 0.75rem;
+  }
+
+  .req-warning {
+    font-size: 0.75rem;
+    padding: 6px 8px;
+  }
+
+  /* Game status badge smaller */
+  .game-status {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  /* Tooltip adjustments */
+  .tooltip .tooltip-text {
+    width: 220px;
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+
+  .tooltip .tooltip-text::after {
+    border-width: 4px;
+  }
+
+  /* Filter buttons wrap */
+  .filter-buttons {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-buttons button {
+    flex: 1 1 48%;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+}
+
+/* Extra small screens (phones) */
+@media (max-width: 480px) {
+  .games-page {
+    padding: 12px;
+  }
+
+  .search-input {
+    font-size: 0.8rem;
+  }
+
+  .games-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .game-thumb {
+    height: 120px;
+  }
+
+  .game-details h3 {
+    font-size: 0.9rem;
+  }
+
+  .game-details p {
+    font-size: 0.75rem;
+    height: 36px;
+  }
+
+  .launch-btn {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .steam-btn,
+  .discord-btn,
+  .pzwiki-btn {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .modal-left img {
+    max-height: 160px;
+  }
+
+  .modal-right {
+    padding: 10px;
+  }
+
+  .modal-scrollbox {
+    max-height: 220px;
+  }
+
+  .input-field {
+    font-size: 0.8rem;
+  }
+
+  .confirm-btn,
+  .cancel-btn {
+    font-size: 0.8rem;
+    padding: 5px 0;
+  }
+
+  .req-header {
+    font-size: 0.8rem;
+  }
+
+  .req-title {
+    font-size: 0.85rem;
+  }
+
+  .req-details {
+    font-size: 0.7rem;
+  }
+
+  .req-warning {
+    font-size: 0.7rem;
+    padding: 5px 6px;
+  }
+
+  .game-status {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .tooltip .tooltip-text {
+    width: 180px;
+    font-size: 0.75rem;
+  }
+
+  .filter-buttons button {
+    flex: 1 1 100%;
+    font-size: 0.75rem;
+    padding: 5px 8px;
+  }
+}
