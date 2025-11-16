@@ -119,7 +119,7 @@ export default function InstalledPage() {
               href="/auth/login"
               className="text-green-400 underline font-semibold"
             >
-              log in with the owner account
+              Login In
             </a>
             . If you do not have access to the credentials, contact your system
             administrator.
