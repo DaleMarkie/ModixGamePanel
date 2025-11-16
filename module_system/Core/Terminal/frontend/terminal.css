@@ -341,3 +341,192 @@ body {
 .modal-content input[type="text"] {
   margin-bottom: 10px;
 }
+
+/* ---------- MOBILE RESPONSIVE TERMINAL PAGE ---------- */
+@media (max-width: 1024px) {
+  .terminal-layout {
+    height: auto;
+    flex-direction: column;
+  }
+
+  /* Header adjustments */
+  .terminal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .header-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .header-controls input[type="text"] {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .header-controls button {
+    flex: 1 1 auto;
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* Tabs shrink */
+  .terminal-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1 1 48%;
+    font-size: 12px;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+  }
+
+  .tab-btn.active {
+    font-size: 12px;
+  }
+
+  /* Logs smaller font for tablets */
+  .terminal-logs {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  /* Command form adjustments */
+  .command-form {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .command-form input[type="text"],
+  .command-form select {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .command-form button {
+    width: 100%;
+    font-size: 12px;
+    padding: 5px 0;
+  }
+
+  /* Modals smaller */
+  .modal-content {
+    width: 90%;
+    padding: 16px;
+  }
+
+  .modal-content h2 {
+    font-size: 16px;
+  }
+
+  .modal-content input[type="text"],
+  .modal-content input[type="password"] {
+    font-size: 13px;
+  }
+
+  .confirm-btn {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  /* Recent batches wrap */
+  .recent-batches {
+    flex-wrap: wrap;
+  }
+
+  .recent-batches button {
+    flex: 1 1 48%;
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  /* OS selector buttons wrap */
+  .os-selector {
+    flex-wrap: wrap;
+  }
+
+  .os-selector button {
+    flex: 1 1 48%;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
+
+/* Extra small screens (phones) */
+@media (max-width: 480px) {
+  .terminal-header {
+    padding: 6px 8px;
+  }
+
+  .header-controls input[type="text"] {
+    width: 100%;
+    font-size: 11px;
+  }
+
+  .header-controls button {
+    flex: 1 1 100%;
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .tab-btn {
+    flex: 1 1 100%;
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+
+  .terminal-logs {
+    font-size: 11px;
+    padding: 6px;
+  }
+
+  .command-form {
+    padding: 6px 8px;
+  }
+
+  .command-form input[type="text"],
+  .command-form select,
+  .command-form button {
+    width: 100%;
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 12px;
+  }
+
+  .modal-content h2 {
+    font-size: 14px;
+  }
+
+  .modal-content input[type="text"],
+  .modal-content input[type="password"] {
+    font-size: 12px;
+  }
+
+  .confirm-btn {
+    font-size: 12px;
+    padding: 5px 6px;
+  }
+
+  .recent-batches button {
+    flex: 1 1 100%;
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .os-selector button {
+    flex: 1 1 100%;
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+}
