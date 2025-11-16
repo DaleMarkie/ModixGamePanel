@@ -92,3 +92,103 @@
   color: #fff;
   font-weight: bold;
 }
+
+/* ------------------ PANEL SETTINGS RESPONSIVE ------------------ */
+@media screen and (max-width: 1024px) {
+  .panel-settings-container {
+    padding: 1.5rem;
+  }
+
+  .settings-title {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .settings-grid {
+    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .setting-card {
+    width: 200px;
+    padding: 1.2rem;
+  }
+
+  .setting-card h3 {
+    font-size: 1rem;
+  }
+
+  .setting-card p {
+    font-size: 0.85rem;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .save-btn,
+  .preview-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.95rem;
+    padding: 0.7rem 0;
+  }
+
+  .preview-box {
+    padding: 1.2rem;
+  }
+
+  .preview-header {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Extra small screens (phones) */
+@media screen and (max-width: 480px) {
+  .panel-settings-container {
+    padding: 1rem;
+  }
+
+  .settings-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .settings-grid {
+    gap: 1rem;
+  }
+
+  .setting-card {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .setting-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .setting-card p {
+    font-size: 0.8rem;
+  }
+
+  .settings-actions {
+    gap: 0.5rem;
+  }
+
+  .save-btn,
+  .preview-btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 0;
+  }
+
+  .preview-box {
+    padding: 1rem;
+  }
+
+  .preview-header {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+}

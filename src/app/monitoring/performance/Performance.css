@@ -187,3 +187,127 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ------------------ RESPONSIVE SYSTEM PANEL ------------------ */
+
+/* Base adjustments for tablets */
+@media screen and (max-width: 1024px) {
+  .main {
+    padding: 15px 20px;
+  }
+
+  .header {
+    font-size: 2.2rem;
+  }
+
+  .description {
+    font-size: 1rem;
+    max-width: 90%;
+  }
+
+  .card {
+    padding: 18px 14px;
+  }
+
+  .card h2 {
+    font-size: 1.35rem;
+  }
+
+  .info-item {
+    padding: 6px 0;
+  }
+
+  .tooltip {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 768px) {
+  .main {
+    padding: 12px 15px;
+  }
+
+  .header {
+    font-size: 1.9rem;
+  }
+
+  .description {
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+  }
+
+  .grid-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    padding: 14px 12px;
+  }
+
+  .card h2 {
+    font-size: 1.25rem;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 8px;
+  }
+
+  .value {
+    margin-top: 4px;
+    font-size: 0.9rem;
+  }
+
+  .tooltip {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    white-space: normal;
+  }
+
+  .footer {
+    font-size: 0.75rem;
+    margin-top: 30px;
+  }
+}
+
+/* Extra small screens (phones) */
+@media screen and (max-width: 480px) {
+  .main {
+    padding: 10px 12px;
+  }
+
+  .header {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .description {
+    font-size: 0.9rem;
+    max-width: 95%;
+  }
+
+  .card {
+    padding: 12px 10px;
+  }
+
+  .card h2 {
+    font-size: 1.1rem;
+  }
+
+  .info-item {
+    padding: 5px 6px;
+  }
+
+  .value {
+    font-size: 0.85rem;
+  }
+
+  .tooltip {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}
