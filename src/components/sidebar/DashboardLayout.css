@@ -507,3 +507,15 @@ main .content-inner {
   background-color: #276927;
   color: #fff;
 }
+.main-content {
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.main-content.loaded {
+  opacity: 1;
+}
+
+.main-content.loading {
+  opacity: 0;
+}
