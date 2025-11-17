@@ -9,36 +9,49 @@ import {
   FaHourglass,
   FaCogs,
   FaTicketAlt,
+  FaCalendarAlt,
+  FaUserCircle,
 } from "react-icons/fa";
 import "./MyAccount.css";
 import { getServerUrl } from "@/app/config";
 
-// 👉 SETTINGS PAGE IMPORT
+// 👉 IMPORT PAGE COMPONENTS
 import MySettings from "@/app/auth/myaccount/settings/mySettings";
-import mySubscriptions from "@/app/auth/myaccount/subscriptions/mySubscriptions";
 import License from "@/app/auth/myaccount/license/License";
 
-/* ----------------------------------------
-    PAGE COMPONENTS
------------------------------------------*/
+// ----------------------------------------
+// Coming Soon Support Page
+// ----------------------------------------
+const SupportComingSoon = () => (
+  <div
+    className="page-section"
+    style={{
+      padding: "40px",
+      background: "#15161e",
+      borderRadius: "12px",
+      textAlign: "center",
+      border: "1px solid #23242f",
+      boxShadow: "0 0 10px rgba(0,0,0,0.4)",
+    }}
+  >
+    <h2 style={{ fontSize: "1.8rem", marginBottom: "10px" }}>
+      🛠️ Support Page
+    </h2>
+    <p style={{ fontSize: "1.2rem", opacity: 0.8 }}>
+      This page will arrive in a later update.
+    </p>
+  </div>
+);
 
+// ----------------------------------------
+// Helper Pages
+// ----------------------------------------
 const ChangeLogPage = () => (
   <div className="page-section">
     <h2>📝 Change Log</h2>
     <p>All updates, fixes, and improvements listed here.</p>
   </div>
 );
-
-const LicensesPage = () => (
-  <div className="page-section">
-    <h2>📄 License</h2>
-    <p>View your active plan and license details.</p>
-  </div>
-);
-
-/* ----------------------------------------
-    DASHBOARD PAGE
------------------------------------------*/
 
 const DashboardPage = ({ user, userLogs }: any) => {
   const formatDate = (dateStr?: string) => {
@@ -62,7 +75,6 @@ const DashboardPage = ({ user, userLogs }: any) => {
     const maxSeconds = Math.max(...sessions);
     const mins = Math.floor(maxSeconds / 60);
     const secs = maxSeconds % 60;
-
     return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
   };
 
@@ -78,7 +90,11 @@ const DashboardPage = ({ user, userLogs }: any) => {
   };
 
   const infoCards = [
-    { label: "Username", value: user.username || "N/A", icon: "👤" },
+    {
+      label: "Username",
+      value: user.username || "N/A",
+      icon: <FaUserCircle />,
+    },
     { label: "Email", value: user.email || "N/A", icon: "✉️" },
     { label: "Role(s)", value: user.roles.join(", ") || "Owner", icon: "🛡️" },
     {
@@ -87,13 +103,21 @@ const DashboardPage = ({ user, userLogs }: any) => {
       icon: "⚡",
       className: user.active ? "status-active" : "status-inactive",
     },
-    { label: "Joined", value: formatDate(user.created_at), icon: "📅" },
-    { label: "Last Login", value: formatDate(user.last_login), icon: "⏰" },
+    {
+      label: "Joined",
+      value: formatDate(user.created_at),
+      icon: <FaCalendarAlt />,
+    },
+    {
+      label: "Last Login",
+      value: formatDate(user.last_login),
+      icon: <FaHourglass />,
+    },
     { label: "Account ID", value: user.id || "N/A", icon: "🆔" },
     {
       label: "Plan / License",
       value: user.license?.plan || "Free / N/A",
-      icon: "🎫",
+      icon: <FaTicketAlt />,
     },
     { label: "Active Sessions", value: userLogs.length || "0", icon: "💻" },
     { label: "Active Game", value: getActiveGame(), icon: <FaGamepad /> },
@@ -106,7 +130,6 @@ const DashboardPage = ({ user, userLogs }: any) => {
 
   return (
     <div className="dashboard-page">
-      {/* Info Cards */}
       <div className="info-cards-grid">
         {infoCards.map((info, idx) => (
           <div key={idx} className="info-card">
@@ -121,13 +144,9 @@ const DashboardPage = ({ user, userLogs }: any) => {
         ))}
       </div>
 
-      {/* NEW: Quick Actions */}
       <section className="quick-actions page-section">
-        <h2>⚡ Quick Actions</h2>
+        <h2>⚡ Links</h2>
         <div className="quick-buttons">
-          <button onClick={() => window.alert("Open Support")}>
-            <FaTicketAlt /> Submit Ticket
-          </button>
           <a
             href="https://discord.gg/EwWZUSR9tM"
             target="_blank"
@@ -148,10 +167,9 @@ const DashboardPage = ({ user, userLogs }: any) => {
   );
 };
 
-/* ----------------------------------------
-           MAIN ACCOUNT PAGE
------------------------------------------*/
-
+// ----------------------------------------
+// Main MyAccount Component
+// ----------------------------------------
 const MyAccount = () => {
   const [user, setUser] = useState<any>(null);
   const [userLogs, setUserLogs] = useState<any[]>([]);
@@ -193,105 +211,32 @@ const MyAccount = () => {
       <div className="not-logged">Please log in to access your account.</div>
     );
 
-  /* PAGE SWITCHER */
-  const renderPage = () => {
-    switch (activePage) {
-      case "dashboard":
-        return <DashboardPage user={user} userLogs={userLogs} />;
-      case "changelog":
-        return <ChangeLogPage />;
-      case "license":
-        return <License />;
-      case "settings":
-        return <MySettings />; // 👉 SHOWS SETTINGS PAGE HERE
-      default:
-        return <DashboardPage user={user} userLogs={userLogs} />;
-    }
+  const pages: Record<string, React.ReactNode> = {
+    dashboard: <DashboardPage user={user} userLogs={userLogs} />,
+    license: <License />,
+    support: <SupportComingSoon />, // UPDATED ✔️
+    updates: <ChangeLogPage />,
+    achievements: <ChangeLogPage />,
   };
 
   return (
     <div className="myaccount-container">
       <nav className="account-top-menu">
         <ul>
-          <li>
-            <button
-              className={activePage === "dashboard" ? "active" : ""}
-              onClick={() => setActivePage("dashboard")}
-            >
-              Overview
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={activePage === "license" ? "active" : ""}
-              onClick={() => setActivePage("license")}
-            >
-              Credentials
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={activePage === "Billing / Payments" ? "active" : ""}
-              onClick={() => setActivePage("Billing / Payments")}
-            >
-              Billing
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={activePage === "mySubscriptions" ? "active" : ""}
-              onClick={() => setActivePage("mySubscriptions")}
-            >
-              Subscriptions
-            </button>
-          </li>
-
-          {/* NEW SETTINGS TAB */}
-          <li>
-            <button
-              className={activePage === "settings" ? "active" : ""}
-              onClick={() => setActivePage("settings")}
-            >
-              History
-            </button>
-          </li>
-
-          {/* NEW SETTINGS TAB */}
-          <li>
-            <button
-              className={activePage === "fd" ? "false" : ""}
-              onClick={() => setActivePage("df")}
-            >
-              Support
-            </button>
-          </li>
-
-          {/* NEW SETTINGS TAB */}
-          <li>
-            <button
-              className={activePage === "Achievements" ? "false" : ""}
-              onClick={() => setActivePage("df")}
-            >
-              Achievements
-            </button>
-          </li>
-
-          {/* NEW SETTINGS TAB */}
-          <li>
-            <button
-              className={activePage === "Achievements" ? "false" : ""}
-              onClick={() => setActivePage("df")}
-            >
-              Updates
-            </button>
-          </li>
+          {Object.keys(pages).map((key) => (
+            <li key={key}>
+              <button
+                className={activePage === key ? "active" : ""}
+                onClick={() => setActivePage(key)}
+              >
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+              </button>
+            </li>
+          ))}
         </ul>
       </nav>
 
-      <div className="page-content">{renderPage()}</div>
+      <div className="page-content">{pages[activePage]}</div>
     </div>
   );
 };

@@ -520,10 +520,6 @@ main .content-inner {
   opacity: 0;
 }
 
-
-
-
-
 /* ---------- MOBILE RESPONSIVE CLEAN & POLISHED ---------- */
 @media (max-width: 1024px) {
   /* Dashboard container becomes column */
@@ -546,7 +542,7 @@ main .content-inner {
     z-index: 1001;
     transition: left 0.35s ease, box-shadow 0.3s ease;
     background: var(--bg-sidebar);
-    box-shadow: 2px 0 20px rgba(0,0,0,0.7);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.7);
     border-right: none;
     overflow-y: auto;
     padding: 1rem;
@@ -564,7 +560,7 @@ main .content-inner {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 1000;
     transition: opacity 0.3s ease;
   }
@@ -583,7 +579,7 @@ main .content-inner {
     color: var(--text-main);
     padding: 8px 10px;
     border-radius: var(--radius);
-    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
     z-index: 1002;
     transition: all 0.3s ease;
   }
@@ -650,7 +646,7 @@ main .content-inner {
     color: var(--text-main);
     max-height: 100%;
     overflow-y: auto;
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4);
   }
 
   main .content-inner {
@@ -671,7 +667,7 @@ main .content-inner {
     padding: 1.2rem 1.5rem;
     border-radius: var(--radius);
     background-color: var(--bg-card);
-    box-shadow: 0 0 18px rgba(0,0,0,0.6);
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
   }
 
   .error-modal h2 {
