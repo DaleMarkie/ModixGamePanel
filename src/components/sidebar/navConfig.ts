@@ -11,6 +11,13 @@ export const navLinks: NavItem[] = [
   {
     label: "👤 Account",
     href: "/auth/myaccount",
+    submenu: [
+      { label: "📊 Dashboard", href: "/auth/myaccount" },
+      { label: "📜 Activity", href: "/auth/activity" },
+      { label: "🧾 My License", href: "/auth/License" },
+      { label: "👥 Sub-Users", href: "/auth/subusers" },
+      { label: "⚙️ Settings", href: "/auth/myaccount/settings" },
+    ],
   },
 
   // --- Console / Live Terminal ---
@@ -19,44 +26,14 @@ export const navLinks: NavItem[] = [
     href: "/terminal",
   },
 
-  // --- Mod Creation Suite ---
-  {
-    label: "🧩 My Mods",
-    href: "/tools/modcreation",
-    submenu: [
-      { label: "📦 My Mods", href: "/FileBrowser" },
-      { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
-      { label: "🆕 Create New Mod", href: "/mymods/createnewmod" },
-      { label: "🖼️ Manage Assets", href: "/mymods/manageassets" },
-    ],
-  },
-
-  // --- Player Tools ---
-  {
-    label: "👥 Players",
-    href: "/players",
-    submenu: [
-      { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
-      { label: "🔎 Player Search", href: "/steamplayermanager" },
-      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
-      { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
-      {
-        label: "🚫 Bans & Restrictions",
-        href: "/PlayerManagement/PlayerBanned",
-      },
-      { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
-    ],
-  },
-
   // --- Server Management ---
   {
-    label: "🎮 Server Management",
+    label: "🎮 My Server",
     href: "/server",
     submenu: [
+      { label: "🎮 Change Game", href: "/games" },
       { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
       { label: "💾 Backups", href: "/servermanagement/backup" },
-      { label: "🧠 Auto Restart", href: "/servermanagement/autorestart" },
       {
         label: "🎮 Steam Tools",
         href: "/tools/steamparser",
@@ -72,6 +49,38 @@ export const navLinks: NavItem[] = [
     ],
   },
 
+  // --- Mod Creation Suite ---
+  {
+    label: "🧩 Mods",
+    href: "/tools/modcreation",
+    submenu: [
+      { label: "📦 My Mods", href: "/FileBrowser" },
+      { label: "🗂️ Workshop Manager", href: "/workshop" },
+      { label: "🔍 Mod Debugger", href: "/mymods/debugger" },
+      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
+    ],
+  },
+
+  // --- Player Tools ---
+  {
+    label: "👥 Players",
+    href: "/players",
+    submenu: [
+      { label: "📋 Player List", href: "/PlayerManagement/AllPlayers" },
+      {
+        label: "🔎 Player Search",
+        href: "/PlayerManagement/steamplayermanager",
+      },
+      { label: "💬 Chat Logs", href: "/PlayerManagement/ChatLogs" },
+      { label: "🎮 Session History", href: "/PlayerManagement/SessionHistory" },
+      {
+        label: "🚫 Bans & Restrictions",
+        href: "/PlayerManagement/PlayerBanned",
+      },
+      { label: "⚠️ Warnings & Notes", href: "/PlayerManagement/PlayerNotes" },
+    ],
+  },
+
   // --- Monitoring ---
   {
     label: "📊 Monitoring",
@@ -84,9 +93,7 @@ export const navLinks: NavItem[] = [
     href: "/tools/security",
     submenu: [
       { label: "🛡️ DDoS Manager", href: "/security/ddosmanager" },
-      { label: "🔑 Admin Tokens", href: "/security/admin" },
       { label: "🚧 Firewall Rules", href: "/security/firewall" },
-      { label: "🕵️ Audit Logs", href: "/security/audit" },
     ],
   },
 
@@ -135,7 +142,6 @@ export const navLinks: NavItem[] = [
     submenu: [
       { label: "🗝️ API Keys", href: "/panelsettings/tokens" },
       { label: "🎨 Theme Customization", href: "/panelsettings/thememanager" },
-      { label: "⬆️ Change Log", href: "/panelsettings/changelogs" },
     ],
   },
 

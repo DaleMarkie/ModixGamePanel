@@ -1,456 +1,389 @@
-import React, { useState } from "react";
-import { FaChevronRight, FaBars } from "react-icons/fa";
-import { navLinks } from "./navConfig.ts";
+"use client";
+
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { FaChevronRight, FaBars, FaSearch, FaTimes } from "react-icons/fa";
+import { navLinks } from "./navConfig";
 import SidebarUserInfo from "./SidebarUserInfo";
+import "./DashboardLayout.css";
+
+const USER_KEY = "modix_user";
+const THEME_KEY = "modix_dashboard_theme";
+
+const displayTags = [
+  { key: "Getting Started", label: "📘 Getting Started" },
+  { key: "Frontend Issue", label: "🛠 Frontend Issue" },
+  { key: "Backend Issue", label: "🖥 Backend Issue" },
+  { key: "Game Server Issue", label: "⚠️ Game Server Issue" },
+  { key: "Reported Bugs", label: "⚠️ Reported Bugs" },
+];
+
+const mockErrorDatabase = [
+  {
+    code: "What Is Modix Game Panel?",
+    desc: "Modix Game Panel is a long-term project by DaleMarkie (aka OV3RLORD)...",
+    tags: ["Getting Started", "Modix"],
+  },
+];
 
 export default function DashboardLayout({ children }) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Toggle submenu open state by href path (unique string)
-  const toggleSubMenu = (href) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [href]: !prev[href],
-    }));
-  };
-
-  // Filter navLinks and submenus by search term (case insensitive)
-  const filteredNavLinks = navLinks
-    .map(({ label, href, submenu }) => {
-      if (!searchTerm) return { label, href, submenu };
-      const lowerSearch = searchTerm.toLowerCase();
-      const mainMatch = label.toLowerCase().includes(lowerSearch);
-
-      let filteredSubmenu = null;
-      if (submenu) {
-        filteredSubmenu = submenu
-          .map(({ label: sLabel, href: sHref, submenu: ss }) => {
-            if (!ss) {
-              return sLabel.toLowerCase().includes(lowerSearch)
-                ? { label: sLabel, href: sHref }
-                : null;
-            } else {
-              // filter second-level submenu too
-              const filteredSubSubmenu = ss.filter((ssItem) =>
-                ssItem.label.toLowerCase().includes(lowerSearch)
-              );
-              if (
-                sLabel.toLowerCase().includes(lowerSearch) ||
-                filteredSubSubmenu.length > 0
-              ) {
-                return {
-                  label: sLabel,
-                  href: sHref,
-                  submenu: filteredSubSubmenu,
-                };
-              }
-              return null;
-            }
-          })
-          .filter(Boolean);
-      }
-
-      if (mainMatch || (filteredSubmenu && filteredSubmenu.length > 0)) {
-        return { label, href, submenu: filteredSubmenu };
-      }
+  const [errorSearch, setErrorSearch] = useState("");
+  const [selectedError, setSelectedError] = useState(null);
+  const [activeTag, setActiveTag] = useState("");
+  const [theme, setTheme] = useState({
+    background: "",
+    gradient: "",
+    logo: "https://i.ibb.co/cMPwcn8/logo.png",
+    title: "Modix Game Panel",
+    icons: {},
+  });
+  const [currentUserState, setCurrentUserState] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY));
+    } catch {
       return null;
-    })
-    .filter(Boolean);
+    }
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Recursive function to render menu with up to 2 submenu levels
-  const renderMenuItems = (items, level = 0) => {
-    return (
-      <ul
-        style={{
-          listStyle: "none",
-          margin: level === 0 ? 0 : "6px 0 6px 12px",
-          paddingLeft: level === 0 ? 0 : "14px",
-          borderLeft: level === 0 ? "none" : "2px solid #2a2a2a",
-          overflow: "hidden",
-          transition: "max-height 0.3s ease",
-        }}
-      >
-        {items.map(({ label, href, submenu }) => {
-          const isOpen = !!openMenus[href];
-          const hasSubmenu = submenu && submenu.length > 0;
+  const allTags = useMemo(() => displayTags.map((t) => t.key), []);
 
-          if (hasSubmenu) {
-            return (
-              <li key={href} style={{ marginBottom: 10 }}>
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={`submenu-${href}`}
-                  onClick={() => toggleSubMenu(href)}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                    fontWeight: 600,
-                    fontSize: level === 0 ? 15 : 14,
-                    borderRadius: 8,
-                    border: "none",
-                    padding: level === 0 ? "10px 16px" : "8px 16px",
-                    color: "#eee",
-                    background: isOpen ? "#2a6e3a" : "transparent",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    userSelect: "none",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isOpen)
-                      e.currentTarget.style.backgroundColor = "#237a30";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isOpen)
-                      e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  <span>{label}</span>
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      marginLeft: 8,
-                      transition: "transform 0.3s ease",
-                      transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <FaChevronRight />
-                  </span>
-                </button>
-                <ul
-                  id={`submenu-${href}`}
-                  role="region"
-                  aria-label={`${label} submenu`}
-                  style={{
-                    maxHeight: isOpen ? "9999px" : "0px",
-                    overflow: "hidden",
-                    transition: "max-height 0.35s ease",
-                  }}
-                >
-                  {renderMenuItems(submenu, level + 1)}
-                </ul>
-              </li>
-            );
-          } else {
-            // No submenu, simple link
-            return (
-              <li key={href} style={{ marginBottom: 8 }}>
-                <a
-                  href={href}
-                  style={{
-                    display: "block",
-                    fontWeight: level === 0 ? 600 : 500,
-                    fontSize: level === 0 ? 15 : 14,
-                    padding: level === 0 ? "10px 16px" : "8px 16px",
-                    color: level === 0 ? "#eee" : "#ccc",
-                    borderRadius: 8,
-                    textDecoration: "none",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    cursor: "pointer",
-                    userSelect: "none",
-                    transition: "background-color 0.3s ease, color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      level === 0 ? "#28a745" : "#218838";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = level === 0 ? "#eee" : "#ccc";
-                  }}
-                >
-                  {label}
-                </a>
-              </li>
-            );
-          }
-        })}
-      </ul>
-    );
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved)
+      try {
+        const parsed = JSON.parse(saved);
+        setTheme(parsed);
+        applyTheme(parsed);
+      } catch {}
+    const handle = (e) =>
+      e.detail && (setTheme(e.detail), applyTheme(e.detail));
+    window.addEventListener("themeUpdate", handle);
+    return () => window.removeEventListener("themeUpdate", handle);
+  }, []);
+
+  const applyTheme = (t) => {
+    const body = document.body;
+    body.style.background =
+      t.gradient ||
+      (t.background ? `url(${t.background}) no-repeat center/cover` : "");
   };
+
+  const allowedPages =
+    currentUserState?.role === "Owner" ? null : currentUserState?.pages || [];
+  const toggleSubMenu = (href) =>
+    setOpenMenus((prev) => ({ ...prev, [href]: !prev[href] }));
+
+  const filteredNavLinks = useMemo(() => {
+    const lower = searchTerm.toLowerCase();
+    const filterLinks = (links) =>
+      links
+        .map(({ label, href = "", submenu }) => {
+          if (!currentUserState && label.toLowerCase() !== "support")
+            return null;
+          const matches =
+            !searchTerm ||
+            label.toLowerCase().includes(lower) ||
+            (href && href.toLowerCase().includes(lower));
+          const allowed =
+            !allowedPages ||
+            allowedPages.includes(label) ||
+            (href && allowedPages.includes(href.replace(/^\//, ""))) ||
+            (href && allowedPages.includes(href));
+          const sub = submenu ? filterLinks(submenu) : null;
+          return matches && allowed
+            ? { label, href, submenu: sub }
+            : sub && sub.length
+            ? { label, href, submenu: sub }
+            : null;
+        })
+        .filter(Boolean);
+    return filterLinks(navLinks);
+  }, [searchTerm, allowedPages, currentUserState]);
+
+  // Fade-in content on navigation
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 100); // small delay for fade
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  const renderMenuItems = (items, level = 0) =>
+    items.map(({ label, href = "", submenu }) => {
+      const isOpen = !!openMenus[href];
+      const hasSub = submenu?.length;
+      const isActive = href && pathname === href;
+      const iconClass = theme.icons?.[label];
+
+      if (hasSub) {
+        return (
+          <li
+            key={href || label}
+            className={`menu-item has-submenu ${isActive ? "active" : ""}`}
+          >
+            <button
+              className={`menu-button ${isOpen ? "open" : ""}`}
+              style={{ paddingLeft: level * 16 + 12 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSubMenu(href || label);
+              }}
+            >
+              {iconClass && <i className={`fa ${iconClass}`}></i>}
+              {!sidebarOpen ? (
+                <span className="menu-tooltip">{label}</span>
+              ) : (
+                <span className="menu-label">{label}</span>
+              )}
+              {sidebarOpen && (
+                <FaChevronRight
+                  className={`chevron ${isOpen ? "rotated" : ""}`}
+                />
+              )}
+            </button>
+            {sidebarOpen && (
+              <ul className={`submenu ${isOpen ? "expanded" : "collapsed"}`}>
+                {renderMenuItems(submenu, level + 1)}
+              </ul>
+            )}
+          </li>
+        );
+      }
+
+      return (
+        <li
+          key={href || label}
+          className={`menu-item ${isActive ? "active" : ""}`}
+        >
+          <Link
+            href={href || "#"}
+            onClick={(e) => e.stopPropagation()}
+            className={`menu-link ${level > 0 ? "submenu-link" : ""}`}
+            style={{ paddingLeft: level * 16 + 12 }}
+          >
+            {iconClass && <i className={`fa ${iconClass}`}></i>}
+            {!sidebarOpen ? (
+              <span className="menu-tooltip">{label}</span>
+            ) : (
+              <span className="menu-label">{label}</span>
+            )}
+          </Link>
+        </li>
+      );
+    });
+
+  const activeBackground =
+    theme.gradient ||
+    (theme.background
+      ? `url(${theme.background}) no-repeat center/cover`
+      : "#111");
+
+  const filteredErrors = useMemo(() => {
+    return mockErrorDatabase
+      .filter((e) => !activeTag || e.tags.includes(activeTag))
+      .filter(
+        (e) =>
+          !errorSearch ||
+          [e.code, e.desc, ...e.tags].some((t) =>
+            t.toLowerCase().includes(errorSearch.toLowerCase())
+          )
+      );
+  }, [activeTag, errorSearch]);
+
+  const getTagLabel = (key) =>
+    displayTags.find((t) => t.key === key)?.label || key;
 
   return (
-    <>
-      <style>{`
-        html, body {
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          width: 100%;
-          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-          background: #121212;
-          color: #ddd;
-        }
-        .dashboard-root {
-          position: relative;
-          min-height: 60vh;
-          width: 100vw;
-          background: #121212;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          padding: 64px 16px 16px 16px;
-          box-sizing: border-box;
-        }
-        .dashboard-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: rgba(18, 18, 18, 0.7);
-          z-index: 0;
-        }
-        .dashboard-container {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          max-width: 1280px;
-          width: 100%;
-          background-color: #181818;
-          border-radius: 16px;
-          box-shadow: 0 12px 20px rgba(0,0,0,0.8), inset 0 0 30px rgba(255,255,255,0.05);
-          overflow: hidden;
-          min-height: 100vh;
-        }
-        .sidebar {
-          background-color: #1c1c1c;
-          color: #eee;
-          display: flex;
-          flex-direction: column;
-          user-select: none;
-          transition: width 0.35s ease, padding 0.35s ease;
-          overflow: hidden;
-          box-sizing: border-box;
-          border-right: 1px solid #222;
-        }
-        .sidebar.open {
-          width: 280px;
-          padding: 12px 12px 16px 12px;
-        }
-        .sidebar.closed {
-          width: 36px;
-          padding: 8px 6px;
-        }
-        .sidebar-header {
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 12px;
-          gap: 6px;
-          cursor: pointer;
-          user-select: none;
-          outline: none;
-        }
-        .sidebar-header.closed {
-          align-items: center;
-          gap: 0;
-        }
-        .sidebar-header.open {
-          align-items: flex-start;
-          gap: 6px;
-        }
-        .sidebar-logo-row {
-          display: flex;
-          width: 100%;
-          align-items: center;
-          gap: 18px;
-        }
-        .sidebar-logo {
-          width: 32px;
-          height: 32px;
-          user-select: none;
-          pointer-events: none;
-          border-radius: 6px;
-          object-fit: contain;
-        }
-        .sidebar-title {
-          font-size: 16px;
-          font-weight: 700;
-          color: #fff;
-          user-select: none;
-          flex-grow: 1;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .sidebar-toggle-button {
-          font-size: 18px;
-          color: #66bb6a;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 6px;
-          border: none;
-          background: transparent;
-          transition: color 0.3s ease;
-          user-select: none;
-        }
-        .sidebar-toggle-button:hover {
-          color: #4caf50;
-        }
-        .sidebar-search {
-          width: 100%;
-          margin-bottom: 14px;
-          user-select: text;
-        }
-        .sidebar-search input {
-          width: 100%;
-          font-size: 14px;
-          font-weight: 600;
-          padding: 6px 10px;
-          border-radius: 8px;
-          border: none;
-          outline: none;
-          background: #2c2c2c;
-          color: #ddd;
-          user-select: text;
-          box-sizing: border-box;
-          transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .sidebar-search input::placeholder {
-          color: #999;
-        }
-        .sidebar-search input:focus {
-          background: #3a3a3a;
-          color: #fff;
-        }
-        .sidebar-menu-container {
-          flex-grow: 1;
-          overflow-y: auto;
-          user-select: none;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: #555 transparent;
-        }
-        .sidebar-menu-container::-webkit-scrollbar {
-          width: 8px;
-        }
-        .sidebar-menu-container::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .sidebar-menu-container::-webkit-scrollbar-thumb {
-          background-color: #555;
-          border-radius: 6px;
-          border: 2px solid transparent;
-          background-clip: content-box;
-        }
-        .sidebar-footer {
-          margin-top: 16px;
-          padding-top: 8px;
-          border-top: 1px solid #222;
-          font-size: 13px;
-          color: #666;
-          text-align: center;
-          user-select: none;
-        }
-        main {
-          flex-grow: 1;
-          padding: 18px 28px;
-          background-color: #222;
-          border-radius: 0 16px 16px 0;
-          color: #eee;
-          box-sizing: border-box;
-          min-height: 100vh;
-          overflow-y: auto;
-        }
-      `}</style>
-
-      <div className="dashboard-root" role="main">
-        <div aria-hidden="true" className="dashboard-overlay" />
-
-        <div
-          className="dashboard-container"
-          role="region"
-          aria-label="Main Dashboard Layout"
-        >
-          <aside
-            className={`sidebar ${sidebarOpen ? "open" : "closed"}`}
-            aria-label="Primary navigation sidebar"
+    <div className="dashboard-root">
+      <div
+        className="dashboard-background"
+        style={{ background: activeBackground }}
+      />
+      <div className="dashboard-overlay" />
+      <div className="dashboard-container">
+        <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
+          <div
+            className="sidebar-header"
+            onClick={() => setSidebarOpen((v) => !v)}
           >
-            <div
-              tabIndex={0}
-              className={`sidebar-header ${sidebarOpen ? "open" : "closed"}`}
-              onClick={() => setSidebarOpen((v) => !v)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
+            <div className="sidebar-logo-row">
+              <img alt="Logo" className="sidebar-logo" src={theme.logo} />
+              {sidebarOpen && (
+                <span className="sidebar-title">{theme.title}</span>
+              )}
+              <button
+                className="sidebar-toggle-button"
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSidebarOpen((v) => !v);
-                }
+                }}
+              >
+                <FaBars />
+              </button>
+            </div>
+          </div>
+          {sidebarOpen && (
+            <div className="sidebar-search">
+              <input
+                type="search"
+                placeholder="Search menu..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          )}
+          <nav className="sidebar-menu-container">
+            {filteredNavLinks.length > 0 ? (
+              <ul>{renderMenuItems(filteredNavLinks)}</ul>
+            ) : (
+              <p style={{ padding: "1rem", color: "#888" }}>
+                ⚠️ <strong>You must be logged in to gain permissions.</strong>
+              </p>
+            )}
+          </nav>
+          <SidebarUserInfo />
+          <footer className="sidebar-footer">
+            {currentUserState ? (
+              <button
+                className="auth-button"
+                onClick={() => {
+                  localStorage.removeItem(USER_KEY);
+                  setCurrentUserState(null);
+                }}
+              >
+                🔓 Logout (
+                {currentUserState.username || currentUserState.name || "User"})
+              </button>
+            ) : (
+              <Link href="/auth/login" className="auth-button">
+                🔒 Login
+              </Link>
+            )}
+          </footer>
+        </aside>
+
+        <main className={`main-content ${loading ? "loading" : "loaded"}`}>
+          <div className="error-search-bar">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Quickly search our documentation..."
+              value={errorSearch}
+              onChange={(e) => setErrorSearch(e.target.value)}
+            />
+          </div>
+
+          {(errorSearch || filteredErrors.length > 0) && (
+            <div
+              className="error-tag-filters"
+              style={{
+                margin: "0.5rem 0",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-              role="button"
-              aria-pressed={sidebarOpen}
-              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
-              <div className="sidebar-logo-row">
-                <img
-                  alt="Modix Logo"
-                  className="sidebar-logo"
-                  src="https://i.ibb.co/cMPwcn8/logo.png"
-                  fetchPriority="high" // ✅ correct
-                />
-                {sidebarOpen && (
-                  <span className="sidebar-title">Modix Game Panel</span>
-                )}
+              <button
+                onClick={() => setActiveTag("")}
+                className={`tag-filter-button ${
+                  activeTag === "" ? "active" : ""
+                }`}
+              >
+                All
+              </button>
+              {displayTags.map((t) => (
                 <button
-                  aria-label={
-                    sidebarOpen ? "Collapse sidebar" : "Expand sidebar"
+                  key={t.key}
+                  onClick={() =>
+                    setActiveTag((prev) => (prev === t.key ? "" : t.key))
                   }
-                  className="sidebar-toggle-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSidebarOpen((v) => !v);
-                  }}
-                  title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-                  tabIndex={-1}
+                  className={`tag-filter-button ${
+                    activeTag === t.key ? "active" : ""
+                  }`}
                 >
-                  <FaBars />
+                  {t.label}
                 </button>
+              ))}
+            </div>
+          )}
+
+          {(errorSearch || activeTag) && (
+            <div className="error-results">
+              {filteredErrors.length > 0 ? (
+                filteredErrors.map((e) => (
+                  <div
+                    key={e.code}
+                    className="error-item"
+                    onClick={() => setSelectedError(e)}
+                    style={{
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.25rem",
+                    }}
+                  >
+                    <strong>{e.code}</strong>
+                    <p>{e.desc}</p>
+                    <div
+                      className="error-tags"
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      {e.tags.map((tag) => (
+                        <span key={tag} className="error-tag">
+                          {getTagLabel(tag)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="error-item">
+                  No errors or help documentation found. If stuck, reach out to
+                  us on our discord.
+                </div>
+              )}
+            </div>
+          )}
+
+          {selectedError && (
+            <div
+              className="error-modal-overlay"
+              onClick={() => setSelectedError(null)}
+            >
+              <div className="error-modal" onClick={(e) => e.stopPropagation()}>
+                <button
+                  className="error-modal-close"
+                  onClick={() => setSelectedError(null)}
+                >
+                  <FaTimes />
+                </button>
+                <h2>⚠️ {selectedError.code}</h2>
+                <p>{selectedError.desc}</p>
+                <div className="error-tags">
+                  {selectedError.tags.map((tag) => (
+                    <span key={tag}>{getTagLabel(tag)}</span>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
 
-            {sidebarOpen && (
-              <div className="sidebar-search" role="search">
-                <input
-                  type="search"
-                  aria-label="Search navigation menu"
-                  placeholder="Search menu..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
-            )}
-
-            <nav
-              className="sidebar-menu-container"
-              aria-label="Sidebar navigation menu"
-              role="navigation"
-              tabIndex={-1}
-            >
-              {renderMenuItems(filteredNavLinks)}
-            </nav>
-
-            {sidebarOpen && <SidebarUserInfo />}
-            {sidebarOpen && (
-              <footer className="sidebar-footer" aria-hidden="true">
-                &copy; 2024 - 2025 Modix Game Panel
-              </footer>
-            )}
-          </aside>
-
-          <main>{children}</main>
-        </div>
+          <div className="content-inner">{children}</div>
+          <div className="footer-text">© Modix Game Panel. 2024 - 2025</div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }
