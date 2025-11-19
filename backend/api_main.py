@@ -141,7 +141,6 @@ app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 app.include_router(games_router, prefix="/api/games", tags=["Games"])
-
 # ---------------------------
 # Health & Port Check
 # ---------------------------

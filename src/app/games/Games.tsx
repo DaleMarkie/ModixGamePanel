@@ -474,11 +474,6 @@ export default function Games() {
                 placeholder="C:/Servers/start_server.bat"
               />
 
-              <div className="game-status operational">
-                Fully Operational — Selecting this game automatically updates
-                all pages.
-              </div>
-
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={createSession}>
                   ✅ Activate Session
