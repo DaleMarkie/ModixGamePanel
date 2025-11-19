@@ -1,215 +1,354 @@
-/* ========= GENERAL WRAPPER ========= */
-.fancy-wrapper {
-  max-width: 1200px;
-  margin: 1.5rem auto;
-  padding: 1.2rem;
+/* serversettings.css */
+
+/* General page */
+.server-settings-new {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 14px;
   color: #e0e0e0;
-  background: linear-gradient(160deg, #1b1b1b, #141414);
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+  background: #121212;
+  padding: 1rem;
 }
 
-/* ========= HEADER ========= */
-.fancy-header {
-  border-bottom: 1px solid #333;
-  padding-bottom: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.fancy-header h1 {
-  font-size: 1.3rem;
-  margin-bottom: 0.4rem;
-  font-weight: 600;
-  background: linear-gradient(90deg, #1db954, #00aaff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* search box */
-.search-input {
-  font-size: 0.9rem;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #222;
-  color: #eee;
-  width: 100%;
-  max-width: 320px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.search-input:focus {
-  border-color: #1db954;
-  outline: none;
-  box-shadow: 0 0 6px #1db95444;
-}
-
-/* ========= CATEGORY HEADER ========= */
-.category-header {
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 8px 12px;
-  background: #222;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.2rem;
-  transition: background 0.2s, transform 0.15s;
-}
-
-.category-header:hover {
-  background: #2c2c2c;
-  transform: translateY(-1px);
-}
-
-.category-header:active {
-  transform: translateY(0);
-}
-
-.arrow-icon {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2;
-  transition: transform 0.2s ease;
-}
-
-.arrow-icon.collapsed {
-  transform: rotate(-90deg);
-}
-
-/* ========= CATEGORY DESCRIPTION ========= */
-.category-desc {
-  font-size: 0.8rem;
-  color: #aaa;
-  margin: 0.3rem 0 0.6rem 4px;
-  padding-left: 4px;
-  border-left: 2px solid #333;
-}
-
-/* ========= SETTINGS ========= */
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 6px 0;
-  font-size: 0.9rem;
-  gap: 12px;
-  padding: 6px 8px;
-  border-radius: 6px;
+/* Status messages */
+.status {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-align: center;
   background: #1e1e1e;
-  transition: background 0.2s;
 }
 
-.setting-item:hover {
-  background: #262626;
+.status.message {
+  background: #1b442d;
+  color: #a3f9a3;
 }
 
-.setting-label {
-  flex: 1;
-  white-space: nowrap;
+/* Header */
+.server-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 1rem;
 }
 
-/* text/number inputs */
-.setting-item input[type="text"],
-.setting-item input[type="number"] {
-  flex: 0 0 140px;
-  padding: 4px 8px;
-  font-size: 0.85rem;
-  border-radius: 5px;
-  border: 1px solid #444;
-  background: #222;
-  color: #eee;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.setting-item input[type="text"]:focus,
-.setting-item input[type="number"]:focus {
-  border-color: #1db954;
-  outline: none;
-  box-shadow: 0 0 6px #1db95444;
-}
-
-/* checkbox */
-.setting-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #1db954;
-}
-
-/* ========= FOOTER ========= */
-.save-footer {
-  margin-top: 1.5rem;
+.header-left {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-/* Save button */
-.save-button {
-  font-size: 0.95rem;
-  padding: 7px 16px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #1db954, #18a84b);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  min-width: 130px;
-  transition: transform 0.2s, background 0.2s;
+.game-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 2px solid #444;
 }
 
-.save-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1ed760, #19b54f);
-  transform: translateY(-1px);
+.header-left h1 {
+  margin: 0;
+  font-size: 1.8rem;
 }
 
-.save-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.header-left p {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #a0a0a0;
 }
 
-.save-message {
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #1f1f1f;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #e0e0e0;
+  text-decoration: none;
   font-size: 0.85rem;
-  color: #1db954;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: #2b2b2b;
+}
+
+.wiki-btn {
+  color: #ffd600;
+  font-weight: bold;
+}
+
+/* Settings layout */
+.settings-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Right Panel */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Category card */
+.card.category-card {
+  background: #1e1e1e;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #333;
+  transition: border 0.2s;
+}
+
+.card.category-card:hover {
+  border: 1px solid #555;
+}
+
+/* Category header */
+.category-header {
+  background: #2a2a2a;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+.category-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.category-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-desc {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Setting items */
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-item span {
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
-/* ========= GAME-SPECIFIC THEMES ========= */
-
-/* Project Zomboid: gray-blue */
-.fancy-wrapper.zomboid .category-header {
-  background: #23313a;
-}
-.fancy-wrapper.zomboid .category-header:hover {
-  background: #2d3f4a;
-}
-.fancy-wrapper.zomboid .save-button {
-  background: linear-gradient(135deg, #4da6ff, #357ab8);
+.setting-item input[type="text"],
+.setting-item input[type="number"] {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.5rem;
+  color: #e0e0e0;
+  font-size: 0.9rem;
 }
 
-/* RimWorld: dusty steel */
-.fancy-wrapper.rimworld .category-header {
-  background: #2b2b32;
-}
-.fancy-wrapper.rimworld .category-header:hover {
-  background: #35353f;
-}
-.fancy-wrapper.rimworld .save-button {
-  background: linear-gradient(135deg, #9999aa, #6e6e80);
+.setting-item input[type="text"]:focus,
+.setting-item input[type="number"]:focus {
+  outline: none;
+  border-color: #ffd600;
 }
 
-/* Minecraft: green-gold */
-.fancy-wrapper.minecraft .category-header {
-  background: #24321c;
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
 }
-.fancy-wrapper.minecraft .category-header:hover {
-  background: #2d3e25;
+
+/* Optional small description below input */
+.setting-desc {
+  font-size: 0.75rem;
+  color: #888;
+  margin-left: 0.25rem;
 }
-.fancy-wrapper.minecraft .save-button {
-  background: linear-gradient(135deg, #34d058, #28a745);
+
+/* Floating save button */
+.save-floating-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #ffd600;
+  color: #121212;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.save-floating-btn:hover {
+  background: #ffea00;
+}
+
+/* Responsive tweaks */
+@media screen and (max-width: 768px) {
+  .server-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-right {
+    gap: 0.25rem;
+  }
+}
+
+/* ------------------ MOBILE RESPONSIVE SERVER SETTINGS ------------------ */
+@media screen and (max-width: 1024px) {
+  .server-settings-new {
+    padding: 0.75rem;
+  }
+
+  .server-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-left p {
+    font-size: 0.85rem;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .icon-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .game-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* Category cards stack nicely */
+  .card.category-card {
+    width: 100%;
+  }
+
+  .category-header h2 {
+    font-size: 1rem;
+  }
+
+  .category-body {
+    gap: 0.5rem;
+  }
+
+  .category-desc {
+    font-size: 0.8rem;
+  }
+
+  .setting-item span {
+    font-size: 0.9rem;
+  }
+
+  .setting-item input[type="text"],
+  .setting-item input[type="number"] {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.45rem;
+  }
+
+  .setting-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .setting-desc {
+    font-size: 0.7rem;
+  }
+
+  .save-floating-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Extra small screens (phones) */
+@media screen and (max-width: 480px) {
+  .server-header {
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.3rem;
+  }
+
+  .header-left p {
+    font-size: 0.8rem;
+  }
+
+  .game-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .category-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .category-body {
+    gap: 0.4rem;
+  }
+
+  .category-desc {
+    font-size: 0.75rem;
+  }
+
+  .setting-item span {
+    font-size: 0.85rem;
+  }
+
+  .setting-item input[type="text"],
+  .setting-item input[type="number"] {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .setting-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+
+  .setting-desc {
+    font-size: 0.65rem;
+  }
+
+  .save-floating-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
 }
