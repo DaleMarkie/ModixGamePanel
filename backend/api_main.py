@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 # Routers
 from backend.terminal_api import router as terminal_router
 from backend.API.Core.settings_api import server_settings
+from backend.games_api import router as games_router
 from backend.API.Core.games_api.projectzomboid import (
     pz_server_settings,
     PlayersBannedAPI,
@@ -139,6 +140,7 @@ app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileMan
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
+app.include_router(games_router, prefix="/api/games", tags=["Games"])
 
 # ---------------------------
 # Health & Port Check

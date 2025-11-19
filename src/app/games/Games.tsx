@@ -1,299 +1,499 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
+import {
+  FaSteam,
+  FaDiscord,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
+} from "react-icons/fa";
 import "./Games.css";
 
-type GameSpec = { label: string; ok: boolean };
-type Game = {
-  name: string;
-  icon: string;
+interface Game {
   id: string;
-  os: "linux" | "windows";
-  canHost: boolean;
-  comingSoon: boolean;
-  specs: { cpu: GameSpec; ram: GameSpec; storage: GameSpec };
-};
+  name: string;
+  image: string;
+  supported: boolean;
+  batchPath?: string;
+  description: string;
+  steamUrl?: string;
+  discordUrl?: string;
+}
 
-const gamesList: Game[] = [
-  {
-    name: "Project Zomboid",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz-linux",
-    os: "linux",
-    canHost: true,
-    comingSoon: true,
-    specs: {
-      cpu: { label: "CPU: 4+ cores", ok: true },
-      ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 5 GB", ok: true },
-    },
-  },
-  {
-    name: "Project Zomboid",
-    icon: "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/header.jpg",
-    id: "pz-windows",
-    os: "windows",
-    canHost: true,
-    comingSoon: false,
-    specs: {
-      cpu: { label: "CPU: 4+ cores", ok: true },
-      ram: { label: "RAM: 8 GB", ok: true },
-      storage: { label: "Storage: 5 GB", ok: true },
-    },
-  },
-];
+export default function Games() {
+  const [games, setGames] = useState<Game[]>([]);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [batchPath, setBatchPath] = useState("");
+  const [search, setSearch] = useState("");
 
-const formatDuration = (ms: number) => {
-  const s = Math.floor(ms / 1000) % 60;
-  const m = Math.floor(ms / 60000) % 60;
-  const h = Math.floor(ms / 3600000);
-  return `${h ? h + "h " : ""}${m ? m + "m " : ""}${s}s`;
-};
+  const [userSpecs, setUserSpecs] = useState({
+    cpuCores: 0,
+    ramGB: 0,
+    os: "",
+  });
 
-// Modal popup component
-const FilePickerModal: React.FC<{
-  visible: boolean;
-  onSelect: (fileName: string) => void;
-  onClose: () => void;
-}> = ({ visible, onSelect, onClose }) => {
-  const [fileName, setFileName] = useState("");
+  const setActiveGameNow = async (gameId: string | null) => {
+    setActiveGame(gameId);
+    if (gameId) localStorage.setItem("activeGameId", gameId);
 
-  if (!visible) return null;
+    try {
+      await fetch("/api/filemanager/active-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: gameId }),
+      });
+    } catch (err) {
+      console.error("Failed to update active game on backend", err);
+    }
+  };
 
-  const handleSelect = () => {
-    if (!fileName) return alert("Please enter batch file name");
-    onSelect(fileName);
+  useEffect(() => {
+    const cpuCores = navigator.hardwareConcurrency || 0;
+    const ramGB = navigator.deviceMemory || 0;
+    const os = navigator.platform || navigator.userAgent;
+    setUserSpecs({ cpuCores, ramGB, os });
+  }, []);
+
+  useEffect(() => {
+    const list: Game[] = [
+      {
+        id: "251570",
+        name: "7 Days to Die",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
+        supported: true,
+        description:
+          "Open-world zombie survival game with crafting, building, and RPG elements.",
+        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
+        discordUrl: "https://discord.com/invite/7daystodie",
+      },
+      {
+        id: "1909850",
+        name: "Arma Reforger",
+        image:
+          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1874880/capsule_616x353.jpg?t=1762168272",
+        supported: true,
+        description:
+          "Modern military sandbox game — host your own dedicated servers and experience tactical multiplayer.",
+        steamUrl: "https://store.steampowered.com/app/1909850/Arma_Reforger/",
+        discordUrl: "https://discord.gg/arma",
+      },
+      {
+        id: "107410",
+        name: "Arma 3",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
+        supported: true,
+        description:
+          "Military tactical shooter focused on realism and large-scale combat.",
+        steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
+        discordUrl: "https://discord.gg/arma",
+      },
+      {
+        id: "346110",
+        name: "ARK: Survival Evolved",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
+        supported: true,
+        description:
+          "Dinosaur survival game with building, crafting, and extensive modding support.",
+        steamUrl:
+          "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
+        discordUrl: "https://discord.com/invite/ark",
+      },
+      {
+        id: "440900",
+        name: "Conan Exiles",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/440900/header.jpg",
+        supported: true,
+        description:
+          "Survival game with building, crafting, and modding support.",
+        steamUrl: "https://store.steampowered.com/app/440900/Conan_Exiles/",
+        discordUrl: "https://discord.com/invite/conanexiles",
+      },
+      {
+        id: "221100",
+        name: "DayZ",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
+        supported: true,
+        description: "Survive in a deadly post-apocalyptic world.",
+        steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
+        discordUrl: "https://discord.com/invite/dayz",
+      },
+      {
+        id: "325980",
+        name: "The Isle",
+        image:
+          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/376210/header.jpg?t=1653237914",
+        supported: true,
+        description: "Multiplayer dinosaur survival game in an open world.",
+        steamUrl: "https://store.steampowered.com/app/325980/The_Isle/",
+        discordUrl: "https://discord.gg/theisle",
+      },
+      {
+        id: "275850",
+        name: "No Man's Sky",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg",
+        supported: true,
+        description:
+          "Exploration and survival in a procedurally generated universe.",
+        steamUrl: "https://store.steampowered.com/app/275850/No_Mans_Sky/",
+        discordUrl: "https://discord.com/invite/nomanssky",
+      },
+      {
+        id: "minecraft",
+        name: "Minecraft",
+        image:
+          "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
+        supported: true,
+        description: "Sandbox game about building, exploration, and survival.",
+        steamUrl: "https://www.minecraft.net/",
+        discordUrl: "https://discord.gg/minecraft",
+      },
+      {
+        id: "294100",
+        name: "RimWorld",
+        image: "https://wallpapercave.com/wp/wp3935722.png",
+        supported: true,
+        description:
+          "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
+        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
+        discordUrl: "https://discord.com/invite/rimworld",
+      },
+      {
+        id: "252490",
+        name: "Rust",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+        supported: true,
+        description:
+          "Survival multiplayer game with crafting, building, and PvP elements.",
+        steamUrl: "https://store.steampowered.com/app/252490/Rust/",
+        discordUrl: "https://discord.com/invite/playrust",
+      },
+      {
+        id: "526870",
+        name: "Satisfactory",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/526870/header.jpg",
+        supported: true,
+        description: "Factory-building multiplayer game with mod support.",
+        steamUrl: "https://store.steampowered.com/app/526870/Satisfactory/",
+        discordUrl: "https://discord.com/invite/satisfactory",
+      },
+      {
+        id: "513710",
+        name: "SCUM",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/513710/header.jpg",
+        supported: true,
+        description: "Hardcore survival multiplayer game.",
+        steamUrl: "https://store.steampowered.com/app/513710/SCUM/",
+        discordUrl: "https://discord.com/invite/scum",
+      },
+      {
+        id: "393380",
+        name: "Squad",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/393380/header.jpg",
+        supported: true,
+        description:
+          "Team-based military shooter emphasizing realism and cooperation.",
+        steamUrl: "https://store.steampowered.com/app/393380/Squad/",
+        discordUrl: "https://discord.gg/squad",
+      },
+      {
+        id: "244850",
+        name: "Space Engineers",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/244850/header.jpg",
+        supported: true,
+        description:
+          "Sandbox game about engineering, construction, exploration, and survival in space and planets.",
+        steamUrl: "https://store.steampowered.com/app/244850/Space_Engineers/",
+        discordUrl: "https://discord.gg/spaceengineers",
+      },
+      {
+        id: "108600",
+        name: "Project Zomboid",
+        image:
+          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+        supported: true,
+        description:
+          "Ultimate zombie survival — manage your own apocalyptic world with friends.",
+        steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
+        discordUrl: "https://discord.com/invite/theindiestone",
+      },
+      {
+        id: "892970",
+        name: "Valheim",
+        image:
+          "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
+        supported: true,
+        description:
+          "Viking-themed survival and exploration game in a procedurally-generated world.",
+        steamUrl: "https://store.steampowered.com/app/892970/Valheim/",
+        discordUrl: "https://discord.gg/valheim",
+      },
+    ];
+
+    const saved = localStorage.getItem("gamesPaths");
+    const activeId = localStorage.getItem("activeGameId");
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const merged = list.map((g) => {
+        const savedGame = parsed.find((sg: Game) => sg.id === g.id);
+        return savedGame ? { ...g, batchPath: savedGame.batchPath } : g;
+      });
+      setGames(merged);
+
+      if (activeId) setActiveGame(activeId);
+      else {
+        const firstWithPath = merged.find((g) => g.batchPath);
+        if (firstWithPath) setActiveGame(firstWithPath.id);
+      }
+    } else {
+      setGames(list);
+      if (activeId) setActiveGame(activeId);
+    }
+  }, []);
+
+  // Cleaned filteredGames: only search + active game sorting
+  const filteredGames = games
+    .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (a.id === activeGame) return -1;
+      if (b.id === activeGame) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const openModal = (game: Game) => {
+    if (!game.supported) return;
+    setSelectedGame(game);
+    setBatchPath(game.batchPath || "");
+    setShowModal(true);
+    setActiveGameNow(game.id);
+  };
+
+  const createSession = () => {
+    if (!batchPath.trim()) return alert("Please provide the batch file path!");
+    const updated = games.map((g) =>
+      g.id === selectedGame?.id ? { ...g, batchPath } : g
+    );
+    setGames(updated);
+    localStorage.setItem("gamesPaths", JSON.stringify(updated));
+    setActiveGameNow(selectedGame?.id || null);
+    setShowModal(false);
+    alert(`Session for ${selectedGame?.name} created!`);
+  };
+
+  const checkRequirement = (label: string) => {
+    switch (label) {
+      case "CPU":
+        return userSpecs.cpuCores >= 4;
+      case "RAM":
+        return userSpecs.ramGB >= 8;
+      case "OS":
+        return userSpecs.os.toLowerCase().includes("win");
+      default:
+        return null;
+    }
+  };
+
+  const requirementPercent = (label: string) => {
+    switch (label) {
+      case "CPU":
+        return Math.min((userSpecs.cpuCores / 8) * 100, 100);
+      case "RAM":
+        return Math.min((userSpecs.ramGB / 16) * 100, 100);
+      default:
+        return 0;
+    }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Select Project Zomboid Batch File</h2>
-        <p>Enter the filename of your `.bat` file to start the server:</p>
+    <div className="games-page">
+      <div className="games-header">
+        <h1>🎮 Supported Games</h1>
+        <p className="subtitle">
+          Select a game below to manage and launch your dedicated server.
+        </p>
+
         <input
           type="text"
-          placeholder="e.g. start-pz-server.bat"
-          value={fileName}
-          onChange={(e) => setFileName(e.target.value)}
+          placeholder="Search games..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="search-input"
         />
-        <div className="modal-buttons">
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="confirm-btn" onClick={handleSelect}>
-            Start Server
-          </button>
-        </div>
       </div>
-    </div>
-  );
-};
 
-const GameBanner: React.FC<{
-  game: Game;
-  onSelect: (game: Game) => void;
-  onStop: (game: Game) => void;
-  activeGame: string | null;
-  status: string;
-  loading: boolean;
-  uptime: number;
-}> = ({ game, onSelect, onStop, activeGame, status, loading, uptime }) => {
-  const isActive = activeGame === game.id;
-  const anotherRunning = activeGame && !isActive;
-
-  return (
-    <div
-      className={`game-banner ${anotherRunning ? "disabled" : ""} ${
-        isActive ? "active" : ""
-      }`}
-    >
-      {/* Using Next.js Image for optimization */}
-      <Image
-        src={game.icon}
-        alt={game.name}
-        width={200}
-        height={100}
-        className="game-icon"
-      />
-      <div className="banner-overlay">
-        <h3>
-          {game.name} ({game.os.toUpperCase()})
-          {game.comingSoon && (
-            <span className="coming-soon">🚧 Coming Soon</span>
-          )}
-          {isActive && !game.comingSoon && (
-            <span className={`status-badge ${status}`}>
-              {status === "running"
-                ? `🟢 Running (${formatDuration(uptime)})`
-                : "🔴 Stopped"}
-            </span>
-          )}
-        </h3>
-
-        <div className="requirements always-visible">
-          <h4>Server Requirements</h4>
-          {Object.values(game.specs).map((spec, i) => (
-            <span key={i} className={`tag ${spec.ok ? "ok" : "fail"}`}>
-              {spec.label} {spec.ok ? "✅" : "❌"}
-            </span>
-          ))}
-        </div>
-
-        {!isActive ? (
-          <button
-            disabled={loading || anotherRunning || game.comingSoon}
-            className="host-btn start"
-            onClick={() => onSelect(game)}
+      <div className="games-grid">
+        {filteredGames.map((game) => (
+          <div
+            key={game.id}
+            className={`game-card ${!game.supported ? "coming-soon" : ""}`}
           >
-            {loading ? "⏳ Starting..." : "➕ Start Server"}
-          </button>
-        ) : (
-          <div className="server-actions">
-            <button
-              disabled={loading}
-              className="stop-btn stop"
-              onClick={() => onStop(game)}
-            >
-              {loading ? "⏳ Stopping..." : "🛑 Stop Server"}
-            </button>
-            {status === "running" && (
-              <button
-                className="terminal-btn"
-                onClick={() => (window.location.href = "/terminal")}
-              >
-                🖥️ View Terminal
-              </button>
-            )}
+            <div className="game-thumb">
+              <img src={game.image} alt={game.name} />
+              <div className="overlay">
+                {game.supported ? (
+                  <button
+                    className={`launch-btn ${
+                      activeGame === game.id ? "active" : ""
+                    }`}
+                    onClick={() => openModal(game)}
+                  >
+                    {activeGame === game.id
+                      ? "🟢 Active Game"
+                      : "🚀 Make Active"}
+                  </button>
+                ) : (
+                  <span className="coming-soon-text">⏳ Coming Soon</span>
+                )}
+              </div>
+            </div>
+
+            <div className="game-details">
+              <h3>{game.name}</h3>
+              <p>{game.description}</p>
+
+              <div className="game-buttons">
+                {game.steamUrl && (
+                  <a
+                    href={game.steamUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="steam-btn"
+                  >
+                    <FaSteam /> Steam
+                  </a>
+                )}
+
+                {game.discordUrl && (
+                  <a
+                    href={game.discordUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="discord-btn"
+                  >
+                    <FaDiscord /> Discord
+                  </a>
+                )}
+              </div>
+
+              {activeGame === game.id && (
+                <span className="active-badge">Active Session</span>
+              )}
+            </div>
           </div>
-        )}
+        ))}
       </div>
+
+      {showModal && selectedGame && (
+        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-left">
+              <img src={selectedGame.image} alt={selectedGame.name} />
+            </div>
+
+            <div className="modal-right modal-scrollbox">
+              <h3>{selectedGame.name}</h3>
+              <p className="req-title">Minimum Requirements</p>
+
+              <div className="requirements-container">
+                {[
+                  { label: "CPU", required: 4, unit: "cores" },
+                  { label: "RAM", required: 8, unit: "GB" },
+                  { label: "Disk", required: 5, unit: "GB" },
+                  { label: "OS", required: "Windows 10+", unit: "" },
+                ].map((req) => {
+                  const met = checkRequirement(req.label);
+                  const reason =
+                    req.label === "CPU"
+                      ? `You have ${userSpecs.cpuCores} cores — at least ${req.required} are required.`
+                      : req.label === "RAM"
+                      ? `You have ${userSpecs.ramGB}GB — at least ${req.required}GB is required.`
+                      : req.label === "OS"
+                      ? `Your OS is detected as "${userSpecs.os}" — Windows 10 or newer is required.`
+                      : `Cannot detect disk, but ${req.required}GB free is needed.`;
+
+                  return (
+                    <div key={req.label} className="requirement">
+                      <div className="req-header">
+                        <span>{req.label}</span>
+                        {req.label !== "Disk" ? (
+                          <span
+                            className={`status-icon ${met ? "met" : "unmet"}`}
+                          >
+                            {met ? (
+                              <FaCheckCircle color="limegreen" />
+                            ) : (
+                              <FaTimesCircle color="red" />
+                            )}
+                          </span>
+                        ) : (
+                          <FaInfoCircle color="gray" />
+                        )}
+                      </div>
+
+                      {req.label !== "OS" && req.label !== "Disk" && (
+                        <div className="progress-bar">
+                          <div
+                            className={`progress-fill ${met ? "met" : "unmet"}`}
+                            style={{
+                              width: `${requirementPercent(req.label)}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      <div className="req-details">
+                        Required: {req.required} {req.unit}
+                      </div>
+
+                      {!met && <p className="req-warning">⚠ {reason}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <label>Batch file path:</label>
+              <input
+                type="text"
+                value={batchPath}
+                onChange={(e) => setBatchPath(e.target.value)}
+                className="input-field"
+                placeholder="C:/Servers/start_server.bat"
+              />
+
+              <div className="game-status operational">
+                Fully Operational — Selecting this game automatically updates
+                all pages.
+              </div>
+
+              <div className="modal-actions">
+                <button className="confirm-btn" onClick={createSession}>
+                  ✅ Activate Session
+                </button>
+                <button
+                  className="cancel-btn"
+                  onClick={() => setShowModal(false)}
+                >
+                  ✖ Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-const Games: React.FC = () => {
-  const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [status, setStatus] = useState("stopped");
-  const [loading, setLoading] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [uptime, setUptime] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [pendingGame, setPendingGame] = useState<Game | null>(null);
-
-  useEffect(() => {
-    const storedGame = localStorage.getItem("selectedGame");
-    const storedTime = localStorage.getItem("serverStartTime");
-    if (storedGame) setActiveGame(storedGame);
-    if (storedTime) setStartTime(Number(storedTime));
-  }, []);
-
-  useEffect(() => {
-    if (status === "running" && startTime) {
-      const interval = setInterval(
-        () => setUptime(Date.now() - startTime),
-        1000
-      );
-      return () => clearInterval(interval);
-    }
-  }, [status, startTime]);
-
-  const startServer = useCallback(
-    async (game: Game) => {
-      if (activeGame && activeGame !== game.id) return;
-      setPendingGame(game);
-      setShowModal(true);
-    },
-    [activeGame]
-  );
-
-  const confirmStart = async (batchFileName: string) => {
-    if (!pendingGame) return;
-    setLoading(true);
-    setShowModal(false);
-
-    try {
-      const res = await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/start-server",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchFile: batchFileName }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to start server");
-      setStatus("running");
-      const now = Date.now();
-      setStartTime(now);
-      localStorage.setItem("selectedGame", pendingGame.id);
-      localStorage.setItem("serverStartTime", now.toString());
-      setActiveGame(pendingGame.id);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to start server. Check backend logs.");
-    } finally {
-      setLoading(false);
-      setPendingGame(null);
-    }
-  };
-
-  const stopServer = useCallback(async () => {
-    setLoading(true);
-    try {
-      await fetch(
-        "/api/terminal/projectzomboid/pz-windows/windows/stop-server",
-        {
-          method: "POST",
-        }
-      );
-      setStatus("stopped");
-      setActiveGame(null);
-      setStartTime(null);
-      localStorage.removeItem("selectedGame");
-      localStorage.removeItem("serverStartTime");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to stop server. Check backend logs.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return (
-    <main className="games-hosting-page">
-      <header className="page-header fancy">
-        <h1 className="page-title">🚀 My Servers</h1>
-        <p className="page-description">
-          Start/stop Project Zomboid servers. Only one server runs at a time.
-        </p>
-      </header>
-
-      <section className="category">
-        <h2>Project Zomboid</h2>
-        <div className="game-banner-list">
-          {gamesList.map((game) => (
-            <GameBanner
-              key={game.id}
-              game={game}
-              onSelect={startServer}
-              onStop={stopServer}
-              activeGame={activeGame}
-              status={status}
-              loading={loading}
-              uptime={uptime}
-            />
-          ))}
-        </div>
-      </section>
-
-      <FilePickerModal
-        visible={showModal}
-        onSelect={confirmStart}
-        onClose={() => setShowModal(false)}
-      />
-    </main>
-  );
-};
-
-export default Games;
+}
