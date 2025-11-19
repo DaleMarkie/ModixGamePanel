@@ -28,6 +28,10 @@ interface ModalTarget {
   path?: string;
 }
 
+interface WorkshopFileManagerProps {
+  activeGameId: string; // ID of the active game selected from the Games page
+}
+
 const ActionModal: React.FC<{
   visible: boolean;
   onClose: () => void;
@@ -71,7 +75,9 @@ const getFileIcon = (name: string) =>
     ? "🗂️"
     : "📃";
 
-export default function WorkshopFileManager() {
+export default function WorkshopFileManager({
+  activeGameId,
+}: WorkshopFileManagerProps) {
   const [mods, setMods] = useState<Mod[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -100,11 +106,16 @@ export default function WorkshopFileManager() {
     localStorage.setItem("colorsState", JSON.stringify(colors));
   }, [colors]);
 
+  // Fetch mods based on active game
   const fetchMods = async () => {
+    if (!activeGameId) return;
     try {
-      const res = await axios.get("/api/filemanager/workshop-mods");
+      const res = await axios.get("/api/filemanager/workshop-mods", {
+        params: { appId: activeGameId }, // use activeGameId
+      });
       const fetched: Mod[] = res.data.mods || [];
       setMods(fetched);
+
       const init: Record<string, boolean> = { ...collapsed };
       const mark = (items: FileItem[]) =>
         items.forEach((i) => {
@@ -119,9 +130,11 @@ export default function WorkshopFileManager() {
       alert("Failed to fetch mods.");
     }
   };
+
+  // Refetch mods whenever the active game changes
   useEffect(() => {
     fetchMods();
-  }, []);
+  }, [activeGameId]);
 
   const toggle = (path: string) =>
     setCollapsed((p) => ({ ...p, [path]: !p[path] }));
@@ -218,6 +231,7 @@ export default function WorkshopFileManager() {
       alert("Failed to delete.");
     }
   };
+
   const moveItem = async (path: string) => {
     const newName = prompt("New name or path:");
     if (!newName) return;
@@ -414,7 +428,7 @@ export default function WorkshopFileManager() {
           <button onClick={() => expandCollapseAll(false)}>Collapse All</button>
           <button
             onClick={() => {
-              const id = prompt("Mod ID:");
+              const id = activeGameId;
               if (id) createItem(id, undefined, true);
             }}
           >
@@ -441,8 +455,7 @@ export default function WorkshopFileManager() {
                     </button>
                     <button
                       onClick={() => {
-                        const n = prompt("Folder name:");
-                        if (n) createItem(mod.modId, undefined, true);
+                        createItem(mod.modId, undefined, true);
                       }}
                     >
                       ＋ Folder
