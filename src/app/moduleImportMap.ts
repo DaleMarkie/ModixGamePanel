@@ -20,7 +20,7 @@ export const importMap: Record<string, ModuleImportFn> = {
     import("../../module_system/Core/TestModule/frontend/page.tsx"),
 
   // Workshop is now fully in src/app/Workshop
-  "Workshop/frontend/page.tsx": () => import("./Workshop/page"),
+  "Workshop/frontend/page.tsx": () => import("./workshop/page.tsx"),
 
   "Optional/Backup/Frontend/page.tsx": () =>
     import("../../module_system/Optional/Backup/Frontend/page.tsx"),
