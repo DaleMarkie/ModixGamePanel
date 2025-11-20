@@ -9,7 +9,7 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 
-export default function CommitStatusUnderLogin({ localCommit = "e2f03cf" }) {
+export default function CommitStatusUnderLogin({ localCommit = "34d5f95" }) {
   const [latestCommit, setLatestCommit] = useState("");
   const [commitsBehind, setCommitsBehind] = useState(0);
   const [fullyUpdated, setFullyUpdated] = useState(false);
