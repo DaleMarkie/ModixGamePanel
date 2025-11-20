@@ -9,7 +9,7 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 
-export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
+export default function CommitStatusUnderLogin({ localCommit = "e2f03cf" }) {
   const [latestCommit, setLatestCommit] = useState("");
   const [commitsBehind, setCommitsBehind] = useState(0);
   const [fullyUpdated, setFullyUpdated] = useState(false);
@@ -17,7 +17,7 @@ export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
   const [error, setError] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
 
-  const fetchLatestCommit = async () => {
+  const fetchCommitInfo = async () => {
     setLoading(true);
     setError(false);
     try {
@@ -27,18 +27,23 @@ export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
       );
       const latestData = await latestRes.json();
       const latestSHA = latestData.sha?.substring(0, 7);
-      if (!latestSHA) throw new Error("No SHA found");
-
+      if (!latestSHA) throw new Error("No latest SHA found");
       setLatestCommit(latestSHA);
+
+      // Check fully updated
       setFullyUpdated(localCommit === latestSHA);
 
-      // Compare local commit to latest
+      // Compare to see how many behind
       if (localCommit !== latestSHA) {
-        const compareRes = await fetch(
-          `https://api.github.com/repos/DaleMarkie/ModixGamePanel/compare/${localCommit}...${latestSHA}`
-        );
-        const compareData = await compareRes.json();
-        setCommitsBehind(compareData.behind_by || 0);
+        try {
+          const compareRes = await fetch(
+            `https://api.github.com/repos/DaleMarkie/ModixGamePanel/compare/${localCommit}...${latestSHA}`
+          );
+          const compareData = await compareRes.json();
+          setCommitsBehind(compareData.behind_by ?? -1);
+        } catch {
+          setCommitsBehind(-1);
+        }
       } else {
         setCommitsBehind(0);
       }
@@ -50,8 +55,8 @@ export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
   };
 
   useEffect(() => {
-    fetchLatestCommit();
-    const interval = setInterval(fetchLatestCommit, 60000);
+    fetchCommitInfo();
+    const interval = setInterval(fetchCommitInfo, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -85,20 +90,42 @@ export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span
               style={{
-                color: fullyUpdated ? "#4cafef" : "#ffb74d",
                 display: "flex",
                 alignItems: "center",
-                gap: "2px",
+                gap: "4px",
               }}
             >
               {fullyUpdated ? (
-                <>
+                <span
+                  style={{
+                    backgroundColor: "#4cafef",
+                    color: "#fff",
+                    padding: "2px 6px",
+                    borderRadius: "12px",
+                    fontSize: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "2px",
+                  }}
+                >
                   <FaCheckCircle /> Up-to-date
-                </>
+                </span>
               ) : (
-                <>
-                  <FaExclamationTriangle /> {commitsBehind} behind
-                </>
+                <span
+                  style={{
+                    backgroundColor: "#ffb74d",
+                    color: "#000",
+                    padding: "2px 6px",
+                    borderRadius: "12px",
+                    fontSize: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "2px",
+                  }}
+                >
+                  <FaExclamationTriangle />{" "}
+                  {commitsBehind > 0 ? `${commitsBehind} behind` : "Outdated"}
+                </span>
               )}
             </span>
             {collapsed ? (
@@ -150,6 +177,8 @@ export default function CommitStatusUnderLogin({ localCommit = "09d0bf" }) {
             <strong>Status:</strong>{" "}
             {fullyUpdated
               ? "Fully Updated"
+              : commitsBehind === -1
+              ? "Unknown (local commit not in remote)"
               : `${commitsBehind} commit(s) behind`}
           </div>
         </div>
