@@ -1,0 +1,51 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import "./SidebarUserInfo.css"; // Make sure this file exists
+
+export default function SidebarUserInfo() {
+  const [latestCommit, setLatestCommit] = useState("loading...");
+  const [currentCommit, setCurrentCommit] = useState("loading...");
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+
+  const fetchCommitStatus = async () => {
+    try {
+      const res = await fetch("/api/sidebar/latest-commit");
+      if (!res.ok) throw new Error("Failed to fetch commit info");
+      const data = await res.json();
+      setLatestCommit(data.latest_commit || "unknown");
+      setCurrentCommit(data.current_commit || "unknown");
+      setUpdateAvailable(data.update_available || false);
+    } catch (err) {
+      console.error(err);
+      setLatestCommit("error");
+      setCurrentCommit("error");
+      setUpdateAvailable(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommitStatus();
+    const interval = setInterval(fetchCommitStatus, 5 * 60 * 1000); // refresh every 5 min
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="sidebar-user-info">
+      <div className="commit-info">
+        <div>
+          <span className="label">Current Commit:</span>{" "}
+          <span className="value">{currentCommit}</span>
+        </div>
+        <div>
+          <span className="label">Latest Commit:</span>{" "}
+          <span className="value">{latestCommit}</span>
+        </div>
+        {updateAvailable && (
+          <div className="update-warning">
+            ⚠️ Update available! Your panel is outdated.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

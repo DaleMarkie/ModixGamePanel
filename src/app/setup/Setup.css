@@ -1,0 +1,126 @@
+/* Inputs */
+input {
+  background: #121212;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+  border-color: #067a42;
+  box-shadow: 0 0 6px rgba(6, 122, 66, 0.5);
+  outline: none;
+}
+
+/* Buttons */
+button {
+  background-color: #055d32;
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
+  border-radius: 12px;
+}
+
+button:hover {
+  background-color: #067a42;
+  box-shadow: 0 6px 22px rgba(6, 122, 66, 0.4);
+  transform: translateY(-2px);
+}
+
+button:active {
+  background-color: #05512c;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+button:disabled {
+  background-color: #033d25;
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* License boxes */
+.license-container {
+  margin-top: 1rem;
+}
+
+.license-options {
+  display: flex;
+  gap: 1rem;
+}
+
+.license-box {
+  flex: 1;
+  background: #1e1e1e;
+  border: 2px solid #333;
+  padding: 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: border 0.2s, background 0.2s, transform 0.15s;
+}
+
+.license-box h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #fff;
+}
+
+.license-box p {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.license-box:hover {
+  border-color: #067a42;
+  background-color: #222;
+  transform: translateY(-2px);
+}
+
+.license-box.active {
+  border-color: #067a42;
+  background-color: #055d32;
+  color: #fff;
+}
+
+.license-box.active p {
+  color: #e0e0e0;
+}
+
+/* Disabled license box */
+.license-box.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  border-color: #444;
+  background-color: #1b1b1b;
+}
+
+/* Labels */
+.license-label {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* Specific colors */
+.license-label.license-free {
+  color: #00ff7f; /* green for Free */
+  background-color: #003300;
+}
+
+.license-label.license-pro {
+  color: #ff5555; /* red for Pro */
+  background-color: #330000;
+}

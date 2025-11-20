@@ -31,6 +31,7 @@ from backend.discord_api import router as discord_router
 from backend.API.Core.auth import auth_router
 from backend.games_api import router as games_router
 from backend.API.Core.settings_api import server_settings
+from backend.sidebar_api import router as sidebar_router
 
 # ---------------------------
 # FastAPI App
@@ -143,6 +144,7 @@ app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 app.include_router(games_router, prefix="/api/games", tags=["Games"])
 app.include_router(server_settings.router, prefix="/api/server_settings")
+app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
 # ---------------------------
 # Health & Port Check
 # ---------------------------
