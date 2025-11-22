@@ -21,34 +21,25 @@ const WelcomePopup = ({ username, logs = [], onClose }: WelcomePopupProps) => {
 
         <section className="welcome-popup-body">
           <p className="intro-text">
-            <strong className="brand">Modix</strong> is an evolving project that’s{" "}
-            <span className="highlight">actively being developed</span> by{" "}
-            <span className="team">OV3RLORD</span> &{" "}
+            <strong className="brand">Modix</strong> is an evolving project
+            that’s <span className="highlight">actively being developed</span>{" "}
+            by <span className="team">OV3RLORD</span> &{" "}
             <span className="team">GameSmithOnline</span>.
           </p>
 
           <p className="intro-subtext">
-            Our goal is simple — to build the <span className="highlight">perfect game panel</span>:
-            sleek, powerful, and made for <span className="pz-highlight">Project Zomboid</span>, with
-            future support planned for other titles.
+            Our goal is simple — to build the{" "}
+            <span className="highlight">perfect game panel</span>: sleek,
+            powerful, and made for{" "}
+            <span className="pz-highlight">Project Zomboid</span>, with future
+            support planned for other titles.
           </p>
 
           <div className="update-info">
             <p>
-              🧩 We’re constantly improving Modix — fixing bugs, optimizing systems, and adding
-              new features that make managing your server smoother than ever.
-            </p>
-            <p>
-              You can always check out the latest progress on the{" "}
-              <a
-                href="https://5mllc2-3000.csb.app/server/updater"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="changelog-link"
-              >
-                📜 Change Logs
-              </a>{" "}
-              page.
+              🧩 We’re constantly improving Modix byfixing bugs, optimizing
+              systems, and adding new features that make managing your server
+              smoother than ever.
             </p>
           </div>
 
@@ -67,7 +58,9 @@ const WelcomePopup = ({ username, logs = [], onClose }: WelcomePopupProps) => {
               </ul>
             </>
           ) : (
-            <p className="no-logs">By using Modix: Game Panel you agree to the terms of use.</p>
+            <p className="no-logs">
+              By using Modix: Game Panel you agree to the terms of use.
+            </p>
           )}
         </section>
 
