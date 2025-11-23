@@ -9,7 +9,6 @@ export interface SubUser {
   username: string;
   email?: string;
   role: "Owner" | "Admin" | "SubUser";
-  status: "active" | "suspended" | "banned";
   source: "server" | "local";
   password?: string;
   pages?: string[];
@@ -24,141 +23,6 @@ const Users = () => {
   const [editingUser, setEditingUser] = useState<SubUser | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const currentUser: SubUser | null = (() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  })();
-
-  const isOwner = currentUser?.role === "Owner";
-
-  const fetchSubUsers = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("modix_token");
-
-      let serverUsers: SubUser[] = [];
-      try {
-        const res = await fetch(`${getServerUrl()}/api/subusers`, {
-          headers: { Authorization: token || "" },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            serverUsers = (data.subUsers || []).map((u: any) => ({
-              id: u.username,
-              username: u.username,
-              email: u.email,
-              role: u.account_type || "SubUser",
-              status: u.active ? "active" : "suspended",
-              source: "server" as const,
-              pages: u.pages || [],
-            }));
-          }
-        }
-      } catch {}
-
-      let localUsers: SubUser[] = [];
-      try {
-        const savedUsers = JSON.parse(
-          localStorage.getItem(LOCAL_USERS_KEY) || "[]"
-        );
-        localUsers = savedUsers.map((u: any) => ({
-          id: u.username,
-          username: u.username,
-          email: u.email,
-          role: u.role || "SubUser",
-          status: u.status || "active",
-          source: "local",
-          password: u.password,
-          pages: u.pages || [],
-        }));
-      } catch {}
-
-      setSubUsers([...serverUsers, ...localUsers]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubUsers();
-  }, []);
-
-  const openEditModal = (user: SubUser) => {
-    setEditingUser({ ...user });
-    setModalOpen(true);
-  };
-
-  const saveEdit = async () => {
-    if (!editingUser) return;
-
-    // Local user save
-    if (editingUser.source === "local") {
-      if (!isOwner && editingUser.role === "Owner") {
-        alert("Only the Owner can assign Owner role.");
-        return;
-      }
-
-      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
-      if (editingUser.id) {
-        users = users.map((u: any) =>
-          u.username === editingUser.id ? { ...u, ...editingUser } : u
-        );
-      } else {
-        users.push({ ...editingUser, id: editingUser.username });
-      }
-      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
-      setSubUsers(users);
-
-      // Sync pages to backend if Owner
-      if (isOwner) {
-        try {
-          await fetch(`${getServerUrl()}/api/update_pages`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              target_username: editingUser.username,
-              pages: editingUser.pages || [],
-              requester: currentUser?.username,
-            }),
-          });
-        } catch (err) {
-          console.error("Failed to update pages on backend:", err);
-        }
-      }
-
-      setModalOpen(false);
-      setEditingUser(null);
-    } else {
-      alert("Server users must be edited via backend.");
-    }
-  };
-
-  const deleteUser = (user: SubUser) => {
-    if (!window.confirm(`Delete user ${user.username}?`)) return;
-    if (user.source === "local") {
-      if (!isOwner && user.role === "Owner") {
-        alert("Only the Owner can delete another Owner.");
-        return;
-      }
-      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
-      users = users.filter((u: any) => u.username !== user.id);
-      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
-      setSubUsers(users);
-    } else {
-      alert("Server users must be deleted via backend.");
-    }
-  };
-
-  if (loading) return <div>Loading users...</div>;
-
-  // ✅ Full list of all pages in Modix
   const allPages = [
     "Dashboard",
     "AllPlayers",
@@ -194,8 +58,160 @@ const Users = () => {
     "EmbededMessages",
   ];
 
+  // ✅ Current user
+  const currentUser: SubUser | null = (() => {
+    try {
+      const stored = localStorage.getItem(USER_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const isOwner = currentUser?.role === "Owner";
+
+  const fetchSubUsers = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("modix_token");
+
+      // --- Server Users ---
+      let serverUsers: SubUser[] = [];
+      try {
+        const res = await fetch(`${getServerUrl()}/api/subusers`, {
+          headers: { Authorization: token || "" },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            serverUsers = (data.subUsers || []).map((u: any) => ({
+              id: u.username,
+              username: u.username,
+              email: u.email,
+              role: u.account_type || "SubUser",
+              source: "server" as const,
+              pages: u.pages || [],
+            }));
+          }
+        }
+      } catch {}
+
+      // --- Local Users ---
+      let localUsers: SubUser[] = [];
+      try {
+        const savedUsers = JSON.parse(
+          localStorage.getItem(LOCAL_USERS_KEY) || "[]"
+        );
+        localUsers = savedUsers.map((u: any) => {
+          let pages = u.pages;
+          if (!pages || pages.length === 0) {
+            // Owners and Admins get all pages
+            pages =
+              u.role === "Owner" || u.role === "Admin"
+                ? allPages
+                : ["Dashboard", "MyAccount"];
+          }
+          return {
+            id: u.username,
+            username: u.username,
+            email: u.email,
+            role: u.role || "SubUser",
+            source: "local",
+            password: u.password,
+            pages,
+          };
+        });
+        localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(localUsers));
+      } catch {}
+
+      setSubUsers([...serverUsers, ...localUsers]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubUsers();
+  }, []);
+
+  const openEditModal = (user: SubUser) => {
+    setEditingUser({ ...user });
+    setModalOpen(true);
+  };
+
+  const saveEdit = () => {
+    if (!editingUser) return;
+
+    if (!isOwner) {
+      alert("Only the Owner can save user settings.");
+      return;
+    }
+
+    if (editingUser.source === "local") {
+      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
+
+      if (editingUser.id) {
+        // Update existing
+        users = users.map((u: any) =>
+          u.username === editingUser.id ? { ...u, ...editingUser } : u
+        );
+      } else {
+        // Add new user
+        const defaultPages =
+          editingUser.role === "Owner" || editingUser.role === "Admin"
+            ? allPages
+            : ["Dashboard", "MyAccount"];
+        users.push({
+          ...editingUser,
+          id: editingUser.username,
+          pages: defaultPages,
+        });
+      }
+
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+      setSubUsers(users);
+
+      setModalOpen(false);
+      setEditingUser(null);
+    } else {
+      alert("Server users must be edited via backend.");
+    }
+  };
+
+  const deleteUser = (user: SubUser) => {
+    if (!window.confirm(`Delete user ${user.username}?`)) return;
+
+    if (!isOwner) {
+      alert("Only the Owner can delete users.");
+      return;
+    }
+
+    if (user.source === "local") {
+      let users = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || "[]");
+      users = users.filter((u: any) => u.username !== user.id);
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+      setSubUsers(users);
+    } else {
+      alert("Server users must be deleted via backend.");
+    }
+  };
+
+  if (!currentUser) return <div>⚠️ No valid user logged in.</div>;
+  if (loading) return <div>Loading users...</div>;
+
   return (
     <div className="subusers-container">
+      {/* Page Description */}
+      <div className="users-description">
+        <p>
+          This page allows the Admin (Owner) to manage all users. Only the Admin
+          can add, edit, or delete users. SubUsers can view users but cannot
+          make changes.
+        </p>
+      </div>
+
       <header className="users-header">
         <h2>👥 Users</h2>
         {isOwner && (
@@ -207,9 +223,8 @@ const Users = () => {
                 username: "",
                 email: "",
                 role: "SubUser",
-                status: "active",
                 source: "local",
-                pages: [],
+                pages: ["Dashboard", "MyAccount"],
               })
             }
           >
@@ -227,7 +242,6 @@ const Users = () => {
               <th>Username</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Status</th>
               <th>Pages Access</th>
               <th>Actions</th>
             </tr>
@@ -238,12 +252,16 @@ const Users = () => {
                 <td>{user.username}</td>
                 <td>{user.email || "-"}</td>
                 <td>{user.role}</td>
-                <td>{user.status}</td>
                 <td>{(user.pages || []).join(", ") || "-"}</td>
                 <td>
                   {isOwner || currentUser?.username === user.username ? (
                     <>
-                      <button onClick={() => openEditModal(user)}>Edit</button>
+                      <button
+                        onClick={() => openEditModal(user)}
+                        disabled={!isOwner}
+                      >
+                        Edit
+                      </button>
                       {isOwner && (
                         <button onClick={() => deleteUser(user)}>Delete</button>
                       )}
@@ -309,21 +327,6 @@ const Users = () => {
               <option value="SubUser">SubUser</option>
             </select>
 
-            <label>Status</label>
-            <select
-              value={editingUser.status}
-              onChange={(e) =>
-                setEditingUser({
-                  ...editingUser,
-                  status: e.target.value as any,
-                })
-              }
-            >
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="banned">Banned</option>
-            </select>
-
             <label>Pages Access</label>
             <div
               style={{
@@ -341,9 +344,8 @@ const Users = () => {
                     checked={editingUser.pages?.includes(page)}
                     onChange={(e) => {
                       const newPages = editingUser.pages || [];
-                      if (e.target.checked) {
-                        newPages.push(page);
-                      } else {
+                      if (e.target.checked) newPages.push(page);
+                      else {
                         const index = newPages.indexOf(page);
                         if (index > -1) newPages.splice(index, 1);
                       }
@@ -357,7 +359,9 @@ const Users = () => {
             </div>
 
             <div className="modal-buttons">
-              <button onClick={saveEdit}>Save</button>
+              <button onClick={saveEdit} disabled={!isOwner}>
+                Save
+              </button>
               <button
                 onClick={() => {
                   setModalOpen(false);
