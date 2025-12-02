@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ---------------------------
-# Routers
+# Routers - 173 Line for next router import
 # ---------------------------
 
 # ---------------------------
@@ -57,6 +57,7 @@ from backend.API.Core.tools_api.performance_api import router as performance_rou
 # ---------------------------
 # Network
 # ---------------------------
+from backend.API.Network.portcheck_api import router as portcheck_router
 
 # ---------------------------
 # Automation 
@@ -227,7 +228,7 @@ app.include_router(performance_router, prefix="/api")
 # ---------------------------
 # Network
 # ---------------------------
-
+app.include_router(portcheck_router, prefix="/api")
 # ---------------------------
 # Automation 
 # ---------------------------

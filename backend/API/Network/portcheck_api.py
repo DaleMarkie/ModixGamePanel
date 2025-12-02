@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 router = APIRouter()
 
 # ---------------------------
-# Game Server Ports Checker
+# Default Game Server Ports
 # ---------------------------
 DEFAULT_GAME_PORTS = {
     "Project Zomboid": 16261,
@@ -24,7 +24,7 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
 
 @router.get("/server/game-ports")
 async def check_game_ports(
-    host: str = "127.0.0.1",
+    host: str = Query("127.0.0.1", description="IP address of the host to check"),
     custom_ports: str = Query(None, description="Comma-separated custom ports e.g. 27016,27017")
 ):
     """
@@ -33,12 +33,12 @@ async def check_game_ports(
     """
     results = []
 
-    # Default game ports
+    # Check default game ports
     for game, port in DEFAULT_GAME_PORTS.items():
         status = "open" if is_port_open(host, port) else "closed"
         results.append({"name": game, "port": port, "status": status})
 
-    # Custom ports
+    # Check custom ports
     if custom_ports:
         for p in custom_ports.split(","):
             try:
