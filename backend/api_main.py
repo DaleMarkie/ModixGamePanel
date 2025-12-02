@@ -125,84 +125,87 @@ async def update_pages(data: dict = Body(...)):
 # ---------------------------
 # Mount Other Routers
 # ---------------------------
-app.include_router(workshop_api.router, prefix="/workshop")
-app.include_router(performance_router, prefix="/api")
-app.include_router(ddos_manager_api.router, prefix="/api/ddos")
+
+# ---------------------------
+# Account
+# ---------------------------
+
+# ---------------------------
+# Conesole
+# ---------------------------
+
+app.include_router(terminal_router, prefix="/api/projectzomboid")
+
+
+# ---------------------------
+# My Server
+# ---------------------------
+
+app.include_router(games_router, prefix="/api/games", tags=["Games"])
 app.include_router(server_settings.router, prefix="/api/server_settings")
 
-# Project Zomboid APIs
-app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
+
+
+# ---------------------------
+# Mods 
+# ---------------------------
+
+app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
+app.include_router(workshop_api.router, prefix="/workshop")
+app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
+
+
+# ---------------------------
+# Players 
+# ---------------------------
+
 app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
 app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
 app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
+# ---------------------------
+# Security
+# ---------------------------
+
+app.include_router(ddos_manager_api.router, prefix="/api/ddos")
+
+
+# ---------------------------
+# Monitoring
+# ---------------------------
+
+app.include_router(performance_router, prefix="/api")
+
+
+# ---------------------------
+# Network
+# ---------------------------
+
+# ---------------------------
+# Automation 
+# ---------------------------
+
+# ---------------------------
+# Game Tools 
+# ---------------------------
+
+# ---------------------------
+# Panel Settings 
+# ---------------------------
+
+# ---------------------------
+# Staff Chat
+# ---------------------------
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
+
+# Project Zomboid APIs
+
 app.include_router(terminal_router, prefix="/api/projectzomboid")
-app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
-app.include_router(games_router, prefix="/api/games", tags=["Games"])
 app.include_router(server_settings.router, prefix="/api/server_settings")
 app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
-# ---------------------------
-# Health & Port Check
-# ---------------------------
-@app.get("/health")
-def health_check():
-    return {"success": True, "status": "ok"}
-
-@app.get("/check-port")
-def check_port(port: int):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        in_use = s.connect_ex(("127.0.0.1", port)) == 0
-    return {"port": port, "inUse": in_use}
-
-def check_port_in_use(port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("127.0.0.1", port)) == 0
-
-# ---------------------------
-# Port Checker Router
-# ---------------------------
-port_router = APIRouter()
-
-DEFAULT_GAME_PORTS = [
-    {"name": "Project Zomboid (Game)", "port": 16261},
-    {"name": "Project Zomboid (Query)", "port": 16262},
-    {"name": "DayZ", "port": 2302},
-    {"name": "RimWorld", "port": 27015},
-]
-
-async def async_check_port(host: str, port: int) -> dict:
-    loop = asyncio.get_event_loop()
-
-    def _check():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            return s.connect_ex((host, port)) == 0
-
-    try:
-        in_use = await loop.run_in_executor(None, _check)
-        return {"name": f"Port {port}", "port": port, "status": "open" if in_use else "closed"}
-    except Exception:
-        return {"name": f"Port {port}", "port": port, "status": "closed"}
-
-@port_router.get("/game-ports")
-async def game_ports(host: str = Query("127.0.0.1"), custom_ports: str = Query("")):
-    ports_to_check = DEFAULT_GAME_PORTS.copy()
-    if custom_ports:
-        for p in custom_ports.split(","):
-            try:
-                p_int = int(p.strip())
-                ports_to_check.append({"name": f"Custom Port {p_int}", "port": p_int})
-            except ValueError:
-                return JSONResponse({"error": f"Invalid port: {p}"}, status_code=400)
-
-    results = await asyncio.gather(*[async_check_port(host, p["port"]) for p in ports_to_check])
-    return {"servers": results}
-
-app.include_router(port_router, prefix="/api/server")
 
 # ---------------------------
 # Server Helpers
@@ -276,165 +279,6 @@ def scan_local_workshop() -> list[dict]:
                 mods.append({"modId": mod_id, "title": f"Mod {mod_id}"})
     return mods
 
- # ---------------------------
-# Project Zomboid Mod Creation & Asset Management
-# ---------------------------
-from fastapi import File, UploadFile, Form, Body, Query
-from fastapi.responses import JSONResponse
-import os
-import shutil
-
-# Default mods folder
-DEFAULT_MODS_PATH = os.path.expanduser("~/Zomboid/mods")
-os.makedirs(DEFAULT_MODS_PATH, exist_ok=True)
-
-
-def ensure_mod_structure(mod_name: str, base_path: str = None):
-    """Create base mod structure if missing"""
-    folder = base_path or DEFAULT_MODS_PATH
-    base_mod_path = os.path.join(folder, mod_name)
-    media_path = os.path.join(base_mod_path, "media")
-    os.makedirs(media_path, exist_ok=True)
-    return base_mod_path
-
-
-def write_mod_info(mod_name: str, description: str = "", poster: str = "", base_path: str = None):
-    """Generate mod.info for a new mod"""
-    base_mod_path = ensure_mod_structure(mod_name, base_path)
-    mod_info_path = os.path.join(base_mod_path, "mod.info")
-    with open(mod_info_path, "w", encoding="utf-8") as f:
-        f.write(f"name={mod_name}\n")
-        f.write(f"id={mod_name}\n")
-        f.write(f"description={description}\n")
-        if poster:
-            f.write(f"poster={poster}\n")
-    return mod_info_path
-
-
-@app.get("/api/projectzomboid/mods")
-async def list_local_mods(savePath: str = Query(None)):
-    """List locally created mods in default or custom folder"""
-    mods_folder = savePath or DEFAULT_MODS_PATH
-    mods = []
-    if not os.path.isdir(mods_folder):
-        return {"mods": []}
-
-    for name in os.listdir(mods_folder):
-        mod_folder = os.path.join(mods_folder, name)
-        if not os.path.isdir(mod_folder):
-            continue
-        info_file = os.path.join(mod_folder, "mod.info")
-        desc, poster = "", ""
-        if os.path.isfile(info_file):
-            with open(info_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            for line in lines:
-                if line.startswith("description="):
-                    desc = line.split("=", 1)[1].strip()
-                elif line.startswith("poster="):
-                    poster = line.split("=", 1)[1].strip()
-        mods.append({
-            "name": name,
-            "description": desc,
-            "poster": poster,
-            "path": mod_folder,
-        })
-    return {"mods": mods}
-
-
-@app.post("/api/projectzomboid/mods/create")
-async def create_mod(
-    modName: str = Form(...),
-    description: str = Form(""),
-    poster: UploadFile = File(None),
-    savePath: str = Form(None)
-):
-    """Create a new mod folder with mod.info and optional poster in custom folder"""
-    base_path = savePath or DEFAULT_MODS_PATH
-    mod_path = ensure_mod_structure(modName, base_path)
-    poster_name = ""
-
-    if poster:
-        poster_name = "poster.png"
-        poster_path = os.path.join(mod_path, poster_name)
-        with open(poster_path, "wb") as f:
-            f.write(await poster.read())
-
-    write_mod_info(modName, description, poster_name, base_path)
-    return {"success": True, "message": f"Mod '{modName}' created at '{mod_path}'."}
-
-
-@app.post("/api/projectzomboid/mods/upload")
-async def upload_mod_asset(
-    modName: str = Form(...),
-    folder: str = Form("media"),
-    file: UploadFile = File(...),
-    savePath: str = Form(None)
-):
-    """Upload an asset to a mod's subfolder in default or custom folder"""
-    base_path = savePath or DEFAULT_MODS_PATH
-    mod_path = ensure_mod_structure(modName, base_path)
-    dest_folder = os.path.join(mod_path, folder)
-    os.makedirs(dest_folder, exist_ok=True)
-
-    dest_path = os.path.join(dest_folder, file.filename)
-    with open(dest_path, "wb") as f:
-        f.write(await file.read())
-
-    return {"success": True, "message": f"File '{file.filename}' uploaded to {folder}/"}
-
-
-@app.post("/api/projectzomboid/mods/update-info")
-async def update_mod_info(data: dict = Body(...)):
-    """Update description or poster reference in mod.info (supports custom folder)"""
-    mod_name = data.get("modName")
-    new_description = data.get("description", "")
-    new_poster = data.get("poster", "")
-    save_path = data.get("savePath", None)
-
-    if not mod_name:
-        return JSONResponse({"error": "modName is required"}, status_code=400)
-
-    base_path = save_path or DEFAULT_MODS_PATH
-    info_file = os.path.join(ensure_mod_structure(mod_name, base_path), "mod.info")
-
-    if not os.path.isfile(info_file):
-        write_mod_info(mod_name, new_description, new_poster, base_path)
-    else:
-        lines = []
-        with open(info_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-        updated = []
-        found_desc = found_poster = False
-        for line in lines:
-            if line.startswith("description="):
-                updated.append(f"description={new_description}\n")
-                found_desc = True
-            elif line.startswith("poster="):
-                updated.append(f"poster={new_poster}\n")
-                found_poster = True
-            else:
-                updated.append(line)
-        if not found_desc:
-            updated.append(f"description={new_description}\n")
-        if new_poster and not found_poster:
-            updated.append(f"poster={new_poster}\n")
-        with open(info_file, "w", encoding="utf-8") as f:
-            f.writelines(updated)
-
-    return {"success": True, "message": f"Mod '{mod_name}' info updated."}
-
-
-@app.delete("/api/projectzomboid/mods/delete")
-async def delete_mod(modName: str = Query(...), savePath: str = Query(None)):
-    """Delete a local mod folder in default or custom folder"""
-    mods_folder = savePath or DEFAULT_MODS_PATH
-    mod_path = os.path.join(mods_folder, modName)
-    if not os.path.isdir(mod_path):
-        return JSONResponse({"error": "Mod not found"}, status_code=404)
-    shutil.rmtree(mod_path)
-    return {"success": True, "message": f"Mod '{modName}' deleted from '{mods_folder}'."}
-
 # ---------------------------
 # Staff Chat Persistence
 # ---------------------------
@@ -475,82 +319,6 @@ async def save_staff_chat(data: list = Body(...)):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 # ---------------------------
-# Project Zomboid Map / World State API
-# ---------------------------
-import os
-import json
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse, FileResponse
-
-app = FastAPI()
-
-WORLD_SAVE_PATH = os.path.expanduser("~/Zomboid/Saves")  # adjust to your server save path
-
-def list_latest_save():
-    """Find latest Project Zomboid world save folder"""
-    if not os.path.exists(WORLD_SAVE_PATH):
-        return None
-    saves = [d for d in os.listdir(WORLD_SAVE_PATH) if os.path.isdir(os.path.join(WORLD_SAVE_PATH, d))]
-    if not saves:
-        return None
-    saves.sort(key=lambda x: os.path.getmtime(os.path.join(WORLD_SAVE_PATH, x)), reverse=True)
-    return os.path.join(WORLD_SAVE_PATH, saves[0])
-
-@app.get("/api/projectzomboid/map/players")
-async def get_players():
-    """Return active players' positions for frontend map"""
-    save_folder = list_latest_save()
-    if not save_folder:
-        return {"players": []}
-
-    players_file = os.path.join(save_folder, "players.json")
-    if not os.path.isfile(players_file):
-        return {"players": []}
-
-    with open(players_file, "r", encoding="utf-8") as f:
-        try:
-            players = json.load(f)
-        except json.JSONDecodeError:
-            players = []
-    return {"players": players}
-
-
-@app.get("/api/projectzomboid/map/map-image")
-async def get_map_image():
-    """Return static map image (pre-rendered or generated from saves)"""
-    map_image_path = os.path.join(WORLD_SAVE_PATH, "latest_map.png")
-    if not os.path.isfile(map_image_path):
-        return JSONResponse({"error": "Map image not found"}, status_code=404)
-    return FileResponse(map_image_path, media_type="image/png")
-
-
-@app.get("/api/projectzomboid/map/state")
-async def get_world_state():
-    """Return combined world state: players, zombies, loot"""
-    save_folder = list_latest_save()
-    if not save_folder:
-        return {"players": [], "zombies": [], "loot": []}
-
-    # For demo purposes, this can later be loaded from actual save files
-    world_state = {
-        "players": [
-            {"name": "Alice", "x": 1024, "y": 2048, "health": 85},
-            {"name": "Bob", "x": 1200, "y": 1980, "health": 92}
-        ],
-        "zombies": [
-            {"x": 500, "y": 1200, "type": "walker"},
-            {"x": 550, "y": 1250, "type": "runner"}
-        ],
-        "loot": [
-            {"id": "loot1", "x": 1500, "y": 3000, "name": "Medkit", "type": "Medical"},
-            {"id": "loot2", "x": 1600, "y": 3100, "name": "Pistol", "type": "Weapon"},
-            {"id": "loot3", "x": 1700, "y": 3200, "name": "Canned Food", "type": "Food"}
-        ]
-    }
-
-    return world_state
-
-# ---------------------------
 # Games API Router
 # ---------------------------
 from fastapi import APIRouter, Query, Body, UploadFile, File, Form
@@ -563,164 +331,7 @@ games_router = APIRouter(prefix="/api/games", tags=["Games"])
 # Paths
 DEFAULT_MODS_PATH = os.path.expanduser("~/Zomboid/mods")
 os.makedirs(DEFAULT_MODS_PATH, exist_ok=True)
-WORLD_SAVE_PATH = os.path.expanduser("~/Zomboid/Saves")
 
-
-# ---------------------------
-# Project Zomboid Mods
-# ---------------------------
-def ensure_mod_structure(mod_name: str, base_path: str = None):
-    folder = base_path or DEFAULT_MODS_PATH
-    base_mod_path = os.path.join(folder, mod_name)
-    media_path = os.path.join(base_mod_path, "media")
-    os.makedirs(media_path, exist_ok=True)
-    return base_mod_path
-
-def write_mod_info(mod_name: str, description: str = "", poster: str = "", base_path: str = None):
-    base_mod_path = ensure_mod_structure(mod_name, base_path)
-    mod_info_path = os.path.join(base_mod_path, "mod.info")
-    with open(mod_info_path, "w", encoding="utf-8") as f:
-        f.write(f"name={mod_name}\n")
-        f.write(f"id={mod_name}\n")
-        f.write(f"description={description}\n")
-        if poster:
-            f.write(f"poster={poster}\n")
-    return mod_info_path
-
-@games_router.get("/projectzomboid/mods")
-async def list_local_mods(savePath: str = Query(None)):
-    """List locally created mods"""
-    mods_folder = savePath or DEFAULT_MODS_PATH
-    mods = []
-    if not os.path.isdir(mods_folder):
-        return {"mods": []}
-    for name in os.listdir(mods_folder):
-        mod_folder = os.path.join(mods_folder, name)
-        if not os.path.isdir(mod_folder):
-            continue
-        info_file = os.path.join(mod_folder, "mod.info")
-        desc, poster = "", ""
-        if os.path.isfile(info_file):
-            with open(info_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            for line in lines:
-                if line.startswith("description="):
-                    desc = line.split("=", 1)[1].strip()
-                elif line.startswith("poster="):
-                    poster = line.split("=", 1)[1].strip()
-        mods.append({"name": name, "description": desc, "poster": poster, "path": mod_folder})
-    return {"mods": mods}
-
-@games_router.post("/projectzomboid/mods/create")
-async def create_mod(
-    modName: str = Form(...),
-    description: str = Form(""),
-    poster: UploadFile = File(None),
-    savePath: str = Form(None)
-):
-    """Create a new mod folder with mod.info and optional poster"""
-    base_path = savePath or DEFAULT_MODS_PATH
-    mod_path = ensure_mod_structure(modName, base_path)
-    poster_name = ""
-    if poster:
-        poster_name = "poster.png"
-        poster_path = os.path.join(mod_path, poster_name)
-        with open(poster_path, "wb") as f:
-            f.write(await poster.read())
-    write_mod_info(modName, description, poster_name, base_path)
-    return {"success": True, "message": f"Mod '{modName}' created at '{mod_path}'."}
-
-@games_router.post("/projectzomboid/mods/upload")
-async def upload_mod_asset(
-    modName: str = Form(...),
-    folder: str = Form("media"),
-    file: UploadFile = File(...),
-    savePath: str = Form(None)
-):
-    """Upload an asset to a mod's folder"""
-    base_path = savePath or DEFAULT_MODS_PATH
-    mod_path = ensure_mod_structure(modName, base_path)
-    dest_folder = os.path.join(mod_path, folder)
-    os.makedirs(dest_folder, exist_ok=True)
-    dest_path = os.path.join(dest_folder, file.filename)
-    with open(dest_path, "wb") as f:
-        f.write(await file.read())
-    return {"success": True, "message": f"File '{file.filename}' uploaded to {folder}/"}
-
-@games_router.delete("/projectzomboid/mods/delete")
-async def delete_mod(modName: str = Query(...), savePath: str = Query(None)):
-    """Delete a local mod folder"""
-    mods_folder = savePath or DEFAULT_MODS_PATH
-    mod_path = os.path.join(mods_folder, modName)
-    if not os.path.isdir(mod_path):
-        return {"error": "Mod not found"}
-    shutil.rmtree(mod_path)
-    return {"success": True, "message": f"Mod '{modName}' deleted from '{mods_folder}'."}
-
-
-# ---------------------------
-# Project Zomboid Map / World
-# ---------------------------
-def list_latest_save():
-    if not os.path.exists(WORLD_SAVE_PATH):
-        return None
-    saves = [d for d in os.listdir(WORLD_SAVE_PATH) if os.path.isdir(os.path.join(WORLD_SAVE_PATH, d))]
-    if not saves:
-        return None
-    saves.sort(key=lambda x: os.path.getmtime(os.path.join(WORLD_SAVE_PATH, x)), reverse=True)
-    return os.path.join(WORLD_SAVE_PATH, saves[0])
-
-@games_router.get("/projectzomboid/map/players")
-async def get_players():
-    save_folder = list_latest_save()
-    if not save_folder:
-        return {"players": []}
-    players_file = os.path.join(save_folder, "players.json")
-    if not os.path.isfile(players_file):
-        return {"players": []}
-    with open(players_file, "r", encoding="utf-8") as f:
-        try:
-            players = json.load(f)
-        except json.JSONDecodeError:
-            players = []
-    return {"players": players}
-
-@games_router.get("/projectzomboid/map/map-image")
-async def get_map_image():
-    map_image_path = os.path.join(WORLD_SAVE_PATH, "latest_map.png")
-    if not os.path.isfile(map_image_path):
-        return {"error": "Map image not found"}
-    return FileResponse(map_image_path)
-
-@games_router.get("/projectzomboid/map/state")
-async def get_world_state():
-    # Demo world state
-    world_state = {
-        "players": [{"name": "Alice", "x": 1024, "y": 2048, "health": 85}],
-        "zombies": [{"x": 500, "y": 1200, "type": "walker"}],
-        "loot": [{"id": "loot1", "x": 1500, "y": 3000, "name": "Medkit"}]
-    }
-    return world_state
-
-
-# ---------------------------
-# Mount Remaining Routers
-# ---------------------------
-app.include_router(workshop_api.router, prefix="/workshop")
-app.include_router(performance_router, prefix="/api")
-app.include_router(ddos_manager_api.router, prefix="/api/ddos")
-app.include_router(server_settings.router, prefix="/api/server_settings")
-app.include_router(pz_server_settings.router, prefix="/api/projectzomboid/settings")
-app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
-app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
-app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
-app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
-app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
-app.include_router(terminal_router, prefix="/api/projectzomboid")
-app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
-app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
-app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
-app.include_router(discord_router, prefix="/api", tags=["Discord"])
 
 # ---------------------------
 # Run serve
