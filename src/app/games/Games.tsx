@@ -19,6 +19,12 @@ interface Game {
   description: string;
   steamUrl?: string;
   discordUrl?: string;
+  minRequirements: {
+    CPU: number; // cores
+    RAM: number; // GB
+    Disk: number; // GB
+    OS: string; // e.g., "Windows 10+"
+  };
 }
 
 export default function Games() {
@@ -60,39 +66,6 @@ export default function Games() {
   useEffect(() => {
     const list: Game[] = [
       {
-        id: "251570",
-        name: "7 Days to Die",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
-        supported: true,
-        description:
-          "Open-world zombie survival game with crafting, building, and RPG elements.",
-        steamUrl: "https://store.steampowered.com/app/251570/7_Days_to_Die/",
-        discordUrl: "https://discord.com/invite/7daystodie",
-      },
-      {
-        id: "1909850",
-        name: "Arma Reforger",
-        image:
-          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1874880/capsule_616x353.jpg?t=1762168272",
-        supported: true,
-        description:
-          "Modern military sandbox game — host your own dedicated servers and experience tactical multiplayer.",
-        steamUrl: "https://store.steampowered.com/app/1909850/Arma_Reforger/",
-        discordUrl: "https://discord.gg/arma",
-      },
-      {
-        id: "107410",
-        name: "Arma 3",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/107410/header.jpg",
-        supported: true,
-        description:
-          "Military tactical shooter focused on realism and large-scale combat.",
-        steamUrl: "https://store.steampowered.com/app/107410/Arma_3/",
-        discordUrl: "https://discord.gg/arma",
-      },
-      {
         id: "346110",
         name: "ARK: Survival Evolved",
         image:
@@ -103,6 +76,12 @@ export default function Games() {
         steamUrl:
           "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
         discordUrl: "https://discord.com/invite/ark",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 60,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "440900",
@@ -114,6 +93,12 @@ export default function Games() {
           "Survival game with building, crafting, and modding support.",
         steamUrl: "https://store.steampowered.com/app/440900/Conan_Exiles/",
         discordUrl: "https://discord.com/invite/conanexiles",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 25,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "221100",
@@ -124,6 +109,12 @@ export default function Games() {
         description: "Survive in a deadly post-apocalyptic world.",
         steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
         discordUrl: "https://discord.com/invite/dayz",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 15,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "325980",
@@ -134,6 +125,12 @@ export default function Games() {
         description: "Multiplayer dinosaur survival game in an open world.",
         steamUrl: "https://store.steampowered.com/app/325980/The_Isle/",
         discordUrl: "https://discord.gg/theisle",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 30,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "275850",
@@ -145,6 +142,12 @@ export default function Games() {
           "Exploration and survival in a procedurally generated universe.",
         steamUrl: "https://store.steampowered.com/app/275850/No_Mans_Sky/",
         discordUrl: "https://discord.com/invite/nomanssky",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 10,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "minecraft",
@@ -155,6 +158,12 @@ export default function Games() {
         description: "Sandbox game about building, exploration, and survival.",
         steamUrl: "https://www.minecraft.net/",
         discordUrl: "https://discord.gg/minecraft",
+        minRequirements: {
+          CPU: 2,
+          RAM: 4,
+          Disk: 1,
+          OS: "Windows 7+",
+        },
       },
       {
         id: "294100",
@@ -165,6 +174,12 @@ export default function Games() {
           "A colony simulator powered by AI storytelling — manage colonists, survive, and build.",
         steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
         discordUrl: "https://discord.com/invite/rimworld",
+        minRequirements: {
+          CPU: 2,
+          RAM: 4,
+          Disk: 2,
+          OS: "Windows 7+",
+        },
       },
       {
         id: "252490",
@@ -176,6 +191,12 @@ export default function Games() {
           "Survival multiplayer game with crafting, building, and PvP elements.",
         steamUrl: "https://store.steampowered.com/app/252490/Rust/",
         discordUrl: "https://discord.com/invite/playrust",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 20,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "526870",
@@ -186,6 +207,12 @@ export default function Games() {
         description: "Factory-building multiplayer game with mod support.",
         steamUrl: "https://store.steampowered.com/app/526870/Satisfactory/",
         discordUrl: "https://discord.com/invite/satisfactory",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 20,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "513710",
@@ -196,6 +223,12 @@ export default function Games() {
         description: "Hardcore survival multiplayer game.",
         steamUrl: "https://store.steampowered.com/app/513710/SCUM/",
         discordUrl: "https://discord.com/invite/scum",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 20,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "393380",
@@ -207,6 +240,12 @@ export default function Games() {
           "Team-based military shooter emphasizing realism and cooperation.",
         steamUrl: "https://store.steampowered.com/app/393380/Squad/",
         discordUrl: "https://discord.gg/squad",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 20,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "244850",
@@ -218,17 +257,29 @@ export default function Games() {
           "Sandbox game about engineering, construction, exploration, and survival in space and planets.",
         steamUrl: "https://store.steampowered.com/app/244850/Space_Engineers/",
         discordUrl: "https://discord.gg/spaceengineers",
+        minRequirements: {
+          CPU: 4,
+          RAM: 8,
+          Disk: 20,
+          OS: "Windows 10+",
+        },
       },
       {
         id: "108600",
         name: "Project Zomboid",
         image:
-          "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+          "https://shared.cloudflare.steampowered.com/store_item_assets/steam/apps/108600/header.jpg",
         supported: true,
         description:
           "Ultimate zombie survival — manage your own apocalyptic world with friends.",
         steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
         discordUrl: "https://discord.com/invite/theindiestone",
+        minRequirements: {
+          CPU: 2,
+          RAM: 4,
+          Disk: 3,
+          OS: "Windows 7+",
+        },
       },
       {
         id: "892970",
@@ -240,7 +291,14 @@ export default function Games() {
           "Viking-themed survival and exploration game in a procedurally-generated world.",
         steamUrl: "https://store.steampowered.com/app/892970/Valheim/",
         discordUrl: "https://discord.gg/valheim",
+        minRequirements: {
+          CPU: 2,
+          RAM: 4,
+          Disk: 1,
+          OS: "Windows 7+",
+        },
       },
+      // Add minRequirements for every other game in the same way
     ];
 
     const saved = localStorage.getItem("gamesPaths");
@@ -265,7 +323,6 @@ export default function Games() {
     }
   }, []);
 
-  // Cleaned filteredGames: only search + active game sorting
   const filteredGames = games
     .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
@@ -294,25 +351,37 @@ export default function Games() {
     alert(`Session for ${selectedGame?.name} created!`);
   };
 
-  const checkRequirement = (label: string) => {
+  const checkRequirement = (label: string, required: number | string) => {
     switch (label) {
       case "CPU":
-        return userSpecs.cpuCores >= 4;
+        return typeof required === "number"
+          ? userSpecs.cpuCores >= required
+          : true;
       case "RAM":
-        return userSpecs.ramGB >= 8;
+        return typeof required === "number"
+          ? userSpecs.ramGB >= required
+          : true;
+      case "Disk":
+        return true; // cannot detect in browser
       case "OS":
-        return userSpecs.os.toLowerCase().includes("win");
+        return typeof required === "string"
+          ? userSpecs.os.toLowerCase().includes("win")
+          : true;
       default:
-        return null;
+        return true;
     }
   };
 
-  const requirementPercent = (label: string) => {
+  const requirementPercent = (label: string, required: number | string) => {
     switch (label) {
       case "CPU":
-        return Math.min((userSpecs.cpuCores / 8) * 100, 100);
+        return typeof required === "number"
+          ? Math.min((userSpecs.cpuCores / required) * 100, 100)
+          : 100;
       case "RAM":
-        return Math.min((userSpecs.ramGB / 16) * 100, 100);
+        return typeof required === "number"
+          ? Math.min((userSpecs.ramGB / required) * 100, 100)
+          : 100;
       default:
         return 0;
     }
@@ -325,7 +394,6 @@ export default function Games() {
         <p className="subtitle">
           Select a game below to manage and launch your dedicated server.
         </p>
-
         <input
           type="text"
           placeholder="Search games..."
@@ -376,7 +444,6 @@ export default function Games() {
                     <FaSteam /> Steam
                   </a>
                 )}
-
                 {game.discordUrl && (
                   <a
                     href={game.discordUrl}
@@ -409,60 +476,59 @@ export default function Games() {
               <p className="req-title">Minimum Requirements</p>
 
               <div className="requirements-container">
-                {[
-                  { label: "CPU", required: 4, unit: "cores" },
-                  { label: "RAM", required: 8, unit: "GB" },
-                  { label: "Disk", required: 5, unit: "GB" },
-                  { label: "OS", required: "Windows 10+", unit: "" },
-                ].map((req) => {
-                  const met = checkRequirement(req.label);
-                  const reason =
-                    req.label === "CPU"
-                      ? `You have ${userSpecs.cpuCores} cores — at least ${req.required} are required.`
-                      : req.label === "RAM"
-                      ? `You have ${userSpecs.ramGB}GB — at least ${req.required}GB is required.`
-                      : req.label === "OS"
-                      ? `Your OS is detected as "${userSpecs.os}" — Windows 10 or newer is required.`
-                      : `Cannot detect disk, but ${req.required}GB free is needed.`;
+                {Object.entries(selectedGame.minRequirements).map(
+                  ([key, value]) => {
+                    const met = checkRequirement(key, value);
+                    const percent = requirementPercent(key, value);
+                    const reason =
+                      key === "CPU"
+                        ? `You have ${userSpecs.cpuCores} cores — at least ${value} are required.`
+                        : key === "RAM"
+                        ? `You have ${userSpecs.ramGB}GB — at least ${value}GB is required.`
+                        : key === "Disk"
+                        ? `Cannot detect disk, but ${value}GB free is needed.`
+                        : `Your OS is detected as "${userSpecs.os}" — ${value} is required.`;
 
-                  return (
-                    <div key={req.label} className="requirement">
-                      <div className="req-header">
-                        <span>{req.label}</span>
-                        {req.label !== "Disk" ? (
-                          <span
-                            className={`status-icon ${met ? "met" : "unmet"}`}
-                          >
-                            {met ? (
-                              <FaCheckCircle color="limegreen" />
-                            ) : (
-                              <FaTimesCircle color="red" />
-                            )}
-                          </span>
-                        ) : (
-                          <FaInfoCircle color="gray" />
-                        )}
-                      </div>
-
-                      {req.label !== "OS" && req.label !== "Disk" && (
-                        <div className="progress-bar">
-                          <div
-                            className={`progress-fill ${met ? "met" : "unmet"}`}
-                            style={{
-                              width: `${requirementPercent(req.label)}%`,
-                            }}
-                          />
+                    return (
+                      <div key={key} className="requirement">
+                        <div className="req-header">
+                          <span>{key}</span>
+                          {key !== "Disk" ? (
+                            <span
+                              className={`status-icon ${met ? "met" : "unmet"}`}
+                            >
+                              {met ? (
+                                <FaCheckCircle color="limegreen" />
+                              ) : (
+                                <FaTimesCircle color="red" />
+                              )}
+                            </span>
+                          ) : (
+                            <FaInfoCircle color="gray" />
+                          )}
                         </div>
-                      )}
 
-                      <div className="req-details">
-                        Required: {req.required} {req.unit}
+                        {key !== "OS" && key !== "Disk" && (
+                          <div className="progress-bar">
+                            <div
+                              className={`progress-fill ${
+                                met ? "met" : "unmet"
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        )}
+
+                        <div className="req-details">
+                          Required: {value}{" "}
+                          {key === "CPU" ? "cores" : key !== "OS" ? "GB" : ""}
+                        </div>
+
+                        {!met && <p className="req-warning">⚠ {reason}</p>}
                       </div>
-
-                      {!met && <p className="req-warning">⚠ {reason}</p>}
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
 
               <label>Batch file path:</label>
