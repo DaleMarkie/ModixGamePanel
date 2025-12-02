@@ -10,9 +10,33 @@ from fastapi import FastAPI, Request, Query, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# ---------------------------
 # Routers
-from backend.terminal_api import router as terminal_router
+# ---------------------------
+
+# ---------------------------
+# Account
+# ---------------------------
+from backend.API.Core.auth import auth_router
+# ---------------------------
+# Conesole
+# ---------------------------
+from backend.API.Console.terminal_api import router as terminal_router
+# ---------------------------
+# My Server
+# ---------------------------
+from backend.games_api import router as games_router
 from backend.API.Core.settings_api import server_settings
+# ---------------------------
+# Mods 
+# ---------------------------
+from backend.filemanager import router as filemanager_router
+from backend.API.Core.workshop_api import workshop_api
+from backend.modupdates_api import router as modupdates_router
+
+# ---------------------------
+# Players 
+# ---------------------------
 from backend.API.Core.games_api.projectzomboid import (
     pz_server_settings,
     PlayersBannedAPI,
@@ -21,16 +45,39 @@ from backend.API.Core.games_api.projectzomboid import (
     steam_search_player_api,
     api_chatlogs
 )
-from backend.API.Core.tools_api.performance_api import router as performance_router
+# ---------------------------
+# Security
+# ---------------------------
 from backend.API.Core.tools_api import ddos_manager_api
-from backend.API.Core.workshop_api import workshop_api
-from backend.filemanager import router as filemanager_router
+# ---------------------------
+# Monitoring
+# ---------------------------
+from backend.API.Core.tools_api.performance_api import router as performance_router
+
+# ---------------------------
+# Network
+# ---------------------------
+
+# ---------------------------
+# Automation 
+# ---------------------------
+
+# ---------------------------
+# Game Tools 
+# ---------------------------
+
+# ---------------------------
+# Panel Settings 
+# ---------------------------
+
+# ---------------------------
+# Staff Chat
+# ---------------------------
+
+
+# Routers
 from backend.updater_api import router as updater_router
-from backend.modupdates_api import router as modupdates_router
 from backend.discord_api import router as discord_router
-from backend.API.Core.auth import auth_router
-from backend.games_api import router as games_router
-from backend.API.Core.settings_api import server_settings
 from backend.sidebar_api import router as sidebar_router
 
 # ---------------------------
