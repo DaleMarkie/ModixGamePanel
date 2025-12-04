@@ -268,7 +268,7 @@ export default function Games() {
         id: "108600",
         name: "Project Zomboid",
         image:
-          "https://shared.cloudflare.steampowered.com/store_item_assets/steam/apps/108600/header.jpg",
+          "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg?t=1762369969",
         supported: true,
         description:
           "Ultimate zombie survival — manage your own apocalyptic world with friends.",

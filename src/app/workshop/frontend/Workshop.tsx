@@ -322,25 +322,45 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       setLoading(true);
       setError("");
       setMods([]);
+
       try {
-        const url = isCollectionId(query)
-          ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-          : `https://steamcommunity.com/workshop/browse/?appid=${appid}&searchtext=${encodeURIComponent(
-              query
-            )}&browsesort=trend`;
-
-        const html = await (await fetch(`https://corsproxy.io/?${url}`)).text();
-        const doc = new DOMParser().parseFromString(html, "text/html");
-
         let items: Mod[] = [];
+
         if (isCollectionId(query)) {
-          const modLinks = [...doc.querySelectorAll(".collectionItem a")];
-          for (let linkEl of modLinks) {
-            const modId = linkEl.href.match(/id=(\d+)/)?.[1];
-            if (!modId) continue;
-            items.push(await fetchModInfo(modId));
-          }
+          // --- Use Steam API to get collection children ---
+          const res = await fetch(
+            "https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                collectioncount: 1,
+                publishedfileids: [parseInt(query)],
+                includechildren: true,
+              }),
+            }
+          );
+          const data = await res.json();
+          const children =
+            data.response?.collectiondetails?.[0]?.children || [];
+
+          // Fetch detailed info for each mod
+          items = await Promise.all(
+            children.map(async (child: any) => {
+              const modId = String(child.publishedfileid);
+              return await fetchModInfo(modId);
+            })
+          );
         } else {
+          // --- Regular search scraping (your original code) ---
+          const url = `https://steamcommunity.com/workshop/browse/?appid=${appid}&searchtext=${encodeURIComponent(
+            query
+          )}&browsesort=trend`;
+          const html = await (
+            await fetch(`https://corsproxy.io/?${url}`)
+          ).text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+
           items = [...doc.querySelectorAll(".workshopItem")].map((item) => {
             const link = item.querySelector("a")?.href || "#";
             const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();

@@ -48,7 +48,11 @@ const ModModal = ({ mod, onClose }) => {
   // Generate a unique key for this mod
   const getModKey = (mod) => {
     if (!mod) return null;
-    return mod.modId || mod.workshopId || mod.title.replace(/\s+/g, "-").toLowerCase();
+    return (
+      mod.modId ||
+      mod.workshopId ||
+      mod.title.replace(/\s+/g, "-").toLowerCase()
+    );
   };
 
   const modKey = getModKey(mod);
@@ -73,7 +77,9 @@ const ModModal = ({ mod, onClose }) => {
     setAssignedCategories(savedAssigned ? JSON.parse(savedAssigned) : []);
 
     const savedRating = localStorage.getItem(`mod-rating-${modKey}`);
-    setRating(savedRating === "up" || savedRating === "down" ? savedRating : null);
+    setRating(
+      savedRating === "up" || savedRating === "down" ? savedRating : null
+    );
   }, [modKey]);
 
   // Load custom categories
@@ -112,9 +118,15 @@ const ModModal = ({ mod, onClose }) => {
 
     // Save locally
     localStorage.setItem(`mod-notes-${modKey}`, notes);
-    localStorage.setItem(`mod-categories-${modKey}`, JSON.stringify(assignedCategories));
+    localStorage.setItem(
+      `mod-categories-${modKey}`,
+      JSON.stringify(assignedCategories)
+    );
     localStorage.setItem(`mod-rating-${modKey}`, rating);
-    localStorage.setItem("user-custom-categories", JSON.stringify(customCategories));
+    localStorage.setItem(
+      "user-custom-categories",
+      JSON.stringify(customCategories)
+    );
 
     // Save to backend
     fetch("/api/save-mod-notes", {
@@ -137,7 +149,11 @@ const ModModal = ({ mod, onClose }) => {
 
   const addNewCategory = () => {
     const trimmed = newCategory.trim();
-    if (trimmed && !customCategories.includes(trimmed) && !assignedCategories.includes(trimmed)) {
+    if (
+      trimmed &&
+      !customCategories.includes(trimmed) &&
+      !assignedCategories.includes(trimmed)
+    ) {
       setCustomCategories([...customCategories, trimmed]);
       setAssignedCategories([...assignedCategories, trimmed]);
       setNewCategory("");
@@ -155,17 +171,21 @@ const ModModal = ({ mod, onClose }) => {
   const onThumbsDown = () => setRating(rating === "down" ? null : "down");
 
   const handleDownload = () => {
-    const content = `Mod Title: ${mod.title || "Untitled Mod"}\n\nDescription:\n${
-      mod.description || "No description"
-    }\n\nYour Notes:\n${notes || "(No notes)"}\n\nCategories: ${
-      assignedCategories.join(", ") || "None"
-    }\nRating: ${rating || "None"}`;
+    const content = `Mod Title: ${
+      mod.title || "Untitled Mod"
+    }\n\nDescription:\n${mod.description || "No description"}\n\nYour Notes:\n${
+      notes || "(No notes)"
+    }\n\nCategories: ${assignedCategories.join(", ") || "None"}\nRating: ${
+      rating || "None"
+    }`;
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${mod.title ? mod.title.replace(/[^\w\s]/gi, "") : "mod"}_notes.txt`;
+    link.download = `${
+      mod.title ? mod.title.replace(/[^\w\s]/gi, "") : "mod"
+    }_notes.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -174,7 +194,9 @@ const ModModal = ({ mod, onClose }) => {
 
   const handleSteamDownload = () => {
     if (mod?.modId || mod?.workshopId) {
-      const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.modId || mod.workshopId}`;
+      const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${
+        mod.modId || mod.workshopId
+      }`;
       window.open(url, "_blank", "noopener,noreferrer");
     } else {
       alert("No workshop ID available for this mod.");
@@ -183,8 +205,17 @@ const ModModal = ({ mod, onClose }) => {
 
   return (
     <div style={overlayStyle} onClick={onClose}>
-      <div ref={modalRef} style={modalStyle} onClick={(e) => e.stopPropagation()} tabIndex={-1}>
-        <button onClick={onClose} style={closeButtonStyle} aria-label="Close modal">
+      <div
+        ref={modalRef}
+        style={modalStyle}
+        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
+      >
+        <button
+          onClick={onClose}
+          style={closeButtonStyle}
+          aria-label="Close modal"
+        >
           &times;
         </button>
 
@@ -204,7 +235,9 @@ const ModModal = ({ mod, onClose }) => {
 
         <section style={section}>
           <h3 style={sectionTitle}>Description</h3>
-          <p style={descriptionStyle}>{mod.description || "No description available."}</p>
+          <p style={descriptionStyle}>
+            {mod.description || "No description available."}
+          </p>
         </section>
 
         <section style={section}>
@@ -212,14 +245,20 @@ const ModModal = ({ mod, onClose }) => {
           <div style={infoGridStyle}>
             <InfoItem label="Author" value={mod.author || "Unknown"} />
             <InfoItem label="Version" value={mod.version || "N/A"} />
-            <InfoItem label="Last Updated" value={formatDate(mod.lastUpdated)} />
+            <InfoItem
+              label="Last Updated"
+              value={formatDate(mod.lastUpdated)}
+            />
             <InfoItem label="File Size" value={mod.fileSize || "N/A"} />
             <InfoItem label="ID" value={mod.modId || mod.workshopId || "N/A"} />
           </div>
         </section>
 
         <div style={{ marginTop: 9, textAlign: "center" }}>
-          <button onClick={handleSteamDownload} style={{ ...steamButtonStyle, marginBottom: 9 }}>
+          <button
+            onClick={handleSteamDownload}
+            style={{ ...steamButtonStyle, marginBottom: 9 }}
+          >
             ⬇️ View On Steam
           </button>
         </div>
@@ -228,10 +267,16 @@ const ModModal = ({ mod, onClose }) => {
         <section style={{ ...section, textAlign: "center" }}>
           <h3 style={sectionTitle}>Your Rating</h3>
           <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
-            <button onClick={onThumbsUp} style={{ background: "none", border: "none" }}>
+            <button
+              onClick={onThumbsUp}
+              style={{ background: "none", border: "none" }}
+            >
               <ThumbsUpIcon filled={rating === "up"} />
             </button>
-            <button onClick={onThumbsDown} style={{ background: "none", border: "none" }}>
+            <button
+              onClick={onThumbsDown}
+              style={{ background: "none", border: "none" }}
+            >
               <ThumbsDownIcon filled={rating === "down"} />
             </button>
           </div>
@@ -241,7 +286,9 @@ const ModModal = ({ mod, onClose }) => {
         <section style={section}>
           <h3 style={sectionTitle}>Custom Categories</h3>
           {customCategories.length === 0 && (
-            <div style={{ color: "#666", fontStyle: "italic" }}>No custom categories yet.</div>
+            <div style={{ color: "#666", fontStyle: "italic" }}>
+              No custom categories yet.
+            </div>
           )}
           <div>
             {customCategories.map((cat, idx) => (
@@ -250,7 +297,9 @@ const ModModal = ({ mod, onClose }) => {
                 onClick={() => toggleCategory(cat)}
                 style={{
                   ...categoryButtonStyle,
-                  backgroundColor: assignedCategories.includes(cat) ? "#59a14f" : "#444",
+                  backgroundColor: assignedCategories.includes(cat)
+                    ? "#59a14f"
+                    : "#444",
                   color: assignedCategories.includes(cat) ? "white" : "#ccc",
                 }}
                 aria-pressed={assignedCategories.includes(cat)}
@@ -269,7 +318,10 @@ const ModModal = ({ mod, onClose }) => {
               style={inputStyle}
               aria-label="New custom category"
             />
-            <button onClick={addNewCategory} style={{ ...saveButtonStyle, padding: "6px 14px" }}>
+            <button
+              onClick={addNewCategory}
+              style={{ ...saveButtonStyle, padding: "6px 14px" }}
+            >
               +
             </button>
           </div>
@@ -292,11 +344,21 @@ const ModModal = ({ mod, onClose }) => {
           <button onClick={handleSave} style={saveButtonStyle}>
             Save Notes & Categories
           </button>
-          {saved && <span style={{ marginLeft: 12, color: "#4caf50", fontWeight: "600" }}>Saved!</span>}
+          {saved && (
+            <span
+              style={{ marginLeft: 12, color: "#4caf50", fontWeight: "600" }}
+            >
+              Saved!
+            </span>
+          )}
         </div>
 
         <div style={{ marginTop: 20, textAlign: "center" }}>
-          <button onClick={handleDownload} style={downloadButtonStyle} aria-label="Download notes as text file">
+          <button
+            onClick={handleDownload}
+            style={downloadButtonStyle}
+            aria-label="Download notes as text file"
+          >
             💾 Download Notes
           </button>
         </div>
@@ -304,7 +366,7 @@ const ModModal = ({ mod, onClose }) => {
     </div>
   );
 };
- 
+
 const InfoItem = ({ label, value }) => (
   <div style={{ marginBottom: 4 }}>
     <strong style={{ fontSize: 11, color: "#aaa" }}>{label}:</strong>{" "}
