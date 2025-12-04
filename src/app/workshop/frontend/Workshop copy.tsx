@@ -64,7 +64,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ modIds, onClose }) => {
 };
 
 interface Game {
-  id: string; // use the same id as Games page localStorage activeGameId
+  id: string;
   name: string;
   steamAppId: number;
 }
@@ -73,17 +73,7 @@ interface WorkshopPageProps {
   currentGame?: Game;
 }
 
-/**
- * WorkshopPage
- *
- * Behavior:
- * - If currentGame prop provided -> use that.
- * - Otherwise try to read localStorage "activeGameId" and use fallback default.
- * - Listen for storage events so switching active game in other tab / page updates this page.
- * - Per-game keys saved/loaded: `${game.id}_favorites`, `${game.id}_modlists`, `${game.id}_modColors`, `${game.id}_installed`
- */
 export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
-  // fallback default if nothing provided
   const defaultGame: Game = {
     id: "108600",
     name: "Project Zomboid",
@@ -94,18 +84,14 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     currentGame || null
   );
 
-  // If currentGame changes from parent, adopt it
   useEffect(() => {
     if (currentGame) setDetectedGame(currentGame);
   }, [currentGame]);
 
-  // Try to detect activeGameId from localStorage if not provided
   useEffect(() => {
     if (currentGame) return;
     const activeId = localStorage.getItem("activeGameId");
     if (activeId) {
-      // If you have a mapping from gameId -> steamAppId/name, extend here.
-      // Basic heuristic: treat id as steamAppId if numeric; otherwise fallback to default.
       const steamAppId = /^\d+$/.test(activeId)
         ? Number(activeId)
         : defaultGame.steamAppId;
@@ -131,11 +117,9 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     return () => window.removeEventListener("storage", onStorage);
   }, [currentGame]);
 
-  // Use the detected game or fallback
   const game = detectedGame || defaultGame;
   const appid = game.steamAppId;
 
-  // Workshop state (per-game loaded/saved below)
   const [input, setInput] = useState("");
   const [mods, setMods] = useState<Mod[]>([]);
   const [loading, setLoading] = useState(false);
@@ -164,36 +148,30 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => inputRef.current?.focus(), []);
 
-  /* -------------------- Per-game load/save -------------------- */
-  // Load per-game settings when game.id changes
+  /* -------------------- Load per-game settings -------------------- */
   useEffect(() => {
     if (!game?.id) return;
     try {
       const savedFavorites = localStorage.getItem(`${game.id}_favorites`);
-      if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
-      else setFavorites([]);
+      setFavorites(savedFavorites ? JSON.parse(savedFavorites) : []);
 
       const savedModlists = localStorage.getItem(`${game.id}_modlists`);
-      if (savedModlists) setModlists(JSON.parse(savedModlists));
-      else setModlists({});
+      setModlists(savedModlists ? JSON.parse(savedModlists) : {});
 
       const savedColors = localStorage.getItem(`${game.id}_modColors`);
-      if (savedColors) setModColors(JSON.parse(savedColors));
-      else setModColors({});
+      setModColors(savedColors ? JSON.parse(savedColors) : {});
 
       const savedInstalled = localStorage.getItem(`${game.id}_installed`);
-      if (savedInstalled) setInstalledMods(JSON.parse(savedInstalled));
-      else setInstalledMods([]);
+      setInstalledMods(savedInstalled ? JSON.parse(savedInstalled) : []);
 
       const savedIni = localStorage.getItem(`${game.id}_serverIniContent`);
-      if (savedIni) setServerIniContent(savedIni);
-      else setServerIniContent("");
+      setServerIniContent(savedIni || "");
     } catch (err) {
       console.warn("Failed to parse per-game localStorage data:", err);
     }
   }, [game?.id]);
 
-  // Save per-game settings when they change
+  /* -------------------- Save per-game settings -------------------- */
   useEffect(() => {
     if (!game?.id) return;
     localStorage.setItem(`${game.id}_favorites`, JSON.stringify(favorites));
@@ -219,7 +197,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     localStorage.setItem(`${game.id}_serverIniContent`, serverIniContent || "");
   }, [serverIniContent, game?.id]);
 
-  /* -------------------- Server INI parsing & updating -------------------- */
+  /* -------------------- Server INI parsing -------------------- */
   const parseInstalledMods = (content: string) =>
     content
       .split("\n")
@@ -229,7 +207,6 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       .map((s) => s.trim())
       .filter(Boolean) || [];
 
-  // If a user uploads a server.ini file, parse it and adopt installed mods
   const handleServerIniUpload = (file: File | null) => {
     if (!file) return;
     setServerIniFile(file);
@@ -258,7 +235,6 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     const joined = newLines.join("\n");
     setServerIniContent(joined);
     setInstalledMods(modIds);
-    // saving to per-game localStorage is handled by effect
   };
 
   const addModToServer = (modId: string) => {
@@ -266,7 +242,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       updateServerIniContent([...installedMods, modId]);
   };
 
-  /* -------------------- Fetching mod info (scrape via CORS proxy) -------------------- */
+  /* -------------------- Fetching mod info -------------------- */
   const fetchModInfo = async (modId: string): Promise<Mod> => {
     try {
       const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`;
@@ -312,7 +288,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     }
   };
 
-  /* -------------------- Search / Collection handling -------------------- */
+  /* -------------------- Collection / search handling -------------------- */
   const isCollectionId = (text: string) => /^\d{6,}$/.test(text.trim());
 
   const fetchMods = useCallback(
@@ -366,13 +342,10 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     [input, appid]
   );
 
-  // Fetch when user presses search or input changes and we want live results
   useEffect(() => {
-    // Initial fetch only when input is already filled (avoid auto-loading empty)
     if (input.trim()) fetchMods();
   }, [fetchMods]);
 
-  /* If installedMods change, ensure mods list contains info for them */
   useEffect(() => {
     if (!installedMods.length) return;
     (async () => {
@@ -380,15 +353,12 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
         installedMods.map((id) => fetchModInfo(id))
       );
       setMods((prev) => {
-        // keep previous non-installed mods, append installed info (de-duped)
         const other = prev.filter((m) => !installedMods.includes(m.modId));
         return [...other, ...info];
       });
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [installedMods.join(",")]); // joined string to avoid deep dependency issues
+  }, [installedMods.join(",")]);
 
-  /* -------------------- Displayed mods (filtering by activeList, installed, etc) -------------------- */
   const displayedMods = useMemo(() => {
     if (activeList === "__installed__")
       return mods.filter((m) => installedMods.includes(m.modId));
@@ -438,7 +408,23 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     }));
   };
 
-  /* -------------------- UI / render -------------------- */
+  const saveActiveModlist = () => {
+    if (!activeList || activeList === "__installed__")
+      return setToast("No modlist selected to save.");
+
+    // Save to localStorage
+    localStorage.setItem(`${game.id}_modlists`, JSON.stringify(modlists));
+
+    // Show toast
+    setToast(`Modlist "${activeList}" saved!`);
+
+    // Auto-hide toast after 2 seconds
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  const [toast, setToast] = useState<string | null>(null);
+
+  /* -------------------- UI -------------------- */
   return (
     <div className="workshop-container">
       {/* HEADER */}
@@ -518,82 +504,76 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
 
       {/* MODLIST BAR */}
       <div className="modlist-bar flex flex-wrap items-center gap-3 p-4 bg-gray-900/80 border border-gray-700 rounded-xl shadow-lg">
-        {/* LEFT GROUP: dropdown + show only */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Dropdown */}
-          <select
-            value={activeList}
-            onChange={(e) => setActiveList(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-750 transition-all"
-          >
-            <option value="">All Mods</option>
-            {installedMods.length > 0 && (
-              <option value="__installed__">Installed Mods</option>
-            )}
-            {Object.keys(modlists).map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-
-          {/* Show only mods from this list */}
-          {activeList && activeList !== "__installed__" && (
-            <label className="flex items-center gap-2 text-gray-300 whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={showListOnly}
-                onChange={() => setShowListOnly((prev) => !prev)}
-                className="accent-indigo-500"
-              />
-              Show only this list
-            </label>
+        {/* Dropdown */}
+        <select
+          value={activeList}
+          onChange={(e) => setActiveList(e.target.value)}
+          className="bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-750 transition-all"
+        >
+          <option value="">All Mods</option>
+          {installedMods.length > 0 && (
+            <option value="__installed__">Installed Mods</option>
           )}
-        </div>
+          {Object.keys(modlists).map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
 
-        {/* CENTER GROUP: actions */}
-        <div className="flex flex-wrap items-center gap-2 ml-3">
-          {/* NEW */}
-          <button
-            onClick={createNewModlist}
-            className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
-          >
-            ➕ New
-          </button>
+        {/* Show only mods from this list */}
+        {activeList && activeList !== "__installed__" && (
+          <label className="flex items-center gap-2 text-gray-300">
+            <input
+              type="checkbox"
+              checked={showListOnly}
+              onChange={() => setShowListOnly((prev) => !prev)}
+              className="accent-indigo-500"
+            />
+            Show only this list
+          </label>
+        )}
 
-          {activeList && activeList !== "__installed__" && (
-            <>
-              {/* RENAME */}
-              <button
-                onClick={renameModlist}
-                className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
-              >
-                ✏ Rename
-              </button>
+        {/* NEW */}
+        <button
+          onClick={createNewModlist}
+          className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+        >
+          ➕ New
+        </button>
 
-              {/* DELETE */}
-              <button
-                onClick={deleteModlist}
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
-              >
-                🗑 Delete
-              </button>
-            </>
-          )}
-
-          {/* EXPORT */}
-          {displayedMods.length > 0 && (
+        {activeList && activeList !== "__installed__" && (
+          <>
+            {/* RENAME */}
             <button
-              onClick={() => setShowExport(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+              onClick={renameModlist}
+              className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
             >
-              📤 Export
+              ✏ Rename
             </button>
-          )}
-        </div>
 
-        {/* RIGHT GROUP: server.ini upload */}
-        <div className="ml-auto flex items-center">
+            {/* DELETE */}
+            <button
+              onClick={deleteModlist}
+              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+            >
+              🗑 Delete
+            </button>
+          </>
+        )}
+
+        {/* EXPORT */}
+        {displayedMods.length > 0 && (
+          <button
+            onClick={() => setShowExport(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+          >
+            📤 Export
+          </button>
+        )}
+
+        {/* server.ini upload (parse installed mods) */}
+        <label className="ml-auto flex items-center gap-2 text-sm text-gray-300">
           <input
             type="file"
             accept=".ini,.txt"
@@ -609,8 +589,18 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
           >
             Upload server.ini
           </button>
-        </div>
+        </label>
       </div>
+
+      {/* SAVE */}
+      {activeList && activeList !== "__installed__" && (
+        <button
+          onClick={saveActiveModlist}
+          className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+        >
+          💾 Save
+        </button>
+      )}
 
       {/* MOD GRID */}
       <div className="mod-grid-container">
@@ -676,12 +666,19 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
                         onChange={(e) => {
                           const listName = e.target.value;
                           if (!listName) return;
-                          setModlists((prev) => ({
-                            ...prev,
-                            [listName]: Array.from(
-                              new Set([...(prev[listName] || []), mod.modId])
-                            ),
-                          }));
+                          setModlists((prev) => {
+                            const updated = {
+                              ...prev,
+                              [listName]: Array.from(
+                                new Set([...(prev[listName] || []), mod.modId])
+                              ),
+                            };
+                            localStorage.setItem(
+                              `${game.id}_modlists`,
+                              JSON.stringify(updated)
+                            );
+                            return updated;
+                          });
                           e.target.value = "";
                         }}
                         defaultValue=""
