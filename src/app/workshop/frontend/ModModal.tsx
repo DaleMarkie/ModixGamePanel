@@ -36,7 +36,7 @@ const ThumbsDownIcon = ({ filled, ...props }) => (
   </svg>
 );
 
-const ModModal = ({ mod, onClose }) => {
+const ModModal = ({ mod, onClose, allMods = [], addModToServer, appid }) => {
   const modalRef = useRef(null);
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
@@ -44,8 +44,8 @@ const ModModal = ({ mod, onClose }) => {
   const [assignedCategories, setAssignedCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
   const [rating, setRating] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(false);
 
-  // Generate a unique key for this mod
   const getModKey = (mod) => {
     if (!mod) return null;
     return (
@@ -69,7 +69,6 @@ const ModModal = ({ mod, onClose }) => {
   // Load saved notes, categories, rating
   useEffect(() => {
     if (!modKey) return;
-
     const savedNotes = localStorage.getItem(`mod-notes-${modKey}`);
     if (savedNotes) setNotes(savedNotes);
 
@@ -115,8 +114,6 @@ const ModModal = ({ mod, onClose }) => {
 
   const handleSave = () => {
     if (!modKey) return;
-
-    // Save locally
     localStorage.setItem(`mod-notes-${modKey}`, notes);
     localStorage.setItem(
       `mod-categories-${modKey}`,
@@ -128,7 +125,6 @@ const ModModal = ({ mod, onClose }) => {
       JSON.stringify(customCategories)
     );
 
-    // Save to backend
     fetch("/api/save-mod-notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -178,7 +174,6 @@ const ModModal = ({ mod, onClose }) => {
     }\n\nCategories: ${assignedCategories.join(", ") || "None"}\nRating: ${
       rating || "None"
     }`;
-
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -190,17 +185,6 @@ const ModModal = ({ mod, onClose }) => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const handleSteamDownload = () => {
-    if (mod?.modId || mod?.workshopId) {
-      const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${
-        mod.modId || mod.workshopId
-      }`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    } else {
-      alert("No workshop ID available for this mod.");
-    }
   };
 
   return (
@@ -220,7 +204,6 @@ const ModModal = ({ mod, onClose }) => {
         </button>
 
         <h2 style={titleStyle}>{mod.title || "Untitled Mod"}</h2>
-
         {mod.isActive && <div style={badgeStyle}>🟢 Active in server.ini</div>}
 
         <div style={imageWrapperStyle}>
@@ -233,6 +216,7 @@ const ModModal = ({ mod, onClose }) => {
           )}
         </div>
 
+        {/* Description */}
         <section style={section}>
           <h3 style={sectionTitle}>Description</h3>
           <p style={descriptionStyle}>
@@ -240,30 +224,189 @@ const ModModal = ({ mod, onClose }) => {
           </p>
         </section>
 
-        <section style={section}>
-          <h3 style={sectionTitle}>Info</h3>
-          <div style={infoGridStyle}>
-            <InfoItem label="Author" value={mod.author || "Unknown"} />
-            <InfoItem label="Version" value={mod.version || "N/A"} />
-            <InfoItem
+        {/* Advanced Info with Author & Mod ID links */}
+        <section
+          style={{
+            ...section,
+            padding: 12,
+            backgroundColor: "#1a1a1a",
+            borderRadius: 12,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+          }}
+        >
+          <h3
+            style={{
+              ...sectionTitle,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            ℹ️ Info
+          </h3>
+          <div style={{ ...infoGridStyle, gap: 16 }}>
+            <InfoCard
+              icon="👤"
+              label="Author"
+              value={mod.author || "Unknown"}
+              link={mod.authorProfileUrl} // link to author's Steam profile
+            />
+            <InfoCard icon="🛠️" label="Version" value={mod.version || "N/A"} />
+            <InfoCard
+              icon="📅"
               label="Last Updated"
               value={formatDate(mod.lastUpdated)}
             />
-            <InfoItem label="File Size" value={mod.fileSize || "N/A"} />
-            <InfoItem label="ID" value={mod.modId || mod.workshopId || "N/A"} />
+            <InfoCard
+              icon="💾"
+              label="File Size"
+              value={mod.fileSize || "N/A"}
+            />
+            <InfoCard
+              icon="🆔"
+              label="ID"
+              value={mod.modId || mod.workshopId || "N/A"}
+              link={
+                mod.modId || mod.workshopId
+                  ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${
+                      mod.modId || mod.workshopId
+                    }`
+                  : undefined
+              }
+            />
+            {mod.isActive && (
+              <InfoCard
+                icon="✅"
+                label="Status"
+                value="Active in server.ini"
+                highlight
+              />
+            )}
+            {mod.conflicts && mod.conflicts.length > 0 && (
+              <InfoCard
+                icon="⚠️"
+                label="Conflicts"
+                value={`${mod.conflicts.length} mods`}
+                highlight
+                warning
+              />
+            )}
           </div>
         </section>
 
-        <div style={{ marginTop: 9, textAlign: "center" }}>
+        {/* Mod Conflicts */}
+        {mod.conflicts && mod.conflicts.length > 0 && (
+          <section style={section}>
+            <h3 style={{ ...sectionTitle, color: "#ff5555" }}>
+              Mod Conflicts ⚠️
+            </h3>
+            <div style={{ color: "#ff8888", fontSize: 12 }}>
+              This mod conflicts with the following mods:
+              <ul style={{ marginTop: 4, paddingLeft: 16 }}>
+                {mod.conflicts.map((conflictId) => {
+                  const conflictMod = allMods.find(
+                    (m) => m.modId === conflictId
+                  );
+                  return (
+                    <li key={conflictId}>
+                      {conflictMod ? conflictMod.title : conflictId}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <button
+              onClick={() => addModToServer(mod.modId)}
+              disabled={mod.conflicts.length > 0}
+              style={{
+                ...steamButtonStyle,
+                opacity: mod.conflicts.length > 0 ? 0.5 : 1,
+                cursor: mod.conflicts.length > 0 ? "not-allowed" : "pointer",
+                marginTop: 8,
+              }}
+            >
+              Add to Server
+            </button>
+          </section>
+        )}
+
+        {/* Steam buttons & instructions */}
+        <div style={{ marginTop: 12, textAlign: "center" }}>
+          {/* Collapsible label */}
+          <p
+            onClick={() => setShowInstructions((prev) => !prev)}
+            style={{
+              display: "inline-block",
+              backgroundColor: "#2a7a2a",
+              color: "white",
+              padding: "6px 14px",
+              borderRadius: 6,
+              cursor: "pointer",
+              userSelect: "none",
+              fontWeight: 600,
+              marginBottom: 8,
+            }}
+          >
+            💡 How to Download
+          </p>
+
+          {/* Conditional instructions */}
+          {showInstructions && (
+            <div
+              style={{
+                backgroundColor: "#222",
+                color: "#eee",
+                padding: 10,
+                borderRadius: 6,
+                fontSize: 13,
+                marginBottom: 8,
+                maxWidth: 400,
+                margin: "0 auto 8px auto",
+              }}
+            >
+              Modix does not support direct downloads yet. You have two options:
+              <ol style={{ paddingLeft: 20, marginTop: 6 }}>
+                <li>
+                  <strong>View on Steam:</strong> Click "⬇️ View On Steam" to
+                  open the mod page.
+                </li>
+                <li>
+                  <strong>Download via SteamCMD:</strong> Click "⬇️ Download via
+                  SteamCMD" to copy the command to your clipboard. Open SteamCMD
+                  and paste the command to download the mod manually.
+                </li>
+              </ol>
+            </div>
+          )}
+
+          {/* Buttons */}
           <button
-            onClick={handleSteamDownload}
-            style={{ ...steamButtonStyle, marginBottom: 9 }}
+            onClick={() =>
+              window.open(
+                `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.modId}`,
+                "_blank"
+              )
+            }
+            style={{ ...steamButtonStyle, marginBottom: 6 }}
           >
             ⬇️ View On Steam
           </button>
+
+          <button
+            onClick={() => {
+              const cmd = `steamcmd +login anonymous +workshop_download_item ${appid} ${mod.modId} +quit`;
+              navigator.clipboard.writeText(cmd);
+              alert(
+                `SteamCMD command copied to clipboard:\n${cmd}\n\nOpen SteamCMD and paste the command to download this mod.`
+              );
+            }}
+            style={steamButtonStyle}
+          >
+            ⬇️ Download via SteamCMD
+          </button>
         </div>
 
-        {/* Rating System */}
+        {/* Rating */}
         <section style={{ ...section, textAlign: "center" }}>
           <h3 style={sectionTitle}>Your Rating</h3>
           <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
@@ -367,6 +510,7 @@ const ModModal = ({ mod, onClose }) => {
   );
 };
 
+// InfoItem component
 const InfoItem = ({ label, value }) => (
   <div style={{ marginBottom: 4 }}>
     <strong style={{ fontSize: 11, color: "#aaa" }}>{label}:</strong>{" "}
@@ -374,6 +518,7 @@ const InfoItem = ({ label, value }) => (
   </div>
 );
 
+// Styles
 const overlayStyle = {
   position: "fixed",
   inset: 0,
@@ -383,7 +528,6 @@ const overlayStyle = {
   justifyContent: "center",
   zIndex: 1000,
 };
-
 const modalStyle = {
   backgroundColor: "#121212",
   borderRadius: 8,
@@ -397,7 +541,6 @@ const modalStyle = {
   outline: "none",
   color: "white",
 };
-
 const closeButtonStyle = {
   position: "absolute",
   top: 10,
@@ -409,14 +552,12 @@ const closeButtonStyle = {
   cursor: "pointer",
   lineHeight: 1,
 };
-
 const titleStyle = {
   fontSize: 20,
   fontWeight: "700",
   marginBottom: 8,
   color: "white",
 };
-
 const badgeStyle = {
   display: "inline-block",
   backgroundColor: "#59a14f",
@@ -427,7 +568,6 @@ const badgeStyle = {
   borderRadius: 12,
   marginBottom: 12,
 };
-
 const imageWrapperStyle = {
   width: 120,
   height: 120,
@@ -439,14 +579,12 @@ const imageWrapperStyle = {
   alignItems: "center",
   justifyContent: "center",
 };
-
 const imageStyle = {
   maxWidth: "100%",
   maxHeight: "100%",
   objectFit: "cover",
   display: "block",
 };
-
 const imagePlaceholderStyle = {
   fontSize: 40,
   color: "#555",
@@ -455,44 +593,24 @@ const imagePlaceholderStyle = {
   alignItems: "center",
   justifyContent: "center",
 };
-
-const section = {
-  marginTop: 14,
-};
-
+const section = { marginTop: 14 };
 const sectionTitle = {
   fontSize: 15,
   fontWeight: "700",
   marginBottom: 6,
   color: "white",
 };
-
 const descriptionStyle = {
   fontSize: 12,
   lineHeight: 1.4,
   color: "#ccc",
   whiteSpace: "pre-wrap",
 };
-
 const infoGridStyle = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
   gap: 10,
 };
-
-const ratingButtonStyle = {
-  border: "2px solid transparent",
-  borderRadius: 8,
-  cursor: "pointer",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "all 0.2s ease",
-  userSelect: "none",
-  backgroundColor: "transparent",
-};
-
 const categoryButtonStyle = {
   margin: "4px 6px 4px 0",
   border: "none",
@@ -505,7 +623,6 @@ const categoryButtonStyle = {
   backgroundColor: "#444",
   color: "#ccc",
 };
-
 const inputStyle = {
   flex: 1,
   borderRadius: 6,
@@ -515,7 +632,6 @@ const inputStyle = {
   backgroundColor: "#222",
   color: "white",
 };
-
 const textareaStyle = {
   width: "100%",
   borderRadius: 8,
@@ -527,7 +643,6 @@ const textareaStyle = {
   color: "white",
   backgroundColor: "#222",
 };
-
 const saveButtonStyle = {
   backgroundColor: "#59a14f",
   color: "white",
@@ -539,7 +654,6 @@ const saveButtonStyle = {
   cursor: "pointer",
   userSelect: "none",
 };
-
 const downloadButtonStyle = {
   backgroundColor: "#444",
   color: "white",
@@ -550,7 +664,6 @@ const downloadButtonStyle = {
   cursor: "pointer",
   userSelect: "none",
 };
-
 const steamButtonStyle = {
   backgroundColor: "#2a7a2a",
   color: "white",
@@ -562,5 +675,55 @@ const steamButtonStyle = {
   cursor: "pointer",
   userSelect: "none",
 };
+const InfoCard = ({
+  icon,
+  label,
+  value,
+  link,
+  highlight = false,
+  warning = false,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  link?: string; // optional URL
+  highlight?: boolean;
+  warning?: boolean;
+}) => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: 10,
+      borderRadius: 10,
+      background: highlight ? (warning ? "#7a1f1f" : "#1f7a3f") : "#222",
+      color: highlight ? "white" : "#ccc",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+      fontSize: 13,
+      minWidth: 120,
+      cursor: link ? "pointer" : "default",
+      transition: "transform 0.2s",
+    }}
+    title={label}
+    onClick={() => link && window.open(link, "_blank")}
+    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+  >
+    <div style={{ fontSize: 20, marginBottom: 4 }}>{icon}</div>
+    <strong style={{ fontSize: 12, color: "#aaa" }}>{label}</strong>
+    <span
+      style={{
+        fontSize: 14,
+        fontWeight: 600,
+        color: link ? "#4ea1ff" : highlight ? "white" : "#ccc",
+        textDecoration: link ? "underline" : "none",
+      }}
+    >
+      {value}
+    </span>
+  </div>
+);
 
 export default ModModal;

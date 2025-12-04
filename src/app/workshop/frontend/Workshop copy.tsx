@@ -196,7 +196,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       localStorage.setItem(`${game.id}_activeList`, activeList || "");
   }, [activeList, game?.id]);
 
-  // -------------------- Utility functions --------------------
+  // -------------------- Server INI --------------------
   const parseInstalledMods = (content: string) =>
     content
       .split("\n")
@@ -241,7 +241,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       updateServerIniContent([...installedMods, modId]);
   };
 
-  // -------------------- Mod fetching / search --------------------
+  // -------------------- Mod fetching --------------------
   const isCollectionId = (text: string) => /^\d{6,}$/.test(text.trim());
 
   const fetchModInfo = async (modId: string): Promise<Mod> => {
@@ -333,10 +333,6 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
     [input, appid]
   );
 
-  useEffect(() => {
-    if (input.trim()) fetchMods();
-  }, [fetchMods]);
-
   // -------------------- Displayed mods --------------------
   const displayedMods = useMemo(() => {
     if (activeList === "__installed__")
@@ -350,64 +346,58 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
   const createNewModlist = () => {
     const name = prompt("Enter a new modlist:");
     if (!name || modlists[name]) return alert("Invalid or duplicate name.");
-    setModlists((prev) => {
-      const updated = { ...prev, [name]: [] };
-      setActiveList(name);
-      return updated;
-    });
+    setModlists((prev) => ({ ...prev, [name]: [] }));
+    setActiveList(name);
   };
 
   const renameModlist = () => {
     if (!activeList || activeList === "__installed__") return;
-    const newName = prompt("Enter new name for modlist:", activeList);
+    const newName = prompt("Enter new name:", activeList);
     if (!newName || modlists[newName])
       return alert("Invalid or duplicate name.");
     setModlists((prev) => {
       const updated = { ...prev, [newName]: prev[activeList] };
       delete updated[activeList];
-      setActiveList(newName);
       return updated;
     });
+    setActiveList(newName);
   };
 
   const deleteModlist = () => {
     if (!activeList || activeList === "__installed__") return;
-    if (!window.confirm(`Delete modlist "${activeList}"?`)) return;
+    if (!window.confirm(`Delete "${activeList}"?`)) return;
     setModlists((prev) => {
       const updated = { ...prev };
       delete updated[activeList];
-      setActiveList("");
       return updated;
     });
+    setActiveList("");
   };
 
-  const addAllToModlist = (listName: string, sourceMods?: Mod[]) => {
-    if (!listName) return;
-    const toAdd = (sourceMods || mods).map((m) => m.modId);
-    setModlists((prev) => ({
-      ...prev,
-      [listName]: Array.from(new Set([...(prev[listName] || []), ...toAdd])),
-    }));
+  const saveModlistsManually = () => {
+    if (!game?.id) return;
+    localStorage.setItem(`${game.id}_modlists`, JSON.stringify(modlists));
+    localStorage.setItem(`${game.id}_activeList`, activeList);
+    alert("Modlists saved successfully.");
   };
 
   // -------------------- Render --------------------
   return (
-    <div className="workshop-container p-6 bg-gray-900 min-h-screen">
+    <div className="workshop-container p-6 bg-gray-900 min-h-screen text-white">
       {/* HEADER */}
       <header className="workshop-header-container mb-6">
         <div className="bg-gray-800/70 backdrop-blur-md p-6 rounded-3xl shadow-2xl flex flex-col gap-3">
-          {/* Title */}
-          <h1 className="workshop-title text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
+          <h1 className="workshop-title text-5xl font-extrabold tracking-tight drop-shadow-lg">
             {game.name} Workshop
           </h1>
-          {/* Subtitle */}
-          <p className="workshop-subtitle text-white text-lg md:text-xl">
-            Browse, organize, and manage your mods seamlessly
+          <p className="workshop-subtitle text-lg md:text-xl">
+            Effortless mod management (Game ID: {game.id})
           </p>
         </div>
       </header>
 
-      <div className="search-container">
+      {/* SEARCH */}
+      <div className="search-container mb-4 flex gap-2">
         <input
           ref={inputRef}
           type="text"
@@ -415,16 +405,23 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && fetchMods()}
           placeholder="Search mods or enter Collection ID..."
-          className="search-input"
+          className="search-input flex-1 p-2 rounded-lg text-black"
         />
         <button
           onClick={() => fetchMods()}
           disabled={loading}
-          className="search-button"
+          className="search-button bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
         >
           {loading ? "Loading..." : "Search"}
         </button>
       </div>
+
+      <button
+        onClick={saveModlistsManual}
+        className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg"
+      >
+        💾 Save Modlists
+      </button>
 
       <ModlistBar
         activeList={activeList}
@@ -438,7 +435,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
         renameModlist={renameModlist}
         deleteModlist={deleteModlist}
         setShowExport={setShowExport}
-        setModlists={setModlists} // <-- ADD THIS
+        setModlists={setModlists}
       />
 
       <ModGrid
@@ -454,6 +451,7 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
       {selectedMod && (
         <ModModal mod={selectedMod} onClose={() => setSelectedMod(null)} />
       )}
+
       {showExport && (
         <ExportModal
           modIds={
@@ -464,7 +462,9 @@ export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
           onClose={() => setShowExport(false)}
         />
       )}
+
       {error && <div className="error-message">{error}</div>}
     </div>
+    
   );
 }
