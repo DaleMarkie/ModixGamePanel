@@ -6,38 +6,11 @@ import React, {
   useRef,
   useMemo,
   useCallback,
-  ChangeEvent,
 } from "react";
-import ModCard, { ModCardProps, Mod } from "./ModCard";
+import ModCard, { Mod } from "./ModCard";
 import ModModal from "./ModModal";
 
-import InstalledModsPage from "./components/InstalledModsPage";
-import GameActionButtons from "./components/GameActionButtons";
-import ModLogs from "./pages/ModLogs/ModLogs";
-import LoadOrder from "./pages/LoadOrder/LoadOrder";
-import ModCreation from "./pages/ModCreation/ModCreation";
-import ModAlerts from "./pages/ModAlerts/ModAlerts";
-import PopupModal from "./PopupModal";
-import ModUpdates from "./pages/ModUpdates/ModUpdates";
-import ModDebugger from "./pages/ModDebugger/ModDebugger";
-
 import "./Workshop.css";
-
-const GAME_ICONS: Record<string, string> = {
-  projectzomboid:
-    "https://steamcdn-a.akamaihd.net/steam/apps/108600/header.jpg",
-  rimworld: "https://steamcdn-a.akamaihd.net/steam/apps/294100/header.jpg",
-  dayz: "https://steamcdn-a.akamaihd.net/steam/apps/221100/header.jpg",
-  rust: "https://steamcdn-a.akamaihd.net/steam/apps/252490/header.jpg",
-  minecraft:
-    "https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png",
-  squad: "https://steamcdn-a.akamaihd.net/steam/apps/393380/header.jpg",
-  fivem: "https://fivem.net/images/fivem_logo.png",
-  spaceengineers:
-    "https://steamcdn-a.akamaihd.net/steam/apps/244850/header.jpg",
-  kerbalspaceprogram:
-    "https://steamcdn-a.akamaihd.net/steam/apps/220200/header.jpg",
-};
 
 interface ExportModalProps {
   modIds: string[];
@@ -90,69 +63,90 @@ const ExportModal: React.FC<ExportModalProps> = ({ modIds, onClose }) => {
   );
 };
 
-const GAME_APPIDS: Record<string, number> = {
-  projectzomboid: 108600,
-  rimworld: 294100,
-  dayz: 221100,
-  rust: 252490,
-  squad: 393380,
-  spaceengineers: 244850,
-  kerbalspaceprogram: 220200,
-};
+interface Game {
+  id: string; // use the same id as Games page localStorage activeGameId
+  name: string;
+  steamAppId: number;
+}
 
-export default function WorkshopPage() {
-  const [input, setInput] = useState<string>("");
+interface WorkshopPageProps {
+  currentGame?: Game;
+}
+
+/**
+ * WorkshopPage
+ *
+ * Behavior:
+ * - If currentGame prop provided -> use that.
+ * - Otherwise try to read localStorage "activeGameId" and use fallback default.
+ * - Listen for storage events so switching active game in other tab / page updates this page.
+ * - Per-game keys saved/loaded: `${game.id}_favorites`, `${game.id}_modlists`, `${game.id}_modColors`, `${game.id}_installed`
+ */
+export default function WorkshopPage({ currentGame }: WorkshopPageProps) {
+  // fallback default if nothing provided
+  const defaultGame: Game = {
+    id: "108600",
+    name: "Project Zomboid",
+    steamAppId: 108600,
+  };
+
+  const [detectedGame, setDetectedGame] = useState<Game | null>(
+    currentGame || null
+  );
+
+  // If currentGame changes from parent, adopt it
+  useEffect(() => {
+    if (currentGame) setDetectedGame(currentGame);
+  }, [currentGame]);
+
+  // Try to detect activeGameId from localStorage if not provided
+  useEffect(() => {
+    if (currentGame) return;
+    const activeId = localStorage.getItem("activeGameId");
+    if (activeId) {
+      // If you have a mapping from gameId -> steamAppId/name, extend here.
+      // Basic heuristic: treat id as steamAppId if numeric; otherwise fallback to default.
+      const steamAppId = /^\d+$/.test(activeId) ? Number(activeId) : defaultGame.steamAppId;
+      setDetectedGame({ id: activeId, name: `Game ${activeId}`, steamAppId });
+    } else {
+      setDetectedGame(defaultGame);
+    }
+
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === "activeGameId") {
+        const newId = ev.newValue;
+        if (!newId) {
+          setDetectedGame(defaultGame);
+        } else {
+          const steamAppId = /^\d+$/.test(newId) ? Number(newId) : defaultGame.steamAppId;
+          setDetectedGame({ id: newId, name: `Game ${newId}`, steamAppId });
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [currentGame]);
+
+  // Use the detected game or fallback
+  const game = detectedGame || defaultGame;
+  const appid = game.steamAppId;
+
+  // Workshop state (per-game loaded/saved below)
+  const [input, setInput] = useState("");
   const [mods, setMods] = useState<Mod[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [selectedGame, setSelectedGame] = useState<string>("projectzomboid");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("selectedGame");
-      if (saved) setSelectedGame(saved);
-    }
-  }, []);
-
-  const appid = GAME_APPIDS[selectedGame] || 108600;
-
-  const [favorites, setFavorites] = useState<string[]>([]); // start with default
-
-  useEffect(() => {
-    const saved = localStorage.getItem("favorites");
-    if (saved) {
-      setFavorites(JSON.parse(saved));
-    }
-  }, []);
-
-  const [modlists, setModlists] = useState<string[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("modlists");
-    if (saved) {
-      setModlists(JSON.parse(saved));
-    }
-  }, []);
-
-  const [activeList, setActiveList] = useState<string>("");
-  const [showListOnly, setShowListOnly] = useState<boolean>(false);
-
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [modlists, setModlists] = useState<Record<string, string[]>>({});
+  const [activeList, setActiveList] = useState("");
+  const [showListOnly, setShowListOnly] = useState(false);
   const [selectedMod, setSelectedMod] = useState<Mod | null>(null);
-  const [showExport, setShowExport] = useState<boolean>(false);
+  const [showExport, setShowExport] = useState(false);
   const [modColors, setModColors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const saved = localStorage.getItem("modColors");
-    if (saved) {
-      setModColors(JSON.parse(saved));
-    }
-  }, []);
-
   const [serverIniFile, setServerIniFile] = useState<File | null>(null);
-  const [serverIniContent, setServerIniContent] = useState<string>("");
+  const [serverIniContent, setServerIniContent] = useState("");
   const [installedMods, setInstalledMods] = useState<string[]>([]);
-
   const [popup, setPopup] = useState<
     | "updates"
     | "logs"
@@ -164,75 +158,123 @@ export default function WorkshopPage() {
   >(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => inputRef.current?.focus(), []);
+
+  /* -------------------- Per-game load/save -------------------- */
+  // Load per-game settings when game.id changes
+  useEffect(() => {
+    if (!game?.id) return;
+    try {
+      const savedFavorites = localStorage.getItem(`${game.id}_favorites`);
+      if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+      else setFavorites([]);
+
+      const savedModlists = localStorage.getItem(`${game.id}_modlists`);
+      if (savedModlists) setModlists(JSON.parse(savedModlists));
+      else setModlists({});
+
+      const savedColors = localStorage.getItem(`${game.id}_modColors`);
+      if (savedColors) setModColors(JSON.parse(savedColors));
+      else setModColors({});
+
+      const savedInstalled = localStorage.getItem(`${game.id}_installed`);
+      if (savedInstalled) setInstalledMods(JSON.parse(savedInstalled));
+      else setInstalledMods([]);
+
+      const savedIni = localStorage.getItem(`${game.id}_serverIniContent`);
+      if (savedIni) setServerIniContent(savedIni);
+      else setServerIniContent("");
+    } catch (err) {
+      console.warn("Failed to parse per-game localStorage data:", err);
+    }
+  }, [game?.id]);
+
+  // Save per-game settings when they change
+  useEffect(() => {
+    if (!game?.id) return;
+    localStorage.setItem(`${game.id}_favorites`, JSON.stringify(favorites));
+  }, [favorites, game?.id]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!game?.id) return;
+    localStorage.setItem(`${game.id}_modlists`, JSON.stringify(modlists));
+  }, [modlists, game?.id]);
 
   useEffect(() => {
+    if (!game?.id) return;
+    localStorage.setItem(`${game.id}_modColors`, JSON.stringify(modColors));
+  }, [modColors, game?.id]);
+
+  useEffect(() => {
+    if (!game?.id) return;
+    localStorage.setItem(`${game.id}_installed`, JSON.stringify(installedMods));
+  }, [installedMods, game?.id]);
+
+  useEffect(() => {
+    if (!game?.id) return;
     localStorage.setItem(
-      `${selectedGame}_favorites`,
-      JSON.stringify(favorites)
+      `${game.id}_serverIniContent`,
+      serverIniContent || ""
     );
-  }, [favorites, selectedGame]);
+  }, [serverIniContent, game?.id]);
 
-  useEffect(() => {
-    localStorage.setItem(`${selectedGame}_modlists`, JSON.stringify(modlists));
-  }, [modlists, selectedGame]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      `${selectedGame}_modColors`,
-      JSON.stringify(modColors)
-    );
-  }, [modColors, selectedGame]);
-
-  const parseInstalledMods = (content: string) => {
-    const line = content
+  /* -------------------- Server INI parsing & updating -------------------- */
+  const parseInstalledMods = (content: string) =>
+    content
       .split("\n")
-      .find((l) => l.startsWith("WorkshopItems="));
-    if (!line) return [];
-    return line
-      .replace("WorkshopItems=", "")
+      .find((l) => l.startsWith("WorkshopItems="))
+      ?.replace("WorkshopItems=", "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean) || [];
+
+  // If a user uploads a server.ini file, parse it and adopt installed mods
+  const handleServerIniUpload = (file: File | null) => {
+    if (!file) return;
+    setServerIniFile(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || "");
+      setServerIniContent(text);
+      const parsed = parseInstalledMods(text);
+      if (parsed.length) setInstalledMods(parsed);
+      alert("server.ini loaded and installed mods parsed.");
+    };
+    reader.readAsText(file);
   };
 
   const updateServerIniContent = (modIds: string[]) => {
-    let lines = serverIniContent.split("\n");
+    const lines = serverIniContent ? serverIniContent.split("\n") : [];
     let found = false;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith("WorkshopItems=")) {
-        lines[i] = `WorkshopItems=${modIds.join(",")}`;
+    const newLines = lines.map((line) => {
+      if (line.startsWith("WorkshopItems=")) {
         found = true;
-        break;
+        return `WorkshopItems=${modIds.join(",")}`;
       }
-    }
-    if (!found) lines.push(`WorkshopItems=${modIds.join(",")}`);
-    setServerIniContent(lines.join("\n"));
+      return line;
+    });
+    if (!found) newLines.push(`WorkshopItems=${modIds.join(",")}`);
+    const joined = newLines.join("\n");
+    setServerIniContent(joined);
     setInstalledMods(modIds);
+    // saving to per-game localStorage is handled by effect
   };
 
   const addModToServer = (modId: string) => {
-    if (!installedMods.includes(modId)) {
-      const newInstalled = [...installedMods, modId];
-      updateServerIniContent(newInstalled);
-    }
+    if (!installedMods.includes(modId))
+      updateServerIniContent([...installedMods, modId]);
   };
 
+  /* -------------------- Fetching mod info (scrape via CORS proxy) -------------------- */
   const fetchModInfo = async (modId: string): Promise<Mod> => {
     try {
       const url = `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`;
-      const response = await fetch(`https://corsproxy.io/?${url}`);
-      const html = await response.text();
+      const html = await (await fetch(`https://corsproxy.io/?${url}`)).text();
       const doc = new DOMParser().parseFromString(html, "text/html");
-
       const title =
         doc.querySelector(".workshopItemTitle")?.textContent?.trim() ||
         `Mod ${modId}`;
-
-      let image =
+      const image =
         (
           doc.querySelector(
             ".workshopItemPreviewImageMain img"
@@ -241,20 +283,16 @@ export default function WorkshopPage() {
         (doc.querySelector(".workshopItemPreviewImage img") as HTMLImageElement)
           ?.src ||
         "https://via.placeholder.com/260x140?text=No+Image";
-
-      const lastUpdateText =
-        doc.querySelector(".detailsStatRight")?.textContent?.trim() || null;
-
-      let lastUpdate: string | undefined;
-      if (lastUpdateText) {
-        const parsedDate = Date.parse(lastUpdateText);
-        if (!isNaN(parsedDate)) lastUpdate = new Date(parsedDate).toISOString();
-      }
-
       const descriptionBlock =
         doc.querySelector(".workshopItemDescription")?.textContent || "";
       const versionMatch = descriptionBlock.match(/v?\d+(\.\d+)+/i);
-      let version: string | undefined = versionMatch?.[0];
+      const version = versionMatch?.[0];
+      const lastUpdateText = doc
+        .querySelector(".detailsStatRight")
+        ?.textContent?.trim();
+      const lastUpdate = lastUpdateText
+        ? new Date(Date.parse(lastUpdateText)).toISOString()
+        : undefined;
 
       return {
         modId,
@@ -264,8 +302,7 @@ export default function WorkshopPage() {
         version,
         description: descriptionBlock.slice(0, 300).trim(),
       };
-    } catch (err) {
-      console.error("Failed to fetch mod info:", err);
+    } catch {
       return {
         modId,
         title: `Mod ${modId}`,
@@ -274,99 +311,92 @@ export default function WorkshopPage() {
     }
   };
 
+  /* -------------------- Search / Collection handling -------------------- */
+  const isCollectionId = (text: string) => /^\d{6,}$/.test(text.trim());
+
+  const fetchMods = useCallback(
+    async (queryOverride?: string) => {
+      const query = (queryOverride ?? input).trim();
+      if (!query) return setError("Enter a mod keyword or Collection ID.");
+      setLoading(true);
+      setError("");
+      setMods([]);
+      try {
+        const url = isCollectionId(query)
+          ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
+          : `https://steamcommunity.com/workshop/browse/?appid=${appid}&searchtext=${encodeURIComponent(
+              query
+            )}&browsesort=trend`;
+
+        const html = await (await fetch(`https://corsproxy.io/?${url}`)).text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        let items: Mod[] = [];
+        if (isCollectionId(query)) {
+          const modLinks = [...doc.querySelectorAll(".collectionItem a")];
+          for (let linkEl of modLinks) {
+            const modId = linkEl.href.match(/id=(\d+)/)?.[1];
+            if (!modId) continue;
+            items.push(await fetchModInfo(modId));
+          }
+        } else {
+          items = [...doc.querySelectorAll(".workshopItem")].map((item) => {
+            const link = item.querySelector("a")?.href || "#";
+            const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
+            const title =
+              item.querySelector(".workshopItemTitle")?.textContent?.trim() ||
+              "Untitled";
+            const image =
+              item.querySelector("img")?.src ||
+              "https://via.placeholder.com/260x140?text=No+Image";
+            return { modId, title, image };
+          });
+        }
+
+        if (!items.length) throw new Error("No mods found.");
+        setMods(items);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load mods.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [input, appid]
+  );
+
+  // Fetch when user presses search or input changes and we want live results
+  useEffect(() => {
+    // Initial fetch only when input is already filled (avoid auto-loading empty)
+    if (input.trim()) fetchMods();
+  }, [fetchMods]);
+
+  /* If installedMods change, ensure mods list contains info for them */
   useEffect(() => {
     if (!installedMods.length) return;
-    const fetchAllInstalledMods = async () => {
-      const installedInfo = await Promise.all(
+    (async () => {
+      const info = await Promise.all(
         installedMods.map((id) => fetchModInfo(id))
       );
       setMods((prev) => {
-        const filtered = prev.filter((m) => !installedMods.includes(m.modId));
-        return [...filtered, ...installedInfo];
+        // keep previous non-installed mods, append installed info (de-duped)
+        const other = prev.filter((m) => !installedMods.includes(m.modId));
+        return [...other, ...info];
       });
-    };
-    fetchAllInstalledMods();
-  }, [installedMods]);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installedMods.join(",")]); // joined string to avoid deep dependency issues
 
-  const downloadServerIni = () => {
-    const blob = new Blob([serverIniContent], {
-      type: "text/plain;charset=utf-8",
-    });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = serverIniFile?.name || "server.ini";
-    link.click();
-  };
-
-  const isCollectionId = (text) => /^\d{6,}$/.test(text.trim());
-  const handleConflictChecker = () => alert("Conflict Checker clicked!");
-  const fetchMods = useCallback(async () => {
-    const query = input.trim();
-    if (!query)
-      return setError(
-        "Enter a mod keyword or paste a valid Workshop Collection ID."
-      );
-    setLoading(true);
-    setError("");
-    setMods([]);
-
-    const url = isCollectionId(query)
-      ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${query}`
-      : `https://steamcommunity.com/workshop/browse/?appid=${appid}&searchtext=${encodeURIComponent(
-          query
-        )}&browsesort=trend`;
-
-    try {
-      const response = await fetch(`https://corsproxy.io/?${url}`);
-      const html = await response.text();
-      const doc = new DOMParser().parseFromString(html, "text/html");
-
-      let items = [];
-      if (isCollectionId(query)) {
-        const modLinks = [...doc.querySelectorAll(".collectionItem a")];
-        for (let linkEl of modLinks) {
-          const link = linkEl.href;
-          const modId = link.match(/id=(\d+)/)?.[1];
-          if (!modId) continue;
-          const info = await fetchModInfo(modId);
-          items.push(info);
-        }
-      } else {
-        items = [...doc.querySelectorAll(".workshopItem")].map((item) => {
-          const link = item.querySelector("a")?.href || "#";
-          const modId = link.match(/id=(\d+)/)?.[1] || crypto.randomUUID();
-          const title =
-            item.querySelector(".workshopItemTitle")?.textContent.trim() ||
-            "Untitled";
-          const image =
-            item.querySelector("img")?.src ||
-            "https://via.placeholder.com/260x140?text=No+Image";
-          return { modId, title, image };
-        });
-      }
-
-      if (!items.length) throw new Error("No mods found.");
-      setMods(items);
-    } catch (err) {
-      console.error("Workshop fetch failed:", err);
-      setError("Failed to load mods. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [input, appid]);
-
-  useEffect(() => {
-    fetchMods();
-  }, [fetchMods]);
-
+  /* -------------------- Displayed mods (filtering by activeList, installed, etc) -------------------- */
   const displayedMods = useMemo(() => {
     if (activeList === "__installed__")
-      return mods.filter((mod) => installedMods.includes(mod.modId));
+      return mods.filter((m) => installedMods.includes(m.modId));
     return showListOnly && activeList
-      ? mods.filter((mod) => (modlists[activeList] || []).includes(mod.modId))
+      ? mods.filter((m) => (modlists[activeList] || []).includes(m.modId))
       : mods;
   }, [showListOnly, activeList, modlists, mods, installedMods]);
 
+  /* -------------------- Modlist CRUD -------------------- */
   const createNewModlist = () => {
     const name = prompt("Enter a new modlist:");
     if (!name || modlists[name]) return alert("Invalid or duplicate name.");
@@ -398,98 +428,27 @@ export default function WorkshopPage() {
     setActiveList("");
   };
 
+  const addAllToModlist = (listName: string, sourceMods?: Mod[]) => {
+    if (!listName) return;
+    const toAdd = (sourceMods || mods).map((m) => m.modId);
+    setModlists((prev) => ({
+      ...prev,
+      [listName]: Array.from(new Set([...(prev[listName] || []), ...toAdd])),
+    }));
+  };
+
+  /* -------------------- UI / render -------------------- */
   return (
     <div className="workshop-container">
-      {/* Top Game Selector + Action Buttons with URL Game Icons */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "15px",
-          padding: "8px 12px",
-          backgroundColor: "#1b1b1b",
-          borderRadius: 8,
-          border: "1px solid #333",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Game Selector */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexGrow: 1,
-            minWidth: 200,
-          }}
-        >
-          {/* Game Icon */}
-          {selectedGame && (
-            <img
-              src={GAME_ICONS[selectedGame]} // URL mapping for each game
-              alt={selectedGame}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 4,
-                objectFit: "cover",
-                border: "1px solid #555",
-              }}
-            />
-          )}
-
-          <label style={{ fontWeight: 600, color: "#fff" }}>
-            🎮 Select Game:
-          </label>
-
-          <select
-            value={selectedGame}
-            onChange={(e) => {
-              setSelectedGame(e.target.value);
-              localStorage.setItem("selectedGame", e.target.value);
-            }}
-            style={{
-              padding: "6px 10px",
-              borderRadius: 6,
-              border: "1px solid #555",
-              backgroundColor: "#2a2a2a",
-              color: "#fff",
-              cursor: "pointer",
-              flexGrow: 1,
-              minWidth: 120,
-            }}
-          >
-            {Object.keys(GAME_APPIDS).map((game) => (
-              <option key={game} value={game}>
-                {game.charAt(0).toUpperCase() + game.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Action Buttons */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "wrap",
-          }}
-        >
-          <GameActionButtons
-            onModUpdates={() => setPopup("updates")}
-            onModLogs={() => setPopup("logs")}
-            onLoadOrder={() => setPopup("loadorder")}
-            onModCreation={() => setPopup("modcreation")}
-            onModAlerts={() => setPopup("alerts")}
-            onModCreation={() => setPopup("moddebugger")}
-          />
+      {/* HEADER */}
+      <div className="workshop-header-container">
+        <div className="workshop-title">{game.name} Workshop</div>
+        <div className="workshop-subtitle">
+          Search, organize, and manage mods like a pro (active game id: {game.id})
         </div>
       </div>
 
-      {/* Search */}
+      {/* SEARCH */}
       <div className="search-container">
         <input
           ref={inputRef}
@@ -501,298 +460,255 @@ export default function WorkshopPage() {
           className="search-input"
         />
         <button
-          onClick={fetchMods}
+          onClick={() => fetchMods()}
           disabled={loading}
           className="search-button"
         >
           {loading ? "Loading..." : "Search"}
         </button>
-      </div>
 
-      {/* Server.ini loader */}
-      {/* Server.ini Loader */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          margin: "15px 0",
-          padding: "12px",
-          backgroundColor: "#1e1e1e",
-          borderRadius: 8,
-          border: "1px solid #333",
-          color: "#fff",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <label style={{ fontWeight: 600, fontSize: 14 }}>
-          🗄 Load server.ini
-        </label>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <input
-            type="file"
-            accept=".ini"
-            style={{
-              cursor: "pointer",
-              color: "#fff",
-              flex: 1,
-              padding: "6px",
-              backgroundColor: "#2a2a2a",
-              border: "1px solid #444",
-              borderRadius: 4,
-            }}
-            onChange={async (e) => {
-              try {
-                if (!e.target.files?.length) return;
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = () => {
-                  const content = reader.result as string;
-                  setServerIniContent(content);
-                  // Safely parse installed mods
-                  const mods =
-                    content
-                      .split("\n")
-                      .find((l) => l.startsWith("WorkshopItems="))
-                      ?.replace("WorkshopItems=", "")
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean) || [];
-                  setInstalledMods(mods);
-                  setServerIniFile(file);
-                };
-                reader.readAsText(file);
-              } catch (err) {
-                console.error("Failed to read server.ini:", err);
-                alert("Error loading server.ini. See console for details.");
-              }
-            }}
-          />
-
-          {serverIniFile && (
-            <button
-              onClick={() => {
-                try {
-                  const blob = new Blob([serverIniContent], {
-                    type: "text/plain;charset=utf-8",
-                  });
-                  const link = document.createElement("a");
-                  link.href = URL.createObjectURL(blob);
-                  link.download = serverIniFile.name || "server.ini";
-                  link.click();
-                } catch (err) {
-                  console.error("Failed to download server.ini:", err);
-                  alert(
-                    "Error downloading server.ini. See console for details."
-                  );
-                }
-              }}
-              style={{
-                padding: "6px 14px",
-                borderRadius: 6,
-                backgroundColor: "#1DB954",
-                color: "#fff",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 600,
-                transition: "background-color 0.2s",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.backgroundColor = "#17a845")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.backgroundColor = "#1DB954")
-              }
-            >
-              💾 Download Updated server.ini
-            </button>
-          )}
-        </div>
-
-        {serverIniFile && (
-          <div
-            style={{
-              marginTop: "6px",
-              fontSize: 12,
-              color: "#ccc",
-              display: "flex",
-              flexDirection: "column",
-              gap: "2px",
-            }}
-          >
-            <span>
-              Loaded file:{" "}
-              <strong style={{ color: "#fff" }}>{serverIniFile.name}</strong>
-            </span>
-            <span>
-              Installed mods:{" "}
-              <strong style={{ color: "#1DB954" }}>
-                {installedMods.length}
-              </strong>
-            </span>
-            {installedMods.length > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "6px",
-                  marginTop: 4,
+        {/* COLLECTION: Add all to modlist UI */}
+        {isCollectionId(input) && mods.length > 0 && (
+          <>
+            {Object.keys(modlists).length > 0 ? (
+              <select
+                onChange={(e) => {
+                  const target = e.target as HTMLSelectElement;
+                  const listName = target.value;
+                  if (!listName) return;
+                  addAllToModlist(listName, mods);
+                  target.value = "";
+                  alert("Collection mods added to list.");
                 }}
+                defaultValue=""
+                className="ml-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-2 py-1 cursor-pointer"
               >
-                {installedMods.slice(0, 10).map((modId) => (
-                  <span
-                    key={modId}
-                    style={{
-                      padding: "2px 6px",
-                      backgroundColor: "#2a2a2a",
-                      borderRadius: 4,
-                      fontSize: 11,
-                      color: "#fff",
-                      border: "1px solid #444",
-                    }}
-                  >
-                    {modId}
-                  </span>
+                <option value="">Add Entire Collection to List</option>
+                {Object.keys(modlists).map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
                 ))}
-                {installedMods.length > 10 && (
-                  <span style={{ fontSize: 11, color: "#999" }}>
-                    +{installedMods.length - 10} more
-                  </span>
-                )}
-              </div>
+              </select>
+            ) : (
+              // If no lists exist, give quick-create button
+              <button
+                onClick={() => {
+                  const name = prompt(
+                    "No modlists found. Enter a name to create a new modlist for this collection:"
+                  );
+                  if (!name) return;
+                  setModlists((prev) => ({ ...prev, [name]: mods.map((m) => m.modId) }));
+                  setActiveList(name);
+                  alert("Modlist created and collection added.");
+                }}
+                className="ml-2 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded-lg"
+              >
+                ➕ Create list & add collection
+              </button>
             )}
-          </div>
+          </>
         )}
       </div>
 
-      {/* Modlists */}
-      <div className="modlist-bar">
-        <div className="dropdown-container">
-          <label>📁 Modlist:</label>
-          <select
-            value={activeList}
-            onChange={(e) => setActiveList(e.target.value)}
-          >
-            <option value="">All Mods</option>
-            {installedMods.length > 0 && (
-              <option value="__installed__">Installed Mods</option>
-            )}
-            {Object.keys(modlists).map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="modlist-buttons">
-          <button onClick={createNewModlist}>➕ New</button>
-          {activeList && activeList !== "__installed__" && (
-            <>
-              <button onClick={renameModlist}>✏ Rename</button>
-              <button onClick={deleteModlist}>🗑 Delete</button>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showListOnly}
-                  onChange={() => setShowListOnly(!showListOnly)}
-                />{" "}
-                Show List
-              </label>
-              <button onClick={() => setShowExport(true)}>📤 Export</button>
-            </>
+      {/* MODLIST BAR */}
+      <div className="modlist-bar flex flex-wrap items-center gap-3 p-4 bg-gray-900/80 border border-gray-700 rounded-xl shadow-lg">
+        {/* Dropdown */}
+        <select
+          value={activeList}
+          onChange={(e) => setActiveList(e.target.value)}
+          className="bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-750 transition-all"
+        >
+          <option value="">All Mods</option>
+          {installedMods.length > 0 && (
+            <option value="__installed__">Installed Mods</option>
           )}
-        </div>
+          {Object.keys(modlists).map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+
+        {/* Show only mods from this list */}
+        {activeList && activeList !== "__installed__" && (
+          <label className="flex items-center gap-2 text-gray-300">
+            <input
+              type="checkbox"
+              checked={showListOnly}
+              onChange={() => setShowListOnly((prev) => !prev)}
+              className="accent-indigo-500"
+            />
+            Show only this list
+          </label>
+        )}
+
+        {/* NEW */}
+        <button
+          onClick={createNewModlist}
+          className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+        >
+          ➕ New
+        </button>
+
+        {activeList && activeList !== "__installed__" && (
+          <>
+            {/* RENAME */}
+            <button
+              onClick={renameModlist}
+              className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+            >
+              ✏ Rename
+            </button>
+
+            {/* DELETE */}
+            <button
+              onClick={deleteModlist}
+              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+            >
+              🗑 Delete
+            </button>
+          </>
+        )}
+
+        {/* EXPORT */}
+        {displayedMods.length > 0 && (
+          <button
+            onClick={() => setShowExport(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3 py-2 rounded-lg shadow-md transition-all"
+          >
+            📤 Export
+          </button>
+        )}
+
+        {/* server.ini upload (parse installed mods) */}
+        <label className="ml-auto flex items-center gap-2 text-sm text-gray-300">
+          <input
+            type="file"
+            accept=".ini,.txt"
+            onChange={(e) => handleServerIniUpload(e.target.files?.[0] || null)}
+            className="hidden"
+            id="serverIniFileInput"
+          />
+          <button
+            onClick={() => document.getElementById("serverIniFileInput")?.click()}
+            className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg text-white"
+          >
+            Upload server.ini
+          </button>
+        </label>
       </div>
 
-      {/* Mods grid or installed mods */}
-      <div className="mod-grid">
-        {displayedMods.map((mod) => (
-          <ModCard
-            key={mod.modId}
-            mod={mod}
-            inList={
+      {/* MOD GRID */}
+      <div className="mod-grid-container">
+        <div className="mod-grid">
+          {displayedMods.map((mod) => {
+            const inList =
               activeList && activeList !== "__installed__"
                 ? modlists[activeList]?.includes(mod.modId)
-                : false
-            }
-            isInstalled={installedMods.includes(mod.modId)}
-            onClick={() => setSelectedMod(mod)} // Opens modal for all mods
-            onToggleInList={() => {
-              if (!activeList || activeList === "__installed__") return;
-              const current = modlists[activeList] || [];
-              const updated = current.includes(mod.modId)
-                ? current.filter((id) => id !== mod.modId)
-                : [...current, mod.modId];
-              setModlists((prev) => ({ ...prev, [activeList]: updated }));
-            }}
-            onAddToServer={() => addModToServer(mod.modId)}
-            onSetColor={(color) =>
-              setModColors((prev) => ({ ...prev, [mod.modId]: color }))
-            }
-          />
-        ))}
+                : false;
+            const isInstalled = installedMods.includes(mod.modId);
+
+            return (
+              <div
+                key={mod.modId}
+                className="mod-card hover:scale-105 transition-transform duration-200 shadow-lg rounded-xl overflow-hidden bg-gray-900 text-white flex flex-col"
+              >
+                <div className="mod-image-wrapper relative">
+                  <img
+                    src={mod.image}
+                    alt={mod.title}
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="mod-status-overlay absolute top-2 right-2 flex gap-1">
+                    {isInstalled && (
+                      <span className="bg-green-500 text-xs px-2 py-1 rounded-full">
+                        Installed
+                      </span>
+                    )}
+                    {inList && (
+                      <span className="bg-blue-500 text-xs px-2 py-1 rounded-full">
+                        In List
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mod-content p-3 flex flex-col flex-1">
+                  <h3 className="mod-title font-semibold text-lg line-clamp-2">
+                    {mod.title}
+                  </h3>
+                  {mod.version && (
+                    <p className="mod-version text-sm text-gray-400 mt-1">
+                      v{mod.version}
+                    </p>
+                  )}
+                  <p className="mod-description text-sm text-gray-300 mt-2 line-clamp-3 flex-1">
+                    {mod.description || "No description available."}
+                  </p>
+                  <div className="mod-actions mt-3 flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => setSelectedMod(mod)}
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-sm py-1 rounded-md"
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() => addModToServer(mod.modId)}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-sm py-1 rounded-md"
+                    >
+                      Add to Server
+                    </button>
+                    {Object.keys(modlists).length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          const listName = e.target.value;
+                          if (!listName) return;
+                          setModlists((prev) => ({
+                            ...prev,
+                            [listName]: Array.from(
+                              new Set([...(prev[listName] || []), mod.modId])
+                            ),
+                          }));
+                          e.target.value = "";
+                        }}
+                        defaultValue=""
+                        className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-2 py-1 cursor-pointer"
+                      >
+                        <option value="">Add to List</option>
+                        {Object.keys(modlists).map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Mod modal */}
+      {/* MOD MODAL */}
       {selectedMod && (
         <ModModal mod={selectedMod} onClose={() => setSelectedMod(null)} />
       )}
 
-      {/* Export modal */}
+      {/* EXPORT MODAL */}
       {showExport && (
         <ExportModal
           modIds={
             activeList && activeList !== "__installed__"
               ? modlists[activeList] || []
-              : installedMods
+              : displayedMods.map((mod) => mod.modId) // export collection search results or filtered view
           }
           onClose={() => setShowExport(false)}
         />
       )}
 
-      {/* Error */}
+      {/* ERROR */}
       {error && <div className="error-message">{error}</div>}
-
-      {/* Popup modals */}
-      {popup && (
-        <PopupModal onClose={() => setPopup(null)}>
-          {popup === "updates" && (
-            <ModUpdates
-              updates={installedMods
-                .map((id) => {
-                  const mod = mods.find((m) => m.modId === id);
-                  return mod
-                    ? {
-                        modId: mod.modId,
-                        modName: mod.title,
-                        lastWorkshopUpdate: mod.lastUpdate || undefined,
-                        currentVersion: mod.version || undefined,
-                        description: mod.description || undefined,
-                      }
-                    : null;
-                })
-                .filter(Boolean)}
-            />
-          )}
-
-          {popup === "logs" && (
-            <ModLogs
-              installedMods={installedMods.map((id) => {
-                const mod = mods.find((m) => m.modId === id);
-                return mod
-                  ? { modId: mod.modId, title: mod.title }
-                  : { modId: id, title: `Mod ${id}` };
-              })}
-            />
-          )}
-
-          {popup === "alerts" && <ModAlerts />}
-          {popup === "moddebugger" && <ModDebugger />}
-          {popup === "modcreation" && <ModCreation />}
-          {popup === "loadorder" && <LoadOrder />}
-        </PopupModal>
-      )}
     </div>
   );
 }

@@ -1,285 +1,286 @@
-/* Workshop.css */
-
-/* GENERAL CONTAINER */
+/* ----------------------------
+   GENERAL CONTAINER
+---------------------------- */
 .workshop-container {
-  max-width: 1200px;
-  margin: 20px auto;
+  max-width: 1400px;
+  margin: 30px auto;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #e0e0e0;
-  background-color: #1b1b1b;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  color: #f0f0f0;
+  background: #121212;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
-/* HEADER */
+/* ----------------------------
+   HEADER
+---------------------------- */
 .workshop-header-container {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
-
 .workshop-title {
-  font-size: 2rem;
-  color: #76ff03; /* light green */
-  margin-bottom: 5px;
+  font-size: 2.6rem;
+  color: #00ff99;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
 }
-
 .workshop-subtitle {
-  font-size: 1rem;
-  color: #b2ff59;
+  font-size: 1.2rem;
+  color: #66ffaa;
+  font-weight: 500;
 }
 
-/* GAME SELECTOR */
-.game-selector {
-  margin-bottom: 15px;
-}
-
-.game-selector label {
-  margin-right: 8px;
-  font-weight: bold;
-}
-
-.game-selector select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background-color: #2b2b2b;
-  color: #e0e0e0;
-}
-
-/* SEARCH CONTAINER */
+/* ----------------------------
+   SEARCH BAR
+---------------------------- */
 .search-container {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 25px;
 }
-
 .search-input {
   flex: 1;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background-color: #262626;
-  color: #e0e0e0;
-}
-
-.search-button {
-  padding: 8px 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
   border: none;
-  border-radius: 6px;
-  background-color: #76ff03;
-  color: #1b1b1b;
-  font-weight: bold;
-  cursor: pointer;
+  background: #1f1f1f;
+  color: #f0f0f0;
+  font-size: 1rem;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
   transition: 0.2s;
 }
-
-.search-button:hover {
-  background-color: #64dd17;
+.search-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 8px #00ff99;
 }
-
+.search-button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #00ff99, #00cc66);
+  color: #121212;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.search-button:hover {
+  background: linear-gradient(135deg, #00cc66, #009944);
+}
 .search-button:disabled {
-  background-color: #555;
+  background: #555;
   cursor: not-allowed;
 }
 
-/* MODLIST BAR */
-.modlist-bar {
+/* ----------------------------
+   STATS DASHBOARD
+---------------------------- */
+.stats-dashboard {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 25px;
 }
-
-.dropdown-container select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background-color: #2b2b2b;
-  color: #e0e0e0;
+.stats-card {
+  flex: 1 1 180px;
+  background: #1f1f1f;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s, box-shadow 0.25s;
 }
-
-.modlist-buttons button {
-  margin-left: 5px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #76ff03;
-  color: #1b1b1b;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
+.stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
 }
-
-.modlist-buttons button:hover {
-  background-color: #64dd17;
+.stats-title {
+  font-size: 0.9rem;
+  color: #66ffaa;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
 }
-
-.modlist-buttons label {
-  margin-left: 10px;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* MOD GRID */
-.mod-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 15px;
-}
-
-/* MOD CARD */
-.mod-card {
-  background-color: #262626;
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.mod-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.6);
-}
-
-.mod-card img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-}
-
-.mod-card-body {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.mod-card-title {
-  font-weight: bold;
-  font-size: 1rem;
+.stats-value {
+  font-size: 1.6rem;
+  font-weight: 700;
   color: #ffffff;
 }
 
+/* ----------------------------
+   MODLIST BAR
+---------------------------- */
+.modlist-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modlist-bar select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #1f1f1f;
+  color: #f0f0f0;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.modlist-bar button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #00ff99, #00cc66);
+  color: #121212;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.modlist-bar button:hover {
+  background: linear-gradient(135deg, #00cc66, #009944);
+}
+.modlist-bar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #f0f0f0;
+}
+
+/* ----------------------------
+   MOD GRID
+---------------------------- */
+.mod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+/* ----------------------------
+   MOD CARD
+---------------------------- */
+.mod-card {
+  background: #1e1e1e;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+}
+.mod-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.7);
+}
+.mod-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+.mod-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mod-card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+}
 .mod-card-buttons {
   display: flex;
-  justify-content: space-between;
-  gap: 5px;
+  gap: 8px;
 }
-
 .mod-card-buttons button {
   flex: 1;
-  padding: 5px;
+  padding: 6px 0;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.25s;
+}
+.add-server {
+  background: linear-gradient(135deg, #ff5555, #ff2222);
+  color: #121212;
+}
+.add-server:hover {
+  background: linear-gradient(135deg, #ff2222, #cc0000);
+}
+.toggle-list {
+  background: linear-gradient(135deg, #66ccff, #3399ff);
+  color: #121212;
+}
+.toggle-list:hover {
+  background: linear-gradient(135deg, #3399ff, #0077ff);
 }
 
-.mod-card-buttons .add-server {
-  background-color: #c01c17;
-  color: #1b1b1b;
-}
-
-.mod-card-buttons .add-server:hover {
-  background-color: #64dd17;
-}
-
-.mod-card-buttons .toggle-list {
-  background-color: #81d4fa;
-  color: #1b1b1b;
-}
-
-.mod-card-buttons .toggle-list:hover {
-  background-color: #4fc3f7;
-}
-
-/* EXPORT MODAL */
+/* ----------------------------
+   MODAL
+---------------------------- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999;
 }
-
 .modal-content {
-  background-color: #1b1b1b;
-  padding: 20px;
-  border-radius: 12px;
-  width: 400px;
+  background: #1b1b1b;
+  padding: 25px;
+  border-radius: 16px;
+  width: 420px;
   max-width: 90%;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  text-align: center;
 }
-
-.modal-header {
-  font-size: 1.3rem;
-  margin-bottom: 10px;
-  color: #ff5959;
-}
-
-.modal-instruction {
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-  color: #e0e0e0;
-}
-
 .modal-textarea {
   width: 100%;
-  height: 100px;
-  background-color: #262626;
-  color: #e0e0e0;
-  border: 1px solid #444;
-  border-radius: 6px;
-  padding: 8px;
+  height: 110px;
+  background: #1f1f1f;
+  color: #f0f0f0;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
   resize: none;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
 }
-
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
-
-.modal-button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
 .copy-button {
-  background-color: #76ff03;
-  color: #1b1b1b;
+  background: linear-gradient(135deg, #00ff99, #00cc66);
+  color: #121212;
 }
-
 .copy-button:hover {
-  background-color: #64dd17;
+  background: linear-gradient(135deg, #00cc66, #009944);
 }
-
 .close-button {
-  background-color: #ff5252;
-  color: #1b1b1b;
+  background: linear-gradient(135deg, #ff5555, #ff2222);
+  color: #121212;
 }
-
 .close-button:hover {
-  background-color: #ff1744;
+  background: linear-gradient(135deg, #ff2222, #cc0000);
 }
 
-/* ERROR MESSAGE */
+/* ----------------------------
+   ERROR MESSAGE
+---------------------------- */
 .error-message {
-  margin-top: 15px;
-  color: #ff1744;
+  margin-top: 20px;
+  color: #ff5555;
   font-weight: bold;
   text-align: center;
+  font-size: 1rem;
 }
