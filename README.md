@@ -32,9 +32,17 @@ Windows — designed for local PC deployment
 
 ⚠️ Note: While Modix was originally designed for Project Zomboid, support for other games is being actively developed. Features may vary per game.
 
-🧠 Key Features
+🧠 Terminal
 
-- 🔧 Server Controls — Start, stop, restart, or gracefully shut down your Project Zomboid server locally
+Modix uses a batch-script system to manage your Project Zomboid server locally. From the panel, you can:
+
+- Start your server directly from the terminal
+- Stop the server safely without risking data loss
+- Restart the server for updates or configuration changes
+- Gracefully shut down to ensure proper saving of all game data
+
+This batch-based approach ensures full compatibility with Steam-modded servers and gives you real-time terminal control without leaving the web panel.
+
 - 🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
 - ⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
 - 🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
