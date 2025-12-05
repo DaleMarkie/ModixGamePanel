@@ -1,3 +1,4 @@
+[![Modix Screenshot](https://i.ibb.co/9c8fbsPj/image.png)](https://ibb.co/cKPDxzRt)
 🧩 Modix: Game Panel
 
 Open Source, Browser-Based Game Panel for Project Zomboid
