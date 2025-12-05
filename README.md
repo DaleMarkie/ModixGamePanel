@@ -3,7 +3,7 @@
 Modix is a completely free, open-source, browser-based control panel built for Project Zomboid (with the ability to extend to other Steam-modded games). You host it yourself and run it locally, giving you full control over your server. It combines modern web technologies with a lightweight backend, delivering smooth, real-time server management without relying on third-party hosting or paid services.
 
 - ✅ Free for personal and educational use
-- ✅ Self-hosted — you stay in control of your server
+- ✅ Self-hosted — you stay in control of your panel
 - ⚡ Real-time logs, mod management, server controls, and more
 
 🐞 Bugs & Support
