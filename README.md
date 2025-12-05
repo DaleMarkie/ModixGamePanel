@@ -40,6 +40,9 @@ If you find an issue:
 🧰 File Manager — Browse, upload, and modify files in a clean UI
 ✨ More Features Coming Soon! — Continuous updates and improvements
 
+![My Screenshot](https://i.ibb.co/…) 
+TEST
+
 ⚡ Getting Started / Local Installation
 
 - Run Modix Game Panel locally in just a few steps:
