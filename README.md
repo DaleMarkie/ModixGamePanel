@@ -34,12 +34,12 @@ Windows — designed for local PC deployment
 
 🧠 Key Features
 
-🔧 Server Controls — Start, stop, restart, or gracefully shut down your Project Zomboid server locally
-🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
-⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
-🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
-🌐 Webhook Support — Send and preview custom Discord-style embed messages
-🧰 File Manager — Browse, upload, and modify files in a clean UI
+- 🔧 Server Controls — Start, stop, restart, or gracefully shut down your Project Zomboid server locally
+- 🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
+- ⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
+- 🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
+- 🌐 Webhook Support — Send and preview custom Discord-style embed messages
+- 🧰 File Manager — Browse, upload, and modify files in a clean UI
 
 🎮 Supported Games
 
