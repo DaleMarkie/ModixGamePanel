@@ -1,37 +1,36 @@
 ![Modix Screenshot](https://i.ibb.co/V0d23XbD/Screenshot-2025-12-05-1-30-18-PM.png)
 
+🧩 Modix: Game Panel Technology
 
-🧩 Modix: Game Panel
+Modix is an open-source, browser-based control panel built for Project Zomboid (and extendable to other Steam-modded games). It combines modern web technologies with a lightweight backend for smooth, real-time server management.
 
-Open Source, Browser-Based Game Panel for Project Zomboid
-Layer Technology Used
-Frontend React (CRA), Tailwind CSS, React Icons
-Backend FastAPI (Uvicorn), Python 3, SSE, Systemd
-Database JSON Config, SQLite
-Hosting Windows
-Game Support Project Zomboid (Steam + Workshop + Mod Manager)
-Developed By Ov3rlord & GameSmithOnline
+🐞 Bugs & Support
 
-🚀 Overview
+If you encounter any issues or need assistance:
 
-- Modix Game Panel is a fully browser-based, open-source control panel for Project Zomboid.
-  It lets you manage every aspect of your server locally — from starting or stopping your server, to editing settings, managing mods, sending webhooks, and more — all through a clean web interface.
+🧾 Report a bug or request a feature on GitHub: Issues Tab
+💬 Join the Modix Discord for support: https://discord.gg/7J4d6ZXaUf
 
-⚠️ Disclaimer
+Technology Stack
 
-- Modix may display game logos or images from Steam. These assets are not owned or created by the Modix Dev Team.
-  Modix only provides the panel UI and backend functionality for managing your Project Zomboid server.
+Frontend:
 
-🐞 Bugs & Issues
+- React (CRA) — fast, modular, and interactive UI
+- Tailwind CSS — sleek, responsive design
+- React Icons — intuitive iconography
 
-- This project is under active development, so you may encounter bugs or unexpected behavior.
+Backend:
 
-If you find an issue:
+- FastAPI (Uvicorn) — high-performance Python API
+- Python 3 — robust scripting and automation
+- Server-Sent Events (SSE) — real-time logs and updates
+- Systemd — reliable service management
 
-🧾 Report it on GitHub (issues tab)
+Hosting:
 
-💬 Contact us on Discord for faster support:
-👉 https://discord.gg/sNSE8HsEdU
+Windows — designed for local PC deployment
+
+⚠️ Note: While Modix was originally designed for Project Zomboid, support for other games is being actively developed. Features may vary per game.
 
 🧠 Key Features
 
@@ -41,45 +40,29 @@ If you find an issue:
 🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
 🌐 Webhook Support — Send and preview custom Discord-style embed messages
 🧰 File Manager — Browse, upload, and modify files in a clean UI
-✨ More Features Coming Soon! — Continuous updates and improvements
 
-⚡ Getting Started / Local Installation
+🎮 Supported Games
 
-- Run Modix Game Panel locally in just a few steps:
+Project Zomboid (Flagship support)
+Other Steam-modded games with partial or planned support:
 
-💾 1. Download the Project
+| Game                      | Description                                                               |
+| ------------------------- | ------------------------------------------------------------------------- |
+| **ARK: Survival Evolved** | Dinosaur survival game with building, crafting, and extensive modding.    |
+| **Conan Exiles**          | Survival with building, crafting, and modding.                            |
+| **DayZ**                  | Survive in a deadly post-apocalyptic world.                               |
+| **Minecraft**             | Sandbox game focused on building, exploration, and survival.              |
+| **No Man’s Sky**          | Exploration & survival in a procedurally generated universe.              |
+| **RimWorld**              | Colony simulator powered by AI storytelling.                              |
+| **Rust**                  | Multiplayer survival with crafting, building, and PvP.                    |
+| **Satisfactory**          | Factory-building multiplayer game with mod support.                       |
+| **SCUM**                  | Hardcore survival multiplayer game.                                       |
+| **Space Engineers**       | Sandbox game about engineering, construction, exploration, and survival.  |
+| **Squad**                 | Team-based military shooter with realistic gameplay.                      |
+| **The Isle**              | Multiplayer dinosaur survival game.                                       |
+| **Valheim**               | Viking-themed survival and exploration in a procedurally generated world. |
 
-- Download the repository (Modix-Windows--main)
-
-Place the folder anywhere on your PC
-
-✏️ 2. Rename the Folder (Optional)
-
-- You can rename it (e.g., Modix-Local) — this won’t affect functionality
-
-📦 3. Install Dependencies
-
-- Open Command Prompt or PowerShell inside the Modix folder, then run:
-
-- npm install
-- npm run dev
-
-Step 1: npm install — installs all required dependencies
-Step 2: npm run dev — launches Modix
-
-🌐 4. Access the Panel
-
-- Once it’s running, open your browser and visit:
-
-👉 http://localhost:3000
-
-- You’ll see the Modix Game Panel ready to use!
-
-💖 Support & Donations
-
-All donations go directly toward maintaining and improving Modix.
-If you’d like to support development, visit:
-👉 https://ko-fi.com/modixgamepanel
+⚠️ Note: While Modix was originally designed for Project Zomboid, support for other games is being actively developed. Features may vary per game some features may be broken or just not developed enough. 
 
 ⚖️ License & Terms of Use
 🧑‍💻 Modix Game Panel Non-Commercial License (NC) – Version 1.4
