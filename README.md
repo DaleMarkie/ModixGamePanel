@@ -1,6 +1,4 @@
-![Modix Screenshot](https://i.ibb.co/V0d23XbD/Screenshot-2025-12-05-1-30-18-PM.png)
-
-🧩 Modix: Game Panel Technology
+🧩 Modix: Game Panel 
 
 Modix is a completely free, open-source, browser-based control panel built for Project Zomboid (with the ability to extend to other Steam-modded games). You host it yourself and run it locally, giving you full control over your server. It combines modern web technologies with a lightweight backend, delivering smooth, real-time server management without relying on third-party hosting or paid services.
 
