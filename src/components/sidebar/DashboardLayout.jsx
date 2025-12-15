@@ -34,6 +34,7 @@ export default function DashboardLayout({ children }) {
 
   const [loading, setLoading] = useState(true);
 
+  // Load theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
@@ -56,18 +57,19 @@ export default function DashboardLayout({ children }) {
   }, []);
 
   const applyTheme = (t) => {
-    const body = document.body;
-    body.style.background =
+    document.body.style.background =
       t.gradient ||
       (t.background ? `url(${t.background}) no-repeat center/cover` : "");
   };
 
+  // Determine allowed pages
   const allowedPages =
     currentUserState?.role === "Owner" ? null : currentUserState?.pages || [];
 
   const toggleSubMenu = (href) =>
     setOpenMenus((prev) => ({ ...prev, [href]: !prev[href] }));
 
+  // Filter nav links based on search and permissions
   const filteredNavLinks = useMemo(() => {
     const lower = searchTerm.toLowerCase();
 
@@ -101,12 +103,14 @@ export default function DashboardLayout({ children }) {
     return filterLinks(navLinks);
   }, [searchTerm, allowedPages, currentUserState]);
 
+  // Simple loading effect
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 100);
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  // Recursive menu rendering
   const renderMenuItems = (items, level = 0) =>
     items.map(({ label, href = "", submenu }) => {
       const isOpen = !!openMenus[href];
