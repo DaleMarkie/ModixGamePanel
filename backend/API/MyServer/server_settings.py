@@ -1,74 +1,86 @@
 import os
 import configparser
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Query, HTTPException, Body
 from fastapi.responses import JSONResponse
+from typing import Dict
 
 router = APIRouter()
 
-# Default Project Zomboid server config folder
-PZ_CONFIG_DIR = os.path.join(os.environ["USERPROFILE"], "Zomboid", "Server")
+# ---------------------------
+# Paths
+# ---------------------------
+INI_FOLDER = os.path.expanduser("~/Zomboid/Server")
+if not os.path.exists(INI_FOLDER):
+    os.makedirs(INI_FOLDER)
 
-def find_pz_ini() -> str:
-    """Automatically locate the first Project Zomboid server INI."""
-    if not os.path.exists(PZ_CONFIG_DIR):
-        raise FileNotFoundError(f"PZ server folder not found at {PZ_CONFIG_DIR}")
-    for file in os.listdir(PZ_CONFIG_DIR):
-        if file.lower().endswith(".ini"):
-            return os.path.join(PZ_CONFIG_DIR, file)
-    raise FileNotFoundError("No INI file found in PZ server folder")
+# ---------------------------
+# UTILITIES
+# ---------------------------
+def list_ini_files():
+    files = []
+    for f in os.listdir(INI_FOLDER):
+        if f.endswith(".ini"):
+            files.append(f)
+    return files
 
-def read_pz_settings(ini_path: str):
-    """Read Project Zomboid ini into a dictionary."""
-    if not os.path.exists(ini_path):
-        return {}
+def read_ini(file: str) -> Dict:
+    path = os.path.join(INI_FOLDER, file)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"{file} not found.")
     config = configparser.ConfigParser()
-    config.read(ini_path)
-    settings = {}
+    config.optionxform = str
+    config.read(path, encoding="utf-8")
+    data = {}
     for section in config.sections():
+        data[section] = {}
         for key, value in config.items(section):
+            # Try to parse boolean or number
             if value.lower() in ["true", "false"]:
-                value_cast = value.lower() == "true"
-            elif value.isdigit():
-                value_cast = int(value)
+                data[section][key] = config.getboolean(section, key)
+            elif value.replace(".", "", 1).isdigit():
+                data[section][key] = float(value) if "." in value else int(value)
             else:
-                try:
-                    value_cast = float(value)
-                except:
-                    value_cast = value
-            settings.setdefault(section, {})[key] = value_cast
-    return settings
+                data[section][key] = value
+    return data
 
-def write_pz_settings(settings: dict, ini_path: str):
-    """Write dictionary back to ini file."""
+def write_ini(file: str, data: Dict):
+    path = os.path.join(INI_FOLDER, file)
     config = configparser.ConfigParser()
-    if os.path.exists(ini_path):
-        config.read(ini_path)
-    for section, values in settings.items():
-        if not config.has_section(section):
-            config.add_section(section)
+    config.optionxform = str
+    for section, values in data.items():
+        config[section] = {}
         for key, value in values.items():
-            config.set(section, key, str(value))
-    with open(ini_path, "w") as f:
+            config[section][key] = str(value)
+    with open(path, "w", encoding="utf-8") as f:
         config.write(f)
 
 # ---------------------------
-# Endpoints
+# ROUTES
 # ---------------------------
-
-@router.get("/settings/108600")  # Project Zomboid
-async def get_pz_settings():
+@router.get("/list-inis")
+def api_list_inis():
     try:
-        ini_path = find_pz_ini()
-        return read_pz_settings(ini_path)
+        files = list_ini_files()
+        return files
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse({"error": str(e)}, status_code=500)
 
-@router.post("/settings/save/108600")
-async def save_pz_settings(request: Request):
-    data = await request.json()
+@router.get("/projectzomboid")
+def api_get_ini(file: str = Query(...)):
     try:
-        ini_path = find_pz_ini()
-        write_pz_settings(data, ini_path)
-        return JSONResponse({"success": True})
+        data = read_ini(file)
+        return data
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="INI file not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@router.post("/projectzomboid")
+def api_save_ini(file: str = Query(...), data: Dict = Body(...)):
+    try:
+        write_ini(file, data)
+        return {"message": "Settings saved successfully."}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="INI file not found")
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)

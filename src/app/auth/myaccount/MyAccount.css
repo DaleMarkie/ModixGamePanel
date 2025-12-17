@@ -1,7 +1,7 @@
 /* MyAccount.css - Clean Dark Green Theme */
 
 .myaccount-container {
-  background-color: #111418; /* true deep neutral dark */
+  background-color: #111418; /* deep neutral dark */
   color: #e0e0e0;
   min-height: 100vh;
   padding: 2rem;
@@ -19,7 +19,6 @@
 .account-header h1 {
   font-size: 2rem;
   color: #baffd4;
-  text-shadow: none;
 }
 
 /* Logout Button */
@@ -32,12 +31,10 @@
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease;
-  box-shadow: none;
 }
 
 .logout-btn:hover {
   background-color: #e04343;
-  box-shadow: none;
 }
 
 /* Tabs */
@@ -61,14 +58,12 @@
 
 .tab:hover {
   background-color: #203a2b;
-  box-shadow: none;
   color: #baffd4;
 }
 
 .tab.active {
   background-color: #254830;
   border-color: #00ff88;
-  box-shadow: none;
   color: #baffd4;
 }
 
@@ -98,16 +93,8 @@
 
 .info-card:hover {
   transform: scale(1.03);
-  box-shadow: none;
 }
 
-.info-card i {
-  font-size: 1.8rem;
-  color: #00ff88;
-  text-shadow: none;
-}
-
-/* Text */
 .info-label {
   font-size: 0.85rem;
   color: #aaa;
@@ -120,114 +107,274 @@
 
 .status-active {
   color: #00ff88;
-  text-shadow: none;
 }
 
 .status-inactive {
   color: #f44336;
 }
 
-/* Dashboard Cards */
-.dashboard-row {
+/* ------------------ PANEL PAGES POPUP ------------------ */
+.panel-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.dashboard-card {
-  background-color: #161a20;
-  border: 1px solid #1f2a22;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
   padding: 1rem;
-  border-radius: 0.5rem;
-  flex: 1 1 300px;
-  transition: transform 0.3s ease;
 }
 
-.dashboard-card:hover {
-  transform: scale(1.02);
-  box-shadow: none;
-}
-
-.dashboard-card h3 {
-  margin-bottom: 1rem;
-  color: #00ff88;
-  text-shadow: none;
-}
-
-/* Lists */
-.dashboard-card ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-.dashboard-card ul li {
-  margin-bottom: 0.5rem;
-  padding-left: 0.8rem;
-  position: relative;
-}
-
-.dashboard-card ul li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: #00ff88;
-  text-shadow: none;
-}
-
-/* Tables */
-.login-history-table,
-.subusers-table,
-.subscriptions-table,
-.activity-table {
+.panel-popup-card {
+  background-color: #161a20;
+  border-radius: 14px;
   width: 100%;
-  border-collapse: collapse;
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: popupFadeIn 0.3s ease forwards;
 }
 
-th,
-td {
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid #252b33;
-  text-align: left;
+/* Header */
+.panel-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #1b1f26;
+  border-bottom: 1px solid #1f2a22;
 }
 
-th {
+.panel-popup-header h2 {
+  font-size: 1.5rem;
   color: #00ff88;
-  text-shadow: none;
 }
 
-.no-logs {
-  color: #aaa;
-  font-style: italic;
-}
-
-/* Add Buttons */
-.add-subuser-btn,
-.add-subscription-btn {
-  background-color: #00ff88;
+.panel-popup-close {
+  background: transparent;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.4rem;
-  font-weight: bold;
+  font-size: 1.6rem;
+  color: #ff4c4c;
   cursor: pointer;
-  color: #0a0a0a;
-  transition: background 0.3s ease;
+  transition: color 0.2s;
 }
 
-.add-subuser-btn:hover,
-.add-subscription-btn:hover {
-  background-color: #00e67a;
-  box-shadow: none;
+.panel-popup-close:hover {
+  color: #fff;
+}
+
+/* Body */
+.panel-popup-body {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.page-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.status-badge.Operational {
+  background-color: #00ff88;
+  color: #000;
+}
+
+.status-badge["Under Development"] {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.status-badge.Placeholder {
+  background-color: #888;
+  color: #fff;
+}
+
+/* Description */
+.page-description {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #ccc;
+  line-height: 1.4;
+  white-space: pre-line; /* preserves bullet points and line breaks */
+  padding-left: 1rem;
+  border-left: 3px solid #00ff88;
+}
+
+/* Footer */
+.panel-popup-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #1f2a22;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.panel-popup-close-footer {
+  background: linear-gradient(90deg, #3dbb5d, #2b8f45);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.panel-popup-close-footer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(61, 187, 93, 0.5);
+}
+
+/* Scrollbar */
+.panel-popup-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel-popup-body::-webkit-scrollbar-track {
+  background: #111418;
+  border-radius: 4px;
+}
+
+.panel-popup-body::-webkit-scrollbar-thumb {
+  background-color: #00ff88;
+  border-radius: 4px;
+  border: 2px solid #111418;
+}
+
+.panel-popup-body::-webkit-scrollbar-thumb:hover {
+  background-color: #baffd4;
+}
+
+/* Animations */
+@keyframes popupFadeIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .dashboard-user-info,
-  .dashboard-row {
-    flex-direction: column;
+  .panel-popup-card {
+    max-width: 95%;
   }
+}
 
-  .tab {
-    flex: 1 1 45%;
+
+/* ----------------- PANEL PAGES MODAL / POPUP ----------------- */
+.page-description-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.page-description-modal .modal-content {
+  background-color: #161a20;
+  color: #e0e0e0;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.3s ease forwards;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: #ff4c4c;
+  cursor: pointer;
+}
+
+.modal-content h2 {
+  margin-bottom: 1rem;
+  color: #00ff88;
+}
+
+.modal-content p {
+  white-space: pre-line; /* keeps line breaks for bullet-style descriptions */
+  margin-bottom: 1rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 0.4rem;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.status-badge.operational {
+  background-color: #00ff88;
+  color: #000;
+}
+
+.status-badge.under-development {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.status-badge.placeholder {
+  background-color: #888;
+  color: #fff;
+}
+
+@keyframes modalFadeIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Scrollbar for modal content */
+.page-description-modal .modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.page-description-modal .modal-content::-webkit-scrollbar-track {
+  background: #111418;
+  border-radius: 4px;
+}
+
+.page-description-modal .modal-content::-webkit-scrollbar-thumb {
+  background-color: #00ff88;
+  border-radius: 4px;
+  border: 2px solid #111418;
+}
+
+.page-description-modal .modal-content::-webkit-scrollbar-thumb:hover {
+  background-color: #baffd4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-description-modal .modal-content {
+    max-width: 95%;
+    padding: 1.2rem;
   }
 }

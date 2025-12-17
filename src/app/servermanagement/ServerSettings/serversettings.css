@@ -1,3 +1,260 @@
+/* ===========================
+   SERVER SETTINGS CONTAINER
+=========================== */
+.server-settings-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #fff;
+  background: #1c1c1c;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #000;
+  position: relative;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+.server-header {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.game-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.header-info p {
+  margin: 4px 0 8px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.header-links a {
+  margin-right: 10px;
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.header-links a:hover {
+  color: #ffd700;
+}
+
+/* ===========================
+   INI SELECTOR & SEARCH
+=========================== */
+.ini-selector,
+.settings-search {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ini-selector select,
+.settings-search input {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: #333;
+  color: #fff;
+  flex: 1;
+}
+
+.settings-search input::placeholder {
+  color: #aaa;
+}
+
+/* ===========================
+   STATUS MESSAGES
+=========================== */
+.status {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.status.loading {
+  color: #ffd700;
+}
+
+.status.message.success {
+  color: #4caf50;
+}
+
+.status.message.error {
+  color: #f44336;
+}
+
+/* ===========================
+   SETTINGS SECTIONS
+=========================== */
+.settings-section {
+  margin-bottom: 15px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: 0.2s;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #444;
+  align-items: center;
+}
+
+.section-header h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.section-header .undo-btn {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  transition: 0.2s;
+}
+
+.section-header .undo-btn:hover {
+  background: #e53935;
+}
+
+.section-body {
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ===========================
+   SETTING ITEMS
+=========================== */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.setting-item.changed {
+  background: #444;
+  border-left: 4px solid #ffd700;
+  padding-left: 10px;
+  border-radius: 4px;
+}
+
+.setting-item label {
+  font-size: 0.95rem;
+}
+
+.setting-item input[type="text"],
+.setting-item input[type="number"] {
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  width: 150px;
+  transition: 0.2s;
+}
+
+.setting-item input[type="text"]:focus,
+.setting-item input[type="number"]:focus {
+  outline: 2px solid #ffd700;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* ===========================
+   SAVE BUTTON (STICKY)
+=========================== */
+.sticky-save {
+  position: sticky;
+  bottom: 10px;
+  background: #1c1c1c;
+  padding: 10px 0;
+  text-align: center;
+  z-index: 10;
+}
+
+.save-btn {
+  padding: 10px 25px;
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.save-btn:hover {
+  background: #45a049;
+}
+
+.save-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+/* ===========================
+   ICONS
+=========================== */
+.section-header svg,
+.undo-btn svg {
+  vertical-align: middle;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 600px) {
+  .server-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .setting-item input[type="text"],
+  .setting-item input[type="number"] {
+    width: 100%;
+  }
+}
 .server-settings-container {
   max-width: 900px;
   margin: 20px auto;
@@ -51,8 +308,27 @@
   color: #ffd700;
 }
 
-.status.message {
+.status.message.success {
   color: #00ff00;
+}
+
+.status.message.error {
+  color: #ff4c4c;
+}
+
+.ini-selector,
+.settings-search {
+  margin: 10px 0;
+}
+
+.settings-search input,
+.ini-selector select {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: #333;
+  color: #fff;
 }
 
 .settings-section {
@@ -69,6 +345,14 @@
   font-weight: bold;
   font-size: 1.1rem;
   border-bottom: 1px solid #444;
+  align-items: center;
+}
+
+.section-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section-body {
@@ -82,6 +366,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.setting-item.changed input {
+  border: 2px solid #ffd700;
 }
 
 .setting-item input[type="text"],
@@ -99,8 +387,20 @@
   height: 20px;
 }
 
+.undo-btn {
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.undo-btn:hover {
+  background: #555;
+}
+
 .save-btn {
-  margin-top: 20px;
   padding: 10px 20px;
   background: #4caf50;
   color: #fff;
@@ -113,4 +413,13 @@
 
 .save-btn:hover {
   background: #45a049;
+}
+
+.sticky-save {
+  position: sticky;
+  bottom: 0;
+  background: #1c1c1c;
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
 }

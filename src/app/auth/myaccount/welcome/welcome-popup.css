@@ -173,3 +173,147 @@
     transform: translateY(0);
   }
 }
+
+/* -----------------------------
+   PANEL PAGES – COMPACT LAYOUT
+------------------------------ */
+
+.panel-pages {
+  margin-top: 1rem;
+}
+
+.pages-header {
+  font-size: 1.05rem;
+  color: #3dbb5d;
+  margin-bottom: 0.4rem;
+}
+
+.pages-search {
+  width: 100%;
+  background: #0f1118;
+  border: 1px solid #1f2a1f;
+  color: #e0e0e0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.pages-search::placeholder {
+  color: #666;
+}
+
+.pages-search:focus {
+  outline: none;
+  border-color: #3dbb5d;
+}
+
+.pages-list.compact {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.page-item {
+  background: rgba(61, 187, 93, 0.08);
+  border: 1px solid rgba(61, 187, 93, 0.25);
+  color: #c8ffd8;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.page-item.dev {
+  background: rgba(255, 180, 60, 0.08);
+  border-color: rgba(255, 180, 60, 0.35);
+  color: #ffd9a0;
+}
+
+.dev-badge {
+  margin-left: auto;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.no-pages {
+  color: #777;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+/* -----------------------------
+   PANEL PAGES SCROLL AREA
+------------------------------ */
+
+.pages-list.compact {
+  max-height: 220px; /* keeps popup tidy */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Scrollbar styling (WebKit) */
+.pages-list.compact::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb {
+  background: rgba(61, 187, 93, 0.5);
+  border-radius: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb:hover {
+  background: rgba(61, 187, 93, 0.75);
+}
+
+/* Firefox */
+.pages-list.compact {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 187, 93, 0.6) transparent;
+}
+.pages-list.compact {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pages-list.compact::-webkit-scrollbar {
+  width: 6px;
+}
+.pages-list.compact::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+.pages-list.compact::-webkit-scrollbar-thumb {
+  background: rgba(61, 187, 93, 0.5);
+  border-radius: 6px;
+}
+.pages-list.compact::-webkit-scrollbar-thumb:hover {
+  background: rgba(61, 187, 93, 0.75);
+}
+
+.page-description {
+  margin-top: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(61, 187, 93, 0.05);
+  border-left: 3px solid #3dbb5d;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #ccefcf;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-line;
+}
