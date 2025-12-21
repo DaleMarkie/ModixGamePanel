@@ -6,8 +6,6 @@ import {
   FaDiscord,
   FaChevronDown,
   FaChevronUp,
-  FaCheck,
-  FaTimes,
   FaUndo,
 } from "react-icons/fa";
 import "./serversettings.css";
@@ -41,9 +39,6 @@ export default function ServerSettings() {
   const [selectedIni, setSelectedIni] = useState<string>("");
   const [search, setSearch] = useState("");
 
-  // =======================
-  // FETCH AVAILABLE INI FILES
-  // =======================
   useEffect(() => {
     fetch(`/api/server_settings/list-inis`)
       .then((res) => res.json())
@@ -56,9 +51,6 @@ export default function ServerSettings() {
       );
   }, []);
 
-  // =======================
-  // LOAD SELECTED INI SETTINGS
-  // =======================
   useEffect(() => {
     if (!selectedIni) return;
     setLoading(true);
@@ -70,7 +62,7 @@ export default function ServerSettings() {
       .then((res) => res.json())
       .then((data: SettingsData) => {
         setSettings(data);
-        setOriginalSettings(JSON.parse(JSON.stringify(data))); // deep copy
+        setOriginalSettings(JSON.parse(JSON.stringify(data)));
         setOpenSections(
           Object.keys(data).reduce((acc, s) => ({ ...acc, [s]: true }), {})
         );
@@ -82,9 +74,6 @@ export default function ServerSettings() {
       });
   }, [selectedIni]);
 
-  // =======================
-  // HANDLE INPUT CHANGE
-  // =======================
   const handleChange = (
     e: ChangeEvent<HTMLInputElement>,
     section: string,
@@ -100,9 +89,6 @@ export default function ServerSettings() {
     }));
   };
 
-  // =======================
-  // UNDO SECTION
-  // =======================
   const undoSection = (section: string) => {
     setSettings((prev) => ({
       ...prev,
@@ -110,9 +96,6 @@ export default function ServerSettings() {
     }));
   };
 
-  // =======================
-  // SAVE SETTINGS
-  // =======================
   const handleSave = () => {
     if (!selectedIni) return;
     setLoading(true);
@@ -127,7 +110,7 @@ export default function ServerSettings() {
       }
     )
       .then(() => {
-        setOriginalSettings(JSON.parse(JSON.stringify(settings))); // update original
+        setOriginalSettings(JSON.parse(JSON.stringify(settings)));
         setMessage({ text: "Settings saved successfully!", type: "success" });
         setTimeout(() => setMessage(null), 3000);
         setLoading(false);
@@ -143,9 +126,6 @@ export default function ServerSettings() {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // =======================
-  // FILTERED SETTINGS
-  // =======================
   const filteredSettings: SettingsData = {};
   Object.entries(settings).forEach(([section, keys]) => {
     const filteredKeys = Object.fromEntries(
@@ -157,9 +137,6 @@ export default function ServerSettings() {
       filteredSettings[section] = filteredKeys;
   });
 
-  // =======================
-  // DETERMINE IF VALUE CHANGED
-  // =======================
   const isChanged = (section: string, key: string) => {
     return settings[section][key] !== originalSettings[section][key];
   };
@@ -187,8 +164,14 @@ export default function ServerSettings() {
       </header>
 
       {/* =======================
-          INI FILE SELECT
+          DEVELOPMENT WARNING
       ======================= */}
+      <div className="dev-warning">
+        ⚠️ <strong>Work in Progress:</strong> This server settings panel is not
+        fully developed yet. Some settings may be incomplete, change behavior,
+        or not work as expected. I am actively working on it.
+      </div>
+
       {iniFiles.length > 0 && (
         <div className="ini-selector">
           <label>Select server config:</label>
@@ -205,9 +188,6 @@ export default function ServerSettings() {
         </div>
       )}
 
-      {/* =======================
-          SEARCH SETTINGS
-      ======================= */}
       <div className="settings-search">
         <input
           type="text"
@@ -217,17 +197,11 @@ export default function ServerSettings() {
         />
       </div>
 
-      {/* =======================
-          STATUS MESSAGES
-      ======================= */}
       {loading && <div className="status loading">Loading settings…</div>}
       {message && (
         <div className={`status message ${message.type}`}>{message.text}</div>
       )}
 
-      {/* =======================
-          SETTINGS SECTIONS
-      ======================= */}
       {!loading &&
         Object.entries(filteredSettings).map(([section, values]) => (
           <div key={section} className="settings-section">
@@ -283,9 +257,6 @@ export default function ServerSettings() {
           </div>
         ))}
 
-      {/* =======================
-          SAVE BUTTON (sticky bottom)
-      ======================= */}
       <div className="sticky-save">
         <button
           className="save-btn"
