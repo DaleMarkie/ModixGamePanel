@@ -531,15 +531,6 @@ export default function Games() {
                 )}
               </div>
 
-              <label>Batch file path:</label>
-              <input
-                type="text"
-                value={batchPath}
-                onChange={(e) => setBatchPath(e.target.value)}
-                className="input-field"
-                placeholder="C:/Servers/start_server.bat"
-              />
-
               <div className="modal-actions">
                 <button className="confirm-btn" onClick={createSession}>
                   ✅ Activate Session
