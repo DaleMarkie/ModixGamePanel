@@ -17,6 +17,7 @@ from backend.games_api import router as games_router
 from backend.filemanager import router as filemanager_router
 from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
+from backend.terminal_api import router as terminal_router
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -110,6 +111,7 @@ app.include_router(performance_router, prefix="/api")
 app.include_router(updater_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(discord_router, prefix="/api", tags=["Discord"])
 app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
+app.include_router(terminal_router)
 
 # ---------------------------
 # Run Server
