@@ -39,6 +39,7 @@ export default function ServerSettings() {
   const [selectedIni, setSelectedIni] = useState<string>("");
   const [search, setSearch] = useState("");
 
+  // Load INI files
   useEffect(() => {
     fetch(`/api/server_settings/list-inis`)
       .then((res) => res.json())
@@ -51,6 +52,7 @@ export default function ServerSettings() {
       );
   }, []);
 
+  // Load selected INI
   useEffect(() => {
     if (!selectedIni) return;
     setLoading(true);
@@ -137,9 +139,8 @@ export default function ServerSettings() {
       filteredSettings[section] = filteredKeys;
   });
 
-  const isChanged = (section: string, key: string) => {
-    return settings[section][key] !== originalSettings[section][key];
-  };
+  const isChanged = (section: string, key: string) =>
+    settings[section][key] !== originalSettings[section][key];
 
   return (
     <div className="server-settings-container">
@@ -151,7 +152,7 @@ export default function ServerSettings() {
         />
         <div className="header-info">
           <h1>Project Zomboid Server Settings</h1>
-          <p>Edit your servertest.ini easily.</p>
+          <p>Edit your server INI easily.</p>
           <div className="header-links">
             <a href={PROJECT_ZOMBOID.steam} target="_blank" rel="noreferrer">
               <FaSteam /> Steam
@@ -163,13 +164,9 @@ export default function ServerSettings() {
         </div>
       </header>
 
-      {/* =======================
-          DEVELOPMENT WARNING
-      ======================= */}
       <div className="dev-warning">
-        ⚠️ <strong>Work in Progress:</strong> This server settings panel is not
-        fully developed yet. Some settings may be incomplete, change behavior,
-        or not work as expected. I am actively working on it.
+        ⚠️ <strong>Work in Progress:</strong> This panel is not fully developed
+        yet. Some settings may behave unexpectedly.
       </div>
 
       {iniFiles.length > 0 && (
