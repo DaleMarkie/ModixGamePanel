@@ -30,6 +30,7 @@ export default function ServerSettings() {
   const [settings, setSettings] = useState<SettingsData>({});
   const [originalSettings, setOriginalSettings] = useState<SettingsData>({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
     text: string;
     type: "success" | "error";
@@ -98,30 +99,40 @@ export default function ServerSettings() {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedIni) return;
-    setLoading(true);
-    fetch(
-      `/api/server_settings/projectzomboid?file=${encodeURIComponent(
-        selectedIni
-      )}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      }
-    )
-      .then(() => {
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(
+        `/api/server_settings/projectzomboid?file=${encodeURIComponent(
+          selectedIni
+        )}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settings),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         setOriginalSettings(JSON.parse(JSON.stringify(settings)));
         setMessage({ text: "Settings saved successfully!", type: "success" });
-        setTimeout(() => setMessage(null), 3000);
-        setLoading(false);
-      })
-      .catch(() => {
-        setMessage({ text: "Failed to save settings.", type: "error" });
-        setTimeout(() => setMessage(null), 3000);
-        setLoading(false);
-      });
+      } else {
+        setMessage({
+          text: data.error || "Failed to save settings.",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      setMessage({ text: "Failed to save settings.", type: "error" });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMessage(null), 3000);
+    }
   };
 
   const toggleSection = (section: string) => {
@@ -258,9 +269,9 @@ export default function ServerSettings() {
         <button
           className="save-btn"
           onClick={handleSave}
-          disabled={loading || !selectedIni}
+          disabled={loading || saving || !selectedIni}
         >
-          Save Settings
+          {saving ? "Saving…" : "Save Settings"}
         </button>
       </div>
     </div>
