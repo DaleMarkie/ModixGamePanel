@@ -22,19 +22,20 @@ export default function BatchSelector({
   push,
 }: BatchSelectorProps) {
   const [inputPath, setInputPath] = useState(batchPath ?? "");
-  const [selectedPath, setSelectedPath] = useState<string | null>(batchPath);
+  const [selectedPath, setSelectedPath] = useState<string | null>(
+    batchPath ?? null
+  );
 
-  /* -------------------- helpers -------------------- */
+  /* ───────────────────── helpers ───────────────────── */
 
   const normalizePath = (path: string) =>
-    osName === "windows" ? path.replace(/\//g, "\\") : path.replace(/\\/g, "/");
+    osName === "windows"
+      ? path.replace(/\//g, "\\").trim()
+      : path.replace(/\\/g, "/").trim();
 
   const isValidBatch = (path: string) => {
-    if (!path.trim()) return false;
-    const lower = path.toLowerCase();
-    return osName === "windows"
-      ? lower.endsWith(".bat")
-      : lower.endsWith(".sh");
+    const p = path.toLowerCase();
+    return osName === "windows" ? p.endsWith(".bat") : p.endsWith(".sh");
   };
 
   const isAbsolutePath = (path: string) => {
@@ -50,45 +51,50 @@ export default function BatchSelector({
     [favoriteBatches]
   );
 
-  const alreadyFavorite = selectedPath
-    ? normalizedFavorites.includes(normalizePath(selectedPath))
-    : false;
+  const alreadyFavorite =
+    selectedPath && normalizedFavorites.includes(normalizePath(selectedPath));
 
-  /* -------------------- actions -------------------- */
+  /* ───────────────────── actions ───────────────────── */
 
-  const selectBatch = (path: string) => {
-    const normalized = normalizePath(path);
+  const selectBatch = (rawPath: string) => {
+    const path = normalizePath(rawPath);
 
-    if (!isValidBatch(normalized)) {
+    if (!path) {
+      push("error", "Batch path is empty.");
+      return;
+    }
+
+    if (!isAbsolutePath(path)) {
+      push("error", "Path must be an absolute path.");
+      return;
+    }
+
+    if (!isValidBatch(path)) {
       push(
         "error",
-        `Invalid file type. Must be ${osName === "windows" ? ".bat" : ".sh"}`
+        `Invalid file type. Expected ${osName === "windows" ? ".bat" : ".sh"}`
       );
       return;
     }
 
-    if (!isAbsolutePath(normalized)) {
-      push("error", "Batch path must be an absolute path.");
-      return;
-    }
+    setSelectedPath(path);
+    setInputPath(path);
+    onSelectBatch(path);
 
-    setSelectedPath(normalized);
-    setInputPath(normalized);
-    onSelectBatch(normalized);
-    push("system", `Batch selected: ${fileName(normalized)}`);
+    push("system", `Batch selected: ${fileName(path)}`);
   };
 
   const addToFavorites = () => {
     if (!selectedPath) return;
 
     const normalized = normalizePath(selectedPath);
-    if (alreadyFavorite) {
+
+    if (normalizedFavorites.includes(normalized)) {
       push("system", "Batch already in favorites.");
       return;
     }
 
-    const updated = [...favoriteBatches, normalized];
-    onUpdateFavorites(updated);
+    onUpdateFavorites([...favoriteBatches, normalized]);
     push("system", `Added to favorites: ${fileName(normalized)}`);
   };
 
@@ -96,6 +102,7 @@ export default function BatchSelector({
     const updated = favoriteBatches.filter(
       (b) => normalizePath(b) !== normalizePath(path)
     );
+
     onUpdateFavorites(updated);
     push("system", `Removed favorite: ${fileName(path)}`);
   };
@@ -104,18 +111,27 @@ export default function BatchSelector({
     const input = document.createElement("input");
     input.type = "file";
     input.accept = osName === "windows" ? ".bat" : ".sh";
+
     input.onchange = (e: any) => {
       const file = e.target.files?.[0];
+
+      // NOTE:
+      // file.path works in Electron
+      // browser fallback = user must paste path manually
       if (file?.path) {
         selectBatch(file.path);
       } else {
-        push("error", "File picker did not return a valid path.");
+        push(
+          "error",
+          "Browser security blocked full path. Paste the full path manually."
+        );
       }
     };
+
     input.click();
   };
 
-  /* -------------------- render -------------------- */
+  /* ───────────────────── render ───────────────────── */
 
   return (
     <div className="batch-modal">
@@ -143,13 +159,14 @@ export default function BatchSelector({
                 <button
                   className="remove-btn"
                   onClick={() => removeFavorite(path)}
+                  title="Remove favorite"
                 >
                   ❌
                 </button>
               </div>
             ))
           ) : (
-            <p>No favorite batches yet</p>
+            <p style={{ opacity: 0.7 }}>No favorite batches yet</p>
           )}
         </div>
 
@@ -175,6 +192,7 @@ export default function BatchSelector({
           <button onClick={addToFavorites} disabled={!selectedPath}>
             ⭐ Add to Favorites
           </button>
+
           <button className="close-btn" onClick={onClose}>
             Close
           </button>

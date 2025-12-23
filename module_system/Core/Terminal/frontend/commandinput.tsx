@@ -9,6 +9,7 @@ interface CommandInputProps {
   onEnter: (command?: string) => void;
   disabled?: boolean;
   savedCommands: string[];
+  onAddCustomCommand?: (cmd: string) => void; // NEW
 }
 
 export default function CommandInput({
@@ -17,6 +18,7 @@ export default function CommandInput({
   onEnter,
   disabled = false,
   savedCommands,
+  onAddCustomCommand,
 }: CommandInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [filtered, setFiltered] = useState<string[]>([]);
@@ -43,13 +45,24 @@ export default function CommandInput({
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;
+
     if (e.key === "Enter") {
       e.preventDefault();
+
       if (showDropdown && filtered[activeIndex]) {
         onEnter(filtered[activeIndex]);
       } else {
         onEnter();
+        // Add custom command if new
+        if (
+          onAddCustomCommand &&
+          value.trim() &&
+          !savedCommands.includes(value)
+        ) {
+          onAddCustomCommand(value.trim());
+        }
       }
+
       setShowDropdown(false);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -88,6 +101,7 @@ export default function CommandInput({
           ))}
         </ul>
       )}
+
       <div className="terminal-input-bar">
         <span className="prompt">$</span>
         <input
