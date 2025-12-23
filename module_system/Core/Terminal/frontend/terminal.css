@@ -1,6 +1,6 @@
 /* FULL VIEWPORT TERMINAL */
 .modern-terminal {
-  height: 100vh;
+  height: 75vh;
   max-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -147,123 +147,187 @@
   margin-right: 6px;
 }
 
-/* --- Batch Modal Overlay --- */
+/* ───────────────────────────────
+   Batch Modal Overlay
+──────────────────────────────── */
 .batch-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(30, 30, 47, 0.85); /* dark translucent */
+  inset: 0;
+  background: rgba(18, 18, 28, 0.88);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 999;
-  animation: fadeIn 0.2s ease-in-out;
+  animation: fadeIn 0.18s ease-out;
 }
 
+/* ───────────────────────────────
+   Modal Container
+──────────────────────────────── */
 .batch-modal-content {
-  background: #1e1e2f;
-  padding: 20px 25px;
-  border-radius: 12px;
-  min-width: 320px;
-  max-width: 500px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-  color: #eee;
+  background: linear-gradient(180deg, #1f1f33, #181828);
+  padding: 22px 26px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  color: #e8e8f0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  animation: slideDown 0.2s ease-in-out;
+  gap: 14px;
+  animation: slideDown 0.22s ease-out;
 }
 
+/* ───────────────────────────────
+   Title
+──────────────────────────────── */
 .batch-modal-content h3 {
   margin: 0;
-  font-size: 1.2rem;
   text-align: center;
-  color: #eee; /* match terminal text */
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  color: #f0f0ff;
+  text-shadow: 0 0 6px rgba(120, 120, 255, 0.15);
 }
 
-/* Favorite Buttons */
+/* ───────────────────────────────
+   Current Selection
+──────────────────────────────── */
+.current-selection {
+  background: rgba(90, 90, 140, 0.15);
+  border: 1px solid rgba(120, 120, 200, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: #cfd0ff;
+  text-align: center;
+}
+
+/* ───────────────────────────────
+   Favorites
+──────────────────────────────── */
 .favorites-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.favorite-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .favorite-btn {
-  background: #2a2a40;
-  border: 1px solid #3a3a5a;
-  padding: 6px 12px;
-  border-radius: 6px;
-  color: #eee;
+  flex: 1;
+  background: #26263c;
+  border: 1px solid #3b3b5c;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: #e6e6ff;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  text-align: left;
   font-size: 0.9rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .favorite-btn:hover {
-  background: #3a3a5a;
-  transform: translateY(-1px);
+  background: #32325a;
+  border-color: #5a5aff;
 }
 
-/* New Batch Input */
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #ff8a8a;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.remove-btn:hover {
+  transform: scale(1.15);
+  color: #ffb1b1;
+}
+
+/* ───────────────────────────────
+   New Batch Input
+──────────────────────────────── */
 .new-batch {
   display: flex;
   gap: 8px;
-  justify-content: center;
 }
 
 .new-batch input {
   flex: 1;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #3a3a5a;
-  background: #2a2a40;
-  color: #eee;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #3b3b5c;
+  background: #222236;
+  color: #eaeaff;
   outline: none;
+  font-size: 0.9rem;
+}
+
+.new-batch input::placeholder {
+  color: #9a9abf;
 }
 
 .new-batch input:focus {
-  border-color: #5a5a7a;
+  border-color: #6a6aff;
+  box-shadow: 0 0 0 2px rgba(100, 100, 255, 0.15);
 }
 
-.new-batch button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background: #2a2a40;
-  color: #eee;
+/* ───────────────────────────────
+   Buttons
+──────────────────────────────── */
+.new-batch button,
+.batch-actions button,
+.close-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #26263c;
+  color: #f0f0ff;
+  border: 1px solid #3b3b5c;
   cursor: pointer;
-  font-weight: bold;
-  border: 1px solid #3a3a5a;
-  transition: all 0.2s ease-in-out;
+  font-size: 0.85rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.new-batch button:hover {
-  background: #3a3a5a;
-  transform: translateY(-1px);
+.new-batch button:hover,
+.batch-actions button:hover,
+.close-btn:hover {
+  background: #32325a;
+  border-color: #6a6aff;
+}
+
+/* Disabled */
+.batch-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Action Row */
+.batch-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 /* Close Button */
 .close-btn {
   align-self: center;
-  padding: 5px 15px;
-  border: none;
-  border-radius: 6px;
-  background: #2a2a40;
-  color: #eee;
-  cursor: pointer;
-  border: 1px solid #3a3a5a;
-  transition: all 0.2s ease-in-out;
+  padding: 7px 20px;
 }
 
-.close-btn:hover {
-  background: #3a3a5a;
-  transform: translateY(-1px);
-}
-
-/* Animations */
+/* ───────────────────────────────
+   Animations
+──────────────────────────────── */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -275,7 +339,7 @@
 
 @keyframes slideDown {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-16px);
     opacity: 0;
   }
   to {
@@ -283,6 +347,7 @@
     opacity: 1;
   }
 }
+
 /* Clear Button */
 .terminal-controls button:last-child {
   background: #ff4d4d; /* red for clear */
@@ -332,4 +397,61 @@
 .autocomplete-dropdown li.active,
 .autocomplete-dropdown li:hover {
   background: #33334d;
+}
+.terminal-log-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.terminal-footer {
+  position: sticky;
+  bottom: 0;
+  background: #1e1e1e;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+/* Ensure wrapper is relative */
+.terminal-input-wrapper {
+  position: relative;
+}
+
+/* Dropdown above the input */
+.autocomplete-dropdown.above {
+  position: absolute;
+  bottom: 100%; /* place above input */
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 4px 4px 0 0;
+  z-index: 1000;
+  margin-bottom: 4px; /* small gap above input */
+}
+
+.autocomplete-dropdown.above li {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.autocomplete-dropdown.above li.active {
+  background-color: #555;
+}
+.autocomplete-dropdown.above {
+  position: absolute;
+  bottom: 100%; /* above input */
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 4px 4px 0 0;
+  z-index: 1000;
+  margin-bottom: 4px; /* small gap */
 }

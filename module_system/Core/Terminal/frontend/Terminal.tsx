@@ -32,22 +32,15 @@ export default function Terminal() {
   const [favoriteBatches, setFavoriteBatches] = useState<string[]>([]);
   const [savedCommands, setSavedCommands] = useState<string[]>([]);
   const [showBatchSelector, setShowBatchSelector] = useState(false);
-  const [osName, setOsName] = useState<string>("Unknown OS");
+  const [osName, setOsName] = useState("linux");
+
   const endRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     if (autoScroll) endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, autoScroll]);
 
-  // Detect OS
-  useEffect(() => {
-    const platform = navigator.platform.toLowerCase();
-    setOsName(platform.includes("win") ? "windows" : "linux");
-  }, []);
-
-  // Load saved data and connect WS
   useEffect(() => {
     const game = localStorage.getItem("activeGameId");
     setActiveGame(game);
@@ -66,52 +59,32 @@ export default function Terminal() {
     setMessages(persistedLogs);
 
     const saved = JSON.parse(localStorage.getItem(`commands_${game}`) || "[]");
-    const defaultCommands = [
-      "start",
-      "stop",
-      "restart",
-      "save",
-      "backup",
-      "kick PlayerName",
-      "ban PlayerName",
-      "status",
-      "whitelist add PlayerName",
-      "whitelist remove PlayerName",
-    ];
-    setSavedCommands(Array.from(new Set([...saved, ...defaultCommands])));
+    const defaults = ["start", "stop", "restart", "status", "save", "backup"];
+    setSavedCommands([...new Set([...defaults, ...saved])]);
 
-    // If no logs, push welcome messages
-    if (!persistedLogs.length) {
-      push("system", "👋 Welcome to the Modern Terminal!");
-      push("system", "Select a batch (.bat or .sh) to run your server.");
-      push("system", "Use buttons above to Start, Stop, Restart.");
-      push("system", "Type commands below and press Enter to execute them.");
-      push(
-        "system",
-        "Favorites help you quickly select commonly used batches."
-      );
-    }
-
-    // Setup WebSocket
     if (game) {
       const ws = new WebSocket(`ws://localhost:8000/api/terminal/ws/${game}`);
       wsRef.current = ws;
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        push(data.type === "error" ? "error" : "output", data.text);
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          push(data.type || "output", data.text);
+        } catch {
+          push("error", "Bad websocket message");
+        }
       };
 
-      ws.onclose = () => console.log("WebSocket closed.");
+      ws.onclose = () => push("system", "WebSocket disconnected");
+      ws.onerror = () => push("error", "WebSocket error");
 
       return () => ws.close();
     }
   }, []);
 
-  // Push message and persist
   const push = (type: TerminalMessage["type"], text: string) => {
     setMessages((prev) => {
-      const newLogs = [
+      const updated = [
         ...prev,
         {
           id: Date.now() + Math.random(),
@@ -120,18 +93,18 @@ export default function Terminal() {
           time: new Date().toLocaleTimeString(),
         },
       ];
-      if (activeGame)
+      if (activeGame) {
         localStorage.setItem(
           `terminalLogs_${activeGame}`,
-          JSON.stringify(newLogs)
+          JSON.stringify(updated)
         );
-      return newLogs;
+      }
+      return updated;
     });
   };
 
   const executeCommand = async (command?: string) => {
-    if (!activeGame) return;
-    const cmd = command || input;
+    const cmd = command ?? input;
     if (!cmd.trim()) return;
 
     push("command", cmd);
@@ -140,49 +113,41 @@ export default function Terminal() {
     if (!savedCommands.includes(cmd)) {
       const updated = [...savedCommands, cmd];
       setSavedCommands(updated);
-      localStorage.setItem(`commands_${activeGame}`, JSON.stringify(updated));
+      if (activeGame)
+        localStorage.setItem(`commands_${activeGame}`, JSON.stringify(updated));
     }
 
     try {
       const res = await fetch("/api/terminal/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameId: activeGame, command: cmd, batchPath }),
+        body: JSON.stringify({
+          gameId: activeGame,
+          command: cmd,
+          batchPath,
+        }),
       });
+
       const data = await res.json();
-      if (data.output) push("output", data.output);
       if (data.error) push("error", data.error);
+      if (data.output) push("output", data.output);
     } catch {
-      push("error", "Server unreachable.");
+      push("error", "Command failed");
     }
   };
 
   const controlServer = async (action: "start" | "stop" | "restart") => {
-    if (!activeGame || !batchPath) {
-      push("error", "No batch file selected.");
-      return;
-    }
-    push("system", `Server ${action.toUpperCase()} issued`);
+    push("system", `Server ${action}`);
     await executeCommand(action);
-    setStatus(
-      action === "start" ? "RUNNING" : action === "stop" ? "STOPPED" : status
-    );
+    setStatus(action === "start" ? "RUNNING" : "STOPPED");
   };
 
-  const openBatchSelector = () => setShowBatchSelector(true);
-
-  const handleAddFavorite = (path: string) => {
-    const trimmed = path.trim();
-    if (!trimmed) return push("error", "Cannot add empty path.");
-    const valid =
-      osName === "windows" ? trimmed.endsWith(".bat") : trimmed.endsWith(".sh");
-    if (!valid) return push("error", `Invalid file type for ${osName}.`);
-    if (favoriteBatches.includes(trimmed))
-      return push("system", `Already in favorites: ${trimmed}`);
-    const updated = [trimmed, ...favoriteBatches];
-    setFavoriteBatches(updated);
-    localStorage.setItem("favoriteBatches", JSON.stringify(updated));
-    push("system", `Added to favorites: ${trimmed}`);
+  const clearTerminal = () => {
+    setMessages([]);
+    if (activeGame) {
+      localStorage.removeItem(`terminalLogs_${activeGame}`);
+    }
+    push("system", "Terminal cleared.");
   };
 
   return (
@@ -195,52 +160,36 @@ export default function Terminal() {
         <div className="right">
           <FaCircle className={status === "RUNNING" ? "green" : "red"} />
           <span>{status}</span>
-          <span className="os-display">OS: {osName}</span>
+          <span>OS: {osName}</span>
         </div>
       </div>
 
       {/* BUTTONS */}
       <div className="terminal-controls">
-        <button
-          onClick={() => controlServer("start")}
-          disabled={!activeGame || !batchPath}
-        >
+        <button onClick={() => controlServer("start")}>
           <FaPlay /> Start
         </button>
-        <button
-          onClick={() => controlServer("stop")}
-          disabled={!activeGame || !batchPath}
-        >
+        <button onClick={() => controlServer("stop")}>
           <FaStop /> Stop
         </button>
-        <button
-          onClick={() => controlServer("restart")}
-          disabled={!activeGame || !batchPath}
-        >
+        <button onClick={() => controlServer("restart")}>
           <FaRedo /> Restart
         </button>
-        <button onClick={openBatchSelector}>
+        <button onClick={() => setShowBatchSelector(true)}>
           <FaFile /> Change Batch
         </button>
         <button
-          onClick={() => setAutoScroll((prev) => !prev)}
+          onClick={() => setAutoScroll((v) => !v)}
           className={autoScroll ? "active-auto" : ""}
         >
-          <FaArrowsAltV /> Auto-Scroll
+          <FaArrowsAltV /> Auto Scroll
         </button>
-        <button
-          onClick={() => {
-            setMessages([]);
-            if (activeGame)
-              localStorage.removeItem(`terminalLogs_${activeGame}`);
-            push("system", "Terminal cleared.");
-          }}
-        >
-          🗑️ Clear
-        </button>
+
+        {/* ✅ CLEAR BUTTON — BACK WHERE IT BELONGS */}
+        <button onClick={clearTerminal}>🗑️ Clear</button>
       </div>
 
-      {/* COMMAND INPUT */}
+      {/* COMMAND INPUT — UNDER BUTTONS */}
       <CommandInput
         value={input}
         onChange={setInput}
@@ -249,17 +198,18 @@ export default function Terminal() {
         savedCommands={savedCommands}
       />
 
-      {/* LOG AREA */}
-      <div className="terminal-log">
-        {messages.map((m) => (
-          <div key={m.id} className={`log ${m.type}`}>
-            <span className="time">[{m.time}]</span> {m.text}
-          </div>
-        ))}
-        <div ref={endRef} />
+      {/* LOGS */}
+      <div className="terminal-log-wrapper">
+        <div className="terminal-log">
+          {messages.map((m) => (
+            <div key={m.id} className={`log ${m.type}`}>
+              <span className="time">[{m.time}]</span> {m.text}
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
       </div>
 
-      {/* BATCH MODAL */}
       {showBatchSelector && (
         <BatchSelector
           osName={osName}
@@ -271,8 +221,8 @@ export default function Terminal() {
             push("system", `Batch selected: ${path}`);
             setShowBatchSelector(false);
           }}
-          onAddFavorite={handleAddFavorite}
           onClose={() => setShowBatchSelector(false)}
+          onAddFavorite={() => {}}
           push={push}
         />
       )}

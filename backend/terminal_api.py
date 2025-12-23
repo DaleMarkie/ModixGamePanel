@@ -4,40 +4,42 @@ import subprocess
 import os
 import platform
 import threading
+import signal
 
 app = FastAPI()
 
 # Track running processes per game
-running_processes = {}
-process_locks = {}
+running_processes: dict[str, subprocess.Popen] = {}
+process_locks: dict[str, threading.Lock] = {}
 
 # Track active WebSocket connections per game
-ws_connections = {}
+ws_connections: dict[str, list[WebSocket]] = {}
+
 
 class CommandRequest(BaseModel):
     gameId: str
-    command: str = None
-    batchPath: str = None
+    command: str | None = None
+    batchPath: str | None = None
 
+
+# -------------------- WEBSOCKET --------------------
 
 def broadcast_ws(game_id: str, message: dict):
-    """Send a message to all connected websockets for this game."""
-    connections = ws_connections.get(game_id, [])
-    for ws in connections[:]:
+    for ws in ws_connections.get(game_id, [])[:]:
         try:
             ws.send_json(message)
         except Exception:
-            connections.remove(ws)
+            ws_connections[game_id].remove(ws)
 
 
 def stream_process(proc: subprocess.Popen, game_id: str):
-    """Continuously read stdout/stderr and broadcast to WS."""
     def reader(pipe, out_type):
         for line in iter(pipe.readline, ""):
-            line = line.rstrip()
             if line:
-                print(f"[{game_id}][{out_type}] {line}")
-                broadcast_ws(game_id, {"type": out_type, "text": line})
+                broadcast_ws(game_id, {
+                    "type": out_type,
+                    "text": line.rstrip()
+                })
         pipe.close()
 
     threading.Thread(target=reader, args=(proc.stdout, "output"), daemon=True).start()
@@ -47,16 +49,31 @@ def stream_process(proc: subprocess.Popen, game_id: str):
 @app.websocket("/api/terminal/ws/{game_id}")
 async def terminal_ws(websocket: WebSocket, game_id: str):
     await websocket.accept()
-    if game_id not in ws_connections:
-        ws_connections[game_id] = []
-    ws_connections[game_id].append(websocket)
+    ws_connections.setdefault(game_id, []).append(websocket)
     try:
         while True:
-            await websocket.receive_text()  # keep alive
+            await websocket.receive_text()
     except WebSocketDisconnect:
         pass
     finally:
         ws_connections[game_id].remove(websocket)
+
+
+# -------------------- EXECUTION --------------------
+
+def stop_process(game_id: str):
+    proc = running_processes.pop(game_id, None)
+    if not proc:
+        return
+
+    try:
+        if platform.system().lower() == "windows":
+            proc.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            proc.terminate()
+        proc.wait(timeout=10)
+    except Exception:
+        proc.kill()
 
 
 @app.post("/api/terminal/execute")
@@ -70,78 +87,93 @@ def execute_command(req: CommandRequest):
         process_locks[game_id] = threading.Lock()
 
     with process_locks[game_id]:
-        # CONTROL COMMANDS
-        if cmd in ["start", "stop", "restart"]:
+
+        # ---------------- CONTROL COMMANDS ----------------
+
+        if cmd in {"start", "stop", "restart"}:
             if not batch_path:
-                raise HTTPException(status_code=400, detail="Batch path not provided.")
+                raise HTTPException(400, "Batch path not provided")
+
+            batch_path = os.path.abspath(batch_path)
+
             if not os.path.isfile(batch_path):
-                raise HTTPException(status_code=400, detail=f"Batch file not found: {batch_path}")
+                raise HTTPException(400, f"Batch file not found: {batch_path}")
+
+            work_dir = os.path.dirname(batch_path)
 
             # STOP
             if cmd == "stop":
-                if game_id in running_processes:
-                    proc = running_processes.pop(game_id)
-                    proc.terminate()
-                    proc.wait(timeout=10)
-                    return {"output": f"Server {game_id} stopped."}
-                return {"output": f"No running server for {game_id}."}
+                stop_process(game_id)
+                return {"output": f"Server {game_id} stopped."}
 
-            # START or RESTART
-            if cmd in ["start", "restart"]:
-                # Stop existing process first
-                if game_id in running_processes:
-                    proc = running_processes.pop(game_id)
-                    proc.terminate()
-                    proc.wait(timeout=10)
+            # RESTART = stop first
+            if cmd == "restart":
+                stop_process(game_id)
 
-                try:
-                    if system_os == "windows":
-                        proc = subprocess.Popen(
-                            batch_path,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True,
-                            cwd=os.path.dirname(batch_path) or None
-                        )
-                    else:
-                        proc = subprocess.Popen(
-                            ["bash", batch_path],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True,
-                            cwd=os.path.dirname(batch_path) or None
-                        )
+            try:
+                if system_os == "windows":
+                    # REQUIRED for paths with spaces
+                    proc = subprocess.Popen(
+                        ["cmd.exe", "/c", batch_path],
+                        cwd=work_dir,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                    )
+                else:
+                    # Always run via bash (no chmod issues)
+                    proc = subprocess.Popen(
+                        ["bash", batch_path],
+                        cwd=work_dir,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        preexec_fn=os.setsid,
+                    )
 
-                    running_processes[game_id] = proc
-                    stream_process(proc, game_id)
-                    return {"output": f"Server {game_id} started with {batch_path}"}
-                except Exception as e:
-                    raise HTTPException(status_code=500, detail=str(e))
+                running_processes[game_id] = proc
+                stream_process(proc, game_id)
 
-        # ARBITRARY COMMANDS
+                return {
+                    "output": f"Server {game_id} started",
+                    "batch": batch_path,
+                    "cwd": work_dir,
+                }
+
+            except Exception as e:
+                raise HTTPException(500, str(e))
+
+        # ---------------- ARBITRARY COMMANDS ----------------
+
         if game_id not in running_processes:
-            raise HTTPException(status_code=400, detail="No running server for this game.")
+            raise HTTPException(400, "No running server for this game")
 
-        proc = running_processes[game_id]
+        work_dir = os.path.dirname(batch_path) if batch_path else None
+
         try:
             if system_os == "windows":
                 result = subprocess.run(
                     cmd,
                     shell=True,
+                    cwd=work_dir,
                     capture_output=True,
                     text=True,
-                    cwd=os.path.dirname(batch_path) if batch_path else None
                 )
             else:
                 result = subprocess.run(
                     cmd,
                     shell=True,
                     executable="/bin/bash",
+                    cwd=work_dir,
                     capture_output=True,
                     text=True,
-                    cwd=os.path.dirname(batch_path) if batch_path else None
                 )
-            return {"output": result.stdout.strip(), "error": result.stderr.strip()}
+
+            return {
+                "output": result.stdout.strip(),
+                "error": result.stderr.strip(),
+            }
+
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(500, str(e))

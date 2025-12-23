@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useRef, useState, KeyboardEvent } from "react";
 import "./terminal.css";
 
@@ -74,22 +75,8 @@ export default function CommandInput({
 
   return (
     <div className="terminal-input-wrapper">
-      <div className="terminal-input-bar">
-        <span className="prompt">$</span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type server command..."
-          autoComplete="off"
-        />
-        <span className="cursor" />
-      </div>
       {showDropdown && filtered.length > 0 && (
-        <ul className="autocomplete-dropdown">
+        <ul className="autocomplete-dropdown above">
           {filtered.map((cmd, idx) => (
             <li
               key={cmd}
@@ -101,6 +88,20 @@ export default function CommandInput({
           ))}
         </ul>
       )}
+      <div className="terminal-input-bar">
+        <span className="prompt">$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type command..."
+          autoComplete="off"
+        />
+        <span className="cursor" />
+      </div>
     </div>
   );
 }
