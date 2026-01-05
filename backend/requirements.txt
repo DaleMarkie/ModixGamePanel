@@ -8,3 +8,8 @@ python-multipart
 docker
 jsonschema
 pyyaml
+sse-starlette
+psutil
+httpx
+PyJWT
+apscheduler

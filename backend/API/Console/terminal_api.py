@@ -166,6 +166,8 @@ async def send_command(request: Request):
         raise HTTPException(400, "Server not running or invalid command")
 
     try:
+        if running_process.stdin is None:
+            raise HTTPException(400, "Server stdin not available")
         running_process.stdin.write((cmd + "\n").encode())
         running_process.stdin.flush()
 
