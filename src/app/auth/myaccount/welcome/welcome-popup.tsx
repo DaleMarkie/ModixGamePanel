@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import "./welcome-popup.css";
 
 interface WelcomePopupProps {
@@ -9,72 +8,7 @@ interface WelcomePopupProps {
   onClose: () => void;
 }
 
-const PAGES = [
-  {
-    name: "Console",
-    icon: "🖥️",
-    status: "Operational",
-  },
-  {
-    name: "Change Game",
-    icon: "📁",
-    status: "Operational",
-  },
-  {
-    name: "Server Settings",
-    icon: "🧩",
-    status: "Operational",
-  },
-  {
-    name: "Backups",
-    icon: "🛠️",
-    status: "Operational",
-  },
-  {
-    name: "Steam Install",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-  {
-    name: "Steam Install",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-  {
-    name: "Steam Update",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-  {
-    name: "Steam Validate Files",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-  {
-    name: "My Mods",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-  {
-    name: "Workshop Manager",
-    icon: "👤",
-    status: "Under Development",
-    dev: true,
-  },
-];
-
 const WelcomePopup = ({ username, logs = [], onClose }: WelcomePopupProps) => {
-  const [search, setSearch] = useState("");
-
-  const filteredPages = PAGES.filter((page) =>
-    page.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="welcome-popup-overlay">
       <div className="welcome-popup-card">
@@ -87,54 +21,33 @@ const WelcomePopup = ({ username, logs = [], onClose }: WelcomePopupProps) => {
 
         <section className="welcome-popup-body">
           <p className="intro-text">
-            <strong className="brand">Modix</strong> is an evolving project
-            that’s <span className="highlight">actively being developed</span>{" "}
-            by <span className="team">OV3RLORD</span> &{" "}
-            <span className="team">GameSmithOnline</span>.
+            <strong className="brand">Modix</strong> has been inactive for the
+            past 6 months due to life circumstances and burnout. Development
+            lost focus for a while but that changes now. Updates will start
+            rolling out again.
           </p>
 
           <p className="intro-subtext">
-            Our goal is to build a{" "}
-            <span className="highlight">powerful, modern game panel</span> for{" "}
-            <span className="pz-highlight">Project Zomboid</span>, with future
-            support planned for additional titles.
+            I’m back and actively developing again. This is a
+            <span className="highlight"> large scale project</span>, and
+            progress will now be consistent moving forward.
           </p>
 
           <div className="update-info">
             <p>
-              🧩 Modix is under active development. Below you can check which
-              panel pages are fully operational, still in development, or
-              currently placeholders.
+              ⚠️ Right now, <strong>everything is under development</strong>.
+              The panel is being rebuilt and improved from the ground up.
             </p>
-          </div>
-
-          {/* PANEL PAGES */}
-          <div className="panel-pages">
-            <h3 className="pages-header">📂 Panel Pages</h3>
-
-            <input
-              type="text"
-              className="pages-search"
-              placeholder="Search panel pages..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-
-            <ul className="pages-list compact">
-              {filteredPages.map((page) => (
-                <li
-                  key={page.name}
-                  className={`page-item ${page.dev ? "dev" : ""}`}
-                >
-                  {page.icon} {page.name}
-                  <span className="dev-badge">{page.status}</span>
-                </li>
-              ))}
-
-              {!filteredPages.length && (
-                <li className="no-pages">No matching pages found.</li>
-              )}
-            </ul>
+            <p>
+              🐧 Initial support will be <strong>Linux only</strong>, as it’s
+              much easier to develop and maintain. Windows support will come
+              after.
+            </p>
+            <p>
+              I know I’ve said "it’s coming" before and not delivered. This
+              project is massive, and I burned out but I’m back now and fully
+              committed to it.
+            </p>
           </div>
 
           {logs.length ? (
@@ -153,7 +66,8 @@ const WelcomePopup = ({ username, logs = [], onClose }: WelcomePopupProps) => {
             </>
           ) : (
             <p className="no-logs">
-              By using Modix: Game Panel you agree to the terms of use.
+              This is mostly sololy created by DaleMarkie aka OV3RLORD. Thanks
+              for checking out Modix.
             </p>
           )}
         </section>

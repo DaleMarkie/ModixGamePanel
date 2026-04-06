@@ -1,11 +1,11 @@
 .welcome-popup-overlay {
   position: fixed;
+  margin-bottom: 20px;
   inset: 0;
+  display: grid;
+  place-items: center;
   background: rgba(10, 10, 15, 0.8);
   backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 5000;
 }
 
@@ -20,6 +20,7 @@
   animation: fadeInUp 0.35s ease-out;
 }
 
+/* HEADER */
 .welcome-popup-header {
   display: flex;
   justify-content: space-between;
@@ -30,7 +31,7 @@
 
 .welcome-popup-header h2 {
   font-size: 1.4rem;
-  color: #3dbb5d; /* Dark green accent */
+  color: #3dbb5d;
   margin: 0;
 }
 
@@ -47,6 +48,7 @@
   color: #fff;
 }
 
+/* TEXT */
 .intro-text {
   font-size: 1rem;
   color: #ccc;
@@ -62,7 +64,7 @@
 }
 
 .brand {
-  color: #3dbb5d; /* Dark green Modix brand */
+  color: #3dbb5d;
   font-weight: bold;
 }
 
@@ -81,6 +83,7 @@
   font-weight: bold;
 }
 
+/* INFO BOX */
 .update-info {
   background: rgba(0, 255, 100, 0.05);
   border-left: 3px solid #3dbb5d;
@@ -91,6 +94,7 @@
   line-height: 1.5;
 }
 
+/* LINKS */
 .changelog-link {
   color: #3dbb5d;
   font-weight: 600;
@@ -104,6 +108,7 @@
   border-color: #62e283;
 }
 
+/* LOGS */
 .update-header {
   color: #3dbb5d;
   font-size: 1.1rem;
@@ -141,6 +146,7 @@
   margin: 1rem 0;
 }
 
+/* FOOTER */
 .welcome-popup-footer {
   display: flex;
   justify-content: flex-end;
@@ -163,6 +169,7 @@
   box-shadow: 0 0 10px rgba(61, 187, 93, 0.5);
 }
 
+/* ANIMATION */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -174,10 +181,7 @@
   }
 }
 
-/* -----------------------------
-   PANEL PAGES – COMPACT LAYOUT
------------------------------- */
-
+/* PANEL PAGES */
 .panel-pages {
   margin-top: 1rem;
 }
@@ -215,8 +219,35 @@
   padding: 0;
   margin: 0;
   list-style: none;
+
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 187, 93, 0.6) transparent;
 }
 
+/* SCROLLBAR */
+.pages-list.compact::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb {
+  background: rgba(61, 187, 93, 0.5);
+  border-radius: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb:hover {
+  background: rgba(61, 187, 93, 0.75);
+}
+
+/* ITEMS */
 .page-item {
   background: rgba(61, 187, 93, 0.08);
   border: 1px solid rgba(61, 187, 93, 0.25);
@@ -250,61 +281,8 @@
   font-style: italic;
   font-size: 0.8rem;
 }
-/* -----------------------------
-   PANEL PAGES SCROLL AREA
------------------------------- */
 
-.pages-list.compact {
-  max-height: 220px; /* keeps popup tidy */
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* Scrollbar styling (WebKit) */
-.pages-list.compact::-webkit-scrollbar {
-  width: 6px;
-}
-
-.pages-list.compact::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-}
-
-.pages-list.compact::-webkit-scrollbar-thumb {
-  background: rgba(61, 187, 93, 0.5);
-  border-radius: 6px;
-}
-
-.pages-list.compact::-webkit-scrollbar-thumb:hover {
-  background: rgba(61, 187, 93, 0.75);
-}
-
-/* Firefox */
-.pages-list.compact {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(61, 187, 93, 0.6) transparent;
-}
-.pages-list.compact {
-  max-height: 220px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.pages-list.compact::-webkit-scrollbar {
-  width: 6px;
-}
-.pages-list.compact::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-}
-.pages-list.compact::-webkit-scrollbar-thumb {
-  background: rgba(61, 187, 93, 0.5);
-  border-radius: 6px;
-}
-.pages-list.compact::-webkit-scrollbar-thumb:hover {
-  background: rgba(61, 187, 93, 0.75);
-}
-
+/* DESCRIPTION */
 .page-description {
   margin-top: 0.7rem;
   padding: 0.6rem 0.8rem;
@@ -316,4 +294,166 @@
   line-height: 1.4;
   word-wrap: break-word;
   white-space: pre-line;
+}
+/* -----------------------------
+   MODERN DASHBOARD (WELCOME)
+------------------------------ */
+
+.dashboard-welcome {
+  max-width: 900px;
+  margin-top: 1rem;
+}
+
+.welcome-title {
+  font-size: 1.6rem;
+  color: #baffd4;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-text {
+  color: #aaa;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* BOXES */
+
+.welcome-box {
+  background-color: #161a20;
+  border: 1px solid #1f2a22;
+  border-left: 3px solid #00ff88;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.welcome-box:hover {
+  border-color: #00ff88;
+  transform: translateY(-2px);
+}
+
+.welcome-box h3 {
+  margin: 0 0 0.3rem 0;
+  font-size: 1rem;
+  color: #00ff88;
+}
+
+.welcome-box p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+/* LIST */
+
+.welcome-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.welcome-list li {
+  margin-bottom: 4px;
+}
+
+/* WARNING */
+
+.welcome-box.warning {
+  border-left-color: #ffd700;
+}
+
+.welcome-box.warning h3 {
+  color: #ffd700;
+}
+
+/* -----------------------------
+   MODIX UPDATES (LOGS)
+------------------------------ */
+
+.modix-updates {
+  margin-top: 2.5rem;
+  max-width: 900px;
+}
+
+.pages-header {
+  font-size: 1.2rem;
+  color: #baffd4;
+  margin-bottom: 0.4rem;
+}
+
+/* LIST */
+
+.pages-list.compact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 0.7rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* ITEM */
+
+.page-item {
+  background-color: #161a20;
+  border: 1px solid #1f2a22;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.page-item:hover {
+  border-color: #00ff88;
+}
+
+/* LOG TEXT */
+
+.log-date {
+  font-size: 0.7rem;
+  color: #777;
+}
+
+.log-event {
+  color: #e0e0e0;
+}
+
+/* EMPTY */
+
+.no-pages {
+  margin-top: 0.6rem;
+  color: #666;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* SCROLLBAR */
+
+.pages-list.compact::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-track {
+  background: #111418;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb {
+  background: #00ff88;
+  border-radius: 6px;
+}
+
+.pages-list.compact::-webkit-scrollbar-thumb:hover {
+  background: #baffd4;
 }

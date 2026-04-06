@@ -11,7 +11,7 @@ import License from "../License/License";
 
 const Settings = lazy(() => import("./settings/mySettings"));
 
-// ------------------ TAB BUTTON COMPONENT ------------------
+// ------------------ TAB BUTTON ------------------
 interface TabButtonProps {
   label: string;
   active: boolean;
@@ -19,65 +19,22 @@ interface TabButtonProps {
   disabled?: boolean;
 }
 
-const TabButton: FC<TabButtonProps> = ({ label, active, onClick, disabled }) => (
+const TabButton: FC<TabButtonProps> = ({
+  label,
+  active,
+  onClick,
+  disabled,
+}) => (
   <button
-    className={`tab ${active ? "active" : ""} ${disabled ? "tab-disabled" : ""}`}
+    className={`tab ${active ? "active" : ""} ${
+      disabled ? "tab-disabled" : ""
+    }`}
     onClick={disabled ? undefined : onClick}
-    aria-current={active ? "page" : undefined}
     disabled={disabled}
   >
     {label}
   </button>
 );
-
-// ------------------ PANEL PAGE TYPES ------------------
-interface FlatPage {
-  label: string;
-  status: "Operational" | "Under Development" | "Placeholder";
-  description: string;
-}
-
-const ALL_PAGES: FlatPage[] = [
-  {
-    label: "🖥️ Terminal",
-    status: "Operational",
-    description: `- Access live server console to run commands directly
-- Monitor server logs in real-time
-- Restart or stop services quickly`,
-  },
-  {
-    label: "📁 File Manager",
-    status: "Operational",
-    description: `- Upload, download, and edit server files
-- Quick search to locate files
-- Drag-and-drop functionality
-- Manage configuration files securely`,
-  },
-  {
-    label: "🧩 Mod Manager",
-    status: "Operational",
-    description: `- Install, enable, or disable mods
-- View installed mods and versions
-- Check for mod dependencies and conflicts
-- Receive update notifications`,
-  },
-  {
-    label: "🛠️ Workshop Manager",
-    status: "Operational",
-    description: `- Manage Steam Workshop subscriptions
-- Install or unsubscribe from mods
-- Track mod compatibility with server version
-- Keep mods up-to-date effortlessly`,
-  },
-  {
-    label: "👥 Player Manager",
-    status: "Under Development",
-    description: `- View and manage player accounts
-- Track active sessions and playtime
-- Review chat logs and ban history
-- Monitor player stats and behavior`,
-  },
-];
 
 // ------------------ MAIN COMPONENT ------------------
 const MyAccount: FC = () => {
@@ -85,10 +42,8 @@ const MyAccount: FC = () => {
   const [user, setUser] = useState<any>(null);
   const [userLogs, setUserLogs] = useState<any[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [search, setSearch] = useState("");
-  const [selectedPage, setSelectedPage] = useState<FlatPage | null>(null);
 
-  // ------------------ LOAD USER ------------------
+  // LOAD USER
   useEffect(() => {
     const storedUser = localStorage.getItem("modix_user");
     if (!storedUser) return;
@@ -103,7 +58,7 @@ const MyAccount: FC = () => {
     }
   }, []);
 
-  // ------------------ FETCH USER LOGS ------------------
+  // FETCH LOGS
   useEffect(() => {
     if (!user) return;
 
@@ -113,7 +68,8 @@ const MyAccount: FC = () => {
         const res = await fetch(`${getServerUrl()}/api/auth/logs`, {
           headers: { Authorization: token || "" },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (!res.ok) throw new Error();
         const data = await res.json();
         setUserLogs(data.logs || []);
       } catch (err) {
@@ -124,20 +80,23 @@ const MyAccount: FC = () => {
     fetchLogs();
   }, [user]);
 
-  // ------------------ LOGOUT ------------------
+  // LOGOUT
   const handleLogout = async () => {
     try {
       await fetch(`${getServerUrl()}/api/auth/logout`, { method: "POST" });
     } catch {}
+
     localStorage.removeItem("modix_user");
     localStorage.removeItem("modix_token");
     window.location.href = "/auth/login";
   };
 
   if (!user)
-    return <div className="not-logged">Please log in to access your account.</div>;
+    return (
+      <div className="not-logged">Please log in to access your account.</div>
+    );
 
-  // ------------------ TAB CONFIG ------------------
+  // TABS
   const allTabs = [
     { label: "📊 Dashboard", roles: ["Owner", "SubUser", "Admin"] },
     { label: "🔐 Security", roles: ["Owner", "Admin"] },
@@ -149,41 +108,21 @@ const MyAccount: FC = () => {
   ];
 
   const userRoles = user.roles || ["SubUser"];
-  const hasRole = (tabRoles: string[]) => tabRoles.some((r) => userRoles.includes(r));
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "N/A";
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? "Invalid Date" : d.toLocaleString();
-  };
-
-  const filteredPages = ALL_PAGES.filter((page) =>
-    page.label.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // ------------------ DASHBOARD INFO ------------------
-  const dashboardInfo = [
-    { label: "Username", value: user.username || "N/A" },
-    { label: "Email", value: user.email || "N/A" },
-    { label: "Role(s)", value: userRoles.join(", ") },
-    { label: "Status", value: user.active ? "Active ✅" : "Inactive ❌", className: user.active ? "status-active" : "status-inactive" },
-    { label: "Joined", value: formatDate(user.created_at) },
-    { label: "Last Login", value: formatDate(user.last_login) },
-    { label: "Account ID", value: user.id || "N/A" },
-    { label: "Plan / License", value: user.license?.plan || "Free / N/A" },
-    { label: "Active Sessions", value: userLogs.length || "0" },
-  ];
+  const hasRole = (tabRoles: string[]) =>
+    tabRoles.some((r) => userRoles.includes(r));
 
   return (
     <div className="myaccount-container">
-      {/* ------------------ HEADER ------------------ */}
+      {/* HEADER */}
       <header className="account-header">
         <h1>⚙️ My Account</h1>
-        <button className="logout-btn" onClick={handleLogout}>Log Out</button>
+        <button className="logout-btn" onClick={handleLogout}>
+          Log Out
+        </button>
       </header>
 
-      {/* ------------------ TABS ------------------ */}
-      <nav className="tabs" aria-label="Account navigation">
+      {/* TABS */}
+      <nav className="tabs">
         {allTabs.map((tab) => (
           <TabButton
             key={tab.label}
@@ -195,17 +134,55 @@ const MyAccount: FC = () => {
         ))}
       </nav>
 
-      {/* ------------------ TAB CONTENT ------------------ */}
+      {/* ------------------ DASHBOARD ------------------ */}
       {activeTab === "📊 Dashboard" && (
-        <section className="dashboard-user-info">
-          {dashboardInfo.map((info, idx) => (
-            <div key={idx} className="info-card">
-              <div className="info-details">
-                <span className={`info-value ${info.className || ""}`}>{info.value}</span>
-                <span className="info-label">{info.label}</span>
-              </div>
-            </div>
-          ))}
+        <section className="dashboard-welcome">
+          <h2 className="welcome-title">
+            👋 Welcome to Modix, {user.username}
+          </h2>
+
+          <p className="welcome-text">
+            <strong>Modix Game Panel</strong> is a modern, powerful server
+            management platform built to give you full control over your game
+            servers without the usual complexity.
+          </p>
+
+          <div className="welcome-box">
+            <h3>🚧 Development Status</h3>
+            <p>
+              Modix is currently being actively rebuilt after a period of
+              inactivity. Core systems are being redesigned to be faster,
+              cleaner, and more reliable.
+            </p>
+          </div>
+
+          <div className="welcome-box">
+            <h3>🐧 Platform Focus</h3>
+            <p>
+              Initial support is focused on <strong>Linux</strong> to ensure
+              stability and faster development. Windows support will follow once
+              the core system is solid.
+            </p>
+          </div>
+
+          <div className="welcome-box">
+            <h3>🔥 Planned Features</h3>
+            <ul className="welcome-list">
+              <li>Live server console access</li>
+              <li>Full file & config management</li>
+              <li>Integrated mod + workshop system</li>
+              <li>Player management tools</li>
+              <li>Modern real-time UI</li>
+            </ul>
+          </div>
+
+          <div className="welcome-box warning">
+            <h3>⚠️ Note</h3>
+            <p>
+              This is a large project that previously stalled due to burnout.
+              Development has now resumed fully and will continue consistently.
+            </p>
+          </div>
         </section>
       )}
 
@@ -220,7 +197,7 @@ const MyAccount: FC = () => {
       {activeTab === "🛠️ Support" && <MyTickets />}
       {activeTab === "🧾 My License" && <License />}
 
-      {/* ------------------ WELCOME POPUP ------------------ */}
+      {/* WELCOME POPUP */}
       {showWelcome && (
         <WelcomePopup
           username={user.username}
@@ -229,41 +206,24 @@ const MyAccount: FC = () => {
         />
       )}
 
-      {/* ------------------ PANEL PAGES ------------------ */}
-      <section className="panel-pages-bottom">
-        <h3 className="pages-header">📂 Panel Pages Overview</h3>
-        <p className="pages-overview-description">
-          See which pages are fully operational, under development, or placeholders.
-        </p>
-        <input
-          className="pages-search"
-          placeholder="Search panel pages…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <ul className="pages-list compact">
-          {filteredPages.length > 0 ? filteredPages.map((page, idx) => (
-            <li key={idx} className={`page-item ${page.status !== "Operational" ? "dev" : ""}`} onClick={() => setSelectedPage(page)}>
-              {page.label} <span className="dev-badge">{page.status}</span>
-            </li>
-          )) : <li className="no-pages">No matching pages found.</li>}
-        </ul>
+      {/* ------------------ MODIX UPDATES ------------------ */}
+      <section className="modix-updates">
+        <h3 className="pages-header">🆕 Modix Updates</h3>
 
-        {/* ------------------ MODAL ------------------ */}
-        {selectedPage && (
-          <div className="page-description-modal">
-            <div className="modal-content">
-              <button className="modal-close" onClick={() => setSelectedPage(null)}>×</button>
-              <h2>{selectedPage.label}</h2>
-              <ul className="modal-bullet-list">
-                {selectedPage.description.split("\n").map((line, idx) => (
-                  <li key={idx}>{line.replace(/^-/, "").trim()}</li>
-                ))}
-              </ul>
-              <span className={`status-badge ${selectedPage.status.replace(" ", "-").toLowerCase()}`}>
-                {selectedPage.status}
-              </span>
-            </div>
+        {userLogs.length > 0 ? (
+          <ul className="pages-list compact">
+            {userLogs.slice(0, 10).map((log, idx) => (
+              <li key={idx} className="page-item">
+                <span className="log-date">
+                  {new Date(log.date).toLocaleString()}
+                </span>
+                <span className="log-event">{log.event}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="no-pages">
+            No updates yet development logs will appear here.
           </div>
         )}
       </section>
