@@ -852,3 +852,16 @@
     padding: 5px 8px;
   }
 }
+.game-card.disabled {
+  opacity: 0.5;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.planned-badge {
+  background: #444;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}

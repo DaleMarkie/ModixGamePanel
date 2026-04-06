@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 import os
 import json
-import psutil  # pip install psutil
+import psutil
 import platform
 
 router = APIRouter()
@@ -10,41 +10,69 @@ router = APIRouter()
 # Paths
 GAMES_PATH = os.path.expanduser("~/Games")
 ACTIVE_GAME_FILE = os.path.join(GAMES_PATH, "active_game.json")
-GAMES_BATCH_FILE = os.path.join(GAMES_PATH, "games_paths.json")
+GAMES_SCRIPT_FILE = os.path.join(GAMES_PATH, "games_scripts.json")
 os.makedirs(GAMES_PATH, exist_ok=True)
 
-# Full supported games list
+# --------------------------
+# Linux check (GLOBAL)
+# --------------------------
+def is_linux():
+    return platform.system().lower() == "linux"
+
+# --------------------------
+# Supported games (Linux only)
+# --------------------------
 SUPPORTED_GAMES = [
     {
-        "id": "251570",
-        "name": "7 Days to Die",
-        "poster": "https://cdn.cloudflare.steamstatic.com/steam/apps/251570/header.jpg",
+        "id": "minecraft",
+        "name": "Minecraft",
+        "poster": "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
         "supported": True,
-        "steam_url": "https://store.steampowered.com/app/251570/7_Days_to_Die/",
-        "discord_url": "https://discord.com/invite/7daystodie",
         "minimum_requirements": {
-            "cpu": 1,     # cores
-            "ram": 8,     # GB
-            "disk": 15     # GB free space
+            "cpu": 2,
+            "ram": 4,
+            "disk": 1
         }
     },
-    # Add other games similarly...
+    {
+        "id": "rust",
+        "name": "Rust",
+        "poster": "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+        "supported": True,
+        "minimum_requirements": {
+            "cpu": 4,
+            "ram": 8,
+            "disk": 20
+        }
+    },
+    {
+        "id": "valheim",
+        "name": "Valheim",
+        "poster": "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
+        "supported": True,
+        "minimum_requirements": {
+            "cpu": 2,
+            "ram": 4,
+            "disk": 1
+        }
+    },
 ]
 
 # --------------------------
-# Helper functions
+# Helpers
 # --------------------------
 def get_active_game():
     if os.path.isfile(ACTIVE_GAME_FILE):
         try:
-            with open(ACTIVE_GAME_FILE, "r", encoding="utf-8") as f:
+            with open(ACTIVE_GAME_FILE, "r") as f:
                 return json.load(f)
         except:
             return None
     return None
 
-def set_active_game(game_id: str, batch_path: str = None):
-    game = next((g for g in SUPPORTED_GAMES if g["id"] == game_id and g["supported"]), None)
+
+def set_active_game(game_id: str, start_script: str = None):
+    game = next((g for g in SUPPORTED_GAMES if g["id"] == game_id), None)
     if not game:
         return None
 
@@ -52,94 +80,124 @@ def set_active_game(game_id: str, batch_path: str = None):
         "id": game["id"],
         "name": game["name"],
         "poster": game["poster"],
-        "steam_url": game.get("steam_url"),
-        "discord_url": game.get("discord_url"),
-        "minimum_requirements": game.get("minimum_requirements")
+        "minimum_requirements": game["minimum_requirements"],
+        "os": "linux"
     }
-    if batch_path:
-        active_data["batch_path"] = batch_path
 
-    with open(ACTIVE_GAME_FILE, "w", encoding="utf-8") as f:
+    if start_script:
+        active_data["start_script"] = start_script
+
+    with open(ACTIVE_GAME_FILE, "w") as f:
         json.dump(active_data, f)
 
-    # Save/update batch paths for all games
-    games_paths = {}
-    if os.path.isfile(GAMES_BATCH_FILE):
+    scripts = {}
+    if os.path.isfile(GAMES_SCRIPT_FILE):
         try:
-            with open(GAMES_BATCH_FILE, "r", encoding="utf-8") as f:
-                games_paths = json.load(f)
+            with open(GAMES_SCRIPT_FILE, "r") as f:
+                scripts = json.load(f)
         except:
             pass
 
-    if batch_path:
-        games_paths[game_id] = batch_path
-        with open(GAMES_BATCH_FILE, "w", encoding="utf-8") as f:
-            json.dump(games_paths, f)
+    if start_script:
+        scripts[game_id] = start_script
+        with open(GAMES_SCRIPT_FILE, "w") as f:
+            json.dump(scripts, f)
 
     return active_data
+
 
 def deactivate_game():
     if os.path.isfile(ACTIVE_GAME_FILE):
         os.remove(ACTIVE_GAME_FILE)
     return True
 
+
 # --------------------------
-# Get real server specs
+# Server specs (Linux enforced)
 # --------------------------
 def get_server_specs():
     cpu_cores = psutil.cpu_count(logical=True)
     ram_gb = round(psutil.virtual_memory().total / (1024**3), 1)
     disk_gb = round(psutil.disk_usage("/").free / (1024**3), 1)
-    os_name = platform.system() + " " + platform.release()
+
     return {
         "cpuCores": cpu_cores,
         "ramGB": ram_gb,
         "diskGB": disk_gb,
-        "os": os_name,
+        "os": platform.system(),
+        "isLinux": is_linux()
     }
+
 
 # --------------------------
 # Endpoints
 # --------------------------
 @router.get("/api/games")
 async def list_games():
-    # Include batch paths in the game list
-    games_paths = {}
-    if os.path.isfile(GAMES_BATCH_FILE):
+    server_specs = get_server_specs()
+
+    # HARD BLOCK if not Linux
+    if not server_specs["isLinux"]:
+        return JSONResponse(
+            {
+                "error": "Linux is required to host servers.",
+                "server_specs": server_specs
+            },
+            status_code=403
+        )
+
+    scripts = {}
+    if os.path.isfile(GAMES_SCRIPT_FILE):
         try:
-            with open(GAMES_BATCH_FILE, "r", encoding="utf-8") as f:
-                games_paths = json.load(f)
+            with open(GAMES_SCRIPT_FILE, "r") as f:
+                scripts = json.load(f)
         except:
             pass
 
-    games_with_paths = []
+    games = []
     for g in SUPPORTED_GAMES:
-        game_copy = g.copy()
-        if g["id"] in games_paths:
-            game_copy["batch_path"] = games_paths[g["id"]]
-        games_with_paths.append(game_copy)
-
-    active_game = get_active_game()
-    server_specs = get_server_specs()
+        g_copy = g.copy()
+        if g["id"] in scripts:
+            g_copy["start_script"] = scripts[g["id"]]
+        games.append(g_copy)
 
     return {
-        "games": games_with_paths,
-        "active_game": active_game,
-        "server_specs": server_specs,  # real server specs for Minimum Requirements
+        "games": games,
+        "active_game": get_active_game(),
+        "server_specs": server_specs,
     }
+
 
 @router.post("/api/set-active-game")
 async def activate_game(request: Request):
+    if not is_linux():
+        return JSONResponse(
+            {"error": "Only Linux servers are allowed."},
+            status_code=403
+        )
+
     data = await request.json()
     app_id = data.get("appId")
-    batch_path = data.get("batchPath")  # optional
+    start_script = data.get("startScript")  # renamed from batchPath
 
     if not app_id:
         deactivate_game()
-        return {"success": True, "message": "Game deactivated.", "active_game": None}
+        return {
+            "success": True,
+            "message": "Game deactivated.",
+            "active_game": None
+        }
 
-    game = set_active_game(app_id, batch_path)
+    game = set_active_game(app_id, start_script)
+
     if not game:
-        return JSONResponse({"error": "Game not found or unsupported."}, status_code=404)
+        return JSONResponse(
+            {"error": "Game not found."},
+            status_code=404
+        )
 
-    return {"success": True, "message": f"{game['name']} activated.", "active_game": game}
+    return {
+        "success": True,
+        "message": f"{game['name']} activated (Linux).",
+        "active_game": game
+    }
