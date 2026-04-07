@@ -99,3 +99,9 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+.login-default-info {
+  font-size: 0.9rem;
+  color: #ffcc00;
+  margin-bottom: 1rem;
+  text-align: center;
+}
