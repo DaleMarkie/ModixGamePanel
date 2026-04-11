@@ -1,4 +1,6 @@
-This project is still being worked on, though progress may vary depending on available time and resources. Development is ongoing, but updates, features, and fixes may not always follow a consistent schedule.
+> New Offical Discord: https://discord.gg/K38RSpyQUa
+>
+> This project is still being worked on, though progress may vary depending on available time and resources. Development is ongoing, but updates, features, and fixes may not always follow a consistent schedule.
 
 
 🧩 Modix: Game Panel 
