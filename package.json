@@ -2,18 +2,19 @@
   "name": "modix-panel",
   "version": "1.1.2",
   "private": true,
-  "main": "main.js",
+
   "scripts": {
     "installmodix": "node scripts/installmodix.js",
-    "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:electron\"",
-    "dev:frontend": "npx next dev -p 3000",
-    "dev:backend": "python -m backend.api_main",
-    "dev:electron": "npx wait-on tcp:3000 tcp:2010 && npx electron .",
-    "build:frontend": "npx next build",
-    "build:backend": "pyinstaller --onefile backend/api_main.py --distpath dist/backend",
-    "build": "npm run build:frontend && npm run build:backend",
-    "package": "npm run build && npx electron-builder"
+
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+
+    "dev:frontend": "next dev -p 3000",
+
+    "dev:backend": "python3 -m backend.api_main",
+
+    "build": "next build"
   },
+
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@uiw/react-codemirror": "^4.25.2",
@@ -27,43 +28,14 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.10.1"
   },
+
   "devDependencies": {
     "@types/node": "24.5.2",
     "@types/react": "19.1.15",
     "autoprefixer": "^10.4.15",
     "concurrently": "^9.2.1",
-    "cross-env": "^7.0.3",
-    "electron": "^26.6.10",
-    "electron-builder": "^24.6.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.4",
-    "typescript": "5.9.2",
-    "wait-on": "^7.2.0"
-  },
-  "build": {
-    "appId": "com.modix.panel",
-    "productName": "Modix Panel",
-    "files": [
-      "main.js",
-      "package.json",
-      "backend/**/*",
-      "frontend/.next/**/*",
-      "frontend/node_modules/**/*",
-      "node_modules/**/*",
-      "dist/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "dist/backend/",
-        "to": "backend"
-      }
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "icon.ico"
-    }
+    "typescript": "5.9.2"
   }
 }

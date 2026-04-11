@@ -19,6 +19,7 @@ import ThemeManager from "./components/core/thememanager/ThemeManager";
 import GameManager from "./components/core/gamemanager/GameManager";
 import MyAccount from "./components/core/dashboard/MyAccount/MyAccount";
 import RecoverAccount from "./components/core/dashboard/RecoverAccount/RecoverAccount";
+import Documentation from "./components/core/documentation/Documentation";
 
 function App() {
   const [panelName] = useState("MODIX");

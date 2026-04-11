@@ -41,9 +41,11 @@ function Forbidden({
         <h1 className="text-6xl font-extrabold mb-6 text-green-400 drop-shadow-lg animate-pulse">
           403
         </h1>
-        <h2 className="text-2xl font-bold mb-4 text-white">Access Denied</h2>
+        <h2 className="text-2xl font-bold mb-4 text-white">
+          Access Denied, God dam
+        </h2>
         <p className="text-green-200 mb-6">
-          You do not have permission to access{" "}
+          You do not have permission to accssess{" "}
           <span className="font-semibold text-green-400">
             {moduleDisplayName || "this module"}
           </span>

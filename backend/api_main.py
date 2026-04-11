@@ -27,9 +27,7 @@ from backend.API.Core.games_api.projectzomboid import (
     api_chatlogs
 )
 from backend.API.Core.tools_api import ddos_manager_api
-from backend.API.Core.tools_api.performance_api import router as performance_router
-from backend.updater_api import router as updater_router
-from backend.discord_api import router as discord_router
+from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
 
 # ---------------------------
