@@ -1,313 +1,175 @@
-/* Base */
 .main {
-  background-color: #0d0e15;
-  color: #e0e0e0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px 30px;
   min-height: 100vh;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  background: radial-gradient(circle at top, #0b1220, #05060a);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
 }
 
-/* Header Section */
+/* =========================
+   HEADER (CLEANER + SMALLER)
+========================= */
+
 .header {
-  font-size: 2.6rem;
-  font-weight: 900;
-  color: #f5f5f5;
-  margin-bottom: 8px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .description {
+  margin-top: 6px;
+  margin-bottom: 26px;
+
   text-align: center;
-  font-size: 1.05rem;
-  color: #bbb;
-  font-weight: 500;
-  max-width: 600px;
-  margin-bottom: 40px;
+  max-width: 620px;
+
+  font-size: 0.95rem;
+  color: #9ca3af;
 }
 
-/* Grid layout for cards */
+/* =========================
+   VERTICAL STACK
+========================= */
+
 .grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
   width: 100%;
-  max-width: 1200px;
-}
+  max-width: 850px;
 
-/* Card */
-.card {
-  background: rgba(20, 20, 28, 0.95);
-  border-radius: 16px;
-  padding: 20px 18px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
-  border: 1px solid #2c2c3c;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+/* =========================
+   CARD (MORE MINIMAL + CLEAN)
+========================= */
+
+.card {
+  width: 100%;
+
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+
+  padding: 14px 14px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+
+  transition: 0.15s ease;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(63, 81, 181, 0.7);
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 .card h2 {
-  font-weight: 800;
-  font-size: 1.5rem;
-  margin-bottom: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #f3f4f6;
 }
 
-/* Info Items */
+/* =========================
+   ROWS (CLEAN ALIGNMENT)
+========================= */
+
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #333;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
 
-.info-item:last-child {
-  border-bottom: none;
+  padding: 7px 6px;
+  border-radius: 8px;
+
+  transition: 0.15s ease;
 }
 
 .info-item:hover {
-  background: rgba(63, 81, 181, 0.1);
-  transform: translateX(2px);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .label {
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #9ca3af;
 }
 
 .value {
-  font-weight: 500;
-  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e5e7eb;
 }
 
-/* Colored label per category */
+/* =========================
+   SUBTLE CATEGORY COLORS
+========================= */
+
 .info-item.cpu .label {
-  color: #42a5f5;
+  color: #60a5fa;
 }
 .info-item.memory .label {
-  color: #66bb6a;
+  color: #34d399;
 }
 .info-item.disk .label {
-  color: #ffb74d;
+  color: #fbbf24;
 }
 .info-item.network .label {
-  color: #4dd0e1;
+  color: #22d3ee;
 }
 .info-item.os .label {
-  color: #90caf9;
+  color: #93c5fd;
 }
 .info-item.modix .label {
-  color: #ba68c8;
+  color: #a78bfa;
 }
 .info-item.gpu .label {
-  color: #f06292;
+  color: #fb7185;
 }
 .info-item.extra .label {
-  color: #ffd54f;
+  color: #fde047;
 }
 
-/* Tooltip */
-.tooltip {
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #1e1e2f;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  text-align: center;
-  white-space: pre-line;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  z-index: 50;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
-}
+/* =========================
+   FOOTER (MINIMAL)
+========================= */
 
-.tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1e1e2f transparent transparent transparent;
-}
-
-.info-item:hover .tooltip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-6px);
-}
-
-/* Footer */
 .footer {
-  margin-top: 40px;
-  font-size: 0.8rem;
-  color: #888;
-  text-align: center;
-  user-select: none;
+  margin-top: 28px;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
-/* Scrollable Lists */
-.scrollable-list {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.scrollable-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable-list::-webkit-scrollbar-track {
-  background: #121212;
-}
-
-.scrollable-list::-webkit-scrollbar-thumb {
-  background-color: #3f51b5;
-  border-radius: 10px;
-}
+/* =========================
+   MOBILE TIGHTENING
+========================= */
 
 @media (max-width: 768px) {
-  .grid-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ------------------ RESPONSIVE SYSTEM PANEL ------------------ */
-
-/* Base adjustments for tablets */
-@media screen and (max-width: 1024px) {
-  .main {
-    padding: 15px 20px;
-  }
-
   .header {
-    font-size: 2.2rem;
+    font-size: 1.7rem;
   }
 
   .description {
-    font-size: 1rem;
-    max-width: 90%;
+    font-size: 0.9rem;
   }
 
   .card {
-    padding: 18px 14px;
-  }
-
-  .card h2 {
-    font-size: 1.35rem;
-  }
-
-  .info-item {
-    padding: 6px 0;
-  }
-
-  .tooltip {
-    font-size: 0.75rem;
-    padding: 6px 12px;
-  }
-}
-
-/* Mobile adjustments */
-@media screen and (max-width: 768px) {
-  .main {
-    padding: 12px 15px;
-  }
-
-  .header {
-    font-size: 1.9rem;
-  }
-
-  .description {
-    font-size: 0.95rem;
-    margin-bottom: 30px;
-  }
-
-  .grid-container {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .card {
-    padding: 14px 12px;
-  }
-
-  .card h2 {
-    font-size: 1.25rem;
+    padding: 12px;
   }
 
   .info-item {
     flex-direction: column;
     align-items: flex-start;
-    padding: 6px 8px;
-  }
-
-  .value {
-    margin-top: 4px;
-    font-size: 0.9rem;
-  }
-
-  .tooltip {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-    white-space: normal;
-  }
-
-  .footer {
-    font-size: 0.75rem;
-    margin-top: 30px;
-  }
-}
-
-/* Extra small screens (phones) */
-@media screen and (max-width: 480px) {
-  .main {
-    padding: 10px 12px;
-  }
-
-  .header {
-    font-size: 1.6rem;
-    text-align: center;
-  }
-
-  .description {
-    font-size: 0.9rem;
-    max-width: 95%;
-  }
-
-  .card {
-    padding: 12px 10px;
-  }
-
-  .card h2 {
-    font-size: 1.1rem;
-  }
-
-  .info-item {
-    padding: 5px 6px;
-  }
-
-  .value {
-    font-size: 0.85rem;
-  }
-
-  .tooltip {
-    font-size: 0.7rem;
-    padding: 4px 8px;
+    gap: 2px;
   }
 }

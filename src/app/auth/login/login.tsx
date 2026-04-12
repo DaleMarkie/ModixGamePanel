@@ -15,23 +15,20 @@ interface LocalUser {
   lastLogin?: string;
 }
 
+// 🔐 Hash helper (matches setup page)
+const hashPassword = async (password: string) => {
+  const enc = new TextEncoder().encode(password);
+  const buffer = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+};
+
 const getLocalUsers = (): LocalUser[] => {
   const data = localStorage.getItem(LOCAL_USERS_KEY);
   if (!data) {
     const testUsers: LocalUser[] = [
       { username: "owner", password: "owner", role: "Owner", roles: ["Owner"] },
-      {
-        username: "admin",
-        password: "admin123",
-        role: "Admin",
-        roles: ["Admin"],
-      },
-      {
-        username: "subuser1",
-        password: "password1",
-        role: "SubUser",
-        roles: ["SubUser"],
-      },
     ];
     localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(testUsers));
     return testUsers;
@@ -48,6 +45,7 @@ const BACKEND_URL =
 
 export default function Login() {
   const usernameRef = useRef<HTMLInputElement>(null);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -64,87 +62,68 @@ export default function Login() {
     usernameRef.current?.focus();
   }, []);
 
-  const resetMessage = () => setMessage(null);
+  const setError = (text: string) => setMessage({ text, type: "error" });
+  const setSuccess = (text: string) => setMessage({ text, type: "success" });
+
+  const completeLogin = (user: LocalUser) => {
+    user.roles = user.roles || [user.role || "SubUser"];
+    user.lastLogin = new Date().toISOString();
+
+    localStorage.setItem("modix_user", JSON.stringify(user));
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ username: user.username, startTime: Date.now() })
+    );
+
+    recordLogin(user.username);
+
+    if (rememberMe) {
+      localStorage.setItem("modix_last_username", user.username);
+    } else {
+      localStorage.removeItem("modix_last_username");
+    }
+
+    setSuccess(`Welcome ${user.username}! Redirecting...`);
+    setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    resetMessage();
+    setMessage(null);
 
-    if (!acceptLicense) {
-      setMessage({
-        text: "You must accept the Modix License to log in.",
-        type: "error",
-      });
-      return;
-    }
-    if (!username || !password) {
-      setMessage({ text: "All fields are required.", type: "error" });
-      return;
-    }
+    if (!acceptLicense) return setError("You must accept the Modix License.");
+    if (!username || !password) return setError("All fields are required.");
 
     setLoading(true);
 
     try {
+      // 🌐 Backend login first
       const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      if (!res.ok) throw new Error("Invalid username or password");
+      if (!res.ok) throw new Error();
 
       const data = await res.json();
-      const user: LocalUser = data.user;
-
-      user.roles = user.roles || [user.role || "SubUser"];
-      user.lastLogin = new Date().toISOString();
-
-      localStorage.setItem("modix_user", JSON.stringify(user));
-      localStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify({ username: user.username, startTime: Date.now() })
-      );
-      recordLogin(user.username);
-
-      if (rememberMe)
-        localStorage.setItem("modix_last_username", user.username);
-      else localStorage.removeItem("modix_last_username");
-
-      setMessage({
-        text: `Welcome ${user.username}! Redirecting...`,
-        type: "success",
-      });
-      setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
+      completeLogin(data.user);
     } catch {
-      // fallback: localStorage login
+      // 💾 Fallback local login (hashed support)
       const users = getLocalUsers();
+      const hashed = await hashPassword(password);
+
       const user = users.find(
-        (u) => u.username === username && u.password === password
+        (u) =>
+          u.username === username &&
+          (u.password === password || u.password === hashed)
       );
 
       if (!user) {
-        setMessage({ text: "Invalid username or password", type: "error" });
+        setError("Invalid username or password");
       } else {
-        user.roles = user.roles || [user.role || "SubUser"];
-        user.lastLogin = new Date().toISOString();
         saveLocalUsers(users);
-
-        localStorage.setItem("modix_user", JSON.stringify(user));
-        localStorage.setItem(
-          SESSION_KEY,
-          JSON.stringify({ username: user.username, startTime: Date.now() })
-        );
-        recordLogin(user.username);
-
-        if (rememberMe)
-          localStorage.setItem("modix_last_username", user.username);
-        else localStorage.removeItem("modix_last_username");
-
-        setMessage({
-          text: `Welcome ${user.username}! Redirecting...`,
-          type: "success",
-        });
-        setTimeout(() => (window.location.href = "/auth/myaccount"), 800);
+        completeLogin(user);
       }
     } finally {
       setLoading(false);
@@ -154,13 +133,16 @@ export default function Login() {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h2 className="login-title">🔐 Local Login</h2>
+        <h2 className="login-title">🔐 Modix Login</h2>
 
-        {/* DEFAULT LOGIN INFO */}
-        <p className="login-default-info">
-          Default username: <strong>owner</strong> | password:{" "}
-          <strong>owner</strong>. Please change this after logging in.
-        </p>
+        <div className="login-info-box">
+          <p>
+            Default login: <strong>owner / owner</strong>
+          </p>
+          <p className="warning-text">
+            ⚠ Change this immediately after first login.
+          </p>
+        </div>
 
         <input
           ref={usernameRef}
@@ -202,7 +184,7 @@ export default function Login() {
             checked={acceptLicense}
             onChange={(e) => setAcceptLicense(e.target.checked)}
           />
-          I accept the <strong>Modix License & Terms of Use</strong>
+          I accept Modix Terms
         </label>
 
         {message && <p className={`message ${message.type}`}>{message.text}</p>}

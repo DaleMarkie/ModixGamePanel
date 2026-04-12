@@ -1,47 +1,89 @@
-/* login.css */
+/* ========================= */
+/* BASE LAYOUT */
+/* ========================= */
 
 .login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 20% 10%, #0f172a, #020617);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .login-form {
-  background: #1e1e1e;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  max-width: 420px;
+  background: rgba(20, 20, 20, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid #2a2a2a;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 16px;
 }
+
+/* ========================= */
+/* TITLE */
+/* ========================= */
 
 .login-title {
   text-align: center;
-  font-size: 1.8rem;
-  color: #00ff80;
-  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin-bottom: 8px;
 }
+
+/* ========================= */
+/* INFO BOX */
+/* ========================= */
+
+.login-info-box {
+  background: #111827;
+  border: 1px solid #2a2a2a;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.warning-text {
+  color: #fbbf24;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+/* ========================= */
+/* INPUTS */
+/* ========================= */
 
 .login-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  border: 1px solid #444;
-  background: #121212;
-  color: #e0e0e0;
-  outline: none;
-  transition: border 0.2s;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: #0b0f19;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .login-input:focus {
-  border-color: #00ff80;
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px #22c55e;
 }
+
+.login-input::placeholder {
+  color: #6b7280;
+}
+
+/* ========================= */
+/* PASSWORD TOGGLE */
+/* ========================= */
 
 .password-wrapper {
   position: relative;
@@ -49,59 +91,102 @@
 
 .toggle-password {
   position: absolute;
-  right: 1rem;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: 0.2s;
 }
+
+.toggle-password:hover {
+  opacity: 1;
+}
+
+/* ========================= */
+/* CHECKBOXES */
+/* ========================= */
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #ccc;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  cursor: pointer;
 }
+
+.checkbox-label input {
+  accent-color: #22c55e;
+  cursor: pointer;
+}
+
+/* ========================= */
+/* MESSAGE */
+/* ========================= */
 
 .message {
   text-align: center;
-  font-size: 0.9rem;
-  padding: 0.5rem 0;
-  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .message.error {
-  color: #ff6b6b;
+  color: #ef4444;
 }
 
 .message.success {
-  color: #00ff80;
+  color: #22c55e;
 }
 
+/* ========================= */
+/* BUTTON */
+/* ========================= */
+
 .login-button {
-  background: #00ff80;
-  color: #111;
-  padding: 0.75rem;
-  font-weight: bold;
-  border: none;
+  margin-top: 6px;
+  padding: 12px;
   border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: black;
+  transition: all 0.2s ease;
 }
 
 .login-button:hover {
-  background: #00e06c;
-  transform: scale(1.02);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+}
+
+.login-button:active {
+  transform: scale(0.97);
 }
 
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
-.login-default-info {
-  font-size: 0.9rem;
-  color: #ffcc00;
-  margin-bottom: 1rem;
-  text-align: center;
+
+/* ========================= */
+/* ANIMATION */
+/* ========================= */
+
+.login-form {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

@@ -95,6 +95,7 @@ const defaultData: ServerData = {
   },
 };
 
+// FIX: safer + cleaner tooltip behavior
 const InfoItem = ({
   label,
   value,
@@ -114,9 +115,11 @@ const InfoItem = ({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <span className="label">{label}</span>
-      <span className="value">{value}</span>
-      <div className={`tooltip ${hover ? "visible" : ""}`}>{tooltip}</div>
+      <span className="label">{label || "Unknown"}</span>
+
+      <span className="value">{value ?? "—"}</span>
+
+      {hover && <div className="tooltip">{tooltip || "No details"}</div>}
     </div>
   );
 };
@@ -133,6 +136,12 @@ const Card = ({
     {children}
   </section>
 );
+
+// FIX: safe label formatting (prevents weird empty labels)
+const formatLabel = (key: string) =>
+  key
+    ? key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())
+    : "Unknown";
 
 const Performance = () => {
   const [data, setData] = useState<ServerData>(defaultData);
@@ -166,9 +175,9 @@ const Performance = () => {
   return (
     <div className="main">
       <header className="header">🖥️ Server Performance</header>
+
       <p className="description">
-        Full overview of your system running Modix. Compact, colored, and easy
-        to read.
+        Full overview of your system running Modix. Compact and readable.
       </p>
 
       {error && <div className="error-card">{error}</div>}
@@ -176,11 +185,11 @@ const Performance = () => {
       <div className="grid-container">
         {sections.map((section) => (
           <Card key={section.title} title={section.title}>
-            {Object.entries(section.items).map(([key, val]) => (
+            {Object.entries(section.items || {}).map(([key, val]) => (
               <InfoItem
                 key={key}
-                label={key.replace(/([A-Z])/g, " $1")}
-                value={val}
+                label={formatLabel(key)}
+                value={String(val)}
                 tooltip={`Details for ${key}`}
                 category={section.key}
               />
