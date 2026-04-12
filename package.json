@@ -4,6 +4,8 @@
   "private": true,
 
   "scripts": {
+    "setup": "bash scripts/setup.sh",
+
     "installmodix": "node scripts/installmodix.js",
 
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
@@ -12,7 +14,9 @@
 
     "dev:backend": "python3 -m backend.api_main",
 
-    "build": "next build"
+    "build": "next build",
+
+    "start": "npm run dev"
   },
 
   "dependencies": {
