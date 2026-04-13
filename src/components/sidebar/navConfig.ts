@@ -154,6 +154,6 @@ export const navLinks: NavItem[] = [
   // --- Support ---
   {
     label: "🆘 Support",
-    href: "https://discord.gg/EwWZUSR9tM",
+    href: "https://discord.gg/zC3SC7NMAD",
   },
 ];
