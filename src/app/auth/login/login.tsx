@@ -49,7 +49,6 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [acceptLicense, setAcceptLicense] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: string } | null>(
     null
@@ -91,7 +90,6 @@ export default function Login() {
     e.preventDefault();
     setMessage(null);
 
-    if (!acceptLicense) return setError("You must accept the Modix License.");
     if (!username || !password) return setError("All fields are required.");
 
     setLoading(true);
@@ -133,14 +131,15 @@ export default function Login() {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h2 className="login-title">🔐 Modix Login</h2>
+        <h2 className="login-title">🔐 Panel Login</h2>
 
         <div className="login-info-box">
           <p>
             Default login: <strong>owner / owner</strong>
           </p>
           <p className="warning-text">
-            ⚠ Change this immediately after first login.
+            ⚠ Log in with the username and password you created when setting up
+            Modix.
           </p>
         </div>
 
@@ -176,15 +175,6 @@ export default function Login() {
             onChange={(e) => setRememberMe(e.target.checked)}
           />
           Remember Me
-        </label>
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={acceptLicense}
-            onChange={(e) => setAcceptLicense(e.target.checked)}
-          />
-          I accept Modix Terms
         </label>
 
         {message && <p className={`message ${message.type}`}>{message.text}</p>}
