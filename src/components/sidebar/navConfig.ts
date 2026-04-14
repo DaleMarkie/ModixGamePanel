@@ -87,16 +87,6 @@ export const navLinks: NavItem[] = [
     href: "/monitoring/performance",
   },
 
-  // --- Security & Access ---
-  {
-    label: "🛡️ Security",
-    href: "/tools/security",
-    submenu: [
-      { label: "🛡️ DDoS Manager", href: "/security/ddosmanager" },
-      { label: "🚧 Firewall Rules", href: "/security/firewall" },
-    ],
-  },
-
   // --- Network ---
   {
     label: "🌐 Network",
@@ -105,33 +95,6 @@ export const navLinks: NavItem[] = [
       { label: "📡 Check Ports", href: "/network/ports" },
       { label: "🧱 Firewall Rules", href: "/network/firewall" },
       { label: "🚨 Connection Logs", href: "/network/logs" },
-    ],
-  },
-
-  // --- Automation ---
-  {
-    label: "🤖 Automation",
-    href: "/automation",
-    submenu: [
-      { label: "📜 Custom Scripts", href: "/automation/scripts" },
-      { label: "🕒 Scheduled Jobs", href: "/tools/scheduler" },
-      { label: "🔗 Webhooks & APIs", href: "/automation/webhooks" },
-    ],
-  },
-
-  // --- Game Tools (New Category) ---
-  {
-    label: "🎮 Game Tools",
-    submenu: [
-      {
-        label: "Project Zomboid",
-        submenu: [
-          {
-            label: "🗺️ Map Editor",
-            href: "/games/projectzomboid/tools/mapeditor",
-          },
-        ],
-      },
     ],
   },
 
