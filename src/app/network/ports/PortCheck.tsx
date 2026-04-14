@@ -13,9 +13,9 @@ interface ApiResponse {
 
 export default function GamePortChecker(): JSX.Element {
   const [servers, setServers] = useState<ServerPort[]>([]);
-  const [host, setHost] = useState<string>("127.0.0.1");
-  const [customPorts, setCustomPorts] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [host, setHost] = useState("127.0.0.1");
+  const [customPorts, setCustomPorts] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchPorts = useCallback(async () => {
     setLoading(true);
@@ -26,12 +26,12 @@ export default function GamePortChecker(): JSX.Element {
       }).toString();
 
       const res = await fetch(`/api/server/game-ports?${query}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error();
 
       const data: ApiResponse = await res.json();
       setServers(data.servers);
-    } catch (error) {
-      console.error("Failed to fetch ports:", error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -42,75 +42,89 @@ export default function GamePortChecker(): JSX.Element {
   }, [fetchPorts]);
 
   return (
-    <div className="p-6 bg-zinc-900 rounded-xl shadow-lg w-full max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-4 text-white">
-        🎮 Game Server Ports Checker
-      </h2>
+    <div className="min-h-screen bg-gradient-to-br from-[#0b0f1a] to-[#05070d] text-white p-6">
+      <div className="max-w-5xl mx-auto">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2">
+            🎮 Port Checker
+          </h1>
+          <p className="text-zinc-400">
+            Instantly check if your game server ports are open and reachable.
+          </p>
+        </div>
 
-      <p className="mb-4 text-zinc-300">
-        This tool checks whether the default ports for popular game servers are
-        open and reachable from your network. Currently supported games include:
-        <strong> Project Zomboid, DayZ, RimWorld</strong>, and you can also test
-        any custom ports.
-      </p>
-      <p className="mb-4 text-zinc-300">
-        <strong>Tip:</strong> If a port shows as{" "}
-        <span className="font-bold text-red-400">CLOSED ❌</span>, you may need
-        to:
-      </p>
-      <ul className="mb-4 list-disc list-inside text-zinc-300">
-        <li>Open the port in your server&apos;s firewall.</li>
-        <li>Forward the port on your router to the server machine.</li>
-        <li>Ensure no other application is already using that port.</li>
-      </ul>
+        {/* CONTROL PANEL */}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 shadow-xl">
+          <div className="grid md:grid-cols-3 gap-3">
+            <input
+              value={host}
+              onChange={(e) => setHost(e.target.value)}
+              placeholder="Host (e.g. 192.168.0.10)"
+              className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
 
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={host}
-          onChange={(e) => setHost(e.target.value)}
-          placeholder="Server Host (default 127.0.0.1)"
-          className="flex-1 p-2 rounded bg-zinc-800 text-white border border-zinc-700"
-        />
-        <input
-          type="text"
-          value={customPorts}
-          onChange={(e) => setCustomPorts(e.target.value)}
-          placeholder="Custom Ports (comma-separated)"
-          className="flex-1 p-2 rounded bg-zinc-800 text-white border border-zinc-700"
-        />
-        <button
-          onClick={fetchPorts}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-bold"
-        >
-          Check Ports
-        </button>
-      </div>
+            <input
+              value={customPorts}
+              onChange={(e) => setCustomPorts(e.target.value)}
+              placeholder="Custom ports (e.g. 8080,27015)"
+              className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
 
-      {loading ? (
-        <p className="text-white">Checking ports...</p>
-      ) : (
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-zinc-700 text-white">
-              <th className="p-2">Game / Port</th>
-              <th className="p-2">Port</th>
-              <th className="p-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
+            <button
+              onClick={fetchPorts}
+              className="bg-indigo-600 hover:bg-indigo-500 rounded-xl px-4 py-2 font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95"
+            >
+              Check Ports
+            </button>
+          </div>
+        </div>
+
+        {/* LOADING */}
+        {loading && (
+          <div className="text-center py-10 text-zinc-400 animate-pulse">
+            Checking ports...
+          </div>
+        )}
+
+        {/* RESULTS */}
+        {!loading && (
+          <div className="grid gap-4">
             {servers.map(({ name, port, status }) => (
-              <tr key={`${name}-${port}`} className="border-t border-zinc-800">
-                <td className="p-2 text-white">{name}</td>
-                <td className="p-2 text-white">{port}</td>
-                <td className="p-2 font-bold text-white">
-                  {status === "open" ? "✅ OPEN" : "❌ CLOSED"}
-                </td>
-              </tr>
+              <div
+                key={`${name}-${port}`}
+                className="flex items-center justify-between backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition"
+              >
+                <div>
+                  <div className="font-semibold text-lg">{name}</div>
+                  <div className="text-zinc-400 text-sm">Port {port}</div>
+                </div>
+
+                <div
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    status === "open"
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {status === "open" ? "OPEN" : "CLOSED"}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      )}
+
+            {servers.length === 0 && (
+              <div className="text-center text-zinc-500 py-10">
+                No data yet.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* FOOTER TIP */}
+        <div className="mt-8 text-sm text-zinc-500">
+          ⚠️ Closed ports usually mean firewall or router forwarding issues.
+        </div>
+      </div>
     </div>
   );
 }

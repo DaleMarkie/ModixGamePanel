@@ -22,7 +22,7 @@ export const navLinks: NavItem[] = [
 
   // --- Console / Live Terminal ---
   {
-    label: "💻 Console",
+    label: "💻 Terminal",
     href: "/terminal",
   },
 

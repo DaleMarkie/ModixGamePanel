@@ -18,6 +18,7 @@ from backend.filemanager import router as filemanager_router
 from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
+from backend.serverports import router as serverports_router
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -110,6 +111,7 @@ app.include_router(modupdates_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
 app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler", tags=["Scheduler"])
+app.include_router(serverports_router, prefix="/api")
 
 # ---------------------------
 # Run Server
