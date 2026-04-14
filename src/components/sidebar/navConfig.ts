@@ -63,7 +63,7 @@ export const navLinks: NavItem[] = [
 
   {
     label: "🗂️ File Manager",
-    href: "/filemanager",
+    href: "/filebrowser",
     submenu: [
     ],
   },
