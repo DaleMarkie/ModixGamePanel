@@ -1,8 +1,8 @@
 import os
-import json
 import time
 import shutil
-from typing import Dict, List, Optional
+from typing import Dict, List
+
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
@@ -12,41 +12,20 @@ router = APIRouter()
 # ⚙️ CONFIG
 # =========================================================
 
+DEV_MODE = os.getenv("MODIX_DEV_MODE", "false").lower() == "true"
+
 POSSIBLE_STEAM_PATHS = [
     os.path.expanduser("~/.steam/steam/steamapps/workshop/content"),
     os.path.expanduser("~/.local/share/Steam/steamapps/workshop/content"),
 ]
 
-DEV_MODE = os.getenv("MODIX_DEV_MODE", "false").lower() == "true"
-
-MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
-
-# =========================================================
-# 🧠 CACHE (for performance)
-# =========================================================
-
 CACHE: Dict[str, dict] = {}
-CACHE_TTL = 10  # seconds
-
-# =========================================================
-# 🔌 LIVE WEBSOCKETS
-# =========================================================
+CACHE_TTL = 10
 
 active_connections: List[WebSocket] = []
 
-async def broadcast(event: dict):
-    dead = []
-    for ws in active_connections:
-        try:
-            await ws.send_json(event)
-        except Exception:
-            dead.append(ws)
-
-    for d in dead:
-        active_connections.remove(d)
-
 # =========================================================
-# 🧪 DEV WORKSHOP MODE (FAKE DATA)
+# 🧪 DEV MODE DATA
 # =========================================================
 
 def fake_workshop():
@@ -56,24 +35,11 @@ def fake_workshop():
                 "modId": "123456",
                 "title": "🔥 Dev Survival Mod",
                 "icon": "🧟",
-                "files": [
-                    {
-                        "type": "folder",
-                        "name": "media",
-                        "path": "/fake/media",
-                        "children": [
-                            {
-                                "type": "file",
-                                "name": "lua.txt",
-                                "path": "/fake/media/lua.txt"
-                            }
-                        ]
-                    }
-                ]
+                "files": []
             },
             {
                 "modId": "987654",
-                "title": "⚔️ Weapon Expansion Pack",
+                "title": "⚔️ Weapon Pack (Dev)",
                 "icon": "⚔️",
                 "files": []
             }
@@ -81,7 +47,7 @@ def fake_workshop():
     }
 
 # =========================================================
-# 🔍 Steam Path Resolver
+# 🔍 STEAM PATH RESOLVER
 # =========================================================
 
 def resolve_workshop_path():
@@ -119,32 +85,7 @@ class DeleteRequest(BaseModel):
     path: str
 
 # =========================================================
-# 🎮 PROJECT ZOMBOID MOD PARSER
-# =========================================================
-
-def parse_mod_info(mod_path: str):
-    """
-    Reads mod.info for real mod name + icon
-    """
-    name = None
-    icon = "📦"
-
-    try:
-        for root, _, files in os.walk(mod_path):
-            if "mod.info" in files:
-                with open(os.path.join(root, "mod.info"), "r", encoding="utf-8", errors="ignore") as f:
-                    for line in f:
-                        if line.lower().startswith("name="):
-                            name = line.split("=", 1)[1].strip()
-                        if line.lower().startswith("poster="):
-                            icon = "🧩"
-    except Exception:
-        pass
-
-    return name, icon
-
-# =========================================================
-# 📂 FILE TREE (cached)
+# 🧠 CACHE TREE
 # =========================================================
 
 def build_tree(base_path: str):
@@ -181,11 +122,29 @@ def build_tree(base_path: str):
     return items
 
 # =========================================================
-# 📊 GET WORKSHOP MODS
+# 🎮 MOD INFO PARSER
+# =========================================================
+
+def parse_mod_name(mod_path: str):
+    try:
+        for root, _, files in os.walk(mod_path):
+            if "mod.info" in files:
+                with open(os.path.join(root, "mod.info"), "r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        if line.lower().startswith("name="):
+                            return line.split("=", 1)[1].strip()
+    except Exception:
+        pass
+
+    return None
+
+# =========================================================
+# 📊 WORKSHOP MODS
 # =========================================================
 
 @router.get("/workshop-mods")
 def get_workshop_mods(appId: str):
+
     if DEV_MODE:
         return fake_workshop()
 
@@ -194,7 +153,7 @@ def get_workshop_mods(appId: str):
     if not base:
         raise HTTPException(
             status_code=500,
-            detail="Steam workshop not found (or enable DEV_MODE)"
+            detail="Steam Workshop not found (try DEV_MODE=true)"
         )
 
     game_path = os.path.join(base, appId)
@@ -208,12 +167,10 @@ def get_workshop_mods(appId: str):
         mod_path = os.path.join(game_path, mod_id)
 
         if os.path.isdir(mod_path):
-            name, icon = parse_mod_info(mod_path)
-
             mods.append({
                 "modId": mod_id,
-                "title": name or f"Mod {mod_id}",
-                "icon": icon,
+                "title": parse_mod_name(mod_path) or f"Mod {mod_id}",
+                "icon": "📦",
                 "files": build_tree(mod_path)
             })
 
@@ -225,11 +182,11 @@ def get_workshop_mods(appId: str):
 
 @router.get("/file")
 def read_file(path: str):
-    base = resolve_workshop_path()
 
+    base = resolve_workshop_path()
     if not base:
         if DEV_MODE:
-            return {"content": "// dev mode file preview"}
+            return {"content": "// DEV MODE FILE"}
         raise HTTPException(500, "Steam not found")
 
     if not is_safe_path(path, base):
@@ -241,9 +198,6 @@ def read_file(path: str):
     if os.path.isdir(path):
         raise HTTPException(400, "Is folder")
 
-    if os.path.getsize(path) > MAX_FILE_SIZE:
-        raise HTTPException(400, "File too large")
-
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return {"content": f.read()}
 
@@ -253,6 +207,7 @@ def read_file(path: str):
 
 @router.post("/file/save")
 async def save_file(data: SaveRequest):
+
     base = resolve_workshop_path()
     if not base:
         raise HTTPException(500, "Steam not found")
@@ -263,16 +218,17 @@ async def save_file(data: SaveRequest):
     with open(data.path, "w", encoding="utf-8") as f:
         f.write(data.content)
 
-    await broadcast({"event": "file_updated", "path": data.path})
+    await broadcast({"event": "file_saved", "path": data.path})
 
     return {"status": "saved"}
 
 # =========================================================
-# 🗑️ DELETE
+# 🗑️ DELETE FILE
 # =========================================================
 
 @router.post("/file/delete")
 async def delete_file(data: DeleteRequest):
+
     base = resolve_workshop_path()
     if not base:
         raise HTTPException(500, "Steam not found")
@@ -290,11 +246,12 @@ async def delete_file(data: DeleteRequest):
     return {"status": "deleted"}
 
 # =========================================================
-# 📦 MOVE
+# 📦 MOVE FILE
 # =========================================================
 
 @router.post("/file/move")
 async def move_file(data: MoveRequest):
+
     base = resolve_workshop_path()
     if not base:
         raise HTTPException(500, "Steam not found")
@@ -318,7 +275,7 @@ async def move_file(data: MoveRequest):
 # =========================================================
 
 @router.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
+async def ws_endpoint(ws: WebSocket):
     await ws.accept()
     active_connections.append(ws)
 
@@ -327,3 +284,19 @@ async def websocket_endpoint(ws: WebSocket):
             await ws.receive_text()
     except WebSocketDisconnect:
         active_connections.remove(ws)
+
+# =========================================================
+# 📡 BROADCAST HELPER
+# =========================================================
+
+async def broadcast(event: dict):
+    dead = []
+
+    for ws in active_connections:
+        try:
+            await ws.send_json(event)
+        except Exception:
+            dead.append(ws)
+
+    for d in dead:
+        active_connections.remove(d)
