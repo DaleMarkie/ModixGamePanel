@@ -415,7 +415,7 @@ export default function WorkshopFileManager({
         onSelect={handleModalSelect}
       />
       <div className="left-panel">
-        <h2>Mod Manager</h2>
+        <h2>File Manager</h2>
         <input
           className="search-input"
           placeholder="Search..."

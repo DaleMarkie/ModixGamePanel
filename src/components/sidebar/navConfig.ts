@@ -61,6 +61,13 @@ export const navLinks: NavItem[] = [
     ],
   },
 
+  {
+    label: "🗂️ File Manager",
+    href: "/filemanager",
+    submenu: [
+    ],
+  },
+
   // --- Player Tools ---
   {
     label: "👥 Players",

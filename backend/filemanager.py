@@ -1,180 +1,329 @@
-# backend/filemanager.py
 import os
 import json
+import time
 import shutil
-from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import JSONResponse
+from typing import Dict, List, Optional
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 router = APIRouter()
 
-# ----------------------------
-# Config
-# ----------------------------
-BASE_STEAM_PATH = r"C:\Program Files (x86)\Steam\steamapps\workshop\content"
-ACTIVE_GAME_FILE = os.path.expanduser("~/Games/active_game.json")  # stores selected game
+# =========================================================
+# ⚙️ CONFIG
+# =========================================================
 
-# ----------------------------
-# Helpers
-# ----------------------------
-def get_active_game():
-    """Read the currently active game ID"""
-    if not os.path.exists(ACTIVE_GAME_FILE):
+POSSIBLE_STEAM_PATHS = [
+    os.path.expanduser("~/.steam/steam/steamapps/workshop/content"),
+    os.path.expanduser("~/.local/share/Steam/steamapps/workshop/content"),
+]
+
+DEV_MODE = os.getenv("MODIX_DEV_MODE", "false").lower() == "true"
+
+MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
+
+# =========================================================
+# 🧠 CACHE (for performance)
+# =========================================================
+
+CACHE: Dict[str, dict] = {}
+CACHE_TTL = 10  # seconds
+
+# =========================================================
+# 🔌 LIVE WEBSOCKETS
+# =========================================================
+
+active_connections: List[WebSocket] = []
+
+async def broadcast(event: dict):
+    dead = []
+    for ws in active_connections:
+        try:
+            await ws.send_json(event)
+        except Exception:
+            dead.append(ws)
+
+    for d in dead:
+        active_connections.remove(d)
+
+# =========================================================
+# 🧪 DEV WORKSHOP MODE (FAKE DATA)
+# =========================================================
+
+def fake_workshop():
+    return {
+        "mods": [
+            {
+                "modId": "123456",
+                "title": "🔥 Dev Survival Mod",
+                "icon": "🧟",
+                "files": [
+                    {
+                        "type": "folder",
+                        "name": "media",
+                        "path": "/fake/media",
+                        "children": [
+                            {
+                                "type": "file",
+                                "name": "lua.txt",
+                                "path": "/fake/media/lua.txt"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "modId": "987654",
+                "title": "⚔️ Weapon Expansion Pack",
+                "icon": "⚔️",
+                "files": []
+            }
+        ]
+    }
+
+# =========================================================
+# 🔍 Steam Path Resolver
+# =========================================================
+
+def resolve_workshop_path():
+    if DEV_MODE:
         return None
-    with open(ACTIVE_GAME_FILE, "r") as f:
-        data = json.load(f)
-        return data.get("active_game_id")
 
+    for path in POSSIBLE_STEAM_PATHS:
+        if os.path.exists(path):
+            return path
 
-def set_active_game(game_id: str):
-    """Set the currently active game ID"""
-    os.makedirs(os.path.dirname(ACTIVE_GAME_FILE), exist_ok=True)
-    with open(ACTIVE_GAME_FILE, "w") as f:
-        json.dump({"active_game_id": game_id}, f)
+    return None
 
+# =========================================================
+# 🔐 SECURITY
+# =========================================================
 
-def list_mods(game_id: str):
-    """Scan mods for the active game"""
-    game_path = os.path.join(BASE_STEAM_PATH, str(game_id))
-    if not os.path.exists(game_path):
-        return []
-    mods = []
-    for mod_id in os.listdir(game_path):
-        mod_path = os.path.join(game_path, mod_id)
-        if os.path.isdir(mod_path):
-            mod_name_file = os.path.join(mod_path, "mod.info")
-            title = mod_id
-            if os.path.exists(mod_name_file):
-                try:
-                    with open(mod_name_file, "r", encoding="utf-8") as f:
-                        title = f.read().strip()
-                except:
-                    pass
-            mods.append({"modId": mod_id, "title": title, "path": mod_path})
-    return mods
+def is_safe_path(path: str, base: str):
+    real_base = os.path.realpath(base)
+    real_target = os.path.realpath(path)
+    return real_target.startswith(real_base)
 
+# =========================================================
+# 📦 MODELS
+# =========================================================
 
-def build_file_tree(root_path: str):
-    """Recursively build file tree"""
+class SaveRequest(BaseModel):
+    path: str
+    content: str
+
+class MoveRequest(BaseModel):
+    source: str
+    destination: str
+
+class DeleteRequest(BaseModel):
+    path: str
+
+# =========================================================
+# 🎮 PROJECT ZOMBOID MOD PARSER
+# =========================================================
+
+def parse_mod_info(mod_path: str):
+    """
+    Reads mod.info for real mod name + icon
+    """
+    name = None
+    icon = "📦"
+
+    try:
+        for root, _, files in os.walk(mod_path):
+            if "mod.info" in files:
+                with open(os.path.join(root, "mod.info"), "r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        if line.lower().startswith("name="):
+                            name = line.split("=", 1)[1].strip()
+                        if line.lower().startswith("poster="):
+                            icon = "🧩"
+    except Exception:
+        pass
+
+    return name, icon
+
+# =========================================================
+# 📂 FILE TREE (cached)
+# =========================================================
+
+def build_tree(base_path: str):
+    now = time.time()
+
+    if base_path in CACHE:
+        cached = CACHE[base_path]
+        if now - cached["time"] < CACHE_TTL:
+            return cached["data"]
+
     items = []
-    for name in os.listdir(root_path):
-        path = os.path.join(root_path, name)
-        if os.path.isdir(path):
-            items.append({
-                "type": "folder",
-                "name": name,
-                "path": path.replace("\\", "/"),
-                "children": build_file_tree(path)
-            })
-        else:
-            items.append({
-                "type": "file",
-                "name": name,
-                "path": path.replace("\\", "/")
-            })
+
+    try:
+        for entry in sorted(os.listdir(base_path)):
+            full = os.path.join(base_path, entry)
+
+            if os.path.isdir(full):
+                items.append({
+                    "type": "folder",
+                    "name": entry,
+                    "path": full,
+                    "children": build_tree(full)
+                })
+            else:
+                items.append({
+                    "type": "file",
+                    "name": entry,
+                    "path": full
+                })
+    except Exception:
+        pass
+
+    CACHE[base_path] = {"time": now, "data": items}
     return items
 
-# ----------------------------
-# Routes
-# ----------------------------
-@router.get("/filemanager/workshop-mods")
-async def get_workshop_mods():
-    """Get mods for the active game"""
-    active_game = get_active_game()
-    if not active_game:
-        return {"mods": []}
-    mods_list = list_mods(active_game)
+# =========================================================
+# 📊 GET WORKSHOP MODS
+# =========================================================
+
+@router.get("/workshop-mods")
+def get_workshop_mods(appId: str):
+    if DEV_MODE:
+        return fake_workshop()
+
+    base = resolve_workshop_path()
+
+    if not base:
+        raise HTTPException(
+            status_code=500,
+            detail="Steam workshop not found (or enable DEV_MODE)"
+        )
+
+    game_path = os.path.join(base, appId)
+
+    if not os.path.exists(game_path):
+        raise HTTPException(status_code=404, detail="Game workshop not found")
+
     mods = []
-    for m in mods_list:
-        files = build_file_tree(m["path"])
-        mods.append({"modId": m["modId"], "title": m["title"], "files": files})
+
+    for mod_id in os.listdir(game_path):
+        mod_path = os.path.join(game_path, mod_id)
+
+        if os.path.isdir(mod_path):
+            name, icon = parse_mod_info(mod_path)
+
+            mods.append({
+                "modId": mod_id,
+                "title": name or f"Mod {mod_id}",
+                "icon": icon,
+                "files": build_tree(mod_path)
+            })
+
     return {"mods": mods}
 
+# =========================================================
+# 📄 READ FILE
+# =========================================================
 
-@router.get("/filemanager/file")
-async def get_file(path: str = Query(...)):
-    if not path or not os.path.exists(path):
-        return {"content": ""}
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    return {"content": content}
+@router.get("/file")
+def read_file(path: str):
+    base = resolve_workshop_path()
 
+    if not base:
+        if DEV_MODE:
+            return {"content": "// dev mode file preview"}
+        raise HTTPException(500, "Steam not found")
 
-@router.post("/filemanager/file/save")
-async def save_file(payload: dict):
-    path = payload.get("path")
-    content = payload.get("content")
-    if not path or not os.path.exists(path):
-        raise HTTPException(status_code=400, detail="File not found")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
-    return {"status": "ok"}
+    if not is_safe_path(path, base):
+        raise HTTPException(403, "Access denied")
 
+    if not os.path.exists(path):
+        raise HTTPException(404, "File not found")
 
-@router.post("/filemanager/file/delete")
-async def delete_file(payload: dict):
-    path = payload.get("path")
-    if not path or not os.path.exists(path):
-        raise HTTPException(status_code=400, detail="File not found")
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        raise HTTPException(400, "Is folder")
+
+    if os.path.getsize(path) > MAX_FILE_SIZE:
+        raise HTTPException(400, "File too large")
+
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        return {"content": f.read()}
+
+# =========================================================
+# 💾 SAVE FILE + BROADCAST
+# =========================================================
+
+@router.post("/file/save")
+async def save_file(data: SaveRequest):
+    base = resolve_workshop_path()
+    if not base:
+        raise HTTPException(500, "Steam not found")
+
+    if not is_safe_path(data.path, base):
+        raise HTTPException(403, "Access denied")
+
+    with open(data.path, "w", encoding="utf-8") as f:
+        f.write(data.content)
+
+    await broadcast({"event": "file_updated", "path": data.path})
+
+    return {"status": "saved"}
+
+# =========================================================
+# 🗑️ DELETE
+# =========================================================
+
+@router.post("/file/delete")
+async def delete_file(data: DeleteRequest):
+    base = resolve_workshop_path()
+    if not base:
+        raise HTTPException(500, "Steam not found")
+
+    if not is_safe_path(data.path, base):
+        raise HTTPException(403, "Access denied")
+
+    if os.path.isdir(data.path):
+        shutil.rmtree(data.path)
     else:
-        os.remove(path)
-    return {"status": "ok"}
+        os.remove(data.path)
 
+    await broadcast({"event": "file_deleted", "path": data.path})
 
-@router.post("/filemanager/file/move")
-async def move_file(payload: dict):
-    src = payload.get("source")
-    dest = payload.get("destination")
-    if not src or not os.path.exists(src):
-        raise HTTPException(status_code=400, detail="Source not found")
-    os.renames(src, dest)
-    return {"status": "ok"}
+    return {"status": "deleted"}
 
+# =========================================================
+# 📦 MOVE
+# =========================================================
 
-@router.post("/filemanager/file/new")
-async def new_file(payload: dict):
-    mod_id = payload.get("modId")
-    folder_path = payload.get("folderPath", "")
-    name = payload.get("name")
-    active_game = get_active_game()
-    if not active_game or not mod_id or not name:
-        raise HTTPException(status_code=400, detail="Missing parameters")
-    base_path = os.path.join(BASE_STEAM_PATH, str(active_game), mod_id)
-    os.makedirs(os.path.join(base_path, folder_path), exist_ok=True)
-    path = os.path.join(base_path, folder_path, name)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("")
-    return {"status": "ok"}
+@router.post("/file/move")
+async def move_file(data: MoveRequest):
+    base = resolve_workshop_path()
+    if not base:
+        raise HTTPException(500, "Steam not found")
 
+    if not is_safe_path(data.source, base) or not is_safe_path(data.destination, base):
+        raise HTTPException(403, "Access denied")
 
-@router.post("/filemanager/folder/new")
-async def new_folder(payload: dict):
-    mod_id = payload.get("modId")
-    folder_path = payload.get("folderPath", "")
-    folder_name = payload.get("folderName")
-    active_game = get_active_game()
-    if not active_game or not mod_id or not folder_name:
-        raise HTTPException(status_code=400, detail="Missing parameters")
-    base_path = os.path.join(BASE_STEAM_PATH, str(active_game), mod_id)
-    path = os.path.join(base_path, folder_path, folder_name)
-    os.makedirs(path, exist_ok=True)
-    return {"status": "ok"}
+    os.makedirs(os.path.dirname(data.destination), exist_ok=True)
+    shutil.move(data.source, data.destination)
 
+    await broadcast({
+        "event": "file_moved",
+        "from": data.source,
+        "to": data.destination
+    })
 
-# ----------------------------
-# Active game management
-# ----------------------------
-@router.get("/filemanager/active-game")
-async def get_active_game_endpoint():
-    active_game = get_active_game()
-    return {"active_game": active_game}
+    return {"status": "moved"}
 
+# =========================================================
+# 🔌 WEBSOCKET LIVE SYNC
+# =========================================================
 
-@router.post("/filemanager/active-game")
-async def set_active_game_endpoint(payload: dict):
-    game_id = payload.get("game_id")
-    if not game_id:
-        raise HTTPException(status_code=400, detail="Missing game_id")
-    set_active_game(game_id)
-    return {"status": "ok", "active_game": game_id}
+@router.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await ws.accept()
+    active_connections.append(ws)
+
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        active_connections.remove(ws)

@@ -259,7 +259,7 @@ export default function DashboardLayout({ children }) {
 
         <main className={`main-content ${loading ? "loading" : "loaded"}`}>
           <div className="content-inner">{children}</div>
-          <div className="footer-text">© Modix Game Panel. 2024 - 2025</div>
+          <div className="footer-text">© Modix Game Panel. 2024 - 2026</div>
         </main>
       </div>
     </div>
