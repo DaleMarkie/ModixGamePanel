@@ -93,3 +93,5 @@ ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
 - 🚫 No reuploading or reselling
 
 Full license details are included in the project.
+
+![Modix Preview](https://i.ibb.co/8LyjCpWd/Screenshot-2026-04-15-21-54-52.png)
