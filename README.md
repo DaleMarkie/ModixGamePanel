@@ -41,7 +41,7 @@ Modix uses a local backend (FastAPI + Python) and connects to your game server t
 That means:
 
 - You host everything yourself
-- You own your data and server بالكامل
+- You own your data and server
 - No external services are required
 
 🚧 Project Scope (Real Talk)
