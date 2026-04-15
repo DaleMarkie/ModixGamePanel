@@ -1,24 +1,23 @@
 🧩 Modix: Game Panel
 
-Modix is a completely free, open-source, browser-based control panel built primarily for Project Zomboid, with support for other Steam-modded games being actively worked on.
-
-This is a solo-developed project — built and maintained by one person in their own time. Because of that, progress isn’t always fast or consistent, but everything added is done properly with long-term stability in mind.
+- Modix is a completely free, open-source, browser-based control panel built primarily for Project Zomboid, with support for other Steam-modded games being actively worked on.
+- This is a solo-developed project — built and maintained by one person in their own time. Because of that, progress isn’t always fast or consistent, but everything added is done properly with long-term stability in mind.
 
 🎯 Why I’m Building Modix
 
 I started Modix because most game server panels are either:
 
-Paid / locked behind subscriptions
-Overcomplicated or bloated
-Or rely on third-party hosting where you don’t fully control your server
+- Paid / locked behind subscriptions
+- Overcomplicated or bloated
+- Or rely on third-party hosting where you don’t fully control your server
 
 Modix is the opposite of that.
 
 It’s built to give people:
 
-Full control over their own servers
-A clean, modern UI without unnecessary complexity
-A completely free alternative to paid panels
+- Full control over their own servers
+- A clean, modern UI without unnecessary complexity
+- A completely free alternative to paid panels
 
 No subscriptions. No locked features. No nonsense.
 
@@ -26,12 +25,12 @@ No subscriptions. No locked features. No nonsense.
 
 Modix runs locally on your machine and lets you manage your server entirely through your browser.
 
-⚡ Real-time server control (start, stop, restart safely)
-🧠 Live terminal & logs (no need to touch the actual console)
-⚙️ Full config editing (server.ini, SandboxVars.lua, etc.)
-🧱 Mod & Workshop management (enable, disable, update)
-🧰 File manager (upload, edit, organise files)
-🌐 Webhook support for Discord-style notifications
+- ⚡ Real-time server control (start, stop, restart safely)
+- 🧠 Live terminal & logs (no need to touch the actual console)
+- ⚙️ Full config editing (server.ini, SandboxVars.lua, etc.)
+- 🧱 Mod & Workshop management (enable, disable, update)
+- 🧰 File manager (upload, edit, organise files)
+- 🌐 Webhook support for Discord-style notifications
 
 Everything is designed to be fast, simple, and actually useful — not just flashy.
 
@@ -41,9 +40,9 @@ Modix uses a local backend (FastAPI + Python) and connects to your game server t
 
 That means:
 
-You host everything yourself
-You own your data and server بالكامل
-No external services are required
+- You host everything yourself
+- You own your data and server بالكامل
+- No external services are required
 
 🚧 Project Scope (Real Talk)
 
@@ -51,11 +50,11 @@ This is not a small project.
 
 It covers:
 
-Frontend (React UI)
-Backend API (FastAPI)
-Real-time systems (SSE logs)
-File systems & process control
-Game-specific integrations
+- Frontend (React UI)
+- Backend API (FastAPI)
+- Real-time systems (SSE logs)
+- File systems & process control
+- Game-specific integrations
 
 And it’s all being built solo.
 
@@ -65,15 +64,15 @@ So yeah — things may break, features may take time, and updates won’t always
 
 Completely free.
 
-No paid tiers
-No hidden features
-No “premium unlocks”
+- No paid tiers
+- No hidden features
+- No “premium unlocks”
 
 Just download it, run it, and use it.
 
-🐞 Bugs & Support
-🧾 Report issues or request features on GitHub (Issues tab)
-💬 Get help or follow development on Discord: https://discord.gg/K38RSpyQUa
+- 🐞 Bugs & Support
+- 🧾 Report issues or request features on GitHub (Issues tab)
+- 💬 Get help or follow development on Discord: https://discord.gg/K38RSpyQUa
 
 🎮 Supported Games
 
@@ -88,9 +87,9 @@ ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
 
 ⚖️ License
 
-✅ Free for personal, educational, and community use
-✅ You can modify and contribute
-🚫 No commercial use
-🚫 No reuploading or reselling
+- ✅ Free for personal, educational, and community use
+- ✅ You can modify and contribute
+- 🚫 No commercial use
+- 🚫 No reuploading or reselling
 
 Full license details are included in the project.
