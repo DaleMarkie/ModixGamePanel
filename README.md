@@ -95,3 +95,4 @@ ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
 Full license details are included in the project.
 
 ![Modix Preview](https://i.ibb.co/8LyjCpWd/Screenshot-2026-04-15-21-54-52.png)
+![Modix Preview](https://i.ibb.co/Zy076nJ/Screenshot-2026-04-15-22-02-14.png)
