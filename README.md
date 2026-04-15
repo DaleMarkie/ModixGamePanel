@@ -1,121 +1,75 @@
-> New Offical Discord: https://discord.gg/K38RSpyQUa
-🧩 Modix: Game Panel 
+🧩 Modix: Game Panel
 
-Modix is a completely free, open-source, browser-based control panel built for Project Zomboid (with the ability to extend to other Steam-modded games). You host it yourself and run it locally, giving you full control over your server. It combines modern web technologies with a lightweight backend, delivering smooth, real-time server management without relying on third-party hosting or paid services.
+Modix is a completely free, open-source, browser-based control panel built primarily for Project Zomboid, with support for other Steam-modded games being actively worked on.
 
-- ✅ Free for personal and educational use
-- ✅ Self-hosted — you stay in control of your panel
-- ⚡ Real-time logs, mod management, server controls, and more
+This is a solo-developed project — built and maintained by one person in their own time. Because of that, progress isn’t always fast or consistent, but everything added is done properly with long-term stability in mind.
 
-🐞 Bugs & Support
+🎯 Why I’m Building Modix
 
-If you encounter any issues or need assistance:
+I started Modix because most game server panels are either:
 
-🧾 Report a bug or request a feature on GitHub: Issues Tab
-💬 Join the Modix Discord for support: https://discord.gg/7J4d6ZXaUf
+Paid / locked behind subscriptions
+Overcomplicated or bloated
+Or rely on third-party hosting where you don’t fully control your server
 
-Technology Stack
+Modix is the opposite of that.
 
-Frontend:
+It’s built to give people:
 
-- React (CRA) — fast, modular, and interactive UI
-- Tailwind CSS — sleek, responsive design
-- React Icons — intuitive iconography
+Full control over their own servers
+A clean, modern UI without unnecessary complexity
+A completely free alternative to paid panels
 
-Backend:
+No subscriptions. No locked features. No nonsense.
 
-- FastAPI (Uvicorn) — high-performance Python API
-- Python 3 — robust scripting and automation
-- Server-Sent Events (SSE) — real-time logs and updates
-- Systemd — reliable service management
+⚙️ What Modix Does
 
-Hosting:
+Modix runs locally on your machine and lets you manage your server entirely through your browser.
 
-Windows — designed for local PC deployment
+⚡ Real-time server control (start, stop, restart safely)
+🧠 Live terminal & logs (no need to touch the actual console)
+⚙️ Full config editing (server.ini, SandboxVars.lua, etc.)
+🧱 Mod & Workshop management (enable, disable, update)
+🧰 File manager (upload, edit, organise files)
+🌐 Webhook support for Discord-style notifications
 
-⚠️ Note: While Modix was originally designed for Project Zomboid, support for other games is being actively developed. Features may vary per game.
+Everything is designed to be fast, simple, and actually useful — not just flashy.
 
-🧠 Terminal
+🧠 How It Works
 
-Modix uses a batch-script system to manage your Project Zomboid server locally. From the panel, you can:
+Modix uses a local backend (FastAPI + Python) and connects to your game server through scripts and system processes.
 
-- Start your server directly from the terminal
-- Stop the server safely without risking data loss
-- Restart the server for updates or configuration changes
-- Gracefully shut down to ensure proper saving of all game data
+That means:
 
-This batch-based approach ensures full compatibility with Steam-modded servers and gives you real-time terminal control without leaving the web panel.
+You host everything yourself
+You own your data and server بالكامل
+No external services are required
 
-- 🧠 Real-time Logs — Live terminal output via Server-Sent Events (SSE)
-- ⚙️ Full Settings Editor — Edit server.ini and SandboxVars.lua directly from the panel
-- 🧱 Mod & Workshop Manager — Enable, disable, uninstall, or update Workshop mods with tag-based search and auto-thumbnail detection
-- 🌐 Webhook Support — Send and preview custom Discord-style embed messages
-- 🧰 File Manager — Browse, upload, and modify files in a clean UI
+🚧 Project Scope (Real Talk)
 
-🎮 Supported Games
+This is not a small project.
 
-Project Zomboid (Flagship support)
-Other Steam-modded games with partial or planned support:
+It covers:
 
-| Game                      | Description                                                               |
-| ------------------------- | ------------------------------------------------------------------------- |
-| **ARK: Survival Evolved** | Dinosaur survival game with building, crafting, and extensive modding.    |
-| **Conan Exiles**          | Survival with building, crafting, and modding.                            |
-| **DayZ**                  | Survive in a deadly post-apocalyptic world.                               |
-| **Minecraft**             | Sandbox game focused on building, exploration, and survival.              |
-| **No Man’s Sky**          | Exploration & survival in a procedurally generated universe.              |
-| **RimWorld**              | Colony simulator powered by AI storytelling.                              |
-| **Rust**                  | Multiplayer survival with crafting, building, and PvP.                    |
-| **Satisfactory**          | Factory-building multiplayer game with mod support.                       |
-| **SCUM**                  | Hardcore survival multiplayer game.                                       |
-| **Space Engineers**       | Sandbox game about engineering, construction, exploration, and survival.  |
-| **Squad**                 | Team-based military shooter with realistic gameplay.                      |
-| **The Isle**              | Multiplayer dinosaur survival game.                                       |
-| **Valheim**               | Viking-themed survival and exploration in a procedurally generated world. |
+Frontend (React UI)
+Backend API (FastAPI)
+Real-time systems (SSE logs)
+File systems & process control
+Game-specific integrations
 
-⚠️ Note: While Modix was originally designed for Project Zomboid, support for other games is being actively developed. Features may vary per game some features may be broken or just not developed enough. 
+And it’s all being built solo.
 
-⚖️ License & Terms of Use
-🧑‍💻 Modix Game Panel Non-Commercial License (NC) – Version 1.4
+So yeah — things may break, features may take time, and updates won’t always be frequent. But the goal is to build something solid, not rushed.
 
-Copyright (c) 2025
-Ov3rlord (Dale Markie) & the Modix Dev Team
+💸 Cost
 
-All components of Modix — including source code, API code, UI, backend, frontend, and assets — are the exclusive property of Ov3rlord (Dale Markie) and the Modix Dev Team.
-You are free to use, modify, and contribute to Modix for personal, educational, or community use, but not for commercial purposes.
+Completely free.
 
-✅ You May
+No paid tiers
+No hidden features
+No “premium unlocks”
 
-- Use Modix locally for personal or educational projects
-- Modify and build upon Modix for non-commercial purposes
-- Share improvements or extensions for community benefit
-
-🚫 You May NOT
-
-- Copy or reupload Modix or its components elsewhere
-- Sell, rent, or license the core Modix Software
-- Use any Modix UI, assets, or frontend code in other software or websites
-- Use Modix for cheating, exploiting, or any illegal activity
-
-Claim ownership or remove attribution
-
-🔌 Add-ons and Extensions
-
-Users may create and sell verified add-ons or extensions only after approval from the Modix Dev Team via our official Discord:
-👉 https://discord.gg/EwWZUSR9tM
-
-Any unverified or unauthorized sale is strictly prohibited
-
-The Modix Dev Team may revoke verification for any violations
-
-⚖️ Other Terms
-
-- License updates may occur; users must follow the latest version
-- Violations immediately terminate your rights to use Modix
-- Governed by the laws of the United Kingdom
-
-By using or modifying Modix Game Panel, you agree to all the above terms.
-The software remains open source for the community but ownership stays with Ov3rlord (Dale Markie) and the Modix Dev Team.
+Just download it, run it, and use it.
 
 🐞 Bugs & Support
 🧾 Report issues or request features on GitHub (Issues tab)
@@ -132,7 +86,8 @@ ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
 
 ⚠️ Support for other games is still in development — expect missing or incomplete features.
 
-⚖️ License (Short Version)
+⚖️ License
+
 ✅ Free for personal, educational, and community use
 ✅ You can modify and contribute
 🚫 No commercial use
