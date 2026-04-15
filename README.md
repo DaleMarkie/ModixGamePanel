@@ -1,8 +1,4 @@
 > New Offical Discord: https://discord.gg/K38RSpyQUa
->
-> This project is still being worked on, though progress may vary depending on available time and resources. Development is ongoing, but updates, features, and fixes may not always follow a consistent schedule.
-
-
 🧩 Modix: Game Panel 
 
 Modix is a completely free, open-source, browser-based control panel built for Project Zomboid (with the ability to extend to other Steam-modded games). You host it yourself and run it locally, giving you full control over your server. It combines modern web technologies with a lightweight backend, delivering smooth, real-time server management without relying on third-party hosting or paid services.
@@ -120,3 +116,26 @@ The Modix Dev Team may revoke verification for any violations
 
 By using or modifying Modix Game Panel, you agree to all the above terms.
 The software remains open source for the community but ownership stays with Ov3rlord (Dale Markie) and the Modix Dev Team.
+
+🐞 Bugs & Support
+🧾 Report issues or request features on GitHub (Issues tab)
+💬 Get help or follow development on Discord: https://discord.gg/K38RSpyQUa
+
+🎮 Supported Games
+
+Main focus:
+
+Project Zomboid
+
+Planned / partial support:
+ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
+
+⚠️ Support for other games is still in development — expect missing or incomplete features.
+
+⚖️ License (Short Version)
+✅ Free for personal, educational, and community use
+✅ You can modify and contribute
+🚫 No commercial use
+🚫 No reuploading or reselling
+
+Full license details are included in the project.
