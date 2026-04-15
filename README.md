@@ -100,3 +100,4 @@ Full license details are included in the project.
 ![Modix Preview](https://i.ibb.co/xKPpf795/Screenshot-2026-04-15-22-06-30.png)
 ![Modix Preview](https://i.ibb.co/fzMqYyMc/Screenshot-2026-04-15-22-07-22.png)
 ![Modix Preview](https://i.ibb.co/tTmgLkvF/Screenshot-2026-04-15-22-08-12.png)
+![Modix Preview](https://i.ibb.co/6RkgkJLM/Screenshot-2026-04-15-22-09-28.png)
