@@ -95,14 +95,54 @@ ARK, Rust, DayZ, Minecraft, RimWorld, Valheim, and more
 Full license details are included in the project.
 
 ![Modix Preview](https://i.ibb.co/8LyjCpWd/Screenshot-2026-04-15-21-54-52.png)
+
+- Local Login System
+
+  
 ![Modix Preview](https://i.ibb.co/Zy076nJ/Screenshot-2026-04-15-22-02-14.png)
+
+- My Account
 ![Modix Preview](https://i.ibb.co/wF2MmtCJ/Screenshot-2026-04-15-22-04-47.png)
+
+- Terminal 
+
+This is where you can control your game server. 
+
+
 ![Modix Preview](https://i.ibb.co/xKPpf795/Screenshot-2026-04-15-22-06-30.png)
+
+- Change Game  
+
+You can see all supported games. 
+
 ![Modix Preview](https://i.ibb.co/fzMqYyMc/Screenshot-2026-04-15-22-07-22.png)
-![Modix Preview](https://i.ibb.co/tTmgLkvF/Screenshot-2026-04-15-22-08-12.png)
+
+- Server Settings. 
+
+This will allow you to easily change the settings of project zomboid. 
+
+
+![Modix Preview](https://i.ibb.co/tTmgLkvF/Screenshot-2026-04-15-22-08-12.png
+
+- Modix Installer 
+
+Instam require files for supported games. No hassle. 
 ![Modix Preview](https://i.ibb.co/6RkgkJLM/Screenshot-2026-04-15-22-09-28.png)
+
+-Server Performance 
+
+See detailed information about your local system.
+
+
 ![Modix Preview](https://i.ibb.co/67Ytq9pK/Screenshot-2026-04-15-22-11-34.png)
+- Port Checker
+
+You can see all ports that are open / closed. 
 ![Modix Preview](https://i.ibb.co/sdVMz66v/Screenshot-2026-04-15-22-12-24.png)
+
+- API "WIP" 
+
+Check all API endpoints and see what they do. Pretty helpful when building upon Modix.
 ![Modix Preview](https://i.ibb.co/tTmWWZmC/Screenshot-2026-04-15-22-13-14.png)
 - Theme Manager: 
 
