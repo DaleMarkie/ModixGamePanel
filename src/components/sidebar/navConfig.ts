@@ -49,23 +49,10 @@ export const navLinks: NavItem[] = [
     ],
   },
 
-  // --- Mod Creation Suite ---
   {
-    label: "🧩 Mods",
-    href: "/tools/modcreation",
-    submenu: [
-      { label: "📦 My Mods", href: "/FileBrowser" },
-      { label: "🗂️ Workshop Manager", href: "/workshop" },
-      { label: "🔍 Mod Debugger", href: "/mymods/debugger" },
-      { label: "🔍 Check Mod Updates", href: "/mymods/modupdates" },
-    ],
-  },
-
-  {
-    label: "🗂️ File Manager",
+    label: "🗂️ My Mods",
     href: "/filebrowser",
-    submenu: [
-    ],
+    submenu: [],
   },
 
   // --- Player Tools ---

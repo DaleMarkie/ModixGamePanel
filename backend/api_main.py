@@ -19,6 +19,7 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
+from backend.server_settings import router as server_settings_router
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -75,27 +76,10 @@ app.include_router(auth_router, prefix="/api")
 # ---------------------------
 # Project Zomboid Server Settings Router (self-contained)
 # ---------------------------
-server_settings_router = APIRouter()
-
-SERVER_FOLDER = os.path.expanduser("~/Zomboid/Server")
-os.makedirs(SERVER_FOLDER, exist_ok=True)
-
-@server_settings_router.get("/list-inis")
-async def list_inis():
-    """Return all .ini files in the server folder"""
-    try:
-        files = [f for f in os.listdir(SERVER_FOLDER) if f.endswith(".ini")]
-        return {"inis": files}
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-# Include router
-app.include_router(server_settings_router, prefix="/api/server_settings")
 
 # ---------------------------
 # Other Routers
 # ---------------------------
-app.include_router(terminal_router, prefix="/api/projectzomboid")
 app.include_router(games_router, prefix="/api/games", tags=["Games"])
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(workshop_api.router, prefix="/workshop")
@@ -112,7 +96,7 @@ app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
 app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler", tags=["Scheduler"])
 app.include_router(serverports_router, prefix="/api")
-
+app.include_router(server_settings_router, prefix="/api/server_settings", tags=["Server Settings"])
 # ---------------------------
 # Run Server
 # ---------------------------

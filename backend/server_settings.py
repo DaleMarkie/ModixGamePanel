@@ -1,71 +1,117 @@
 import os
-import json
-from flask import Flask, request, jsonify
+from typing import Dict
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
-app = Flask(__name__)
+router = APIRouter()
 
-# Set this to your server INI folder
-INI_FOLDER = r"C:\ProjectZomboid\Server\Configs"
+# =========================================================
+# ⚙️ CONFIG (Linux Project Zomboid path)
+# =========================================================
 
-# List all INI files
-@app.route("/api/server_settings/list-inis", methods=["GET"])
+ZOMBOID_SERVER_FOLDER = os.path.expanduser("~/Zomboid/Server")
+
+os.makedirs(ZOMBOID_SERVER_FOLDER, exist_ok=True)
+
+# =========================================================
+# 🧠 INI PARSER
+# =========================================================
+
+def parse_ini(file_path: str) -> Dict[str, Dict[str, str]]:
+    """
+    Converts INI file into:
+    {
+        Section: { key: value }
+    }
+    """
+
+    data: Dict[str, Dict[str, str]] = {}
+    current_section = "General"
+    data[current_section] = {}
+
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+
+            if not line or line.startswith(";") or line.startswith("#"):
+                continue
+
+            # Section [Main]
+            if line.startswith("[") and line.endswith("]"):
+                current_section = line[1:-1].strip()
+                data[current_section] = {}
+                continue
+
+            # Key=value
+            if "=" in line:
+                key, value = line.split("=", 1)
+                data[current_section][key.strip()] = value.strip()
+
+    return data
+
+# =========================================================
+# 🧾 INI WRITER
+# =========================================================
+
+def write_ini(file_path: str, data: Dict[str, Dict[str, str]]):
+    with open(file_path, "w", encoding="utf-8") as f:
+        for section, values in data.items():
+            f.write(f"[{section}]\n")
+            for key, value in values.items():
+                f.write(f"{key}={value}\n")
+            f.write("\n")
+
+# =========================================================
+# 📄 LIST INI FILES
+# =========================================================
+
+@router.get("/list-inis")
 def list_inis():
     try:
-        files = [f for f in os.listdir(INI_FOLDER) if f.endswith(".ini")]
-        return jsonify(files)
+        files = [
+            f for f in os.listdir(ZOMBOID_SERVER_FOLDER)
+            if f.endswith(".ini")
+        ]
+        return files
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Get or Save INI settings
-@app.route("/api/server_settings/projectzomboid", methods=["GET", "POST"])
-def projectzomboid_settings():
-    file_name = request.args.get("file")
-    if not file_name:
-        return jsonify({"error": "No INI file specified"}), 400
+# =========================================================
+# 📥 LOAD INI FILE
+# =========================================================
 
-    file_path = os.path.join(INI_FOLDER, file_name)
+@router.get("/projectzomboid")
+def load_settings(file: str = Query(...)):
+    file_path = os.path.join(ZOMBOID_SERVER_FOLDER, file)
 
-    if request.method == "GET":
-        # Load INI
-        if not os.path.exists(file_path):
-            return jsonify({"error": "File not found"}), 404
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="INI file not found")
 
-        data = {}
-        section = None
-        with open(file_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith(";") or line == "":
-                    continue
-                if line.startswith("[") and line.endswith("]"):
-                    section = line[1:-1]
-                    data[section] = {}
-                elif "=" in line and section:
-                    key, val = line.split("=", 1)
-                    val = val.strip()
-                    # Convert types
-                    if val.lower() in ["true", "false"]:
-                        val = val.lower() == "true"
-                    elif val.isdigit():
-                        val = int(val)
-                    data[section][key.strip()] = val
-        return jsonify(data)
+    try:
+        return parse_ini(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    elif request.method == "POST":
-        # Save INI
-        try:
-            settings = request.get_json()
-            with open(file_path, "w") as f:
-                for section, keys in settings.items():
-                    f.write(f"[{section}]\n")
-                    for key, val in keys.items():
-                        if isinstance(val, bool):
-                            val = str(val).lower()
-                        f.write(f"{key}={val}\n")
-                    f.write("\n")
-            return jsonify({"success": True})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+# =========================================================
+# 💾 SAVE INI FILE
+# =========================================================
 
-if __name__ == "__main__":
-    app.run(debug=True)
+class SaveSettings(BaseModel):
+    # structure matches frontend SettingsData
+    __root__: dict
+
+@router.post("/projectzomboid")
+def save_settings(file: str = Query(...), payload: dict = None):
+    file_path = os.path.join(ZOMBOID_SERVER_FOLDER, file)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="INI file not found")
+
+    if payload is None:
+        raise HTTPException(status_code=400, detail="No data provided")
+
+    try:
+        write_ini(file_path, payload)
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
