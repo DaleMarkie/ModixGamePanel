@@ -12,7 +12,7 @@
 
     "dev:frontend": "next dev -p 3000",
 
-    "dev:backend": "python3 -m backend.api_main",
+    "dev:backend": "venv/bin/python -m backend.api_main",
 
     "build": "next build",
 
