@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ---------------------------
-# Routers (your other routers)
+# Routers (your existing system)
 # ---------------------------
 from backend.API.Core.auth import auth_router
 from backend.API.Console.terminal_api import router as terminal_router
@@ -32,9 +32,20 @@ from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
 
 # ---------------------------
+# NEW: Server Manager (Project Zomboid control)
+# ---------------------------
+from backend.services.server_manager import (
+    start_server,
+    stop_server,
+    restart_server,
+    status as server_status
+)
+
+# ---------------------------
 # FastAPI App
 # ---------------------------
 app = FastAPI(title="Modix Panel Backend")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,6 +58,7 @@ app.add_middleware(
 # Local Users
 # ---------------------------
 LOCAL_USERS_FILE = os.path.expanduser("~/modix_local_users.json")
+
 if not os.path.exists(LOCAL_USERS_FILE):
     test_users = [
         {"username": "1", "password": "1", "role": "Owner", "roles": ["Owner"], "pages": []},
@@ -56,6 +68,7 @@ if not os.path.exists(LOCAL_USERS_FILE):
     with open(LOCAL_USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(test_users, f, indent=2)
 
+
 def load_local_users():
     try:
         with open(LOCAL_USERS_FILE, "r", encoding="utf-8") as f:
@@ -63,40 +76,75 @@ def load_local_users():
     except Exception:
         return []
 
+
 def save_local_users(users):
     with open(LOCAL_USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, indent=2)
 
 # ---------------------------
-# Auth
+# AUTH
 # ---------------------------
 app.include_router(auth_router, prefix="/api")
 
 # ---------------------------
-# Project Zomboid Server Settings Router (self-contained)
-# ---------------------------
-
-# ---------------------------
-# Other Routers
+# OTHER ROUTERS
 # ---------------------------
 app.include_router(games_router, prefix="/api/games", tags=["Games"])
 app.include_router(filemanager_router, prefix="/api/filemanager", tags=["FileManager"])
 app.include_router(workshop_api.router, prefix="/workshop")
+
 app.include_router(modupdates_router, prefix="/api", tags=["Mod Updates"])
+app.include_router(modupdates_router, prefix="/api/updater", tags=["Updater"])
+
 app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
 app.include_router(all_players_api.router, prefix="/api/projectzomboid/players")
 app.include_router(steam_notes_api.router, prefix="/api/projectzomboid/steam-notes")
 app.include_router(steam_search_player_api.router, prefix="/api/projectzomboid/steam-search")
 app.include_router(api_chatlogs.chat_bp, prefix="/api/projectzomboid/chat")
+
 app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(performance_router, prefix="/api")
-app.include_router(modupdates_router, prefix="/api/updater", tags=["Updater"])
 app.include_router(sidebar_router, prefix="/api/sidebar", tags=["Sidebar"])
+
 app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler", tags=["Scheduler"])
 app.include_router(serverports_router, prefix="/api")
+
 # ---------------------------
-# Run Server
+# NEW: PROJECT ZOMBOID SERVER CONTROL API
+# ---------------------------
+
+@app.post("/api/server/start")
+def api_start_server():
+    return start_server()
+
+
+@app.post("/api/server/stop")
+def api_stop_server():
+    return stop_server()
+
+
+@app.post("/api/server/restart")
+def api_restart_server():
+    return restart_server()
+
+
+@app.get("/api/server/status")
+def api_server_status():
+    return server_status()
+
+# ---------------------------
+# HEALTH CHECK
+# ---------------------------
+@app.get("/")
+def root():
+    return {
+        "status": "Modix Panel Backend Running",
+        "server_control": "/api/server/start | /stop | /restart"
+    }
+
+# ---------------------------
+# RUN
 # ---------------------------
 if __name__ == "__main__":
     import uvicorn
