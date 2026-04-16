@@ -1,145 +1,76 @@
-import asyncio
+import subprocess
 import os
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Body
-from fastapi.responses import JSONResponse
-from typing import Dict
+import signal
+from flask import Flask, request, jsonify
 
-router = APIRouter()
+app = Flask(__name__)
 
-# Store running processes per game
-running_processes: Dict[str, asyncio.subprocess.Process] = {}
+server_process = None
 
 
-# ---------------------------
-# EXECUTE COMMAND
-# ---------------------------
-@router.post("/api/terminal/execute")
-async def execute_command(data: dict = Body(...)):
-    game_id = data.get("gameId")
-    command = data.get("command", "").lower()
+def start_server(batch_path):
+    global server_process
+
+    if server_process:
+        return {"error": "Server already running"}
+
+    if not batch_path:
+        return {"error": "No batch path provided"}
+
+    server_process = subprocess.Popen(
+        ["bash", batch_path],
+        preexec_fn=os.setsid
+    )
+
+    return {"output": "Server started"}
+
+
+def stop_server():
+    global server_process
+
+    if not server_process:
+        return {"error": "Server not running"}
+
+    os.killpg(os.getpgid(server_process.pid), signal.SIGTERM)
+    server_process = None
+
+    return {"output": "Server stopped"}
+
+
+def restart_server(batch_path):
+    stop_server()
+    return start_server(batch_path)
+
+
+def run_command(command):
+    try:
+        output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+        return {"output": output.decode()}
+    except subprocess.CalledProcessError as e:
+        return {"error": e.output.decode()}
+
+
+@app.post("/api/terminal")
+def terminal():
+    data = request.json
+    action = data.get("action")
     batch_path = data.get("batchPath")
+    command = data.get("command")
 
-    if not game_id:
-        return JSONResponse({"error": "Missing gameId"}, status_code=400)
+    if action == "start":
+        return jsonify(start_server(batch_path))
 
-    try:
-        # ---------------------------
-        # START
-        # ---------------------------
-        if command == "start":
-            if not batch_path or not os.path.exists(batch_path):
-                return {"error": f"Invalid script path: {batch_path}"}
+    if action == "stop":
+        return jsonify(stop_server())
 
-            if game_id in running_processes:
-                return {"error": "Server already running"}
+    if action == "restart":
+        return jsonify(restart_server(batch_path))
 
-            process = await asyncio.create_subprocess_exec(
-                "bash",
-                batch_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT
-            )
+    if action == "command":
+        return jsonify(run_command(command))
 
-            running_processes[game_id] = process
-
-            return {"output": f"Started server using: {batch_path}"}
-
-        # ---------------------------
-        # STOP
-        # ---------------------------
-        elif command == "stop":
-            process = running_processes.get(game_id)
-
-            if not process:
-                return {"error": "Server not running"}
-
-            process.terminate()
-            await process.wait()
-
-            del running_processes[game_id]
-
-            return {"output": "Server stopped"}
-
-        # ---------------------------
-        # RESTART
-        # ---------------------------
-        elif command == "restart":
-            process = running_processes.get(game_id)
-
-            if process:
-                process.terminate()
-                await process.wait()
-                del running_processes[game_id]
-
-            if not batch_path or not os.path.exists(batch_path):
-                return {"error": "Invalid script path"}
-
-            process = await asyncio.create_subprocess_exec(
-                "bash",
-                batch_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT
-            )
-
-            running_processes[game_id] = process
-
-            return {"output": "Server restarted"}
-
-        # ---------------------------
-        # STATUS
-        # ---------------------------
-        elif command == "status":
-            return {
-                "output": "RUNNING" if game_id in running_processes else "STOPPED"
-            }
-
-        # ---------------------------
-        # SAFE COMMANDS (optional)
-        # ---------------------------
-        allowed_commands = ["save", "backup"]
-
-        if command in allowed_commands:
-            proc = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT
-            )
-
-            stdout, _ = await proc.communicate()
-
-            return {"output": stdout.decode()}
-
-        return {"error": f"Command not allowed: {command}"}
-
-    except Exception as e:
-        return {"error": str(e)}
+    return jsonify({"error": "unknown action"})
 
 
-# ---------------------------
-# WEBSOCKET (LIVE LOGS)
-# ---------------------------
-@router.websocket("/api/terminal/ws/{game_id}")
-async def websocket_logs(websocket: WebSocket, game_id: str):
-    await websocket.accept()
-
-    try:
-        while True:
-            process = running_processes.get(game_id)
-
-            if not process or not process.stdout:
-                await asyncio.sleep(1)
-                continue
-
-            line = await process.stdout.readline()
-
-            if not line:
-                await asyncio.sleep(0.1)
-                continue
-
-            await websocket.send_json({
-                "type": "output",
-                "text": line.decode(errors="ignore").strip()
-            })
-
-    except WebSocketDisconnect:
-        print(f"WebSocket disconnected: {game_id}")
+if __name__ == "__main__":
+    app.run(port=8000)
