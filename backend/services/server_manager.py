@@ -1,42 +1,36 @@
 import subprocess
-import os
-import signal
-import asyncio
 
-SERVER_DIR = os.path.expanduser("~/ModixGamePanel")
-START_CMD = "./start.sh"
-
-process = None
+SERVER_DIR = "/home/ritchiedale72/ZomboidServer"
+SCREEN_NAME = "zomboidserver"
 
 
 def start_server():
-    global process
-
-    if process and process.poll() is None:
-        return {"status": "already_running"}
-
-    process = subprocess.Popen(
-        START_CMD,
-        cwd=SERVER_DIR,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1
+    check = subprocess.run(
+        ["screen", "-ls"],
+        capture_output=True,
+        text=True
     )
 
-    return {"status": "started", "pid": process.pid}
+    if SCREEN_NAME in check.stdout:
+        return {"error": "Server already running"}
+
+    cmd = f"cd {SERVER_DIR} && bash start-server.sh"
+
+    subprocess.Popen([
+        "screen",
+        "-dmS",
+        SCREEN_NAME,
+        "bash",
+        "-c",
+        cmd
+    ])
+
+    return {"output": "Zomboid server started in screen session"}
 
 
 def stop_server():
-    global process
-
-    if process and process.poll() is None:
-        os.kill(process.pid, signal.SIGTERM)
-        process = None
-        return {"status": "stopped"}
-
-    return {"status": "not_running"}
+    subprocess.run(["screen", "-S", SCREEN_NAME, "-X", "quit"])
+    return {"output": "Server stopped"}
 
 
 def restart_server():
@@ -45,25 +39,10 @@ def restart_server():
 
 
 def status():
-    global process
-    return {"status": "running" if process and process.poll() is None else "stopped"}
+    check = subprocess.run(
+        ["screen", "-ls"],
+        capture_output=True,
+        text=True
+    )
 
-
-async def stream_output(websocket):
-    global process
-
-    if not process:
-        await websocket.send_text("[SERVER NOT RUNNING]")
-        return
-
-    while True:
-        if process.poll() is not None:
-            await websocket.send_text("[SERVER STOPPED]")
-            break
-
-        line = process.stdout.readline()
-
-        if line:
-            await websocket.send_text(line.strip())
-
-        await asyncio.sleep(0.05)
+    return {"running": SCREEN_NAME in check.stdout}

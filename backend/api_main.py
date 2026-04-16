@@ -1,6 +1,9 @@
 import os
 import json
-from fastapi import FastAPI
+import subprocess
+import asyncio
+import signal
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 # ---------------- CORE ROUTES ----------------
@@ -13,7 +16,6 @@ from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
 
-# ---------------- PROJECT ZOMBOID ----------------
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
     all_players_api,
@@ -22,7 +24,6 @@ from backend.API.Core.games_api.projectzomboid import (
     api_chatlogs
 )
 
-# ---------------- OTHER SERVICES ----------------
 from backend.API.Core.tools_api import ddos_manager_api
 from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
@@ -38,18 +39,109 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------- LOCAL USERS FILE ----------------
-LOCAL_USERS_FILE = os.path.expanduser("~/modix_local_users.json")
+# ---------------- ZOMBOID CONFIG ----------------
+ZOMBOID_DIR = "/home/ritchiedale72/ZomboidServer"
+START_SCRIPT = "./start-server.sh"
 
-if not os.path.exists(LOCAL_USERS_FILE):
-    with open(LOCAL_USERS_FILE, "w") as f:
-        json.dump([
-            {"username": "1", "password": "1", "role": "Owner"},
-            {"username": "admin", "password": "admin123", "role": "Admin"}
-        ], f, indent=2)
+# ---------------- PROCESS STATE (REPLACES SCREEN) ----------------
+zomboid_process = None
+log_clients = set()
 
-# ---------------- ROUTES ----------------
 
+# ---------------- PROCESS CONTROL ----------------
+def start_zomboid():
+    global zomboid_process
+
+    if zomboid_process and zomboid_process.poll() is None:
+        return "Server already running"
+
+    zomboid_process = subprocess.Popen(
+        ["bash", START_SCRIPT],
+        cwd=ZOMBOID_DIR,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1
+    )
+
+    asyncio.create_task(stream_logs())
+    return f"Zomboid started PID {zomboid_process.pid}"
+
+
+def stop_zomboid():
+    global zomboid_process
+
+    if not zomboid_process:
+        return "Server not running"
+
+    try:
+        zomboid_process.send_signal(signal.SIGTERM)
+        zomboid_process = None
+        return "Zomboid stopped"
+    except Exception as e:
+        return str(e)
+
+
+def restart_zomboid():
+    stop_zomboid()
+    return start_zomboid()
+
+
+# ---------------- LIVE LOG STREAM ----------------
+async def stream_logs():
+    global zomboid_process
+
+    if not zomboid_process or not zomboid_process.stdout:
+        return
+
+    for line in zomboid_process.stdout:
+        dead = set()
+
+        for ws in log_clients:
+            try:
+                await ws.send_text(line.strip())
+            except:
+                dead.add(ws)
+
+        for d in dead:
+            log_clients.remove(d)
+
+        if zomboid_process.poll() is not None:
+            break
+
+
+# ---------------- FIXED TERMINAL API ----------------
+@app.post("/api/terminal")
+async def terminal_api(payload: dict):
+    action = payload.get("action")
+
+    if action == "start":
+        return {"output": start_zomboid()}
+
+    if action == "stop":
+        return {"output": stop_zomboid()}
+
+    if action == "restart":
+        return {"output": restart_zomboid()}
+
+    return {"error": "invalid action"}
+
+
+# ---------------- WEBSOCKET (FIXED - NO DISCONNECT LOOP) ----------------
+@app.websocket("/ws/terminal")
+async def terminal_ws(websocket: WebSocket):
+    await websocket.accept()
+    log_clients.add(websocket)
+
+    try:
+        while True:
+            await asyncio.sleep(60)  # keep alive
+
+    except WebSocketDisconnect:
+        log_clients.discard(websocket)
+
+
+# ---------------- ROUTERS (UNCHANGED) ----------------
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
 app.include_router(filemanager_router, prefix="/api/filemanager")
@@ -68,21 +160,12 @@ app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(performance_router, prefix="/api")
 app.include_router(sidebar_router, prefix="/api/sidebar")
 
-# ---------------- TERMINAL (IMPORTANT FIX) ----------------
-# THIS IS YOUR ONLY SOURCE FOR START/STOP/RESTART/STATUS
-
 app.include_router(terminal_router, prefix="")
-
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api")
+
 
 # ---------------- ROOT ----------------
 @app.get("/")
 def root():
-    return {"status": "running", "server": "Modix Panel Backend"}
-
-
-# ---------------- START SERVER ----------------
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("backend.api_main:app", host="0.0.0.0", port=8000, reload=True)
+    return {"status": "running"}
