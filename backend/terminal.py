@@ -1,90 +1,128 @@
 import os
 import subprocess
+import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 
-SERVICE_NAME = os.getenv("MODIX_GAME_SERVICE", "project-zomboid")
+SERVER_SCRIPT = os.getenv(
+    "MODIX_SERVER_SCRIPT",
+    "/home/youruser/ZomboidServer/start-server.sh"
+)
+
+PROCESS = None
+LOG_TASK = None
+CONNECTED_CLIENTS = set()
 
 
 # -------------------------
-# RUN COMMAND
+# STREAM OUTPUT TO WEBSOCKETS
 # -------------------------
-def run_cmd(cmd: list[str]):
+async def stream_output(pipe):
     try:
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
-        return result.returncode, result.stdout.strip()
-    except Exception as e:
-        return 1, str(e)
+        while True:
+            line = await asyncio.to_thread(pipe.readline)
+            if not line:
+                break
+
+            dead_clients = set()
+
+            for ws in CONNECTED_CLIENTS:
+                try:
+                    await ws.send_text(line.strip())
+                except Exception:
+                    dead_clients.add(ws)
+
+            for ws in dead_clients:
+                CONNECTED_CLIENTS.remove(ws)
+
+    except Exception:
+        pass
 
 
 # -------------------------
-# START
+# START SERVER
 # -------------------------
 @router.post("/terminal/start")
-def start_server():
-    code, out = run_cmd(["systemctl", "start", SERVICE_NAME])
-    return {
-        "status": "started" if code == 0 else "error",
-        "output": out
-    }
+async def start_server():
+    global PROCESS, LOG_TASK
+
+    if PROCESS and PROCESS.poll() is None:
+        return {"status": "already_running"}
+
+    try:
+        PROCESS = subprocess.Popen(
+            ["bash", SERVER_SCRIPT],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+
+        LOG_TASK = asyncio.create_task(stream_output(PROCESS.stdout))
+
+        return {"status": "started", "pid": PROCESS.pid}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # -------------------------
-# STOP
+# STOP SERVER
 # -------------------------
 @router.post("/terminal/stop")
 def stop_server():
-    code, out = run_cmd(["systemctl", "stop", SERVICE_NAME])
-    return {
-        "status": "stopped" if code == 0 else "error",
-        "output": out
-    }
+    global PROCESS
+
+    if not PROCESS:
+        return {"status": "not_running"}
+
+    try:
+        PROCESS.terminate()
+        PROCESS = None
+        return {"status": "stopped"}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # -------------------------
 # RESTART
 # -------------------------
 @router.post("/terminal/restart")
-def restart_server():
-    code, out = run_cmd(["systemctl", "restart", SERVICE_NAME])
-    return {
-        "status": "restarted" if code == 0 else "error",
-        "output": out
-    }
+async def restart_server():
+    stop_server()
+    await asyncio.sleep(1)
+    return await start_server()
 
 
 # -------------------------
-# STATUS (REAL)
+# STATUS
 # -------------------------
 @router.get("/terminal/status")
 def status():
-    code, out = run_cmd(["systemctl", "is-active", SERVICE_NAME])
+    global PROCESS
 
-    return {
-        "status": "RUNNING" if "active" in out else "STOPPED",
-        "raw": out
-    }
+    if PROCESS and PROCESS.poll() is None:
+        return {"status": "RUNNING", "pid": PROCESS.pid}
+
+    return {"status": "STOPPED"}
 
 
 # -------------------------
-# WEBSOCKET (SO YOUR FRONTEND DOESN'T BREAK)
+# WEBSOCKET (REAL LOG STREAM)
 # -------------------------
 @router.websocket("/terminal/ws")
 async def terminal_ws(websocket: WebSocket):
     await websocket.accept()
-
-    await websocket.send_text("Terminal connected")
+    CONNECTED_CLIENTS.add(websocket)
 
     try:
+        await websocket.send_text("connected")
+
         while True:
-            # keep alive loop (optional future streaming)
+            # keep alive + allow frontend pings
             await websocket.receive_text()
-            await websocket.send_text("alive")
+
     except WebSocketDisconnect:
-        pass
+        CONNECTED_CLIENTS.remove(websocket)

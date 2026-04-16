@@ -20,19 +20,24 @@ interface Log {
   time: string;
 }
 
+const API = "http://localhost:8000";
+
 export default function Terminal() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [status, setStatus] = useState<Status>("STOPPED");
-  const endRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
+  // -------------------------
+  // AUTO SCROLL
+  // -------------------------
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
   const addLog = (type: LogType, text: string) => {
-    setLogs((p) => [
-      ...p,
+    setLogs((prev) => [
+      ...prev,
       {
         id: crypto.randomUUID(),
         type,
@@ -42,31 +47,63 @@ export default function Terminal() {
     ]);
   };
 
+  // -------------------------
+  // LOAD STATUS FROM BACKEND
+  // -------------------------
+  const loadStatus = async () => {
+    try {
+      const res = await fetch(`${API}/terminal/status`);
+      const data = await res.json();
+      setStatus(data.status || "STOPPED");
+    } catch {
+      setStatus("STOPPED");
+    }
+  };
+
+  // -------------------------
+  // WEBSOCKET (REAL LOGS)
+  // -------------------------
+  const connectWS = () => {
+    try {
+      const ws = new WebSocket(`ws://localhost:8000/terminal/ws`);
+      wsRef.current = ws;
+
+      ws.onopen = () => addLog("system", "Connected to server");
+      ws.onmessage = (e) => addLog("output", String(e.data));
+      ws.onerror = () => addLog("error", "WebSocket error");
+      ws.onclose = () => addLog("system", "Disconnected");
+
+    } catch {
+      addLog("error", "WebSocket failed to connect");
+    }
+  };
+
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/terminal/ws");
-    wsRef.current = ws;
+    loadStatus();
+    connectWS();
 
-    ws.onopen = () => addLog("system", "Connected");
-    ws.onmessage = (e) => addLog("output", String(e.data));
-    ws.onerror = () => addLog("error", "WebSocket error");
-    ws.onclose = () => addLog("system", "Disconnected");
-
-    return () => ws.close();
+    return () => {
+      wsRef.current?.close();
+    };
   }, []);
 
+  // -------------------------
+  // ACTION CALLS
+  // -------------------------
   const call = async (action: "start" | "stop" | "restart") => {
     addLog("system", `Sending ${action}...`);
 
     try {
-      const res = await fetch(`http://localhost:8000/terminal/${action}`, {
+      const res = await fetch(`${API}/terminal/${action}`, {
         method: "POST",
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
-      addLog("output", data.status || `${action} sent`);
+      addLog("output", data.status || `${action} done`);
 
-      setStatus(action === "stop" ? "STOPPED" : "RUNNING");
+      // refresh real status (IMPORTANT FIX)
+      loadStatus();
     } catch {
       addLog("error", "Request failed");
     }
@@ -92,24 +129,15 @@ export default function Terminal() {
 
       {/* BUTTONS */}
       <div style={styles.bar}>
-        <button
-          style={{ ...styles.btn, background: "#1f8b4c" }}
-          onClick={() => call("start")}
-        >
+        <button style={{ ...styles.btn, background: "#1f8b4c" }} onClick={() => call("start")}>
           <FiPlay /> Start
         </button>
 
-        <button
-          style={{ ...styles.btn, background: "#b02b2b" }}
-          onClick={() => call("stop")}
-        >
+        <button style={{ ...styles.btn, background: "#b02b2b" }} onClick={() => call("stop")}>
           <FiStopCircle /> Stop
         </button>
 
-        <button
-          style={{ ...styles.btn, background: "#b08a2b" }}
-          onClick={() => call("restart")}
-        >
+        <button style={{ ...styles.btn, background: "#b08a2b" }} onClick={() => call("restart")}>
           <FiRefreshCw /> Restart
         </button>
       </div>
@@ -117,7 +145,7 @@ export default function Terminal() {
       {/* LOGS */}
       <div style={styles.body}>
         {logs.length === 0 && (
-          <div style={{ opacity: 0.5 }}>No logs yet...</div>
+          <div style={{ opacity: 0.5 }}>Waiting for server output...</div>
         )}
 
         {logs.map((l) => (
@@ -133,6 +161,9 @@ export default function Terminal() {
   );
 }
 
+// -------------------------
+// STYLES
+// -------------------------
 const styles: Record<string, React.CSSProperties> = {
   shell: {
     height: "100vh",
