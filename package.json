@@ -2,23 +2,15 @@
   "name": "modix-panel",
   "version": "1.1.2",
   "private": true,
-
   "scripts": {
     "setup": "bash scripts/setup.sh",
-
     "installmodix": "node scripts/installmodix.js",
-
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-
     "dev:frontend": "next dev -p 3000",
-
     "dev:backend": "venv/bin/python -m backend.api_main",
-
     "build": "next build",
-
     "start": "npm run dev"
   },
-
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@uiw/react-codemirror": "^4.25.2",
@@ -32,7 +24,6 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.10.1"
   },
-
   "devDependencies": {
     "@types/node": "24.5.2",
     "@types/react": "19.1.15",
