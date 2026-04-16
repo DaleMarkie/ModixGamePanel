@@ -1,8 +1,10 @@
 #!/bin/bash
 
-set -e  # stop immediately if anything fails
+set -euo pipefail
 
-echo "🧩 Modix Game Panel Setup Starting..."
+echo "🧩 Modix Game Panel Setup Starting (Linux-safe mode)..."
+
+cd "$(dirname "$0")/.."
 
 # ---------------------------
 # FRONTEND
@@ -11,21 +13,22 @@ echo "📦 Installing frontend dependencies..."
 npm install
 
 # ---------------------------
-# PYTHON VENV
+# PYTHON VENV SAFETY LAYER
 # ---------------------------
-echo "🐍 Setting up Python environment..."
+echo "🐍 Checking Python environment..."
 
-if [ ! -d "venv" ]; then
+if [ ! -d "venv" ] || [ ! -f "venv/bin/python" ]; then
+  echo "🧹 Rebuilding virtual environment..."
+  rm -rf venv
   python3 -m venv venv
 fi
 
-# always use venv python explicitly (avoids activation bugs on ChromeOS)
-VENV_PY="venv/bin/python"
-VENV_PIP="venv/bin/pip"
+PY="venv/bin/python"
 
-# upgrade tooling safely
-echo "⬆️ Upgrading pip tools..."
-$VENV_PIP install --upgrade pip setuptools wheel
+# ensure pip exists even on broken venvs
+echo "🔧 Bootstrapping pip..."
+$PY -m ensurepip --upgrade >/dev/null 2>&1 || true
+$PY -m pip install --upgrade pip setuptools wheel
 
 # ---------------------------
 # BACKEND DEPENDENCIES
@@ -33,21 +36,54 @@ $VENV_PIP install --upgrade pip setuptools wheel
 echo "📦 Installing backend dependencies..."
 
 if [ -f "requirements.txt" ]; then
-  $VENV_PIP install -r requirements.txt
+  $PY -m pip install -r requirements.txt
 else
-  echo "❌ requirements.txt missing!"
+  echo "❌ requirements.txt missing"
   exit 1
 fi
 
 # ---------------------------
-# VERIFY CORE IMPORTS
+# HARD GUARANTEE PACKAGES
+# (fixes ALL your previous missing module crashes)
 # ---------------------------
-echo "🧪 Verifying backend environment..."
+echo "🛡️ Installing guaranteed runtime packages..."
 
-$VENV_PY -c "import fastapi, pydantic, psutil; print('✅ Core backend imports OK')"
+$PY -m pip install \
+  fastapi \
+  uvicorn \
+  pydantic \
+  psutil \
+  passlib[bcrypt] \
+  pyjwt \
+  apscheduler \
+  httpx \
+  requests \
+  sse-starlette \
+  tzlocal
 
 # ---------------------------
-# DONE
+# BACKEND HEALTH CHECK
 # ---------------------------
-echo "🚀 Setup complete!"
-echo "👉 Run: npm run dev"
+echo "🧪 Running backend import check..."
+
+$PY - << 'EOF'
+import fastapi
+import pydantic
+import psutil
+import jwt
+import apscheduler
+import httpx
+print("✅ Backend core imports OK")
+EOF
+
+# ---------------------------
+# FINAL STATUS
+# ---------------------------
+echo ""
+echo "🚀 SETUP COMPLETE"
+echo "✔ Frontend ready"
+echo "✔ Backend environment ready"
+echo "✔ All required modules installed"
+echo ""
+echo "👉 Start dev server:"
+echo "   npm run dev"
