@@ -1,49 +1,42 @@
 import subprocess
 import os
 import signal
+import asyncio
 
-# CHANGE THIS PATH TO YOUR PROJECT ZOMBOID SERVER SCRIPT
-SERVER_SCRIPT = "/home/ritchiedale72/zomboid/start-server.sh"
+SERVER_DIR = os.path.expanduser("~/ModixGamePanel")
+START_CMD = "./start.sh"
 
-PID_FILE = "/tmp/zomboid_server.pid"
+process = None
 
 
 def start_server():
-    if os.path.exists(PID_FILE):
-        return {"error": "Server already running"}
+    global process
 
-    try:
-        process = subprocess.Popen(
-            ["bash", SERVER_SCRIPT],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os.setsid
-        )
+    if process and process.poll() is None:
+        return {"status": "already_running"}
 
-        with open(PID_FILE, "w") as f:
-            f.write(str(process.pid))
+    process = subprocess.Popen(
+        START_CMD,
+        cwd=SERVER_DIR,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1
+    )
 
-        return {"output": f"Server started (PID {process.pid})"}
-
-    except Exception as e:
-        return {"error": str(e)}
+    return {"status": "started", "pid": process.pid}
 
 
 def stop_server():
-    if not os.path.exists(PID_FILE):
-        return {"error": "Server not running"}
+    global process
 
-    try:
-        with open(PID_FILE, "r") as f:
-            pid = int(f.read())
+    if process and process.poll() is None:
+        os.kill(process.pid, signal.SIGTERM)
+        process = None
+        return {"status": "stopped"}
 
-        os.killpg(os.getpgid(pid), signal.SIGTERM)
-        os.remove(PID_FILE)
-
-        return {"output": "Server stopped"}
-
-    except Exception as e:
-        return {"error": str(e)}
+    return {"status": "not_running"}
 
 
 def restart_server():
@@ -52,4 +45,25 @@ def restart_server():
 
 
 def status():
-    return {"running": os.path.exists(PID_FILE)}
+    global process
+    return {"status": "running" if process and process.poll() is None else "stopped"}
+
+
+async def stream_output(websocket):
+    global process
+
+    if not process:
+        await websocket.send_text("[SERVER NOT RUNNING]")
+        return
+
+    while True:
+        if process.poll() is not None:
+            await websocket.send_text("[SERVER STOPPED]")
+            break
+
+        line = process.stdout.readline()
+
+        if line:
+            await websocket.send_text(line.strip())
+
+        await asyncio.sleep(0.05)

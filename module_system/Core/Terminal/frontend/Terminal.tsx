@@ -1,94 +1,92 @@
-"use client";
+import { useEffect, useRef, useState } from "react";
 
-import React, { useEffect, useRef, useState } from "react";
-import { FaPlay, FaStop, FaRedo, FaCircle } from "react-icons/fa";
+export default function TerminalPage() {
+  const [logs, setLogs] = useState([]);
+  const wsRef = useRef(null);
+  const logEndRef = useRef(null);
 
-import "./terminal.css";
-
-interface TerminalMessage {
-  id: number;
-  type: "system" | "output" | "error";
-  text: string;
-  time: string;
-}
-
-export default function Terminal() {
-  const [messages, setMessages] = useState<TerminalMessage[]>([]);
-  const [status, setStatus] = useState<"RUNNING" | "STOPPED">("STOPPED");
-
-  const endRef = useRef<HTMLDivElement>(null);
-
+  // -------------------------
+  // AUTO SCROLL
+  // -------------------------
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
 
-  const push = (type: TerminalMessage["type"], text: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        type,
-        text,
-        time: new Date().toLocaleTimeString(),
-      },
-    ]);
+  // -------------------------
+  // CONNECT WEBSOCKET
+  // -------------------------
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000/terminal/ws");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setLogs((prev) => [...prev, "[CONNECTED TO SERVER]"]);
+    };
+
+    ws.onmessage = (event) => {
+      setLogs((prev) => [...prev, event.data]);
+    };
+
+    ws.onclose = () => {
+      setLogs((prev) => [...prev, "[DISCONNECTED]"]);
+    };
+
+    ws.onerror = () => {
+      setLogs((prev) => [...prev, "[WS ERROR]"]);
+    };
+
+    return () => ws.close();
+  }, []);
+
+  // -------------------------
+  // SERVER ACTIONS
+  // -------------------------
+  const call = async (path) => {
+    try {
+      await fetch(`http://localhost:8000/terminal/${path}`, {
+        method: "POST",
+      });
+    } catch (err) {
+      setLogs((prev) => [...prev, "[REQUEST FAILED]"]);
+    }
   };
 
-  const controlServer = async (action: "start" | "stop" | "restart") => {
-    push("system", `Server ${action}`);
-
-    const res = await fetch(`/api/server/${action}`, {
-      method: "POST",
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      push("error", data.error);
-      return;
-    }
-
-    if (data.output) {
-      push("output", data.output);
-    }
-
-    setStatus(action === "stop" ? "STOPPED" : "RUNNING");
-  };
-
+  // -------------------------
+  // UI
+  // -------------------------
   return (
-    <div className="modern-terminal">
-      <div className="terminal-top">
-        <div className="left">
-          <span>Project Zomboid Server</span>
-        </div>
+    <div style={{ display: "flex", height: "100vh", background: "#0b0b0b" }}>
+      
+      {/* SIDEBAR */}
+      <div
+        style={{
+          width: 200,
+          padding: 10,
+          borderRight: "1px solid #222",
+          color: "#fff",
+        }}
+      >
+        <h3>Server</h3>
 
-        <div className="right">
-          <FaCircle className={status === "RUNNING" ? "green" : "red"} />
-          <span>{status}</span>
-        </div>
+        <button onClick={() => call("start")}>Start</button>
+        <button onClick={() => call("stop")}>Stop</button>
+        <button onClick={() => call("restart")}>Restart</button>
       </div>
 
-      <div className="terminal-controls">
-        <button onClick={() => controlServer("start")}>
-          <FaPlay /> Start
-        </button>
-
-        <button onClick={() => controlServer("stop")}>
-          <FaStop /> Stop
-        </button>
-
-        <button onClick={() => controlServer("restart")}>
-          <FaRedo /> Restart
-        </button>
-      </div>
-
-      <div className="terminal-log">
-        {messages.map((m) => (
-          <div key={m.id} className={`log ${m.type}`}>
-            [{m.time}] {m.text}
-          </div>
+      {/* TERMINAL */}
+      <div
+        style={{
+          flex: 1,
+          padding: 10,
+          color: "#00ff88",
+          fontFamily: "monospace",
+          overflowY: "auto",
+        }}
+      >
+        {logs.map((line, i) => (
+          <div key={i}>{line}</div>
         ))}
-        <div ref={endRef} />
+        <div ref={logEndRef} />
       </div>
     </div>
   );
