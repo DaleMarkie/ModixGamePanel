@@ -1,23 +1,51 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { FaPlay, FaStop, FaRedo, FaTerminal } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaPlay,
+  FaStop,
+  FaRedo,
+  FaTerminal,
+  FaCircle,
+  FaBolt,
+} from "react-icons/fa";
 
 interface Log {
   id: number;
   text: string;
-  type: "system" | "error" | "output";
+  type: "system" | "error" | "output" | "command";
   time: string;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2010";
+
+const suggestions = [
+  "players",
+  "save",
+  "quit",
+  "help",
+  "ping",
+  "kick",
+  "ban",
+  "status",
+];
+
 export default function Terminal() {
   const [logs, setLogs] = useState<Log[]>([]);
+  const [input, setInput] = useState("");
+  const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState<"RUNNING" | "STOPPED">("STOPPED");
+
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [filtered, setFiltered] = useState<string[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ---------------- LOG PUSH ----------------
+  // ---------------- LOG ----------------
   const push = (type: Log["type"], text: string) => {
     setLogs((prev) => [
       ...prev,
@@ -30,83 +58,76 @@ export default function Terminal() {
     ]);
   };
 
-  // ---------------- API CALLS ----------------
-  const callAPI = async (action: "start" | "stop" | "restart") => {
-    push("system", `Sending ${action}...`);
-
-    const res = await fetch("/api/terminal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      push("error", data.error || "Request failed");
-      return;
-    }
-
-    push("output", data.output || "OK");
-
-    // safer status handling (backend doesn't always send status)
-    if (action === "start") setStatus("RUNNING");
-    if (action === "stop") setStatus("STOPPED");
-    if (action === "restart") setStatus("RUNNING");
-  };
-
-  // ---------------- STATUS CHECK ----------------
-  const refreshStatus = async () => {
+  // ---------------- API ----------------
+  const callAPI = async (action: string, payload?: any) => {
     try {
-      const res = await fetch("/api/terminal", {
+      const res = await fetch(`${API_BASE}/api/terminal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "status" }),
+        body: JSON.stringify({ action, ...payload }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Request failed");
 
-      if (data.running === true) setStatus("RUNNING");
-      if (data.running === false) setStatus("STOPPED");
-    } catch {
-      setStatus("STOPPED");
+      if (data.output) push("output", data.output);
+
+      if (action === "start") setStatus("RUNNING");
+      if (action === "stop") setStatus("STOPPED");
+      if (action === "restart") setStatus("RUNNING");
+    } catch (err: any) {
+      push("error", err.message);
     }
   };
 
-  // ---------------- WEBSOCKET LIVE LOGS ----------------
+  // ---------------- SEND COMMAND ----------------
+  const sendCommand = async () => {
+    if (!input.trim()) return;
+
+    push("command", `> ${input}`);
+
+    setHistory((h) => [input, ...h].slice(0, 50));
+    setHistoryIndex(-1);
+
+    await callAPI("rcon", { command: input });
+
+    setInput("");
+    setFiltered([]);
+  };
+
+  // ---------------- WEBSOCKET ----------------
   useEffect(() => {
     const connect = () => {
-      const ws = new WebSocket("ws://localhost:2010/ws/terminal");
+      const ws = new WebSocket(`${API_BASE.replace("http", "ws")}/ws/terminal`);
+
       wsRef.current = ws;
 
       ws.onopen = () => {
-        push("system", "Connected to server logs");
+        setConnected(true);
+        push("system", "Connection established");
       };
 
-      ws.onmessage = (event) => {
-        push("output", event.data);
-      };
+      ws.onmessage = (e) => push("output", e.data);
 
       ws.onerror = () => {
+        setConnected(false);
         push("error", "WebSocket error");
       };
 
       ws.onclose = () => {
-        push("error", "Disconnected (reconnecting...)");
+        setConnected(false);
+        push("error", "Disconnected — reconnecting...");
         setTimeout(connect, 3000);
       };
     };
 
     connect();
-
-    return () => {
-      wsRef.current?.close();
-    };
+    return () => wsRef.current?.close();
   }, []);
 
-  // ---------------- INIT STATUS ----------------
+  // ---------------- INIT ----------------
   useEffect(() => {
-    refreshStatus();
+    callAPI("status");
   }, []);
 
   // ---------------- AUTO SCROLL ----------------
@@ -114,55 +135,156 @@ export default function Terminal() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
+  // ---------------- AUTOCOMPLETE ----------------
+  const onInputChange = (val: string) => {
+    setInput(val);
+
+    if (!val) return setFiltered([]);
+
+    setFiltered(
+      suggestions.filter((s) => s.toLowerCase().includes(val.toLowerCase()))
+    );
+  };
+
+  // ---------------- HISTORY ----------------
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowUp") {
+      const next = history[historyIndex + 1];
+      if (next) {
+        setHistoryIndex(historyIndex + 1);
+        setInput(next);
+      }
+    }
+
+    if (e.key === "ArrowDown") {
+      const prev = history[historyIndex - 1] || "";
+      setHistoryIndex(Math.max(historyIndex - 1, -1));
+      setInput(prev);
+    }
+
+    if (e.key === "Enter") sendCommand();
+  };
+
   // ---------------- UI ----------------
   return (
-    <div style={{ padding: 20, fontFamily: "monospace" }}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h2>
-          <FaTerminal /> Modix Terminal
-        </h2>
+    <div className="h-screen w-full bg-gradient-to-br from-black via-[#050505] to-black text-green-300 font-mono flex flex-col">
+      {/* HEADER */}
+      <div className="flex justify-between items-center px-6 py-4 border-b border-green-900/40 bg-black/40 backdrop-blur-xl">
+        <div className="flex items-center gap-3 text-lg font-semibold">
+          <FaTerminal className="text-green-400" />
+          Zomboid Control Console
+        </div>
 
-        <div>
-          <b>Status:</b>{" "}
-          <span style={{ color: status === "RUNNING" ? "lime" : "red" }}>
-            {status}
-          </span>
+        <div className="flex gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <FaCircle
+              className={connected ? "text-green-400" : "text-red-500"}
+            />
+            WS {connected ? "ONLINE" : "OFFLINE"}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <FaBolt
+              className={
+                status === "RUNNING" ? "text-green-400" : "text-red-500"
+              }
+            />
+            SERVER {status}
+          </div>
         </div>
       </div>
 
-      {/* BUTTONS */}
-      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-        <button onClick={() => callAPI("start")}>
-          <FaPlay /> Start
+      {/* CONTROLS */}
+      <div className="px-6 py-3 flex gap-3 bg-black/30 border-b border-green-900/30">
+        <button
+          onClick={() => callAPI("start")}
+          className="px-4 py-2 rounded bg-green-700/80 hover:bg-green-600 transition"
+        >
+          <FaPlay className="inline mr-2" /> Start
         </button>
 
-        <button onClick={() => callAPI("stop")}>
-          <FaStop /> Stop
+        <button
+          onClick={() => callAPI("stop")}
+          className="px-4 py-2 rounded bg-red-700/80 hover:bg-red-600 transition"
+        >
+          <FaStop className="inline mr-2" /> Stop
         </button>
 
-        <button onClick={() => callAPI("restart")}>
-          <FaRedo /> Restart
+        <button
+          onClick={() => callAPI("restart")}
+          className="px-4 py-2 rounded bg-yellow-600/80 hover:bg-yellow-500 transition"
+        >
+          <FaRedo className="inline mr-2" /> Restart
         </button>
       </div>
 
-      {/* LOGS */}
-      <div
-        style={{
-          marginTop: 20,
-          height: 400,
-          overflow: "auto",
-          background: "#0b0b0b",
-          color: "#00ff00",
-          padding: 10,
-          borderRadius: 6,
-        }}
-      >
-        {logs.map((l) => (
-          <div key={l.id}>
-            [{l.time}] {l.text}
+      {/* TERMINAL */}
+      <div className="flex-1 overflow-hidden p-4">
+        <div className="h-full rounded-2xl border border-green-900/40 bg-black/70 backdrop-blur-xl shadow-[0_0_40px_rgba(0,255,100,0.05)] flex flex-col">
+          <div className="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
+            <AnimatePresence>
+              {logs.map((l) => (
+                <motion.div
+                  key={l.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={
+                    l.type === "error"
+                      ? "text-red-400"
+                      : l.type === "system"
+                      ? "text-blue-400"
+                      : l.type === "command"
+                      ? "text-yellow-300"
+                      : "text-green-300"
+                  }
+                >
+                  <span className="text-gray-500">[{l.time}]</span> {l.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            <div ref={endRef} />
           </div>
-        ))}
-        <div ref={endRef} />
+
+          {/* INPUT */}
+          <div className="border-t border-green-900/30 p-3 relative">
+            {/* suggestions */}
+            {filtered.length > 0 && (
+              <div className="absolute bottom-14 left-4 bg-black border border-green-800 rounded p-2 text-xs">
+                {filtered.map((s) => (
+                  <div
+                    key={s}
+                    onClick={() => setInput(s)}
+                    className="cursor-pointer hover:text-green-400"
+                  >
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <span className="text-green-500">{">"}</span>
+
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => onInputChange(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Enter command..."
+                className="flex-1 bg-transparent outline-none text-green-300"
+              />
+
+              <button
+                onClick={sendCommand}
+                className="px-4 py-1 bg-green-700 rounded hover:bg-green-600"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

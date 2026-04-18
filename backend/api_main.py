@@ -15,6 +15,7 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
+from backend.rcon_pool import rcon_pool
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -38,6 +39,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# example local zomboid RCON config
+ZOMBOID_RCON = {
+    "id": "zomboid-local",
+    "host": "127.0.0.1",
+    "port": 27015,
+    "password": "admin123"
+}
 
 # ---------------- ZOMBOID CONFIG ----------------
 ZOMBOID_DIR = "/home/ritchiedale72/ZomboidServer"
