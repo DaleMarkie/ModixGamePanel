@@ -8,11 +8,11 @@
 ⚡ Quick Start (Linux / ChromeOS / Debian)
 
 Clone the project
-git clone https://github.com/DaleMarkie/ModixGamePanel.git
-cd ModixGamePanel
-npm run setup → installs everything (frontend + backend + python)
-npm run dev → starts the panel (frontend + API)
-This will start both services automatically:
+- git clone https://github.com/DaleMarkie/ModixGamePanel.git
+- cd ModixGamePanel
+- npm run setup → installs everything (frontend + backend + python)
+- npm run dev → starts the panel (frontend + API)
+- This will start both services automatically:
 
 🌐 Frontend: http://localhost:3000/
 ⚙️ Backend API: http://localhost:2010/ Start the project (DEV MODE)
