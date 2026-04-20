@@ -1,130 +1,143 @@
+import os
+import subprocess
 import asyncio
-import platform
 from fastapi import APIRouter
 
 router = APIRouter()
 
-install_state = {
+# ---------------- STATE ----------------
+state = {
     "running": False,
-    "logs": [],
     "success": False,
     "error": None,
+    "logs": []
 }
 
-
-# ---------------- DETECT OS ----------------
-def detect_os():
-    system = platform.system().lower()
-
-    if "linux" in system:
-        try:
-            with open("/etc/os-release", "r") as f:
-                data = f.read().lower()
-
-            if "chrome" in data or "crostini" in data:
-                return "chromeos-linux"
-            if "ubuntu" in data or "debian" in data:
-                return "debian-linux"
-        except:
-            pass
-
-        return "linux"
-
-    return system
+STEAMCMD_DIR = os.path.expanduser("~/steamcmd")
+STEAMCMD_BIN = f"{STEAMCMD_DIR}/steamcmd.sh"
 
 
-# ---------------- LOGGING ----------------
-def log(msg: str):
-    print(msg)
-    install_state["logs"].append(msg)
+# ---------------- HELPERS ----------------
+def add_log(line: str):
+    print(line)
+    state["logs"].append(line)
+    if len(state["logs"]) > 300:
+        state["logs"] = state["logs"][-300:]
 
 
-# ---------------- INSTALL STEAM ----------------
-async def install_steam_linux():
-    install_state["running"] = True
-    install_state["logs"] = []
-    install_state["success"] = False
-    install_state["error"] = None
+def ensure_steamcmd():
+    """Install SteamCMD if not present"""
+    if os.path.exists(STEAMCMD_BIN):
+        return True
+
+    add_log("SteamCMD not found. Installing...")
+
+    os.makedirs(STEAMCMD_DIR, exist_ok=True)
 
     try:
-        os_type = detect_os()
-        log(f"Detected OS: {os_type}")
-
-        # Update system first
-        log("Updating package lists...")
-        proc = await asyncio.create_subprocess_shell(
-            "sudo apt update -y",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
+        subprocess.run(
+            "apt-get update && apt-get install -y wget tar",
+            shell=True,
+            check=True
         )
-        stdout, _ = await proc.communicate()
-        log(stdout.decode())
 
-        # Enable 32-bit support (required for Steam)
-        log("Enabling 32-bit architecture...")
-        proc = await asyncio.create_subprocess_shell(
-            "sudo dpkg --add-architecture i386",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
+        subprocess.run(
+            f"cd {STEAMCMD_DIR} && "
+            "wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz && "
+            "tar -xvzf steamcmd_linux.tar.gz",
+            shell=True,
+            check=True
         )
-        await proc.communicate()
 
-        # Install dependencies
-        log("Installing dependencies...")
-        proc = await asyncio.create_subprocess_shell(
-            "sudo apt install -y wget curl software-properties-common",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-        )
-        stdout, _ = await proc.communicate()
-        log(stdout.decode())
-
-        # Install Steam
-        log("Installing Steam...")
-        proc = await asyncio.create_subprocess_shell(
-            "sudo apt install -y steam",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-        )
-        stdout, _ = await proc.communicate()
-        log(stdout.decode())
-
-        install_state["success"] = True
-        log("Steam installation completed successfully.")
+        add_log("SteamCMD installed successfully.")
+        return True
 
     except Exception as e:
-        install_state["error"] = str(e)
-        log(f"ERROR: {str(e)}")
-
-    finally:
-        install_state["running"] = False
+        state["error"] = str(e)
+        add_log(f"SteamCMD install failed: {e}")
+        return False
 
 
-# ---------------- API ENDPOINTS ----------------
+async def run_install(app_id: str):
+    """Run SteamCMD install"""
+    global state
 
-@router.post("/steam/install")
-async def install_steam():
-    if install_state["running"]:
-        return {"status": "already_running", "logs": install_state["logs"]}
+    if state["running"]:
+        add_log("Install already running.")
+        return
 
-    asyncio.create_task(install_steam_linux())
+    if not ensure_steamcmd():
+        state["running"] = False
+        return
+
+    state["running"] = True
+    state["success"] = False
+    state["error"] = None
+    state["logs"] = []
+
+    add_log(f"Starting Steam install for AppID {app_id}...")
+
+    cmd = [
+        STEAMCMD_BIN,
+        "+login", "anonymous",
+        "+force_install_dir", f"{STEAMCMD_DIR}/games/{app_id}",
+        "+app_update", app_id, "validate",
+        "+quit"
+    ]
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+
+    for line in process.stdout:
+        add_log(line.strip())
+
+    process.wait()
+
+    if process.returncode == 0:
+        state["success"] = True
+        add_log("Install completed successfully.")
+    else:
+        state["error"] = "SteamCMD install failed"
+        add_log("Install failed.")
+
+    state["running"] = False
+
+
+# ---------------- API ----------------
+
+@router.post("/install")
+async def install_game(payload: dict):
+    """
+    Start install
+    """
+    app_id = payload.get("app_id", "108600")  # default Project Zomboid
+
+    asyncio.create_task(run_install(app_id))
 
     return {
         "status": "started",
-        "message": "Steam installation started"
+        "app_id": app_id
     }
 
 
-@router.get("/steam/status")
-async def steam_status():
-    return install_state
+@router.get("/status")
+def get_status():
+    return state
 
 
-@router.post("/steam/reset")
-async def reset_state():
-    install_state["running"] = False
-    install_state["logs"] = []
-    install_state["success"] = False
-    install_state["error"] = None
+@router.post("/reset")
+def reset():
+    global state
+
+    state = {
+        "running": False,
+        "success": False,
+        "error": None,
+        "logs": []
+    }
 
     return {"status": "reset"}
