@@ -1,4 +1,4 @@
-🧩 Modix: Game Panel - https://discord.gg/6qN3MxcE6y
+🧩 Modix: Game Panel - https://discord.gg/ftWcJBgr69
 
 - Modix is a completely free, open-source, browser-based control panel built primarily for Project Zomboid, with support for other Steam-modded games being actively worked on.
 - This is a solo-developed project — built and maintained by one person in their own time. Because of that, progress isn’t always fast or consistent, but everything added is done properly with long-term stability in mind.
