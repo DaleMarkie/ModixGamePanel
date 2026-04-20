@@ -57,10 +57,10 @@ $PY -m pip install \
   pyjwt \
   apscheduler \
   httpx \
+  mcrcon \
   requests \
   sse-starlette \
-  tzlocal \ 
-  mcrcon
+  tzlocal 
 
 # ---------------------------
 # BACKEND HEALTH CHECK
