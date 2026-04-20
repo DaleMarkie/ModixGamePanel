@@ -6,7 +6,6 @@
 🐞 Bugs & Support
 
 - 🧾 Report issues or request features on GitHub (Issues tab)
-- 💬 For help or discussion
 
 ⚡ Quick Start (Linux / ChromeOS / Debian)
 
