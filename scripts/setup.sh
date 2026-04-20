@@ -59,7 +59,7 @@ $PY -m pip install \
   httpx \
   requests \
   sse-starlette \
-  tzlocal
+  tzlocal \ 
   mcrcon
 
 # ---------------------------
