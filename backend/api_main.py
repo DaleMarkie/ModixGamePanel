@@ -3,6 +3,7 @@ import json
 import subprocess
 import asyncio
 import signal
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -40,19 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# example local zomboid RCON config
-ZOMBOID_RCON = {
-    "id": "zomboid-local",
-    "host": "127.0.0.1",
-    "port": 27015,
-    "password": "admin123"
-}
-
-# ---------------- ZOMBOID CONFIG ----------------
+# ---------------- CONFIG ----------------
 ZOMBOID_DIR = "/home/ritchiedale72/ZomboidServer"
 START_SCRIPT = "./start-server.sh"
 
-# ---------------- PROCESS STATE (REPLACES SCREEN) ----------------
 zomboid_process = None
 log_clients = set()
 
@@ -83,12 +75,9 @@ def stop_zomboid():
     if not zomboid_process:
         return "Server not running"
 
-    try:
-        zomboid_process.send_signal(signal.SIGTERM)
-        zomboid_process = None
-        return "Zomboid stopped"
-    except Exception as e:
-        return str(e)
+    zomboid_process.terminate()
+    zomboid_process = None
+    return "Zomboid stopped"
 
 
 def restart_zomboid():
@@ -96,7 +85,7 @@ def restart_zomboid():
     return start_zomboid()
 
 
-# ---------------- LIVE LOG STREAM ----------------
+# ---------------- LOG STREAM ----------------
 async def stream_logs():
     global zomboid_process
 
@@ -106,20 +95,20 @@ async def stream_logs():
     for line in zomboid_process.stdout:
         dead = set()
 
-        for ws in log_clients:
+        for ws in list(log_clients):
             try:
                 await ws.send_text(line.strip())
             except:
                 dead.add(ws)
 
         for d in dead:
-            log_clients.remove(d)
+            log_clients.discard(d)
 
         if zomboid_process.poll() is not None:
             break
 
 
-# ---------------- FIXED TERMINAL API ----------------
+# ---------------- TERMINAL API ----------------
 @app.post("/api/terminal")
 async def terminal_api(payload: dict):
     action = payload.get("action")
@@ -136,7 +125,7 @@ async def terminal_api(payload: dict):
     return {"error": "invalid action"}
 
 
-# ---------------- WEBSOCKET (FIXED - NO DISCONNECT LOOP) ----------------
+# ---------------- WEBSOCKET ----------------
 @app.websocket("/ws/terminal")
 async def terminal_ws(websocket: WebSocket):
     await websocket.accept()
@@ -144,13 +133,12 @@ async def terminal_ws(websocket: WebSocket):
 
     try:
         while True:
-            await asyncio.sleep(60)  # keep alive
-
+            await asyncio.sleep(30)
     except WebSocketDisconnect:
         log_clients.discard(websocket)
 
 
-# ---------------- ROUTERS (UNCHANGED) ----------------
+# ---------------- ROUTERS ----------------
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
 app.include_router(filemanager_router, prefix="/api/filemanager")
@@ -169,7 +157,7 @@ app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(performance_router, prefix="/api")
 app.include_router(sidebar_router, prefix="/api/sidebar")
 
-app.include_router(terminal_router, prefix="")
+app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api")
 
@@ -178,3 +166,9 @@ app.include_router(serverports_router, prefix="/api")
 @app.get("/")
 def root():
     return {"status": "running"}
+
+
+# ---------------- START ----------------
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("backend.api_main:app", host="0.0.0.0", port=2010, reload=True)
