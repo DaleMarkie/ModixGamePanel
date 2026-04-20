@@ -8,16 +8,25 @@ const nextConfig = {
       },
     ];
   },
+
   images: {
     domains: ["cdn.cloudflare.steamstatic.com"],
   },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },
-  allowedDevOrigins: ["https://<sandbox-id>-3000.csb.app"],
+
+  // FIXED: proper dev origins
+  allowedDevOrigins: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://*.csb.app",
+  ],
 };
 
 module.exports = nextConfig;
