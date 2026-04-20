@@ -60,6 +60,7 @@ $PY -m pip install \
   requests \
   sse-starlette \
   tzlocal
+  mcrcon
 
 # ---------------------------
 # BACKEND HEALTH CHECK
