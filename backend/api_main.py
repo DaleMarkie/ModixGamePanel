@@ -1,8 +1,6 @@
 import os
-import json
 import subprocess
 import asyncio
-import signal
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +14,7 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
+
 from backend.rcon_pool import rcon_pool
 from backend.steam.steam_install_api import router as steam_install_router
 
@@ -30,6 +29,7 @@ from backend.API.Core.games_api.projectzomboid import (
 from backend.API.Core.tools_api import ddos_manager_api
 from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
+
 
 # ---------------- APP ----------------
 app = FastAPI(title="Modix Panel Backend")
@@ -76,7 +76,11 @@ def stop_zomboid():
     if not zomboid_process:
         return "Server not running"
 
-    zomboid_process.terminate()
+    try:
+        zomboid_process.terminate()
+    except Exception:
+        pass
+
     zomboid_process = None
     return "Zomboid stopped"
 
@@ -93,20 +97,25 @@ async def stream_logs():
     if not zomboid_process or not zomboid_process.stdout:
         return
 
-    for line in zomboid_process.stdout:
-        dead = set()
+    try:
+        for line in zomboid_process.stdout:
+            dead = set()
 
-        for ws in list(log_clients):
-            try:
-                await ws.send_text(line.strip())
-            except:
-                dead.add(ws)
+            for ws in list(log_clients):
+                try:
+                    await ws.send_text(line.strip())
+                except Exception:
+                    dead.add(ws)
 
-        for d in dead:
-            log_clients.discard(d)
+            for d in dead:
+                log_clients.discard(d)
 
-        if zomboid_process.poll() is not None:
-            break
+            if zomboid_process.poll() is not None:
+                break
+
+    except Exception:
+        # prevents crash loops during reloads
+        pass
 
 
 # ---------------- TERMINAL API ----------------
@@ -134,8 +143,12 @@ async def terminal_ws(websocket: WebSocket):
 
     try:
         while True:
-            await asyncio.sleep(30)
+            await asyncio.sleep(10)
+
     except WebSocketDisconnect:
+        log_clients.discard(websocket)
+
+    except Exception:
         log_clients.discard(websocket)
 
 
@@ -143,9 +156,10 @@ async def terminal_ws(websocket: WebSocket):
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
 app.include_router(filemanager_router, prefix="/api/filemanager")
-app.include_router(workshop_api.router, prefix="/workshop")
 
-app.include_router(modupdates_router, prefix="/api")
+app.include_router(workshop_api.router, prefix="/api/workshop")
+
+app.include_router(modupdates_router, prefix="/api/mods")
 app.include_router(modupdates_router, prefix="/api/updater")
 
 app.include_router(PlayersBannedAPI.router, prefix="/api/projectzomboid/banned")
@@ -158,19 +172,30 @@ app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(performance_router, prefix="/api")
 app.include_router(sidebar_router, prefix="/api/sidebar")
 
-app.include_router(terminal_router)
+app.include_router(terminal_router, prefix="/api/terminal")
 app.include_router(scheduler_router, prefix="/api/scheduler")
-app.include_router(serverports_router, prefix="/api")
-app.include_router(steam_install_router, prefix="/api")
+app.include_router(serverports_router, prefix="/api/ports")
+
+# Steam installer (IMPORTANT FIX)
+app.include_router(steam_install_router, prefix="/api/steam")
 
 
 # ---------------- ROOT ----------------
 @app.get("/")
 def root():
-    return {"status": "running"}
+    return {
+        "status": "running",
+        "service": "Modix Panel Backend"
+    }
 
 
 # ---------------- START ----------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.api_main:app", host="0.0.0.0", port=2010, reload=True)
+
+    uvicorn.run(
+        "backend.api_main:app",
+        host="0.0.0.0",
+        port=2010,
+        reload=True
+    )

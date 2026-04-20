@@ -54,47 +54,55 @@ const INITIAL_GAMES: Game[] = [
 ];
 
 const InstallPage: React.FC = () => {
-  const [osInfo, setOsInfo] = useState({ name: "Unknown", supported: false });
+  const [osInfo, setOsInfo] = useState({ name: "Unknown", supported: true });
   const [games, setGames] = useState<Game[]>(INITIAL_GAMES);
   const [search, setSearch] = useState("");
 
   const logsRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ---------------- DETECT OS ----------------
+  // ---------------- FIXED OS DETECTION ----------------
   useEffect(() => {
-    const platform = navigator.platform.toLowerCase();
+    const ua = navigator.userAgent.toLowerCase();
 
-    if (platform.includes("win")) {
+    const isWindows = ua.includes("win");
+    const isLinux = ua.includes("linux");
+    const isChromeOS =
+      ua.includes("cros") || ua.includes("crios") || ua.includes("chromeos");
+
+    if (isWindows) {
       setOsInfo({ name: "Windows", supported: true });
-    } else if (platform.includes("linux")) {
+    } else if (isChromeOS) {
+      setOsInfo({ name: "Chrome OS", supported: true });
+    } else if (isLinux) {
       setOsInfo({ name: "Linux", supported: true });
     } else {
-      setOsInfo({ name: platform, supported: false });
+      setOsInfo({ name: "Unknown", supported: false });
     }
   }, []);
 
-  // ---------------- AUTO SCROLL LOGS ----------------
+  // ---------------- AUTO SCROLL ----------------
   useEffect(() => {
     games.forEach((game) => {
       const el = logsRefs.current[game.id];
-      if (el) {
-        el.scrollTo({
-          top: el.scrollHeight,
-          behavior: "smooth",
-        });
-      }
+      if (el) el.scrollTop = el.scrollHeight;
     });
   }, [games]);
 
-  // ---------------- TOGGLE EXPAND ----------------
+  // cleanup interval (IMPORTANT for Chrome OS tabs)
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
   const toggleExpand = (id: string) => {
     setGames((prev) =>
       prev.map((g) => (g.id === id ? { ...g, expanded: !g.expanded } : g))
     );
   };
 
-  // ---------------- INSTALL SIMULATION ----------------
+  // ---------------- INSTALL ----------------
   const startInstall = (id: string) => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -107,7 +115,7 @@ const InstallPage: React.FC = () => {
     let progress = 0;
 
     intervalRef.current = setInterval(() => {
-      progress = Math.min(progress + Math.floor(Math.random() * 12 + 5), 100);
+      progress = Math.min(progress + Math.floor(Math.random() * 10 + 5), 100);
 
       setGames((prev) =>
         prev.map((g) => {
@@ -116,12 +124,13 @@ const InstallPage: React.FC = () => {
           const newLogs = [
             ...g.logs,
             `Downloading... ${progress}%`,
-            progress >= 50 && progress < 100 ? "Applying patches..." : "",
-            progress >= 90 ? "Finalizing installation..." : "",
+            progress > 40 && progress < 100 ? "Applying patches..." : "",
+            progress > 85 ? "Finalizing installation..." : "",
           ].filter(Boolean);
 
           if (progress >= 100 && intervalRef.current) {
             clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
 
           return {
@@ -133,10 +142,9 @@ const InstallPage: React.FC = () => {
           };
         })
       );
-    }, 600);
+    }, 700);
   };
 
-  // ---------------- FILTER ----------------
   const filteredGames = games.filter((g) =>
     g.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -145,35 +153,27 @@ const InstallPage: React.FC = () => {
     <main className="install-page">
       <header className="page-header">
         <h1>🎮 Modix Game Installer</h1>
-        <p>
-          Manage SteamCMD & install popular games like Project Zomboid, Rust,
-          and Space Engineers.
-        </p>
+        <p>Install games via SteamCMD with real backend integration soon.</p>
       </header>
 
       {/* OS STATUS */}
       <div
         className={`os-alert ${osInfo.supported ? "supported" : "unsupported"}`}
       >
-        {osInfo.supported ? (
-          <>
-            <FaWindows /> {osInfo.name} detected — supported.
-          </>
-        ) : (
-          <>
-            <FaLinux /> {osInfo.name} detected — limited support.
-          </>
-        )}
+        {osInfo.name === "Windows" && <FaWindows />}
+        {osInfo.name === "Linux" && <FaLinux />}
+        {osInfo.name === "Chrome OS" && <FaLinux />}
+        {osInfo.name} detected —{" "}
+        {osInfo.supported ? "supported" : "limited support"}
       </div>
 
       {/* SEARCH */}
       <div className="search-bar">
         <FaSearch />
         <input
-          type="text"
-          placeholder="Search games..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search games..."
         />
       </div>
 
@@ -187,15 +187,13 @@ const InstallPage: React.FC = () => {
             <div className="card-header" onClick={() => toggleExpand(game.id)}>
               <h3>{game.name}</h3>
 
-              <div className="status-icon">
-                {game.installed ? (
-                  <FaCheckCircle className="installed" />
-                ) : game.installing ? (
-                  <FaExclamationCircle className="installing" />
-                ) : (
-                  <FaTimesCircle className="not-installed" />
-                )}
-              </div>
+              {game.installed ? (
+                <FaCheckCircle className="installed" />
+              ) : game.installing ? (
+                <FaExclamationCircle className="installing" />
+              ) : (
+                <FaTimesCircle />
+              )}
             </div>
 
             {!game.installed && !game.installing && (
@@ -215,7 +213,7 @@ const InstallPage: React.FC = () => {
                     style={{ width: `${game.progress}%` }}
                   />
                 </div>
-                <span className="progress-text">{game.progress}%</span>
+                <span>{game.progress}%</span>
               </div>
             )}
 
@@ -226,10 +224,10 @@ const InstallPage: React.FC = () => {
                   logsRefs.current[game.id] = el;
                 }}
               >
-                {game.logs.length === 0 ? (
-                  <p className="log-placeholder">No logs yet...</p>
+                {game.logs.length ? (
+                  game.logs.map((l, i) => <div key={i}>{l}</div>)
                 ) : (
-                  game.logs.map((line, idx) => <div key={idx}>{line}</div>)
+                  <p>No logs yet...</p>
                 )}
               </div>
             )}
@@ -237,10 +235,8 @@ const InstallPage: React.FC = () => {
         ))}
       </section>
 
-      {/* FOOTER */}
       <div className="coming-soon-banner">
-        <FaClock /> Full backend integration coming soon — real installs and
-        logs!
+        <FaClock /> Backend installs coming soon (real SteamCMD integration)
       </div>
     </main>
   );

@@ -1,138 +1,283 @@
-.steam-page {
+/* =========================
+   BASE LAYOUT
+========================= */
+
+.install-page {
+  width: 100%;
   min-height: 100vh;
-  padding: 40px;
+  background: #0b0f19;
+  color: #ffffff;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
-  background: radial-gradient(circle at top, #151a26, #0b0f17);
-  color: white;
-
-  font-family: ui-sans-serif, system-ui;
-}
-
-/* HEADER */
-.steam-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.steam-header .title {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.steam-header h1 {
-  font-size: 34px;
-  background: linear-gradient(90deg, #7c5cff, #4de1ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* =========================
+   HEADER
+========================= */
+
+.page-header {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.steam-header p {
-  color: #aab3c5;
-  font-size: 13px;
+.page-header h1 {
+  font-size: 28px;
+  margin: 0;
 }
 
-/* STATUS */
-.status-card {
-  max-width: 600px;
-  margin: auto;
-  padding: 18px;
-
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  backdrop-filter: blur(16px);
-}
-
-.status {
+.page-header p {
+  opacity: 0.7;
+  margin-top: 6px;
   font-size: 14px;
-  text-align: center;
 }
 
-.status.running {
-  color: #ffd36b;
-}
-.status.success {
-  color: #4dffb0;
-}
-.status.error {
-  color: #ff6b6b;
-}
-.status.idle {
-  color: #aab3c5;
-}
+/* =========================
+   OS BANNER
+========================= */
 
-/* BUTTONS */
-.actions {
+.os-alert {
+  padding: 12px 16px;
+  border-radius: 10px;
   display: flex;
-  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.os-alert.supported {
+  background: rgba(0, 200, 100, 0.15);
+  border: 1px solid rgba(0, 200, 100, 0.4);
+}
+
+.os-alert.unsupported {
+  background: rgba(255, 50, 50, 0.15);
+  border: 1px solid rgba(255, 50, 50, 0.4);
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111827;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+}
+
+.search-bar input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 14px;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 14px;
+
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 
-  margin-top: 20px;
+  transition: 0.2s ease;
 }
 
-.btn {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: none;
+.card.expanded {
+  grid-column: span 1;
+}
 
+/* =========================
+   CARD HEADER
+========================= */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* =========================
+   STATUS ICONS
+========================= */
+
+.status-icon {
+  font-size: 18px;
+}
+
+.installed {
+  color: #22c55e;
+}
+
+.installing {
+  color: #f59e0b;
+}
+
+.not-installed {
+  color: #ef4444;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.install-btn {
+  background: #2563eb;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
 
-  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.btn.primary {
-  background: linear-gradient(135deg, #7c5cff, #4de1ff);
-  color: white;
+.install-btn:hover {
+  background: #1d4ed8;
 }
 
-.btn.secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+/* =========================
+   PROGRESS BAR
+========================= */
+
+.progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* LOG BOX */
-.log-box {
-  margin: 30px auto;
-  max-width: 700px;
-
-  border-radius: 16px;
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 20px;
   overflow: hidden;
-
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.log-header {
-  padding: 10px;
-  font-size: 13px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #aab3c5;
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #22c55e);
+  transition: width 0.3s ease;
 }
+
+.progress-text {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* =========================
+   LOGS (FIXED FOR CHROMEOS)
+   IMPORTANT PART 👇
+========================= */
 
 .logs {
-  max-height: 300px;
+  margin-top: 10px;
+
+  height: 180px;
+  max-height: 180px;
+
   overflow-y: auto;
+  overflow-x: hidden;
 
-  padding: 12px;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
 
-  font-family: monospace;
+  padding: 10px;
   font-size: 12px;
+
+  /* IMPORTANT for Linux/ChromeOS smooth scroll */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.log-line {
-  margin-bottom: 4px;
-  color: #cbd5e1;
+.log-placeholder {
+  opacity: 0.5;
 }
 
-.empty {
-  color: #666;
+/* =========================
+   SCROLLBAR (optional but helps)
+========================= */
+
+.logs::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logs::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 10px;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.coming-soon-banner {
+  margin-top: 20px;
+  padding: 12px;
+  text-align: center;
+
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* =========================
+   MOBILE FIXES (IMPORTANT)
+========================= */
+
+@media (max-width: 600px) {
+  .install-page {
+    padding: 14px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .logs {
+    height: 150px;
+  }
 }
