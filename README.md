@@ -8,8 +8,6 @@
 - 🧾 Report issues or request features on GitHub (Issues tab)
 - 💬 For help or discussion, use the GitHub Discussions tab or post directly here
 
-- 🚀 Modix Game Panel — Installation Guide
-
 ⚡ Quick Start (Linux / ChromeOS / Debian)
 
 Clone the project
