@@ -1,241 +1,138 @@
-/* Install.css */
+.steam-page {
+  min-height: 100vh;
+  padding: 40px;
 
-/* Variables */
-:root {
-  --bg-dark: #1e1e2f;
-  --card-bg: #2a2a3c;
-  --card-hover: #33334d;
-  --text-light: #e0e0e0;
-  --text-muted: #aaa;
-  --accent: #4ade80; /* green */
-  --warn: #facc15; /* yellow */
-  --fail: #f87171; /* red */
-  --progress-bg: #44445c;
-  --progress-fill: #4ade80;
+  background: radial-gradient(circle at top, #151a26, #0b0f17);
+  color: white;
+
+  font-family: ui-sans-serif, system-ui;
 }
 
-/* Global */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-light);
-}
-
-/* Page Header */
-.page-header {
+/* HEADER */
+.steam-header {
   text-align: center;
-  padding: 2rem 1rem;
+  margin-bottom: 30px;
 }
 
-.page-header h1 {
-  font-size: 2.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.page-header p {
-  font-size: 1rem;
-  color: var(--text-muted);
-}
-
-/* OS Alert */
-.os-alert {
+.steam-header .title {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  padding: 0.8rem;
-  margin: 0 2rem 2rem 2rem;
-  border-radius: 8px;
-  background-color: #27273f;
-}
-
-.os-alert.supported {
-  border-left: 4px solid var(--accent);
-}
-
-.os-alert.unsupported {
-  border-left: 4px solid var(--fail);
-}
-
-/* Search Bar */
-.search-bar {
-  display: flex;
   align-items: center;
-  margin: 0 2rem 1.5rem 2rem;
-  padding: 0.5rem 1rem;
-  background-color: #27273f;
-  border-radius: 8px;
-  gap: 0.5rem;
+  gap: 12px;
 }
 
-.search-bar input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text-light);
-  font-size: 1rem;
+.steam-header h1 {
+  font-size: 34px;
+  background: linear-gradient(90deg, #7c5cff, #4de1ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Install Grid */
-.install-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 0 2rem 3rem 2rem;
+.steam-header p {
+  color: #aab3c5;
+  font-size: 13px;
 }
 
-/* Card */
-.card {
-  background-color: var(--card-bg);
+/* STATUS */
+.status-card {
+  max-width: 600px;
+  margin: auto;
+  padding: 18px;
+
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(16px);
+}
+
+.status {
+  font-size: 14px;
+  text-align: center;
+}
+
+.status.running {
+  color: #ffd36b;
+}
+.status.success {
+  color: #4dffb0;
+}
+.status.error {
+  color: #ff6b6b;
+}
+.status.idle {
+  color: #aab3c5;
+}
+
+/* BUTTONS */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 14px;
   border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  background-color: var(--card-hover);
-  transform: translateY(-2px);
-}
-
-/* Card Header */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-
-.card-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.status-icon svg {
-  font-size: 1.5rem;
-}
-
-.installed {
-  color: var(--accent);
-}
-
-.not-installed {
-  color: var(--fail);
-}
-
-.installing {
-  color: var(--warn);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Install Button */
-.install-btn {
-  margin: 1rem 0;
-  padding: 0.5rem 1rem;
-  background-color: var(--accent);
-  color: #000;
   border: none;
-  border-radius: 8px;
+
   cursor: pointer;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
+
+  transition: 0.2s;
 }
 
-.install-btn:hover {
-  background-color: #22c55e;
+.btn.primary {
+  background: linear-gradient(135deg, #7c5cff, #4de1ff);
+  color: white;
 }
 
-/* Progress Bar */
-.progress-wrapper {
-  margin: 0.5rem 0;
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
 }
 
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background-color: var(--progress-bg);
-  border-radius: 6px;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* LOG BOX */
+.log-box {
+  margin: 30px auto;
+  max-width: 700px;
+
+  border-radius: 16px;
   overflow: hidden;
+
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.progress-fill {
-  height: 100%;
-  background-color: var(--progress-fill);
-  border-radius: 6px;
-  transition: width 0.5s ease;
+.log-header {
+  padding: 10px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #aab3c5;
 }
 
-.progress-text {
-  margin-top: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-align: right;
-}
-
-/* Logs */
 .logs {
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  background-color: #1f1f2b;
-  border-radius: 8px;
-  max-height: 150px;
+  max-height: 300px;
   overflow-y: auto;
-  font-family: "Courier New", monospace;
-  font-size: 0.85rem;
-  color: var(--text-light);
+
+  padding: 12px;
+
+  font-family: monospace;
+  font-size: 12px;
 }
 
-.log-placeholder {
-  color: var(--text-muted);
+.log-line {
+  margin-bottom: 4px;
+  color: #cbd5e1;
 }
 
-/* Expanded Card */
-.card.expanded {
-  grid-column: span 2;
-}
-
-/* Coming Soon Banner */
-.coming-soon-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  margin: 0 2rem 2rem 2rem;
-  border-radius: 8px;
-  background-color: #27273f;
-  color: var(--warn);
-  font-weight: 600;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .install-grid {
-    grid-template-columns: 1fr;
-  }
-  .card.expanded {
-    grid-column: 1 / -1;
-  }
+.empty {
+  color: #666;
 }

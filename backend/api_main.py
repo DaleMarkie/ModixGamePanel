@@ -17,6 +17,7 @@ from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
 from backend.rcon_pool import rcon_pool
+from backend.steam.steam_install_api import router as steam_install_router
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -160,6 +161,7 @@ app.include_router(sidebar_router, prefix="/api/sidebar")
 app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api")
+app.include_router(steam_install_router, prefix="/api")
 
 
 # ---------------- ROOT ----------------
