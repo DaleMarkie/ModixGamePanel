@@ -50,6 +50,15 @@ zomboid_process = None
 log_clients = set()
 
 
+# ---------------- SAFE TASK RUNNER ----------------
+def run_async_task(coro):
+    """
+    Safe FastAPI async task runner (works with reload mode)
+    """
+    loop = asyncio.get_event_loop()
+    loop.create_task(coro)
+
+
 # ---------------- ZOMBOID CONTROL ----------------
 def start_zomboid():
     global zomboid_process
@@ -66,8 +75,7 @@ def start_zomboid():
         bufsize=1
     )
 
-    # SAFE TASK CREATION (fix for reload crashes)
-    asyncio.get_event_loop().create_task(stream_logs())
+    run_async_task(stream_logs())
 
     return f"Zomboid started PID {zomboid_process.pid}"
 
@@ -116,7 +124,6 @@ async def stream_logs():
                 break
 
     except Exception:
-        # prevents uvicorn reload crashes
         pass
 
 
@@ -146,8 +153,10 @@ async def terminal_ws(websocket: WebSocket):
     try:
         while True:
             await asyncio.sleep(10)
+
     except WebSocketDisconnect:
         log_clients.discard(websocket)
+
     except Exception:
         log_clients.discard(websocket)
 
@@ -176,7 +185,7 @@ app.include_router(terminal_router, prefix="/api/terminal")
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api/ports")
 
-# ✅ FIXED STEAM ROUTE (IMPORTANT)
+# Steam installer (REAL)
 app.include_router(steam_install_router, prefix="/api/steam")
 
 

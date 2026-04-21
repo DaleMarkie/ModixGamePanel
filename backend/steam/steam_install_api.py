@@ -1,143 +1,139 @@
 import os
-import subprocess
+import uuid
 import asyncio
-from fastapi import APIRouter
+import subprocess
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 
-# ---------------- STATE ----------------
-state = {
-    "running": False,
-    "success": False,
-    "error": None,
-    "logs": []
+STEAMCMD_PATH = "/home/steam/steamcmd/steamcmd.sh"  # adjust if needed
+STEAM_DIR = "/home/steam/steamapps"
+
+# appid mapping
+GAMES = {
+    "zomboid": "108600",
+    "rust": "252490",
+    "spaceengineers": "244850",
 }
 
-STEAMCMD_DIR = os.path.expanduser("~/steamcmd")
-STEAMCMD_BIN = f"{STEAMCMD_DIR}/steamcmd.sh"
+jobs = {}  # job_id -> {"progress": int, "logs": [], "status": str}
+clients = {}  # job_id -> set(websockets)
 
 
-# ---------------- HELPERS ----------------
-def add_log(line: str):
-    print(line)
-    state["logs"].append(line)
-    if len(state["logs"]) > 300:
-        state["logs"] = state["logs"][-300:]
+# ---------------- UTIL ----------------
+def create_job(game):
+    job_id = str(uuid.uuid4())
+    jobs[job_id] = {
+        "progress": 0,
+        "logs": [],
+        "status": "starting",
+        "game": game,
+    }
+    clients[job_id] = set()
+    return job_id
 
 
-def ensure_steamcmd():
-    """Install SteamCMD if not present"""
-    if os.path.exists(STEAMCMD_BIN):
-        return True
+def parse_progress(line: str):
+    """
+    SteamCMD outputs lines like:
+    Downloading update (12 of 100) ...
+    """
+    import re
 
-    add_log("SteamCMD not found. Installing...")
+    match = re.search(r"\((\d+)\s*of\s*(\d+)\)", line)
+    if match:
+        current = int(match.group(1))
+        total = int(match.group(2))
+        return int((current / total) * 100)
 
-    os.makedirs(STEAMCMD_DIR, exist_ok=True)
+    if "success" in line.lower():
+        return 100
 
-    try:
-        subprocess.run(
-            "apt-get update && apt-get install -y wget tar",
-            shell=True,
-            check=True
-        )
-
-        subprocess.run(
-            f"cd {STEAMCMD_DIR} && "
-            "wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz && "
-            "tar -xvzf steamcmd_linux.tar.gz",
-            shell=True,
-            check=True
-        )
-
-        add_log("SteamCMD installed successfully.")
-        return True
-
-    except Exception as e:
-        state["error"] = str(e)
-        add_log(f"SteamCMD install failed: {e}")
-        return False
+    return None
 
 
-async def run_install(app_id: str):
-    """Run SteamCMD install"""
-    global state
-
-    if state["running"]:
-        add_log("Install already running.")
-        return
-
-    if not ensure_steamcmd():
-        state["running"] = False
-        return
-
-    state["running"] = True
-    state["success"] = False
-    state["error"] = None
-    state["logs"] = []
-
-    add_log(f"Starting Steam install for AppID {app_id}...")
-
+async def run_steamcmd(job_id: str, appid: str):
     cmd = [
-        STEAMCMD_BIN,
+        STEAMCMD_PATH,
         "+login", "anonymous",
-        "+force_install_dir", f"{STEAMCMD_DIR}/games/{app_id}",
-        "+app_update", app_id, "validate",
-        "+quit"
+        "+force_install_dir", STEAM_DIR,
+        "+app_update", appid,
+        "validate",
+        "+quit",
     ]
 
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
     )
 
-    for line in process.stdout:
-        add_log(line.strip())
+    jobs[job_id]["status"] = "running"
 
-    process.wait()
+    while True:
+        line = await process.stdout.readline()
+        if not line:
+            break
 
-    if process.returncode == 0:
-        state["success"] = True
-        add_log("Install completed successfully.")
-    else:
-        state["error"] = "SteamCMD install failed"
-        add_log("Install failed.")
+        text = line.decode(errors="ignore").strip()
 
-    state["running"] = False
+        jobs[job_id]["logs"].append(text)
 
+        progress = parse_progress(text)
+        if progress is not None:
+            jobs[job_id]["progress"] = progress
 
-# ---------------- API ----------------
+        # push to websocket clients
+        dead = set()
+        for ws in clients[job_id]:
+            try:
+                await ws.send_json({
+                    "job": job_id,
+                    "log": text,
+                    "progress": jobs[job_id]["progress"],
+                })
+            except:
+                dead.add(ws)
 
-@router.post("/install")
-async def install_game(payload: dict):
-    """
-    Start install
-    """
-    app_id = payload.get("app_id", "108600")  # default Project Zomboid
+        for d in dead:
+            clients[job_id].discard(d)
 
-    asyncio.create_task(run_install(app_id))
-
-    return {
-        "status": "started",
-        "app_id": app_id
-    }
-
-
-@router.get("/status")
-def get_status():
-    return state
+    jobs[job_id]["progress"] = 100
+    jobs[job_id]["status"] = "done"
 
 
-@router.post("/reset")
-def reset():
-    global state
+# ---------------- INSTALL ----------------
+@router.post("/install/{game}")
+async def install_game(game: str):
+    if game not in GAMES:
+        return {"error": "unknown game"}
 
-    state = {
-        "running": False,
-        "success": False,
-        "error": None,
-        "logs": []
-    }
+    job_id = create_job(game)
+    appid = GAMES[game]
 
-    return {"status": "reset"}
+    asyncio.create_task(run_steamcmd(job_id, appid))
+
+    return {"job_id": job_id, "appid": appid}
+
+
+# ---------------- STATUS ----------------
+@router.get("/status/{job_id}")
+async def status(job_id: str):
+    return jobs.get(job_id, {"error": "not found"})
+
+
+# ---------------- WEBSOCKET ----------------
+@router.websocket("/ws/{job_id}")
+async def ws_logs(websocket: WebSocket, job_id: str):
+    await websocket.accept()
+
+    if job_id not in clients:
+        clients[job_id] = set()
+
+    clients[job_id].add(websocket)
+
+    try:
+        while True:
+            await asyncio.sleep(30)
+    except WebSocketDisconnect:
+        clients[job_id].discard(websocket)
