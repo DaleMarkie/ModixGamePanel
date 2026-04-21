@@ -14,6 +14,8 @@ from backend.API.Core.workshop_api import workshop_api
 from backend.modupdates_api import router as modupdates_router
 from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
+from backend.performance import router as performance_router
+from backend.sidebar_api import router as sidebar_router
 
 from backend.rcon_pool import rcon_pool
 from backend.steam.steam_install_api import router as steam_install_router
@@ -27,8 +29,6 @@ from backend.API.Core.games_api.projectzomboid import (
 )
 
 from backend.API.Core.tools_api import ddos_manager_api
-from backend.performance import router as performance_router
-from backend.sidebar_api import router as sidebar_router
 
 
 # ---------------- APP ----------------
@@ -42,7 +42,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------- CONFIG ----------------
+
+# ---------------- OPTIONAL SERVER STATE ----------------
 ZOMBOID_DIR = "/home/ritchiedale72/ZomboidServer"
 START_SCRIPT = "./start-server.sh"
 
@@ -52,19 +53,19 @@ log_clients = set()
 
 # ---------------- SAFE TASK RUNNER ----------------
 def run_async_task(coro):
-    """
-    Safe FastAPI async task runner (works with reload mode)
-    """
     loop = asyncio.get_event_loop()
     loop.create_task(coro)
 
 
-# ---------------- ZOMBOID CONTROL ----------------
+# ---------------- SERVER CONTROL ----------------
 def start_zomboid():
     global zomboid_process
 
     if zomboid_process and zomboid_process.poll() is None:
         return "Server already running"
+
+    if not os.path.exists(ZOMBOID_DIR):
+        return "Zomboid directory not found"
 
     zomboid_process = subprocess.Popen(
         ["bash", START_SCRIPT],
@@ -77,22 +78,20 @@ def start_zomboid():
 
     run_async_task(stream_logs())
 
-    return f"Zomboid started PID {zomboid_process.pid}"
+    return f"Started PID {zomboid_process.pid}"
 
 
 def stop_zomboid():
     global zomboid_process
 
-    if not zomboid_process:
-        return "Server not running"
-
-    try:
-        zomboid_process.terminate()
-    except Exception:
-        pass
+    if zomboid_process:
+        try:
+            zomboid_process.terminate()
+        except Exception:
+            pass
 
     zomboid_process = None
-    return "Zomboid stopped"
+    return "Stopped"
 
 
 def restart_zomboid():
@@ -153,17 +152,14 @@ async def terminal_ws(websocket: WebSocket):
     try:
         while True:
             await asyncio.sleep(10)
-
     except WebSocketDisconnect:
         log_clients.discard(websocket)
 
-    except Exception:
-        log_clients.discard(websocket)
 
-
-# ---------------- ROUTERS ----------------
+# ---------------- ROUTER MOUNTING ----------------
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
+
 app.include_router(filemanager_router, prefix="/api/filemanager")
 
 app.include_router(workshop_api.router, prefix="/api/workshop")
@@ -184,9 +180,18 @@ app.include_router(sidebar_router, prefix="/api/sidebar")
 app.include_router(terminal_router, prefix="/api/terminal")
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api/ports")
-
-# Steam installer (REAL)
 app.include_router(steam_install_router, prefix="/api/steam")
+
+
+# ---------------- SAFE FALLBACK ROUTES (FIX 404 SPAM) ----------------
+@app.get("/api/modules/enabled")
+def modules_enabled():
+    return {"modules": []}
+
+
+@app.get("/api/docker/containers")
+def docker_containers():
+    return {"containers": []}
 
 
 # ---------------- ROOT ----------------
