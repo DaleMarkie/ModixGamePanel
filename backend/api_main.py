@@ -3,8 +3,9 @@ import subprocess
 import asyncio
 import signal
 from threading import Thread
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
+import configparser
 
 # ---------------- CORE ROUTES ----------------
 from backend.API.Core.auth import auth_router
@@ -49,7 +50,7 @@ PID_FILE = os.path.join(ZOMBOID_DIR, "server.pid")
 
 log_clients: set[WebSocket] = set()
 
-# ---------------- EVENT LOOP (FIX) ----------------
+# ---------------- EVENT LOOP FIX ----------------
 EVENT_LOOP = None
 
 
@@ -91,18 +92,17 @@ def start_log_stream(proc: subprocess.Popen):
     Thread(target=_stream_logs_sync, args=(proc,), daemon=True).start()
 
 
-# ---------------- PID HELPERS ----------------
+# ---------------- PID SYSTEM ----------------
 def read_pid():
     if not os.path.exists(PID_FILE):
         return None
     try:
-        with open(PID_FILE, "r") as f:
-            return int(f.read().strip())
+        return int(open(PID_FILE).read().strip())
     except:
         return None
 
 
-def write_pid(pid: int):
+def write_pid(pid):
     with open(PID_FILE, "w") as f:
         f.write(str(pid))
 
@@ -112,11 +112,11 @@ def clear_pid():
         os.remove(PID_FILE)
 
 
-def kill_process(pid: int):
+def kill_pid(pid):
     try:
         os.kill(pid, signal.SIGTERM)
         return True
-    except Exception:
+    except:
         return False
 
 
@@ -125,11 +125,11 @@ def start_zomboid():
     if not os.path.exists(ZOMBOID_DIR):
         return "Zomboid directory not found"
 
-    existing = read_pid()
-    if existing:
+    pid = read_pid()
+    if pid:
         try:
-            os.kill(existing, 0)
-            return f"Server already running (PID {existing})"
+            os.kill(pid, 0)
+            return f"Server already running (PID {pid})"
         except:
             clear_pid()
 
@@ -154,12 +154,12 @@ def stop_zomboid():
     if not pid:
         return "Server not running"
 
-    if kill_process(pid):
+    if kill_pid(pid):
         clear_pid()
         return f"Stopped PID {pid}"
 
     clear_pid()
-    return "Failed to stop (stale PID cleaned)"
+    return "Stopped (stale PID cleaned)"
 
 
 def restart_zomboid():
@@ -179,6 +179,88 @@ async def execute_rcon(command: str):
         return f"RCON error: {str(e)}"
 
 
+# =========================================================
+# 🧠 SERVER SETTINGS API (THIS IS WHAT YOUR UI USES)
+# =========================================================
+
+# ---------- LIST INI FILES ----------
+@app.get("/api/server_settings/list-inis")
+def list_inis():
+    try:
+        return [
+            f for f in os.listdir(ZOMBOID_DIR)
+            if f.endswith(".ini") or f.endswith(".cfg")
+        ]
+    except:
+        return []
+
+
+# ---------- READ INI ----------
+@app.get("/api/server_settings/projectzomboid")
+def get_settings(file: str = Query(...)):
+    path = os.path.join(ZOMBOID_DIR, file)
+
+    if not os.path.exists(path):
+        return {"error": "file not found"}
+
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(path)
+
+    result = {}
+
+    for section in config.sections():
+        result[section] = {}
+
+        for key, value in config[section].items():
+
+            # type conversion
+            if value.lower() in ["true", "false"]:
+                value = value.lower() == "true"
+            else:
+                try:
+                    if "." in value:
+                        value = float(value)
+                    else:
+                        value = int(value)
+                except:
+                    pass
+
+            result[section][key] = value
+
+    return result
+
+
+# ---------- SAVE INI ----------
+@app.post("/api/server_settings/projectzomboid")
+async def save_settings(file: str = Query(...), payload: dict = None):
+    path = os.path.join(ZOMBOID_DIR, file)
+
+    if not os.path.exists(path):
+        return {"error": "file not found"}
+
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(path)
+
+    try:
+        for section, values in payload.items():
+
+            if not config.has_section(section):
+                config.add_section(section)
+
+            for key, value in values.items():
+                config.set(section, key, str(value))
+
+        with open(path, "w") as f:
+            config.write(f)
+
+        return {"success": True}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 # ---------------- TERMINAL API ----------------
 @app.post("/api/terminal")
 async def terminal_api(payload: dict):
@@ -194,8 +276,7 @@ async def terminal_api(payload: dict):
         return {"output": restart_zomboid()}
 
     if action == "rcon":
-        cmd = payload.get("command", "")
-        return {"output": await execute_rcon(cmd)}
+        return {"output": await execute_rcon(payload.get("command", ""))}
 
     return {"error": "invalid action"}
 
@@ -211,7 +292,7 @@ async def terminal_ws(websocket: WebSocket):
             msg = await websocket.receive_text()
 
             if msg.startswith("/"):
-                cmd = msg.lstrip("/")
+                cmd = msg[1:]
                 result = await execute_rcon(cmd)
                 await websocket.send_text(f"RCON: {result}")
                 continue
@@ -234,7 +315,6 @@ async def terminal_ws(websocket: WebSocket):
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
 app.include_router(filemanager_router, prefix="/api/filemanager")
-
 app.include_router(workshop_api.router, prefix="/api/workshop")
 
 app.include_router(modupdates_router, prefix="/api/mods")
@@ -256,14 +336,16 @@ app.include_router(serverports_router, prefix="/api/ports")
 app.include_router(steam_install_router, prefix="/api/steam")
 
 
-# ---------------- FALLBACK ----------------
+# ---------------- BASIC ROUTES ----------------
 @app.get("/api/modules/enabled")
 def modules_enabled():
     return {"modules": []}
 
+
 @app.get("/api/docker/containers")
 def docker_containers():
     return {"containers": []}
+
 
 @app.get("/")
 def root():
@@ -273,9 +355,4 @@ def root():
 # ---------------- START ----------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "backend.api_main:app",
-        host="0.0.0.0",
-        port=2010,
-        reload=True
-    )
+    uvicorn.run("backend.api_main:app", host="0.0.0.0", port=2010, reload=True)
