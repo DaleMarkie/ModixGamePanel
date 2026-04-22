@@ -49,6 +49,15 @@ PID_FILE = os.path.join(ZOMBOID_DIR, "server.pid")
 
 log_clients: set[WebSocket] = set()
 
+# ---------------- EVENT LOOP (FIX) ----------------
+EVENT_LOOP = None
+
+
+@app.on_event("startup")
+async def startup_event():
+    global EVENT_LOOP
+    EVENT_LOOP = asyncio.get_running_loop()
+
 
 # ---------------- LOG STREAM ----------------
 def _stream_logs_sync(proc: subprocess.Popen):
@@ -60,10 +69,11 @@ def _stream_logs_sync(proc: subprocess.Popen):
 
             for ws in list(log_clients):
                 try:
-                    asyncio.run_coroutine_threadsafe(
-                        ws.send_text(line.strip()),
-                        asyncio.get_event_loop()
-                    )
+                    if EVENT_LOOP:
+                        asyncio.run_coroutine_threadsafe(
+                            ws.send_text(line.strip()),
+                            EVENT_LOOP
+                        )
                 except Exception:
                     dead.add(ws)
 
@@ -72,6 +82,7 @@ def _stream_logs_sync(proc: subprocess.Popen):
 
             if proc.poll() is not None:
                 break
+
     except Exception:
         pass
 
@@ -148,7 +159,7 @@ def stop_zomboid():
         return f"Stopped PID {pid}"
 
     clear_pid()
-    return "Failed to stop (cleaned stale PID)"
+    return "Failed to stop (stale PID cleaned)"
 
 
 def restart_zomboid():
@@ -183,7 +194,7 @@ async def terminal_api(payload: dict):
         return {"output": restart_zomboid()}
 
     if action == "rcon":
-        cmd = payload.get("command")
+        cmd = payload.get("command", "")
         return {"output": await execute_rcon(cmd)}
 
     return {"error": "invalid action"}
@@ -199,14 +210,12 @@ async def terminal_ws(websocket: WebSocket):
         while True:
             msg = await websocket.receive_text()
 
-            # direct rcon (/command)
             if msg.startswith("/"):
                 cmd = msg.lstrip("/")
                 result = await execute_rcon(cmd)
                 await websocket.send_text(f"RCON: {result}")
                 continue
 
-            # json rcon
             try:
                 import json
                 data = json.loads(msg)
