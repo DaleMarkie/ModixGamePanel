@@ -9,8 +9,8 @@ import {
   FaStop,
   FaRedo,
   FaTerminal,
-  FaCircle,
-  FaBolt,
+  FaSearch,
+  FaTrash,
 } from "react-icons/fa";
 
 interface Log {
@@ -41,11 +41,17 @@ export default function Terminal() {
 
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+
   const [filtered, setFiltered] = useState<string[]>([]);
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [followTail, setFollowTail] = useState(true);
 
   const wsRef = useRef<WebSocket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // ---------------- LOG ----------------
   const push = (type: Log["type"], text: string) => {
     setLogs((prev) => [
       ...prev,
@@ -58,6 +64,7 @@ export default function Terminal() {
     ]);
   };
 
+  // ---------------- API ----------------
   const callAPI = async (action: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/terminal`, {
@@ -79,6 +86,7 @@ export default function Terminal() {
     }
   };
 
+  // ---------------- SEND ----------------
   const sendCommand = () => {
     if (!input.trim()) return;
 
@@ -87,46 +95,76 @@ export default function Terminal() {
     setHistory((h) => [input, ...h].slice(0, 50));
     setHistoryIndex(-1);
 
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "rcon",
-          command: input,
-        })
-      );
-    } else {
-      push("error", "WebSocket not connected");
-    }
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "rcon",
+        command: input,
+      })
+    );
 
     setInput("");
     setFiltered([]);
   };
 
+  // ---------------- CLEAR ----------------
+  const clearLogs = async () => {
+    await fetch(`${API_BASE}/api/terminal/clear`, {
+      method: "POST",
+    });
+
+    setLogs([]);
+  };
+
+  // ---------------- SEARCH ----------------
+  const searchLogs = async (q: string) => {
+    setSearchQuery(q);
+
+    if (!q.trim()) {
+      setSearchMode(false);
+      return;
+    }
+
+    setSearchMode(true);
+
+    const res = await fetch(`${API_BASE}/api/terminal/search?q=${q}`);
+
+    const data = await res.json();
+
+    setLogs(
+      data.results.map((r: string, i: number) => ({
+        id: i,
+        text: r,
+        type: "output",
+        time: "",
+      }))
+    );
+  };
+
+  // ---------------- WS ----------------
   useEffect(() => {
     const connect = () => {
-      const ws = new WebSocket(
-        `${API_BASE.replace("http", "ws")}/ws/terminal`
-      );
+      const ws = new WebSocket(`${API_BASE.replace("http", "ws")}/ws/terminal`);
 
       wsRef.current = ws;
 
       ws.onopen = () => {
         setConnected(true);
-        push("system", "WebSocket connected");
+        push("system", "Connected");
       };
 
       ws.onmessage = (e) => {
+        if (e.data === "__CLEAR__") {
+          setLogs([]);
+          return;
+        }
+
         push("output", e.data);
       };
 
-      ws.onerror = () => {
-        setConnected(false);
-        push("error", "WebSocket error");
-      };
+      ws.onerror = () => setConnected(false);
 
       ws.onclose = () => {
         setConnected(false);
-        push("error", "Disconnected — reconnecting...");
         setTimeout(connect, 3000);
       };
     };
@@ -135,27 +173,28 @@ export default function Terminal() {
     return () => wsRef.current?.close();
   }, []);
 
+  // ---------------- AUTO SCROLL ----------------
   useEffect(() => {
-    callAPI("status");
-  }, []);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (followTail) {
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [logs]);
 
-  const onInputChange = (val: string) => {
-    setInput(val);
-
-    if (!val) return setFiltered([]);
-
-    setFiltered(
-      suggestions.filter((s) =>
-        s.toLowerCase().includes(val.toLowerCase())
-      )
-    );
-  };
-
+  // ---------------- KEY HANDLER ----------------
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.ctrlKey && e.key === "k") {
+      setSearchMode(!searchMode);
+      return;
+    }
+
+    if (e.key === "Enter") {
+      if (searchMode) {
+        searchLogs(searchQuery);
+        return;
+      }
+      sendCommand();
+    }
+
     if (e.key === "ArrowUp") {
       const next = history[historyIndex + 1];
       if (next) {
@@ -169,25 +208,20 @@ export default function Terminal() {
       setHistoryIndex(Math.max(historyIndex - 1, -1));
       setInput(prev);
     }
-
-    if (e.key === "Enter") sendCommand();
   };
 
+  // ---------------- UI ----------------
   return (
     <div className="modern-terminal">
       {/* HEADER */}
       <div className="terminal-top">
         <div className="left">
           <FaTerminal />
-          <span>Control Console</span>
+          Control Console
         </div>
 
         <div className="right">
-          <span className="dot green" />
-          WS {connected ? "ONLINE" : "OFFLINE"}
-
-          <span className="dot red" />
-          SERVER {status}
+          WS: {connected ? "ONLINE" : "OFFLINE"} | SERVER: {status}
         </div>
       </div>
 
@@ -204,7 +238,27 @@ export default function Terminal() {
         <button onClick={() => callAPI("restart")}>
           <FaRedo /> Restart
         </button>
+
+        <button onClick={clearLogs}>
+          <FaTrash /> Clear
+        </button>
+
+        <button onClick={() => setFollowTail(!followTail)}>
+          {followTail ? "Pause Scroll" : "Follow Scroll"}
+        </button>
       </div>
+
+      {/* SEARCH BAR */}
+      {searchMode && (
+        <div className="terminal-input-bar">
+          <FaSearch />
+          <input
+            placeholder="Search logs..."
+            value={searchQuery}
+            onChange={(e) => searchLogs(e.target.value)}
+          />
+        </div>
+      )}
 
       {/* LOGS */}
       <div className="terminal-log">
@@ -227,28 +281,19 @@ export default function Terminal() {
       </div>
 
       {/* INPUT */}
-      <div className="terminal-input-bar">
-        <span className="prompt">&gt;</span>
+      {!searchMode && (
+        <div className="terminal-input-bar">
+          <span className="prompt">&gt;</span>
 
-        <input
-          value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder="Enter command..."
-        />
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKey}
+            placeholder="Enter command..."
+          />
 
-        <button onClick={sendCommand}>Send</button>
-      </div>
-
-      {/* AUTOCOMPLETE */}
-      {filtered.length > 0 && (
-        <ul className="autocomplete-dropdown">
-          {filtered.map((s) => (
-            <li key={s} onClick={() => setInput(s)}>
-              {s}
-            </li>
-          ))}
-        </ul>
+          <button onClick={sendCommand}>Send</button>
+        </div>
       )}
     </div>
   );
