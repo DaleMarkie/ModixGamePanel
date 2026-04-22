@@ -43,7 +43,6 @@ export default function Terminal() {
 
   const wsRef = useRef<WebSocket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // ---------------- LOG ----------------
   const push = (type: Log["type"], text: string) => {
@@ -58,13 +57,13 @@ export default function Terminal() {
     ]);
   };
 
-  // ---------------- API ----------------
-  const callAPI = async (action: string, payload?: any) => {
+  // ---------------- API (SERVER CONTROL ONLY) ----------------
+  const callAPI = async (action: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/terminal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, ...payload }),
+        body: JSON.stringify({ action }),
       });
 
       const data = await res.json();
@@ -80,8 +79,8 @@ export default function Terminal() {
     }
   };
 
-  // ---------------- SEND COMMAND ----------------
-  const sendCommand = async () => {
+  // ---------------- SEND RCON VIA WS ----------------
+  const sendCommand = () => {
     if (!input.trim()) return;
 
     push("command", `> ${input}`);
@@ -89,7 +88,16 @@ export default function Terminal() {
     setHistory((h) => [input, ...h].slice(0, 50));
     setHistoryIndex(-1);
 
-    await callAPI("rcon", { command: input });
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "rcon",
+          command: input,
+        })
+      );
+    } else {
+      push("error", "WebSocket not connected");
+    }
 
     setInput("");
     setFiltered([]);
@@ -98,16 +106,20 @@ export default function Terminal() {
   // ---------------- WEBSOCKET ----------------
   useEffect(() => {
     const connect = () => {
-      const ws = new WebSocket(`${API_BASE.replace("http", "ws")}/ws/terminal`);
+      const ws = new WebSocket(
+        `${API_BASE.replace("http", "ws")}/ws/terminal`
+      );
 
       wsRef.current = ws;
 
       ws.onopen = () => {
         setConnected(true);
-        push("system", "Connection established");
+        push("system", "WebSocket connected");
       };
 
-      ws.onmessage = (e) => push("output", e.data);
+      ws.onmessage = (e) => {
+        push("output", e.data);
+      };
 
       ws.onerror = () => {
         setConnected(false);
@@ -122,10 +134,11 @@ export default function Terminal() {
     };
 
     connect();
+
     return () => wsRef.current?.close();
   }, []);
 
-  // ---------------- INIT ----------------
+  // ---------------- INIT STATUS ----------------
   useEffect(() => {
     callAPI("status");
   }, []);
@@ -142,7 +155,9 @@ export default function Terminal() {
     if (!val) return setFiltered([]);
 
     setFiltered(
-      suggestions.filter((s) => s.toLowerCase().includes(val.toLowerCase()))
+      suggestions.filter((s) =>
+        s.toLowerCase().includes(val.toLowerCase())
+      )
     );
   };
 
@@ -177,18 +192,12 @@ export default function Terminal() {
 
         <div className="flex gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <FaCircle
-              className={connected ? "text-green-400" : "text-red-500"}
-            />
+            <FaCircle className={connected ? "text-green-400" : "text-red-500"} />
             WS {connected ? "ONLINE" : "OFFLINE"}
           </div>
 
           <div className="flex items-center gap-2">
-            <FaBolt
-              className={
-                status === "RUNNING" ? "text-green-400" : "text-red-500"
-              }
-            />
+            <FaBolt className={status === "RUNNING" ? "text-green-400" : "text-red-500"} />
             SERVER {status}
           </div>
         </div>
@@ -196,31 +205,24 @@ export default function Terminal() {
 
       {/* CONTROLS */}
       <div className="px-6 py-3 flex gap-3 bg-black/30 border-b border-green-900/30">
-        <button
-          onClick={() => callAPI("start")}
-          className="px-4 py-2 rounded bg-green-700/80 hover:bg-green-600 transition"
-        >
+        <button onClick={() => callAPI("start")} className="px-4 py-2 rounded bg-green-700/80 hover:bg-green-600">
           <FaPlay className="inline mr-2" /> Start
         </button>
 
-        <button
-          onClick={() => callAPI("stop")}
-          className="px-4 py-2 rounded bg-red-700/80 hover:bg-red-600 transition"
-        >
+        <button onClick={() => callAPI("stop")} className="px-4 py-2 rounded bg-red-700/80 hover:bg-red-600">
           <FaStop className="inline mr-2" /> Stop
         </button>
 
-        <button
-          onClick={() => callAPI("restart")}
-          className="px-4 py-2 rounded bg-yellow-600/80 hover:bg-yellow-500 transition"
-        >
+        <button onClick={() => callAPI("restart")} className="px-4 py-2 rounded bg-yellow-600/80 hover:bg-yellow-500">
           <FaRedo className="inline mr-2" /> Restart
         </button>
       </div>
 
       {/* TERMINAL */}
       <div className="flex-1 overflow-hidden p-4">
-        <div className="h-full rounded-2xl border border-green-900/40 bg-black/70 backdrop-blur-xl shadow-[0_0_40px_rgba(0,255,100,0.05)] flex flex-col">
+        <div className="h-full rounded-2xl border border-green-900/40 bg-black/70 flex flex-col">
+          
+          {/* LOGS */}
           <div className="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
             <AnimatePresence>
               {logs.map((l) => (
@@ -249,7 +251,6 @@ export default function Terminal() {
 
           {/* INPUT */}
           <div className="border-t border-green-900/30 p-3 relative">
-            {/* suggestions */}
             {filtered.length > 0 && (
               <div className="absolute bottom-14 left-4 bg-black border border-green-800 rounded p-2 text-xs">
                 {filtered.map((s) => (
@@ -268,7 +269,6 @@ export default function Terminal() {
               <span className="text-green-500">{">"}</span>
 
               <input
-                ref={inputRef}
                 value={input}
                 onChange={(e) => onInputChange(e.target.value)}
                 onKeyDown={handleKey}
@@ -276,10 +276,7 @@ export default function Terminal() {
                 className="flex-1 bg-transparent outline-none text-green-300"
               />
 
-              <button
-                onClick={sendCommand}
-                className="px-4 py-1 bg-green-700 rounded hover:bg-green-600"
-              >
+              <button onClick={sendCommand} className="px-4 py-1 bg-green-700 rounded hover:bg-green-600">
                 Send
               </button>
             </div>

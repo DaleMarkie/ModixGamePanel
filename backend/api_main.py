@@ -1,7 +1,8 @@
 import os
 import subprocess
 import asyncio
-
+import signal
+from threading import Thread
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,7 +31,6 @@ from backend.API.Core.games_api.projectzomboid import (
 
 from backend.API.Core.tools_api import ddos_manager_api
 
-
 # ---------------- APP ----------------
 app = FastAPI(title="Modix Panel Backend")
 
@@ -42,32 +42,87 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ---------------- OPTIONAL SERVER STATE ----------------
+# ---------------- SERVER STATE ----------------
 ZOMBOID_DIR = "/home/ritchiedale72/ZomboidServer"
 START_SCRIPT = "./start-server.sh"
+PID_FILE = os.path.join(ZOMBOID_DIR, "server.pid")
 
-zomboid_process = None
-log_clients = set()
+log_clients: set[WebSocket] = set()
 
 
-# ---------------- SAFE TASK RUNNER ----------------
-def run_async_task(coro):
-    loop = asyncio.get_event_loop()
-    loop.create_task(coro)
+# ---------------- LOG STREAM ----------------
+def _stream_logs_sync(proc: subprocess.Popen):
+    global log_clients
+
+    try:
+        for line in proc.stdout:
+            dead = set()
+
+            for ws in list(log_clients):
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        ws.send_text(line.strip()),
+                        asyncio.get_event_loop()
+                    )
+                except Exception:
+                    dead.add(ws)
+
+            for d in dead:
+                log_clients.discard(d)
+
+            if proc.poll() is not None:
+                break
+    except Exception:
+        pass
+
+
+def start_log_stream(proc: subprocess.Popen):
+    Thread(target=_stream_logs_sync, args=(proc,), daemon=True).start()
+
+
+# ---------------- PID HELPERS ----------------
+def read_pid():
+    if not os.path.exists(PID_FILE):
+        return None
+    try:
+        with open(PID_FILE, "r") as f:
+            return int(f.read().strip())
+    except:
+        return None
+
+
+def write_pid(pid: int):
+    with open(PID_FILE, "w") as f:
+        f.write(str(pid))
+
+
+def clear_pid():
+    if os.path.exists(PID_FILE):
+        os.remove(PID_FILE)
+
+
+def kill_process(pid: int):
+    try:
+        os.kill(pid, signal.SIGTERM)
+        return True
+    except Exception:
+        return False
 
 
 # ---------------- SERVER CONTROL ----------------
 def start_zomboid():
-    global zomboid_process
-
-    if zomboid_process and zomboid_process.poll() is None:
-        return "Server already running"
-
     if not os.path.exists(ZOMBOID_DIR):
         return "Zomboid directory not found"
 
-    zomboid_process = subprocess.Popen(
+    existing = read_pid()
+    if existing:
+        try:
+            os.kill(existing, 0)
+            return f"Server already running (PID {existing})"
+        except:
+            clear_pid()
+
+    proc = subprocess.Popen(
         ["bash", START_SCRIPT],
         cwd=ZOMBOID_DIR,
         stdout=subprocess.PIPE,
@@ -76,22 +131,24 @@ def start_zomboid():
         bufsize=1
     )
 
-    run_async_task(stream_logs())
+    write_pid(proc.pid)
+    start_log_stream(proc)
 
-    return f"Started PID {zomboid_process.pid}"
+    return f"Started PID {proc.pid}"
 
 
 def stop_zomboid():
-    global zomboid_process
+    pid = read_pid()
 
-    if zomboid_process:
-        try:
-            zomboid_process.terminate()
-        except Exception:
-            pass
+    if not pid:
+        return "Server not running"
 
-    zomboid_process = None
-    return "Stopped"
+    if kill_process(pid):
+        clear_pid()
+        return f"Stopped PID {pid}"
+
+    clear_pid()
+    return "Failed to stop (cleaned stale PID)"
 
 
 def restart_zomboid():
@@ -99,31 +156,16 @@ def restart_zomboid():
     return start_zomboid()
 
 
-# ---------------- LOG STREAM ----------------
-async def stream_logs():
-    global zomboid_process
-
-    if not zomboid_process or not zomboid_process.stdout:
-        return
-
+# ---------------- RCON ----------------
+async def execute_rcon(command: str):
     try:
-        for line in zomboid_process.stdout:
-            dead = set()
-
-            for ws in list(log_clients):
-                try:
-                    await ws.send_text(line.strip())
-                except Exception:
-                    dead.add(ws)
-
-            for d in dead:
-                log_clients.discard(d)
-
-            if zomboid_process.poll() is not None:
-                break
-
-    except Exception:
-        pass
+        if hasattr(rcon_pool, "execute"):
+            return await rcon_pool.execute(command)
+        if hasattr(rcon_pool, "send"):
+            return await rcon_pool.send(command)
+        return "RCON not configured"
+    except Exception as e:
+        return f"RCON error: {str(e)}"
 
 
 # ---------------- TERMINAL API ----------------
@@ -140,6 +182,10 @@ async def terminal_api(payload: dict):
     if action == "restart":
         return {"output": restart_zomboid()}
 
+    if action == "rcon":
+        cmd = payload.get("command")
+        return {"output": await execute_rcon(cmd)}
+
     return {"error": "invalid action"}
 
 
@@ -151,15 +197,33 @@ async def terminal_ws(websocket: WebSocket):
 
     try:
         while True:
-            await asyncio.sleep(10)
+            msg = await websocket.receive_text()
+
+            # direct rcon (/command)
+            if msg.startswith("/"):
+                cmd = msg.lstrip("/")
+                result = await execute_rcon(cmd)
+                await websocket.send_text(f"RCON: {result}")
+                continue
+
+            # json rcon
+            try:
+                import json
+                data = json.loads(msg)
+
+                if data.get("type") == "rcon":
+                    result = await execute_rcon(data.get("command", ""))
+                    await websocket.send_text(f"RCON: {result}")
+            except:
+                pass
+
     except WebSocketDisconnect:
         log_clients.discard(websocket)
 
 
-# ---------------- ROUTER MOUNTING ----------------
+# ---------------- ROUTERS ----------------
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
-
 app.include_router(filemanager_router, prefix="/api/filemanager")
 
 app.include_router(workshop_api.router, prefix="/api/workshop")
@@ -183,30 +247,23 @@ app.include_router(serverports_router, prefix="/api/ports")
 app.include_router(steam_install_router, prefix="/api/steam")
 
 
-# ---------------- SAFE FALLBACK ROUTES (FIX 404 SPAM) ----------------
+# ---------------- FALLBACK ----------------
 @app.get("/api/modules/enabled")
 def modules_enabled():
     return {"modules": []}
-
 
 @app.get("/api/docker/containers")
 def docker_containers():
     return {"containers": []}
 
-
-# ---------------- ROOT ----------------
 @app.get("/")
 def root():
-    return {
-        "status": "running",
-        "service": "Modix Panel Backend"
-    }
+    return {"status": "running", "service": "Modix Panel Backend"}
 
 
 # ---------------- START ----------------
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "backend.api_main:app",
         host="0.0.0.0",
