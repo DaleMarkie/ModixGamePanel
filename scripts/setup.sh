@@ -44,13 +44,13 @@ fi
 
 # ---------------------------
 # HARD GUARANTEE PACKAGES
-# (fixes ALL your previous missing module crashes)
 # ---------------------------
 echo "🛡️ Installing guaranteed runtime packages..."
 
 $PY -m pip install \
   fastapi \
-  uvicorn \
+  "uvicorn[standard]" \
+  websockets \
   pydantic \
   psutil \
   passlib[bcrypt] \
@@ -60,7 +60,7 @@ $PY -m pip install \
   mcrcon \
   requests \
   sse-starlette \
-  tzlocal 
+  tzlocal
 
 # ---------------------------
 # BACKEND HEALTH CHECK
@@ -74,7 +74,8 @@ import psutil
 import jwt
 import apscheduler
 import httpx
-print("✅ Backend core imports OK")
+import websockets
+print("✅ Backend + WebSocket support OK")
 EOF
 
 # ---------------------------
@@ -84,6 +85,7 @@ echo ""
 echo "🚀 SETUP COMPLETE"
 echo "✔ Frontend ready"
 echo "✔ Backend environment ready"
+echo "✔ WebSocket support fixed"
 echo "✔ All required modules installed"
 echo ""
 echo "👉 Start dev server:"
