@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import "./terminal.css";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlay,
@@ -44,7 +46,6 @@ export default function Terminal() {
   const wsRef = useRef<WebSocket | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // ---------------- LOG ----------------
   const push = (type: Log["type"], text: string) => {
     setLogs((prev) => [
       ...prev,
@@ -57,7 +58,6 @@ export default function Terminal() {
     ]);
   };
 
-  // ---------------- API (SERVER CONTROL ONLY) ----------------
   const callAPI = async (action: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/terminal`, {
@@ -79,7 +79,6 @@ export default function Terminal() {
     }
   };
 
-  // ---------------- SEND RCON VIA WS ----------------
   const sendCommand = () => {
     if (!input.trim()) return;
 
@@ -103,7 +102,6 @@ export default function Terminal() {
     setFiltered([]);
   };
 
-  // ---------------- WEBSOCKET ----------------
   useEffect(() => {
     const connect = () => {
       const ws = new WebSocket(
@@ -134,21 +132,17 @@ export default function Terminal() {
     };
 
     connect();
-
     return () => wsRef.current?.close();
   }, []);
 
-  // ---------------- INIT STATUS ----------------
   useEffect(() => {
     callAPI("status");
   }, []);
 
-  // ---------------- AUTO SCROLL ----------------
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  // ---------------- AUTOCOMPLETE ----------------
   const onInputChange = (val: string) => {
     setInput(val);
 
@@ -161,7 +155,6 @@ export default function Terminal() {
     );
   };
 
-  // ---------------- HISTORY ----------------
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowUp") {
       const next = history[historyIndex + 1];
@@ -180,109 +173,83 @@ export default function Terminal() {
     if (e.key === "Enter") sendCommand();
   };
 
-  // ---------------- UI ----------------
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-black via-[#050505] to-black text-green-300 font-mono flex flex-col">
+    <div className="modern-terminal">
       {/* HEADER */}
-      <div className="flex justify-between items-center px-6 py-4 border-b border-green-900/40 bg-black/40 backdrop-blur-xl">
-        <div className="flex items-center gap-3 text-lg font-semibold">
-          <FaTerminal className="text-green-400" />
-          Zomboid Control Console
+      <div className="terminal-top">
+        <div className="left">
+          <FaTerminal />
+          <span>Control Console</span>
         </div>
 
-        <div className="flex gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <FaCircle className={connected ? "text-green-400" : "text-red-500"} />
-            WS {connected ? "ONLINE" : "OFFLINE"}
-          </div>
+        <div className="right">
+          <span className="dot green" />
+          WS {connected ? "ONLINE" : "OFFLINE"}
 
-          <div className="flex items-center gap-2">
-            <FaBolt className={status === "RUNNING" ? "text-green-400" : "text-red-500"} />
-            SERVER {status}
-          </div>
+          <span className="dot red" />
+          SERVER {status}
         </div>
       </div>
 
       {/* CONTROLS */}
-      <div className="px-6 py-3 flex gap-3 bg-black/30 border-b border-green-900/30">
-        <button onClick={() => callAPI("start")} className="px-4 py-2 rounded bg-green-700/80 hover:bg-green-600">
-          <FaPlay className="inline mr-2" /> Start
+      <div className="terminal-controls">
+        <button onClick={() => callAPI("start")}>
+          <FaPlay /> Start
         </button>
 
-        <button onClick={() => callAPI("stop")} className="px-4 py-2 rounded bg-red-700/80 hover:bg-red-600">
-          <FaStop className="inline mr-2" /> Stop
+        <button onClick={() => callAPI("stop")}>
+          <FaStop /> Stop
         </button>
 
-        <button onClick={() => callAPI("restart")} className="px-4 py-2 rounded bg-yellow-600/80 hover:bg-yellow-500">
-          <FaRedo className="inline mr-2" /> Restart
+        <button onClick={() => callAPI("restart")}>
+          <FaRedo /> Restart
         </button>
       </div>
 
-      {/* TERMINAL */}
-      <div className="flex-1 overflow-hidden p-4">
-        <div className="h-full rounded-2xl border border-green-900/40 bg-black/70 flex flex-col">
-          
-          {/* LOGS */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
-            <AnimatePresence>
-              {logs.map((l) => (
-                <motion.div
-                  key={l.id}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={
-                    l.type === "error"
-                      ? "text-red-400"
-                      : l.type === "system"
-                      ? "text-blue-400"
-                      : l.type === "command"
-                      ? "text-yellow-300"
-                      : "text-green-300"
-                  }
-                >
-                  <span className="text-gray-500">[{l.time}]</span> {l.text}
-                </motion.div>
-              ))}
-            </AnimatePresence>
+      {/* LOGS */}
+      <div className="terminal-log">
+        <AnimatePresence>
+          {logs.map((l) => (
+            <motion.div
+              key={l.id}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className={`log ${l.type}`}
+            >
+              <span className="time">[{l.time}]</span>
+              {l.text}
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
-            <div ref={endRef} />
-          </div>
-
-          {/* INPUT */}
-          <div className="border-t border-green-900/30 p-3 relative">
-            {filtered.length > 0 && (
-              <div className="absolute bottom-14 left-4 bg-black border border-green-800 rounded p-2 text-xs">
-                {filtered.map((s) => (
-                  <div
-                    key={s}
-                    onClick={() => setInput(s)}
-                    className="cursor-pointer hover:text-green-400"
-                  >
-                    {s}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <span className="text-green-500">{">"}</span>
-
-              <input
-                value={input}
-                onChange={(e) => onInputChange(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Enter command..."
-                className="flex-1 bg-transparent outline-none text-green-300"
-              />
-
-              <button onClick={sendCommand} className="px-4 py-1 bg-green-700 rounded hover:bg-green-600">
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
+        <div ref={endRef} />
       </div>
+
+      {/* INPUT */}
+      <div className="terminal-input-bar">
+        <span className="prompt">&gt;</span>
+
+        <input
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Enter command..."
+        />
+
+        <button onClick={sendCommand}>Send</button>
+      </div>
+
+      {/* AUTOCOMPLETE */}
+      {filtered.length > 0 && (
+        <ul className="autocomplete-dropdown">
+          {filtered.map((s) => (
+            <li key={s} onClick={() => setInput(s)}>
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
