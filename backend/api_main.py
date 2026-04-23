@@ -20,6 +20,9 @@ MODS_DIR = os.path.join(ZOMBOID_DIR, "mods")
 START_SCRIPT = os.path.join(ZOMBOID_DIR, "start-server.sh")
 PID_FILE = os.path.join(ZOMBOID_DIR, "server.pid")
 
+# ZOMBOID LOG (IMPORTANT FOR CHAT)
+ZOMBOID_LOG = os.path.join(ZOMBOID_DIR, "Logs", "console.txt")
+
 # =========================================================
 # APP
 # =========================================================
@@ -42,6 +45,9 @@ EVENT_LOOP = None
 async def startup_event():
     global EVENT_LOOP
     EVENT_LOOP = asyncio.get_running_loop()
+
+    # START CHAT BRIDGE AUTOMATICALLY
+    asyncio.create_task(chat_log_tailer())
 
 
 # =========================================================
@@ -75,6 +81,79 @@ def build_file_tree(path: str) -> List[Dict[str, Any]]:
         return []
 
     return tree
+
+
+# =========================================================
+# 🔥 LIVE PROJECT ZOMBOID CHAT BRIDGE
+# =========================================================
+
+def parse_chat(line: str):
+    line = line.strip()
+
+    # basic detection (adjust if your logs differ)
+    if "chat" in line.lower() or "say:" in line.lower():
+        parts = line.split(":")
+        if len(parts) >= 2:
+            return {
+                "player": parts[0].strip(),
+                "message": ":".join(parts[1:]).strip(),
+                "timestamp": "",
+                "chat_type": "Global"
+            }
+
+    return None
+
+
+async def broadcast_chat(msg):
+    dead = set()
+
+    for ws in log_clients:
+        try:
+            await ws.send_json(msg)
+        except:
+            dead.add(ws)
+
+    for d in dead:
+        log_clients.remove(d)
+
+
+async def chat_log_tailer():
+    if not os.path.exists(ZOMBOID_LOG):
+        print("Zomboid log not found:", ZOMBOID_LOG)
+        return
+
+    with open(ZOMBOID_LOG, "r", encoding="utf-8", errors="ignore") as f:
+        f.seek(0, os.SEEK_END)
+
+        while True:
+            line = f.readline()
+
+            if not line:
+                await asyncio.sleep(0.2)
+                continue
+
+            msg = parse_chat(line)
+
+            if msg:
+                await broadcast_chat(msg)
+
+
+# =========================================================
+# WEBSOCKET ENDPOINT (LIVE CHAT)
+# =========================================================
+
+@app.websocket("/ws/zomboid-chat")
+async def zomboid_chat_ws(websocket: WebSocket):
+    await websocket.accept()
+    log_clients.add(websocket)
+
+    try:
+        while True:
+            # keep alive
+            await websocket.receive_text()
+
+    except WebSocketDisconnect:
+        log_clients.discard(websocket)
 
 
 # =========================================================
@@ -157,7 +236,6 @@ file_router = APIRouter()
 
 @file_router.get("/file")
 def read_file(path: str = Query(...)):
-
     if not os.path.exists(path):
         return {"content": "", "status": "missing"}
 
@@ -254,7 +332,7 @@ def stop_zomboid():
 
 
 # =========================================================
-# RCON (SAFE WRAPPER)
+# RCON (SAFE)
 # =========================================================
 
 async def execute_rcon(command: str):
@@ -278,7 +356,6 @@ async def execute_rcon(command: str):
 app.include_router(workshop_router, prefix="/api/workshop")
 app.include_router(file_router, prefix="/api/filemanager")
 
-# (keep your existing routers untouched)
 from backend.terminal import router as terminal_router
 from backend.games_api import router as games_router
 from backend.modupdates_api import router as modupdates_router
@@ -308,7 +385,8 @@ def root():
     return {
         "status": "running",
         "mods_dir": MODS_DIR,
-        "zomboid_dir": ZOMBOID_DIR
+        "zomboid_dir": ZOMBOID_DIR,
+        "chat_ws": "/ws/zomboid-chat"
     }
 
 
