@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 # =========================================================
-# AUTO PATH RESOLUTION (IMPORTANT FIX)
+# AUTO PATH RESOLUTION 
 # =========================================================
 
 BASE_DIR = os.getenv("MODIX_BASE_DIR") or os.path.expanduser("~")
