@@ -2,50 +2,93 @@
 
 set -euo pipefail
 
-echo "🧩 Modix Game Panel Setup Starting (Linux-safe mode)..."
+# ---------------------------
+# COLOURS
+# ---------------------------
+GREEN="\033[1;32m"
+CYAN="\033[1;36m"
+YELLOW="\033[1;33m"
+RED="\033[1;31m"
+RESET="\033[0m"
+BOLD="\033[1m"
+
+print_section() {
+  echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+  echo -e "${BOLD}$1${RESET}"
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+}
+
+print_step() {
+  echo -e "${YELLOW}➤ $1...${RESET}"
+}
+
+print_success() {
+  echo -e "${GREEN}✔ $1${RESET}"
+}
+
+print_error() {
+  echo -e "${RED}✖ $1${RESET}"
+}
+
+# ---------------------------
+# START
+# ---------------------------
+echo -e "\n${BOLD}🧩 Modix Game Panel Setup${RESET}"
+echo -e "${CYAN}Linux-safe installer starting...${RESET}"
 
 cd "$(dirname "$0")/.."
 
 # ---------------------------
 # FRONTEND
 # ---------------------------
-echo "📦 Installing frontend dependencies..."
-npm install
+print_section "📦 Frontend Setup"
+
+print_step "Installing frontend dependencies"
+npm install >/dev/null 2>&1
+print_success "Frontend dependencies installed"
 
 # ---------------------------
-# PYTHON VENV SAFETY LAYER
+# PYTHON VENV
 # ---------------------------
-echo "🐍 Checking Python environment..."
+print_section "🐍 Python Environment"
+
+print_step "Checking virtual environment"
 
 if [ ! -d "venv" ] || [ ! -f "venv/bin/python" ]; then
-  echo "🧹 Rebuilding virtual environment..."
+  print_step "Rebuilding virtual environment"
   rm -rf venv
   python3 -m venv venv
 fi
 
 PY="venv/bin/python"
 
-# ensure pip exists even on broken venvs
-echo "🔧 Bootstrapping pip..."
+print_step "Bootstrapping pip"
 $PY -m ensurepip --upgrade >/dev/null 2>&1 || true
-$PY -m pip install --upgrade pip setuptools wheel
+$PY -m pip install --upgrade pip setuptools wheel >/dev/null 2>&1
+print_success "Python environment ready"
 
 # ---------------------------
-# BACKEND DEPENDENCIES
+# BACKEND
 # ---------------------------
-echo "📦 Installing backend dependencies..."
+print_section "⚙️ Backend Setup"
+
+print_step "Installing backend dependencies"
 
 if [ -f "requirements.txt" ]; then
-  $PY -m pip install -r requirements.txt
+  $PY -m pip install -r requirements.txt >/dev/null 2>&1
 else
-  echo "❌ requirements.txt missing"
+  print_error "requirements.txt missing"
   exit 1
 fi
 
+print_success "Backend dependencies installed"
+
 # ---------------------------
-# HARD GUARANTEE PACKAGES
+# GUARANTEED PACKAGES
 # ---------------------------
-echo "🛡️ Installing guaranteed runtime packages..."
+print_section "🛡️ Runtime Packages"
+
+print_step "Ensuring required packages"
 
 $PY -m pip install \
   fastapi \
@@ -60,37 +103,42 @@ $PY -m pip install \
   mcrcon \
   requests \
   sse-starlette \
-  tzlocal
+  tzlocal >/dev/null 2>&1
+
+print_success "All runtime packages installed"
 
 # ---------------------------
-# BACKEND HEALTH CHECK
+# HEALTH CHECK
 # ---------------------------
-echo "🧪 Running backend import check..."
+print_section "🧪 Health Check"
+
+print_step "Running backend import test"
 
 $PY - << 'EOF'
-import fastapi
-import pydantic
-import psutil
-import jwt
-import apscheduler
-import httpx
-import websockets
-print("✅ Backend + WebSocket support OK")
+import fastapi, pydantic, psutil, jwt, apscheduler, httpx, websockets
 EOF
 
+print_success "Backend + WebSocket support OK"
+
 # ---------------------------
-# FINAL STATUS
+# FINAL
 # ---------------------------
+echo -e "\n${GREEN}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "        🚀 SETUP COMPLETE"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${RESET}"
+
+echo -e "${GREEN}✔ Frontend ready${RESET}"
+echo -e "${GREEN}✔ Backend ready${RESET}"
+echo -e "${GREEN}✔ WebSocket support working${RESET}"
+echo -e "${GREEN}✔ All systems operational${RESET}"
+
 echo ""
-echo "🚀 SETUP COMPLETE"
-echo "✔ Frontend ready"
-echo "✔ Backend environment ready"
-echo "✔ WebSocket support fixed"
-echo "✔ All required modules installed"
+echo -e "${BOLD}👉 Start the dev server:${RESET}"
+echo -e "   npm run dev"
+
 echo ""
-echo "👉 Start dev server:"
-echo "   npm run dev"
-echo ""
-echo "🙏 Thank you for using Modix Game Panel"
-echo "💬 Join the Discord: https://discord.gg/C8VvaMvQzq"
+echo -e "${CYAN}💬 Discord:${RESET} https://discord.gg/C8VvaMvQzq"
+echo -e "${YELLOW}🙏 Thank you for using Modix Game Panel${RESET}"
 echo ""
