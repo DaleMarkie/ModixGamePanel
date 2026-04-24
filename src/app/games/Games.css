@@ -1,66 +1,84 @@
-/* ------------------ General Page ------------------ */
 .games-page {
-  padding: 40px;
-  color: #e0e0e0;
-  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  padding: 2rem;
+  color: #fff;
+
+  background: radial-gradient(
+    circle at top,
+    rgba(29, 185, 84, 0.08),
+    transparent 60%
+  );
 }
 
+/* ---------------- HEADER ---------------- */
 .games-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
-.subtitle {
-  color: #aaa;
-  font-size: 0.95rem;
+.games-header h1 {
+  font-size: 1.8rem;
+  text-shadow: 0 0 15px rgba(29, 185, 84, 0.4);
 }
 
 .search-input {
-  margin-top: 12px;
-  padding: 8px 12px;
-  width: 250px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #1a1a1a;
-  color: #eee;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+
+  width: 280px;
+  max-width: 90%;
+
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(20, 20, 20, 0.8);
+  color: #fff;
+
+  outline: none;
+
+  transition: 0.2s;
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: #2563eb;
+  border-color: #1db954;
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.3);
 }
 
-/* ------------------ Game Grid ------------------ */
+/* ---------------- GRID ---------------- */
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-  gap: 22px;
-  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
 }
 
-/* ------------------ Game Card ------------------ */
+/* ---------------- CARD ---------------- */
 .game-card {
-  background: rgba(20, 20, 25, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: rgba(20, 20, 20, 0.75);
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
-  transition: all 0.25s ease;
-  display: flex;
-  flex-direction: column;
+
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  transition: 0.25s ease;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .game-card:hover {
-  transform: translateY(-3px);
-  border-color: #3b82f6;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+  transform: translateY(-6px);
+  border-color: rgba(29, 185, 84, 0.3);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* ------------------ Game Thumb ------------------ */
+.game-card.disabled {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+
+/* ---------------- THUMB ---------------- */
 .game-thumb {
   position: relative;
-  width: 100%;
-  height: 150px;
+  height: 140px;
   overflow: hidden;
 }
 
@@ -68,800 +86,194 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.85);
-  transition: 0.3s ease;
+  transition: 0.3s;
 }
 
-.game-card:hover .game-thumb img {
-  filter: brightness(1);
+.game-card:hover img {
+  transform: scale(1.05);
 }
 
+/* OVERLAY */
 .overlay {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.2));
 }
 
+/* BUTTON */
 .launch-btn {
-  background: #01531c;
-  color: white;
+  padding: 0.5rem 1rem;
+
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
+
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: background 0.2s ease;
+  font-weight: 700;
+
+  background: linear-gradient(135deg, #1db954, #128e42);
+  color: #000;
+
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.4);
+
+  transition: 0.2s;
 }
 
 .launch-btn:hover {
-  background: #015017;
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(29, 185, 84, 0.6);
 }
 
-.launch-btn.active {
-  background: #16a34a;
+.launch-btn:disabled {
+  background: #333;
+  color: #888;
+  cursor: not-allowed;
 }
 
-/* ------------------ Game Details ------------------ */
+/* PLANNED BADGE */
+.planned-badge {
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  font-size: 0.8rem;
+}
+
+/* ---------------- DETAILS ---------------- */
 .game-details {
-  padding: 14px 16px;
-  flex: 1;
+  padding: 1rem;
 }
 
 .game-details h3 {
-  font-size: 1rem;
-  margin: 0 0 6px;
-  color: #fff;
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .game-details p {
   font-size: 0.85rem;
-  color: #aaa;
-  line-height: 1.4;
-  height: 48px;
-  overflow: hidden;
+  opacity: 0.75;
+  margin: 0.5rem 0;
 }
 
-.active-badge {
-  display: inline-block;
-  margin-top: 10px;
-  background: #16a34a33;
-  border: 1px solid #16a34a99;
-  color: #16a34a;
-  padding: 3px 8px;
-  font-size: 0.75rem;
-  border-radius: 6px;
-}
-
-/* ------------------ Coming Soon ------------------ */
-.coming-soon .game-thumb {
-  filter: grayscale(80%);
-}
-
-.coming-soon-text {
-  background: #444;
-  color: #ccc;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-/* ------------------ Buttons ------------------ */
-.steam-btn,
-.discord-btn,
-.pzwiki-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.steam-btn {
-  background: #1b2838;
-  color: #fff;
-}
-
-.steam-btn:hover {
-  background: #2563eb;
-}
-
-.discord-btn {
-  background: #7289da;
-  color: #fff;
-}
-
-.discord-btn:hover {
-  background: #5b6eae;
-}
-
-.pzwiki-btn {
-  background-color: #2d2d2d;
-  color: #fff;
-  font-weight: 500;
-}
-
-.pzwiki-btn:hover {
-  background-color: #444;
-}
-
-.pzwiki-logo {
-  width: 20px;
-  height: 20px;
-}
-
+/* LINKS */
 .game-buttons {
   display: flex;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
 }
 
-/* ------------------ Modal ------------------ */
+.game-buttons a {
+  flex: 1;
+  text-align: center;
+
+  padding: 0.4rem;
+
+  font-size: 0.8rem;
+  text-decoration: none;
+
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+
+  border-radius: 8px;
+
+  transition: 0.2s;
+}
+
+.game-buttons a:hover {
+  background: rgba(29, 185, 84, 0.2);
+  color: #1db954;
+}
+
+/* ACTIVE */
+.active-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+
+  background: rgba(29, 185, 84, 0.15);
+  color: #1db954;
+
+  font-size: 0.75rem;
+}
+
+/* ---------------- MODAL ---------------- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 15, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
 
-.modal {
-  display: flex;
-  background: #111;
-  border-radius: 12px;
-  overflow: hidden;
-  max-width: 700px;
-  width: 90%;
-  color: #ddd;
-}
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
 
-.modal-left img {
-  height: 100%;
-  width: 260px;
-  object-fit: cover;
-}
-
-.modal-right {
-  flex: 1;
-  padding: 24px;
-}
-
-.modal-right h3 {
-  margin-bottom: 8px;
-  color: #fff;
-}
-
-.input-field {
-  width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #eee;
-  padding: 8px;
-  margin-top: 6px;
-  margin-bottom: 16px;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: #01531c;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.confirm-btn,
-.cancel-btn {
-  background: #01531c;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.cancel-btn {
-  background: #444;
-}
-
-.confirm-btn:hover {
-  background: #16a34a;
-}
-
-.cancel-btn:hover {
-  background: #555;
-}
-
-/* ------------------ Fancy Minimum Requirements ------------------ */
-.requirements-container {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.requirement {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.req-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  color: #eee;
-  font-size: 0.9rem;
-}
-
-.status-icon {
-  font-size: 1.2rem;
-  transition: transform 0.2s;
-}
-
-.status-icon.met {
-  color: #16a34a;
-  text-shadow: 0 0 6px #16a34a66;
-}
-
-.status-icon.unmet {
-  color: #dc2626;
-  text-shadow: 0 0 6px #dc262666;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background: #222;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.4s ease, background 0.4s ease;
-}
-
-.progress-fill.met {
-  background: linear-gradient(90deg, #16a34a, #22c55e);
-  box-shadow: 0 0 6px #16a34a66;
-}
-
-.progress-fill.unmet {
-  background: linear-gradient(90deg, #dc2626, #f87171);
-  box-shadow: 0 0 6px #dc262666;
-}
-
-.req-details {
-  font-size: 0.8rem;
-  color: #aaa;
-  display: flex;
-  justify-content: space-between;
-}
-
-.req-title {
-  font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 12px;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ------------------ Requirement Unmet Warning ------------------ */
-.req-warning {
-  margin-top: 6px;
-  background: linear-gradient(
-    90deg,
-    rgba(220, 38, 38, 0.25),
-    rgba(185, 28, 28, 0.15)
-  );
-  border-left: 3px solid #dc2626;
-  padding: 8px 10px;
-  border-radius: 6px;
-  color: #fca5a5;
-  font-size: 0.78rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: fadeIn 0.25s ease-out;
-  backdrop-filter: blur(2px);
-}
-
-/* Icon inside warning */
-.req-warning::before {
-  content: "⚠";
-  font-size: 1rem;
-  color: #f87171;
-  text-shadow: 0 0 4px rgba(220, 38, 38, 0.8);
-}
-
-/* Smooth fade effect */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.modal {
-  display: flex;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  overflow: hidden;
-  width: 80%;
-  max-width: 900px;
-  max-height: 80%;
-}
-
-.modal-left {
-  width: 45%;
-  background: #111;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+
+  z-index: 20;
 }
 
-.modal-left img {
-  max-width: 100%;
-  border-radius: 5px;
+.modal {
+  width: 360px;
+  max-width: 90%;
+
+  background: rgba(20, 20, 20, 0.95);
+  border-radius: 14px;
+
+  padding: 1.5rem;
+
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
-.modal-right {
-  width: 55%;
+.modal h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.modal ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.modal li {
   display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
+  justify-content: space-between;
+  align-items: center;
 
-.modal-scrollbox {
-  overflow-y: auto;
-  max-height: 550px; /* Adjust height as needed */
-  padding-right: 0.5rem;
-}
+  padding: 0.4rem 0;
 
-/* Optional scrollbar styling */
-.modal-scrollbox::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-scrollbox::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 3px;
-}
-
-.modal-scrollbox::-webkit-scrollbar-track {
-  background: #222;
-}
-.game-status {
-  font-weight: bold;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
-  margin-bottom: 1rem;
-  display: inline-block;
-  font-size: 0.9rem;
-}
-
-.game-status.operational {
-  background-color: #28a745;
-  color: white;
-}
-
-.game-status.wip {
-  background-color: #ffc107;
-  color: black;
-}
-.game-status {
-  font-weight: bold;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
-  margin-bottom: 1rem;
-  display: inline-block;
-  font-size: 0.9rem;
-}
-
-.game-status.operational {
-  background-color: #28a745;
-  color: white;
-}
-
-.game-status.wip {
-  background-color: #ffc107;
-  color: black;
-}
-
-/* Tooltip wrapper */
-.tooltip {
-  position: relative;
-  cursor: pointer;
-  display: inline-block;
-}
-
-/* Tooltip text */
-.tooltip .tooltip-text {
-  visibility: hidden;
-  width: 240px;
-  background-color: #333;
-  color: #fff;
-  text-align: left;
-  padding: 0.5rem;
-  border-radius: 5px;
-  position: absolute;
-  z-index: 10;
-  bottom: 125%; /* Position above the label */
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
   font-size: 0.85rem;
-  line-height: 1.2;
-  pointer-events: none;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Tooltip arrow */
-.tooltip .tooltip-text::after {
-  content: "";
-  position: absolute;
-  top: 100%; /* Arrow points down */
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #333 transparent transparent transparent;
-}
+.modal button {
+  width: 100%;
+  margin-top: 1rem;
 
-/* Show tooltip on hover */
-.tooltip:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
-}
-/* Tooltip wrapper */
-.tooltip {
-  position: relative;
-  cursor: pointer;
-  display: inline-block;
-}
-
-/* Tooltip text with enhanced readability */
-.tooltip .tooltip-text {
-  visibility: hidden;
-  width: 260px; /* slightly wider for multiline */
-  background-color: #333;
-  color: #fff;
-  text-align: left;
   padding: 0.6rem;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 10;
-  bottom: 130%; /* above the label */
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  pointer-events: none;
-  white-space: normal; /* allow wrapping */
-}
 
-/* Bold important words */
-.tooltip .tooltip-text b {
-  color: #f9fafb;
-  font-weight: 700;
-}
+  border: none;
+  border-radius: 10px;
 
-/* Tooltip arrow */
-.tooltip .tooltip-text::after {
-  content: "";
-  position: absolute;
-  top: 100%; /* Arrow points down */
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #333 transparent transparent transparent;
-}
-
-/* Show tooltip on hover */
-.tooltip:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-}
-
-.filter-buttons button {
-  background: #1c1f26;
-  border: 1px solid #333;
-  padding: 8px 14px;
-  border-radius: 6px;
-  color: #ccc;
   cursor: pointer;
+
+  background: #333;
+  color: #fff;
+
   transition: 0.2s;
 }
 
-.filter-buttons button:hover {
-  background: #262a33;
-}
-
-.filter-buttons .active-filter {
-  background: #006400; /* Dark green */
-  border-color: #006400; /* Dark green border */
-  color: #fff; /* White text */
-}
-
-/* ------------------ MOBILE RESPONSIVE GAMES PAGE ------------------ */
-@media (max-width: 1024px) {
-  .games-page {
-    padding: 20px;
-  }
-
-  .search-input {
-    width: 100%;
-    font-size: 0.9rem;
-  }
-
-  /* Game grid shrinks for tablets */
-  .games-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-  }
-
-  .game-card {
-    flex-direction: column;
-  }
-
-  .game-thumb {
-    height: 130px;
-  }
-
-  .game-details h3 {
-    font-size: 0.95rem;
-  }
-
-  .game-details p {
-    font-size: 0.8rem;
-    height: 40px;
-  }
-
-  .game-buttons {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .launch-btn {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-  }
-
-  .steam-btn,
-  .discord-btn,
-  .pzwiki-btn {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-  }
-
-  /* Modals scale down */
-  .modal {
-    flex-direction: column;
-    width: 90%;
-    max-height: 90%;
-  }
-
-  .modal-left,
-  .modal-right {
-    width: 100%;
-  }
-
-  .modal-left img {
-    max-height: 200px;
-    margin-bottom: 12px;
-  }
-
-  .modal-right {
-    padding: 12px;
-  }
-
-  .modal-scrollbox {
-    max-height: 300px;
-  }
-
-  .input-field {
-    font-size: 0.85rem;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .confirm-btn,
-  .cancel-btn {
-    width: 100%;
-    font-size: 0.85rem;
-    padding: 6px 0;
-  }
-
-  /* Requirements smaller */
-  .requirements-container {
-    gap: 10px;
-  }
-
-  .req-header {
-    font-size: 0.85rem;
-  }
-
-  .req-title {
-    font-size: 0.9rem;
-  }
-
-  .req-details {
-    font-size: 0.75rem;
-  }
-
-  .req-warning {
-    font-size: 0.75rem;
-    padding: 6px 8px;
-  }
-
-  /* Game status badge smaller */
-  .game-status {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  /* Tooltip adjustments */
-  .tooltip .tooltip-text {
-    width: 220px;
-    font-size: 0.8rem;
-    padding: 0.4rem;
-  }
-
-  .tooltip .tooltip-text::after {
-    border-width: 4px;
-  }
-
-  /* Filter buttons wrap */
-  .filter-buttons {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .filter-buttons button {
-    flex: 1 1 48%;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-  }
-}
-
-/* Extra small screens (phones) */
-@media (max-width: 480px) {
-  .games-page {
-    padding: 12px;
-  }
-
-  .search-input {
-    font-size: 0.8rem;
-  }
-
-  .games-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .game-thumb {
-    height: 120px;
-  }
-
-  .game-details h3 {
-    font-size: 0.9rem;
-  }
-
-  .game-details p {
-    font-size: 0.75rem;
-    height: 36px;
-  }
-
-  .launch-btn {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-  }
-
-  .steam-btn,
-  .discord-btn,
-  .pzwiki-btn {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-  }
-
-  .modal-left img {
-    max-height: 160px;
-  }
-
-  .modal-right {
-    padding: 10px;
-  }
-
-  .modal-scrollbox {
-    max-height: 220px;
-  }
-
-  .input-field {
-    font-size: 0.8rem;
-  }
-
-  .confirm-btn,
-  .cancel-btn {
-    font-size: 0.8rem;
-    padding: 5px 0;
-  }
-
-  .req-header {
-    font-size: 0.8rem;
-  }
-
-  .req-title {
-    font-size: 0.85rem;
-  }
-
-  .req-details {
-    font-size: 0.7rem;
-  }
-
-  .req-warning {
-    font-size: 0.7rem;
-    padding: 5px 6px;
-  }
-
-  .game-status {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  .tooltip .tooltip-text {
-    width: 180px;
-    font-size: 0.75rem;
-  }
-
-  .filter-buttons button {
-    flex: 1 1 100%;
-    font-size: 0.75rem;
-    padding: 5px 8px;
-  }
-}
-.game-card.disabled {
-  opacity: 0.5;
-  filter: grayscale(100%);
-  pointer-events: none;
-}
-
-.planned-badge {
-  background: #444;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+.modal button:hover {
+  background: #1db954;
+  color: #000;
 }

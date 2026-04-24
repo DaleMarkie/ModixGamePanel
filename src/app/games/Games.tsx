@@ -27,9 +27,11 @@ interface Game {
 
 export default function Games() {
   const [games, setGames] = useState<Game[]>([]);
-  const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [showInstaller, setShowInstaller] = useState(false);
+
   const [search, setSearch] = useState("");
 
   const [userSpecs, setUserSpecs] = useState({
@@ -38,21 +40,7 @@ export default function Games() {
     os: "",
   });
 
-  const setActiveGameNow = async (gameId: string | null) => {
-    setActiveGame(gameId);
-    if (gameId) localStorage.setItem("activeGameId", gameId);
-
-    try {
-      await fetch("/api/filemanager/active-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ game_id: gameId }),
-      });
-    } catch (err) {
-      console.error("Failed to update active game", err);
-    }
-  };
-
+  /* ---------------- DETECT SYSTEM ---------------- */
   useEffect(() => {
     const cpuCores = navigator.hardwareConcurrency || 0;
     const ramGB = navigator.deviceMemory || 0;
@@ -61,6 +49,7 @@ export default function Games() {
     setUserSpecs({ cpuCores, ramGB, os });
   }, []);
 
+  /* ---------------- GAME LIST ---------------- */
   useEffect(() => {
     const list: Game[] = [
       {
@@ -70,7 +59,7 @@ export default function Games() {
           "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
         supported: true,
         description:
-          "Hardcore zombie survival with deep simulation and multiplayer servers.",
+          "Hardcore zombie survival with Linux dedicated server support.",
         steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
         discordUrl: "https://discord.com/invite/theindiestone",
         minRequirements: {
@@ -80,8 +69,6 @@ export default function Games() {
           OS: "Linux",
         },
       },
-
-      // 🚧 PLANNED GAMES
       {
         id: "rust",
         name: "Rust",
@@ -89,7 +76,7 @@ export default function Games() {
           "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
         supported: false,
         description:
-          "Survival PvP game with base building (planned Linux support).",
+          "Survival PvP with base building (Linux support via Wine/SteamCMD).",
         steamUrl: "https://store.steampowered.com/app/252490/Rust/",
         discordUrl: "https://discord.com/invite/playrust",
         minRequirements: {
@@ -105,29 +92,13 @@ export default function Games() {
         image:
           "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
         supported: false,
-        description: "Open-world survival game (Linux support planned).",
+        description: "Open-world survival server setup (experimental Linux).",
         steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
         discordUrl: "https://discord.com/invite/dayz",
         minRequirements: {
           CPU: 4,
           RAM: 8,
           Disk: 20,
-          OS: "Linux",
-        },
-      },
-      {
-        id: "theisle",
-        name: "The Isle",
-        image:
-          "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/376210/header.jpg",
-        supported: false,
-        description: "Dinosaur survival game (planned support).",
-        steamUrl: "https://store.steampowered.com/app/376210/The_Isle/",
-        discordUrl: "https://discord.gg/theisle",
-        minRequirements: {
-          CPU: 4,
-          RAM: 8,
-          Disk: 30,
           OS: "Linux",
         },
       },
@@ -142,19 +113,7 @@ export default function Games() {
     g.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openModal = (game: Game) => {
-    if (!game.supported) return;
-
-    if (!isLinux) {
-      alert("❌ Linux required.");
-      return;
-    }
-
-    setSelectedGame(game);
-    setShowModal(true);
-    setActiveGameNow(game.id);
-  };
-
+  /* ---------------- REQUIREMENT CHECK ---------------- */
   const checkRequirement = (label: string, required: number | string) => {
     switch (label) {
       case "CPU":
@@ -168,24 +127,65 @@ export default function Games() {
     }
   };
 
+  /* ---------------- MODALS ---------------- */
+  const openModal = (game: Game) => {
+    setSelectedGame(game);
+    setShowModal(true);
+  };
+
+  /* ---------------- INSTALL SCRIPT ---------------- */
+  const getInstallScript = (game: Game) => {
+    return `#!/bin/bash
+echo "🐧 Installing ${game.name} Linux Server Stack..."
+
+sudo apt update && sudo apt upgrade -y
+
+# Core dependencies
+sudo apt install -y curl wget git unzip lib32gcc-s1 lib32stdc++6
+
+# SteamCMD
+mkdir -p ~/steamcmd
+cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz
+
+# Wine (Windows compatibility layer)
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install -y wine64 wine32
+
+# Game-specific packages
+${game.id === "projectzomboid" ? "sudo apt install -y openjdk-17-jre" : ""}
+
+echo "✅ ${game.name} setup complete"
+`;
+  };
+
+  const copyScript = (game: Game) => {
+    navigator.clipboard.writeText(getInstallScript(game));
+    alert("🐧 Install script copied");
+  };
+
   return (
     <div className="games-page">
       <div className="games-header">
-        <h1>🐧 Linux Game Servers Only</h1>
+        <h1>🐧 Linux Game Server Hub</h1>
 
         {!isLinux && (
-          <p style={{ color: "red" }}>❌ Not on Linux — hosting disabled</p>
+          <p style={{ color: "red" }}>
+            ❌ Linux not detected — installation recommended only on Linux
+          </p>
         )}
 
         <input
-          type="text"
+          className="search-input"
           placeholder="Search games..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
         />
       </div>
 
+      {/* ---------------- GRID ---------------- */}
       <div className="games-grid">
         {filteredGames.map((game) => (
           <div
@@ -193,20 +193,12 @@ export default function Games() {
             className={`game-card ${!game.supported ? "disabled" : ""}`}
           >
             <div className="game-thumb">
-              <img src={game.image} alt={game.name} />
+              <img src={game.image} />
 
               <div className="overlay">
-                {game.supported ? (
-                  <button
-                    className="launch-btn"
-                    onClick={() => openModal(game)}
-                    disabled={!isLinux}
-                  >
-                    {isLinux ? "🚀 Launch" : "❌ Linux Required"}
-                  </button>
-                ) : (
-                  <span className="planned-badge">🚧 Planned</span>
-                )}
+                <span className="planned-badge">
+                  {game.supported ? "Linux Ready" : "🚧 Experimental"}
+                </span>
               </div>
             </div>
 
@@ -220,37 +212,40 @@ export default function Games() {
                     <FaSteam /> Steam
                   </a>
                 )}
+
                 {game.discordUrl && (
                   <a href={game.discordUrl} target="_blank">
                     <FaDiscord /> Discord
                   </a>
                 )}
-              </div>
 
-              {activeGame === game.id && game.supported && (
-                <span className="active-badge">Active</span>
-              )}
+                {/* INSTALL ONLY */}
+                <button className="install-btn" onClick={() => openModal(game)}>
+                  🐧 Install Setup
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
+      {/* ---------------- REQUIREMENTS MODAL ---------------- */}
       {showModal && selectedGame && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{selectedGame.name}</h3>
 
-            <p>Minimum Requirements</p>
+            <p>System Requirements Check</p>
 
             <ul>
               {Object.entries(selectedGame.minRequirements).map(
                 ([key, value]) => {
-                  const met = checkRequirement(key, value);
+                  const ok = checkRequirement(key, value);
 
                   return (
                     <li key={key}>
-                      {key}: {value}{" "}
-                      {met ? (
+                      {key}: {value}
+                      {ok ? (
                         <FaCheckCircle color="limegreen" />
                       ) : (
                         <FaTimesCircle color="red" />
@@ -261,7 +256,42 @@ export default function Games() {
               )}
             </ul>
 
+            <button onClick={() => setShowInstaller(true)}>
+              🐧 Open Linux Installer
+            </button>
+
             <button onClick={() => setShowModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- INSTALLER MODAL ---------------- */}
+      {showInstaller && selectedGame && (
+        <div className="modal-backdrop" onClick={() => setShowInstaller(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>🐧 Linux Installer Script</h3>
+
+            <p>Copy and run in terminal:</p>
+
+            <textarea
+              readOnly
+              value={getInstallScript(selectedGame)}
+              style={{
+                width: "100%",
+                height: "220px",
+                background: "#111",
+                color: "#0f0",
+                fontSize: "0.75rem",
+                borderRadius: "8px",
+                padding: "0.5rem",
+              }}
+            />
+
+            <button onClick={() => copyScript(selectedGame)}>
+              📋 Copy Script
+            </button>
+
+            <button onClick={() => setShowInstaller(false)}>Close</button>
           </div>
         </div>
       )}

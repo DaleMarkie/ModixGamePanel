@@ -1,203 +1,156 @@
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 import os
-import json
-import psutil
-import platform
+from fastapi import APIRouter
 
 router = APIRouter()
 
-# Paths
-GAMES_PATH = os.path.expanduser("~/Games")
-ACTIVE_GAME_FILE = os.path.join(GAMES_PATH, "active_game.json")
-GAMES_SCRIPT_FILE = os.path.join(GAMES_PATH, "games_scripts.json")
-os.makedirs(GAMES_PATH, exist_ok=True)
+# =========================================================
+# 🐧 GAME DATABASE
+# =========================================================
 
-# --------------------------
-# Linux check (GLOBAL)
-# --------------------------
-def is_linux():
-    return platform.system().lower() == "linux"
-
-# --------------------------
-# Supported games (Linux only)
-# --------------------------
-SUPPORTED_GAMES = [
+GAMES_DB = [
     {
-        "id": "minecraft",
-        "name": "Minecraft",
-        "poster": "https://upload.wikimedia.org/wikipedia/en/b/b6/Minecraft_2024_cover_art.png",
+        "id": "projectzomboid",
+        "name": "Project Zomboid",
         "supported": True,
-        "minimum_requirements": {
-            "cpu": 2,
-            "ram": 4,
-            "disk": 1
-        }
+        "cpu": 2,
+        "ram": 4,
+        "disk": 5,
+        "os": "linux",
+        "description": "Hardcore zombie survival dedicated server",
     },
     {
         "id": "rust",
         "name": "Rust",
-        "poster": "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
-        "supported": True,
-        "minimum_requirements": {
-            "cpu": 4,
-            "ram": 8,
-            "disk": 20
-        }
+        "supported": False,
+        "cpu": 4,
+        "ram": 8,
+        "disk": 25,
+        "os": "linux",
+        "description": "PvP survival sandbox (requires Wine/SteamCMD)",
     },
     {
-        "id": "valheim",
-        "name": "Valheim",
-        "poster": "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
-        "supported": True,
-        "minimum_requirements": {
-            "cpu": 2,
-            "ram": 4,
-            "disk": 1
-        }
+        "id": "dayz",
+        "name": "DayZ",
+        "supported": False,
+        "cpu": 4,
+        "ram": 8,
+        "disk": 20,
+        "os": "linux",
+        "description": "Open world survival server",
     },
 ]
 
-# --------------------------
-# Helpers
-# --------------------------
-def get_active_game():
-    if os.path.isfile(ACTIVE_GAME_FILE):
-        try:
-            with open(ACTIVE_GAME_FILE, "r") as f:
-                return json.load(f)
-        except:
-            return None
-    return None
 
+# =========================================================
+# 📦 LIST ALL GAMES
+# =========================================================
 
-def set_active_game(game_id: str, start_script: str = None):
-    game = next((g for g in SUPPORTED_GAMES if g["id"] == game_id), None)
-    if not game:
-        return None
-
-    active_data = {
-        "id": game["id"],
-        "name": game["name"],
-        "poster": game["poster"],
-        "minimum_requirements": game["minimum_requirements"],
-        "os": "linux"
-    }
-
-    if start_script:
-        active_data["start_script"] = start_script
-
-    with open(ACTIVE_GAME_FILE, "w") as f:
-        json.dump(active_data, f)
-
-    scripts = {}
-    if os.path.isfile(GAMES_SCRIPT_FILE):
-        try:
-            with open(GAMES_SCRIPT_FILE, "r") as f:
-                scripts = json.load(f)
-        except:
-            pass
-
-    if start_script:
-        scripts[game_id] = start_script
-        with open(GAMES_SCRIPT_FILE, "w") as f:
-            json.dump(scripts, f)
-
-    return active_data
-
-
-def deactivate_game():
-    if os.path.isfile(ACTIVE_GAME_FILE):
-        os.remove(ACTIVE_GAME_FILE)
-    return True
-
-
-# --------------------------
-# Server specs (Linux enforced)
-# --------------------------
-def get_server_specs():
-    cpu_cores = psutil.cpu_count(logical=True)
-    ram_gb = round(psutil.virtual_memory().total / (1024**3), 1)
-    disk_gb = round(psutil.disk_usage("/").free / (1024**3), 1)
-
+@router.get("/list")
+def list_games():
     return {
-        "cpuCores": cpu_cores,
-        "ramGB": ram_gb,
-        "diskGB": disk_gb,
-        "os": platform.system(),
-        "isLinux": is_linux()
+        "status": "ok",
+        "count": len(GAMES_DB),
+        "games": GAMES_DB
     }
 
 
-# --------------------------
-# Endpoints
-# --------------------------
-@router.get("/api/games")
-async def list_games():
-    server_specs = get_server_specs()
+# =========================================================
+# 🧠 CHECK SYSTEM REQUIREMENTS
+# =========================================================
 
-    # HARD BLOCK if not Linux
-    if not server_specs["isLinux"]:
-        return JSONResponse(
-            {
-                "error": "Linux is required to host servers.",
-                "server_specs": server_specs
-            },
-            status_code=403
-        )
+@router.post("/check")
+def check_requirements(payload: dict):
+    game_id = payload.get("game_id")
+    cpu = payload.get("cpu", 0)
+    ram = payload.get("ram", 0)
+    os_type = payload.get("os", "").lower()
 
-    scripts = {}
-    if os.path.isfile(GAMES_SCRIPT_FILE):
-        try:
-            with open(GAMES_SCRIPT_FILE, "r") as f:
-                scripts = json.load(f)
-        except:
-            pass
-
-    games = []
-    for g in SUPPORTED_GAMES:
-        g_copy = g.copy()
-        if g["id"] in scripts:
-            g_copy["start_script"] = scripts[g["id"]]
-        games.append(g_copy)
-
-    return {
-        "games": games,
-        "active_game": get_active_game(),
-        "server_specs": server_specs,
-    }
-
-
-@router.post("/api/set-active-game")
-async def activate_game(request: Request):
-    if not is_linux():
-        return JSONResponse(
-            {"error": "Only Linux servers are allowed."},
-            status_code=403
-        )
-
-    data = await request.json()
-    app_id = data.get("appId")
-    start_script = data.get("startScript")  # renamed from batchPath
-
-    if not app_id:
-        deactivate_game()
-        return {
-            "success": True,
-            "message": "Game deactivated.",
-            "active_game": None
-        }
-
-    game = set_active_game(app_id, start_script)
+    game = next((g for g in GAMES_DB if g["id"] == game_id), None)
 
     if not game:
-        return JSONResponse(
-            {"error": "Game not found."},
-            status_code=404
-        )
+        return {"error": "Game not found"}
+
+    compatible = (
+        cpu >= game["cpu"]
+        and ram >= game["ram"]
+        and os_type == "linux"
+    )
 
     return {
-        "success": True,
-        "message": f"{game['name']} activated (Linux).",
-        "active_game": game
+        "game": game,
+        "compatible": compatible
+    }
+
+
+# =========================================================
+# 🐧 INSTALL SCRIPT GENERATOR
+# =========================================================
+
+@router.get("/install-script/{game_id}")
+def install_script(game_id: str):
+    game = next((g for g in GAMES_DB if g["id"] == game_id), None)
+
+    if not game:
+        return {"error": "Game not found"}
+
+    script = f"""#!/bin/bash
+echo "🐧 Installing {game['name']} Server Stack..."
+
+sudo apt update && sudo apt upgrade -y
+
+# Core dependencies
+sudo apt install -y curl wget git unzip lib32gcc-s1 lib32stdc++6
+
+# SteamCMD
+mkdir -p ~/steamcmd
+cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz
+
+"""
+
+    # Wine only for non-native Linux servers
+    if not game["supported"]:
+        script += """
+# Wine support (Windows server compatibility layer)
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install -y wine64 wine32
+"""
+
+    # Game-specific extras
+    if game_id == "projectzomboid":
+        script += """
+# Java dependency (Project Zomboid)
+sudo apt install -y openjdk-17-jre
+"""
+
+    script += f"""
+echo "✅ {game['name']} installation complete"
+"""
+
+    return {
+        "game": game["name"],
+        "script": script
+    }
+
+
+# =========================================================
+# 🚀 INSTALL JOB (FUTURE HOOK)
+# =========================================================
+
+@router.post("/install")
+def install_game(payload: dict):
+    game_id = payload.get("game_id")
+
+    game = next((g for g in GAMES_DB if g["id"] == game_id), None)
+
+    if not game:
+        return {"error": "Game not found"}
+
+    # Placeholder for future automation (Docker / SteamCMD / service deploy)
+    return {
+        "status": "queued",
+        "game": game["name"],
+        "message": "Install job created (not executed yet)"
     }
