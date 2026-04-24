@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 import signal
 import json
+import re
 from threading import Thread, Lock
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -57,6 +58,7 @@ log_clients = set()
 log_lock = Lock()
 EVENT_LOOP = None
 
+banned_clients = set()
 
 # ---------------- STARTUP ----------------
 @app.on_event("startup")
@@ -64,8 +66,7 @@ async def startup_event():
     global EVENT_LOOP
     EVENT_LOOP = asyncio.get_running_loop()
 
-
-# ---------------- SAFE LOG STREAM ----------------
+# ---------------- LOG STREAM ----------------
 def stream_logs(proc: subprocess.Popen):
     global log_clients
 
@@ -103,7 +104,6 @@ def stream_logs(proc: subprocess.Popen):
 def start_log_stream(proc):
     Thread(target=stream_logs, args=(proc,), daemon=True).start()
 
-
 # ---------------- PID ----------------
 def read_pid():
     if not os.path.exists(PID_FILE):
@@ -130,7 +130,6 @@ def kill_pid(pid):
         return True
     except:
         return False
-
 
 # ---------------- SERVER CONTROL ----------------
 def start_zomboid():
@@ -173,7 +172,6 @@ def restart_zomboid():
     stop_zomboid()
     return start_zomboid()
 
-
 # ---------------- RCON ----------------
 async def execute_rcon(command: str):
     try:
@@ -184,7 +182,6 @@ async def execute_rcon(command: str):
         return "RCON not configured"
     except Exception as e:
         return str(e)
-
 
 # ---------------- TERMINAL API ----------------
 @app.post("/api/terminal")
@@ -209,41 +206,24 @@ async def terminal_api(payload: dict):
 
     return {"error": "invalid action"}
 
-
-# ---------------- WEBSOCKET ----------------
+# ---------------- TERMINAL WS ----------------
 @app.websocket("/ws/terminal")
 async def terminal_ws(websocket: WebSocket):
     await websocket.accept()
-
-    with log_lock:
-        log_clients.add(websocket)
+    log_clients.add(websocket)
 
     try:
         while True:
             msg = await websocket.receive_text()
 
             if msg.startswith("/"):
-                cmd = msg[1:]
-                result = await execute_rcon(cmd)
+                result = await execute_rcon(msg[1:])
                 await websocket.send_text(str(result))
-                continue
-
-            try:
-                data = json.loads(msg)
-
-                if data.get("type") == "rcon":
-                    result = await execute_rcon(data.get("command", ""))
-                    await websocket.send_text(str(result))
-
-            except:
-                pass
 
     except WebSocketDisconnect:
-        with log_lock:
-            log_clients.discard(websocket)
+        log_clients.discard(websocket)
 
-
-# ---------------- REAL PLAYERS STREAM (NEW) ----------------
+# ---------------- PLAYERS STREAM ----------------
 @app.get("/api/projectzomboid/players-stream")
 async def players_stream():
     async def event_generator():
@@ -253,20 +233,12 @@ async def players_stream():
 
                 players = []
 
-                if raw and isinstance(raw, str):
-                    lines = raw.splitlines()
-
-                    for line in lines:
+                if raw:
+                    for line in raw.splitlines():
                         line = line.strip()
-
-                        if not line:
+                        if not line or "players" in line.lower():
                             continue
 
-                        # Skip headers or noise
-                        if "players" in line.lower():
-                            continue
-
-                        # Basic safe parse
                         name = line.split(" ")[0]
 
                         players.append({
@@ -277,20 +249,101 @@ async def players_stream():
 
                 yield f"data: {json.dumps(players)}\n\n"
 
-            except Exception:
+            except:
                 yield f"data: {json.dumps([])}\n\n"
 
             await asyncio.sleep(2)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+# ---------------- BAN SYSTEM (REAL RCON ONLY) ----------------
+
+async def get_bans_from_server():
+    try:
+        raw = await execute_rcon("getuserbanlist")
+
+        if not raw:
+            return []
+
+        bans = []
+
+        for line in raw.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            parts = re.split(r"[-:]", line, maxsplit=1)
+
+            bans.append({
+                "player": parts[0].strip(),
+                "message": parts[1].strip() if len(parts) > 1 else "",
+                "timestamp": "live"
+            })
+
+        return bans
+
+    except:
+        return []
+
+
+@app.get("/api/projectzomboid/banned")
+async def get_banned_players():
+    return {"banned": await get_bans_from_server()}
+
+
+@app.post("/api/projectzomboid/ban")
+async def ban_player(payload: dict):
+    player = payload.get("player")
+    reason = payload.get("reason", "No reason")
+
+    await execute_rcon(f"adduserban {player} {reason}")
+
+    for ws in list(banned_clients):
+        try:
+            await ws.send_json({"event": "refresh"})
+        except:
+            banned_clients.discard(ws)
+
+    return {"ok": True}
+
+
+@app.post("/api/projectzomboid/unban")
+async def unban_player(payload: dict):
+    player = payload.get("player")
+
+    await execute_rcon(f"removeuserban {player}")
+
+    for ws in list(banned_clients):
+        try:
+            await ws.send_json({"event": "refresh"})
+        except:
+            banned_clients.discard(ws)
+
+    return {"ok": True}
+
+
+@app.websocket("/ws/banned")
+async def banned_ws(websocket: WebSocket):
+    await websocket.accept()
+    banned_clients.add(websocket)
+
+    try:
+        while True:
+            await websocket.receive_text()
+
+            await websocket.send_json({
+                "event": "full_list",
+                "banned": await get_bans_from_server()
+            })
+
+    except WebSocketDisconnect:
+        banned_clients.discard(websocket)
 
 # ---------------- ROUTERS ----------------
 app.include_router(auth_router, prefix="/api")
 app.include_router(games_router, prefix="/api/games")
 app.include_router(filemanager_router, prefix="/api/filemanager")
 app.include_router(workshop_api.router, prefix="/api/workshop")
-
 app.include_router(modupdates_router, prefix="/api/mods")
 app.include_router(modupdates_router, prefix="/api/updater")
 
@@ -308,12 +361,10 @@ app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api/ports")
 app.include_router(steam_installer_router, prefix="/api/steam")
 
-
 # ---------------- ROOT ----------------
 @app.get("/")
 def root():
     return {"status": "running"}
-
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
