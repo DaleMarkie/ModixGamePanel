@@ -9,23 +9,45 @@ class RCONPool:
         self.conn = None
         self.lock = asyncio.Lock()
 
-    def connect(self):
+    # ---------------- CONNECT ----------------
+    def _connect(self):
         if self.conn:
             return
         self.conn = MCRcon(self.host, self.password, self.port)
         self.conn.connect()
 
-    def command(self, cmd: str):
-        self.connect()
-        return self.conn.command(cmd)
-
-    def close(self):
+    # ---------------- DISCONNECT ----------------
+    def _disconnect(self):
         if self.conn:
-            self.conn.disconnect()
+            try:
+                self.conn.disconnect()
+            except:
+                pass
             self.conn = None
 
+    # ---------------- EXECUTE COMMAND (SYNC) ----------------
+    def _command(self, cmd: str):
+        self._connect()
+        return self.conn.command(cmd)
 
-# ✅ GLOBAL INSTANCE (THIS FIXES YOUR ERROR)
+    # ---------------- PUBLIC ASYNC WRAPPER ----------------
+    async def command(self, cmd: str):
+        async with self.lock:
+            try:
+                # run blocking RCON in thread (IMPORTANT FIX)
+                return await asyncio.to_thread(self._command, cmd)
+
+            except Exception as e:
+                # force reconnect on failure
+                self._disconnect()
+                return f"RCON ERROR: {str(e)}"
+
+    # ---------------- CLOSE ----------------
+    def close(self):
+        self._disconnect()
+
+
+# ✅ GLOBAL INSTANCE
 rcon_pool = RCONPool(
     host="127.0.0.1",
     password="your_rcon_password",
