@@ -1,12 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  FaSteam,
-  FaDiscord,
-  FaCheckCircle,
-  FaTimesCircle,
-} from "react-icons/fa";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { FaSteam, FaDiscord } from "react-icons/fa";
 import "./Games.css";
 
 interface Game {
@@ -17,208 +12,156 @@ interface Game {
   description: string;
   steamUrl?: string;
   discordUrl?: string;
-  minRequirements: {
-    CPU: number;
-    RAM: number;
-    Disk: number;
-    OS: string;
-  };
+  cpu: number;
+  ram: number;
+  disk: number;
 }
 
-export default function Games() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+const GAMES: Game[] = [
+  {
+    id: "projectzomboid",
+    name: "Project Zomboid",
+    image:
+      "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
+    supported: true,
+    description: "Hardcore zombie survival dedicated Linux server",
+    steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
+    discordUrl: "https://discord.com/invite/theindiestone",
+    cpu: 2,
+    ram: 4,
+    disk: 5,
+  },
+  {
+    id: "rust",
+    name: "Rust",
+    image:
+      "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
+    supported: false,
+    description: "PvP survival sandbox (SteamCMD / Wine required)",
+    steamUrl: "https://store.steampowered.com/app/252490/Rust/",
+    discordUrl: "https://discord.com/invite/playrust",
+    cpu: 4,
+    ram: 8,
+    disk: 25,
+  },
+  {
+    id: "dayz",
+    name: "DayZ",
+    image:
+      "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
+    supported: false,
+    description: "Open world survival server hosting",
+    steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
+    discordUrl: "https://discord.com/invite/dayz",
+    cpu: 4,
+    ram: 8,
+    disk: 20,
+  },
+  {
+    id: "rimworld",
+    name: "RimWorld",
+    image:
+      "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
+    supported: true,
+    description: "Colony simulation strategy game (Linux native)",
+    steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
+    cpu: 2,
+    ram: 2,
+    disk: 1,
+  },
+];
 
+export default function Games() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showInstaller, setShowInstaller] = useState(false);
-  const [search, setSearch] = useState("");
 
   const [userSpecs, setUserSpecs] = useState({
-    cpuCores: 0,
-    ramGB: 0,
+    cpu: 0,
+    ram: 0,
     os: "",
   });
 
-  /* ---------------- DETECT SYSTEM ---------------- */
+  /* ---------------- SYSTEM DETECT ---------------- */
   useEffect(() => {
     setUserSpecs({
-      cpuCores: navigator.hardwareConcurrency || 0,
-      ramGB: navigator.deviceMemory || 0,
+      cpu: navigator.hardwareConcurrency || 0,
+      ram: navigator.deviceMemory || 0,
       os: navigator.userAgent.toLowerCase(),
     });
   }, []);
 
-  /* ---------------- GAMES LIST (EXPANDED) ---------------- */
-  useEffect(() => {
-    setGames([
-      {
-        id: "projectzomboid",
-        name: "Project Zomboid",
-        image:
-          "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/108600/header.jpg",
-        supported: true,
-        description: "Top-tier zombie survival server hosting (Linux native).",
-        steamUrl: "https://store.steampowered.com/app/108600/Project_Zomboid/",
-        discordUrl: "https://discord.com/invite/theindiestone",
-        minRequirements: { CPU: 2, RAM: 4, Disk: 5, OS: "Linux" },
-      },
-
-      {
-        id: "rust",
-        name: "Rust",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
-        supported: false,
-        description:
-          "One of the most popular survival PvP servers (SteamCMD required).",
-        steamUrl: "https://store.steampowered.com/app/252490/Rust/",
-        discordUrl: "https://discord.com/invite/playrust",
-        minRequirements: { CPU: 4, RAM: 8, Disk: 30, OS: "Linux" },
-      },
-
-      {
-        id: "dayz",
-        name: "DayZ",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/221100/header.jpg",
-        supported: false,
-        description: "Hardcore survival server (experimental Linux setup).",
-        steamUrl: "https://store.steampowered.com/app/221100/DayZ/",
-        discordUrl: "https://discord.com/invite/dayz",
-        minRequirements: { CPU: 4, RAM: 8, Disk: 25, OS: "Linux" },
-      },
-
-      {
-        id: "rimworld",
-        name: "RimWorld",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/294100/header.jpg",
-        supported: true,
-        description: "Lightweight colony sim (easy Linux hosting).",
-        steamUrl: "https://store.steampowered.com/app/294100/RimWorld/",
-        minRequirements: { CPU: 2, RAM: 2, Disk: 2, OS: "Linux" },
-      },
-
-      /* ---------------- NEW POPULAR LINUX GAMES ---------------- */
-
-      {
-        id: "minecraft",
-        name: "Minecraft (Java Server)",
-        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/0/header.jpg",
-        supported: true,
-        description:
-          "Most popular sandbox server in the world (Java-based Linux native).",
-        minRequirements: { CPU: 2, RAM: 4, Disk: 5, OS: "Linux" },
-      },
-
-      {
-        id: "cs2",
-        name: "Counter-Strike 2 Server",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg",
-        supported: true,
-        description: "Competitive FPS dedicated servers (SteamCMD supported).",
-        steamUrl: "https://store.steampowered.com/app/730/CounterStrike_2/",
-        minRequirements: { CPU: 4, RAM: 8, Disk: 15, OS: "Linux" },
-      },
-
-      {
-        id: "valheim",
-        name: "Valheim",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/892970/header.jpg",
-        supported: true,
-        description:
-          "Viking survival co-op server (Linux dedicated server support).",
-        steamUrl: "https://store.steampowered.com/app/892970/Valheim/",
-        minRequirements: { CPU: 4, RAM: 8, Disk: 10, OS: "Linux" },
-      },
-
-      {
-        id: "ark",
-        name: "ARK: Survival Evolved",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg",
-        supported: true,
-        description:
-          "Dinosaur survival MMO server (heavy but Linux supported).",
-        steamUrl:
-          "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
-        minRequirements: { CPU: 6, RAM: 16, Disk: 60, OS: "Linux" },
-      },
-
-      {
-        id: "terraria",
-        name: "Terraria Server",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/105600/header.jpg",
-        supported: true,
-        description:
-          "Lightweight 2D survival sandbox server (very easy Linux host).",
-        steamUrl: "https://store.steampowered.com/app/105600/Terraria/",
-        minRequirements: { CPU: 1, RAM: 2, Disk: 1, OS: "Linux" },
-      },
-
-      {
-        id: "dontstarve",
-        name: "Don't Starve Together",
-        image:
-          "https://cdn.cloudflare.steamstatic.com/steam/apps/322330/header.jpg",
-        supported: true,
-        description: "Co-op survival server (Linux native dedicated server).",
-        steamUrl:
-          "https://store.steampowered.com/app/322330/Dont_Starve_Together/",
-        minRequirements: { CPU: 2, RAM: 4, Disk: 3, OS: "Linux" },
-      },
-    ]);
-  }, []);
-
   const isLinux = userSpecs.os.includes("linux");
 
-  const filteredGames = games.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ---------------- DEBOUNCE SEARCH ---------------- */
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 150);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  /* ---------------- FILTERED GAMES ---------------- */
+  const filteredGames = useMemo(() => {
+    return GAMES.filter((g) =>
+      g.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [debouncedSearch]);
 
   /* ---------------- REQUIREMENT CHECK ---------------- */
-  const checkRequirement = (label: string, required: number) => {
-    if (label === "CPU") return userSpecs.cpuCores >= required;
-    if (label === "RAM") return userSpecs.ramGB >= required;
-    if (label === "OS") return isLinux;
-    return true;
-  };
+  const meetsReq = useCallback(
+    (game: Game) => {
+      return userSpecs.cpu >= game.cpu && userSpecs.ram >= game.ram && isLinux;
+    },
+    [userSpecs, isLinux]
+  );
 
-  /* ---------------- INSTALL SCRIPT ---------------- */
-  const getInstallScript = (game: Game) => {
+  /* ---------------- MODAL OPEN ---------------- */
+  const openGame = useCallback((game: Game) => {
+    setSelectedGame(game);
+    setShowModal(true);
+  }, []);
+
+  /* ---------------- INSTALL SCRIPT (CLEAN USER FRIENDLY) ---------------- */
+  const installScript = useMemo(() => {
+    if (!selectedGame) return "";
+
     return `#!/bin/bash
-
 echo "======================================"
-echo "🐧 Modix Game Installer"
-echo "🎮 ${game.name}"
+echo "🐧 Installing ${selectedGame.name} Server"
 echo "======================================"
 
-echo "Updating system..."
-sudo apt update -y && sudo apt upgrade -y
+# 1. Update system
+sudo apt update && sudo apt upgrade -y
 
-echo "Installing base tools..."
-sudo apt install -y curl wget git screen unzip
+# 2. Install core tools
+sudo apt install -y curl wget git unzip
 
-echo "Installing SteamCMD..."
+# 3. SteamCMD setup
 mkdir -p ~/steamcmd
 cd ~/steamcmd
 wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
 tar -xvzf steamcmd_linux.tar.gz
 
-echo "Setup complete for ${game.name}"
+# 4. Dependencies
+sudo apt install -y lib32gcc-s1 lib32stdc++6
+
+${
+  selectedGame.id === "projectzomboid"
+    ? "sudo apt install -y openjdk-17-jre"
+    : ""
+}
 
 echo ""
-echo "Next step:"
-echo "cd ~/steamcmd && ./steamcmd.sh"
+echo "======================================"
+echo "✅ INSTALL COMPLETE"
+echo "Run your server using your panel or scripts"
+echo "======================================"
 `;
-  };
+  }, [selectedGame]);
 
-  const copyScript = (game: Game) => {
-    navigator.clipboard.writeText(getInstallScript(game));
-    alert("🐧 Script copied");
+  const copyScript = () => {
+    navigator.clipboard.writeText(installScript);
   };
 
   return (
@@ -227,8 +170,8 @@ echo "cd ~/steamcmd && ./steamcmd.sh"
         <h1>🐧 Linux Game Server Hub</h1>
 
         {!isLinux && (
-          <p style={{ color: "red" }}>
-            ❌ Linux not detected — servers may not run correctly
+          <p className="warn">
+            ❌ Linux not detected (installing not recommended)
           </p>
         )}
 
@@ -240,13 +183,18 @@ echo "cd ~/steamcmd && ./steamcmd.sh"
         />
       </div>
 
-      {/* ---------------- GRID ---------------- */}
+      {/* GRID */}
       <div className="games-grid">
         {filteredGames.map((game) => (
           <div key={game.id} className="game-card">
-            <img src={game.image} />
+            <img
+              src={game.image}
+              loading="lazy"
+              className="game-img"
+              alt={game.name}
+            />
 
-            <div className="game-details">
+            <div className="game-info">
               <h3>{game.name}</h3>
               <p>{game.description}</p>
 
@@ -256,29 +204,22 @@ echo "cd ~/steamcmd && ./steamcmd.sh"
                     <FaSteam /> Steam
                   </a>
                 )}
-
                 {game.discordUrl && (
                   <a href={game.discordUrl} target="_blank">
                     <FaDiscord /> Discord
                   </a>
                 )}
-
-                <button
-                  className="install-btn"
-                  onClick={() => {
-                    setSelectedGame(game);
-                    setShowModal(true);
-                  }}
-                >
-                  🐧 Install Server Files
-                </button>
               </div>
+
+              <button className="install-btn" onClick={() => openGame(game)}>
+                🐧 Install Setup
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ---------------- MODAL ---------------- */}
+      {/* REQUIREMENTS MODAL */}
       {showModal && selectedGame && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -287,22 +228,21 @@ echo "cd ~/steamcmd && ./steamcmd.sh"
             <p>System Check</p>
 
             <ul>
-              {Object.entries(selectedGame.minRequirements).map(
-                ([key, value]) => (
-                  <li key={key}>
-                    {key}: {value}{" "}
-                    {checkRequirement(key, value) ? (
-                      <FaCheckCircle color="limegreen" />
-                    ) : (
-                      <FaTimesCircle color="red" />
-                    )}
-                  </li>
-                )
-              )}
+              <li>CPU: {selectedGame.cpu} cores</li>
+              <li>RAM: {selectedGame.ram} GB</li>
+              <li>Disk: {selectedGame.disk} GB</li>
+              <li>Linux: {isLinux ? "✔" : "❌"}</li>
             </ul>
 
+            <p>
+              Status:{" "}
+              {meetsReq(selectedGame)
+                ? "✔ Ready to install"
+                : "❌ Not recommended"}
+            </p>
+
             <button onClick={() => setShowInstaller(true)}>
-              📦 Open Installer Script
+              🐧 Open Installer
             </button>
 
             <button onClick={() => setShowModal(false)}>Close</button>
@@ -310,28 +250,17 @@ echo "cd ~/steamcmd && ./steamcmd.sh"
         </div>
       )}
 
-      {/* ---------------- INSTALLER ---------------- */}
+      {/* INSTALLER MODAL */}
       {showInstaller && selectedGame && (
         <div className="modal-backdrop" onClick={() => setShowInstaller(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>🐧 Install Script</h3>
+            <h2>🐧 Linux Installer</h2>
 
-            <textarea
-              readOnly
-              value={getInstallScript(selectedGame)}
-              style={{
-                width: "100%",
-                height: "240px",
-                background: "#000",
-                color: "#0f0",
-                padding: "10px",
-              }}
-            />
+            <p>Copy and paste into terminal:</p>
 
-            <button onClick={() => copyScript(selectedGame)}>
-              📋 Copy Script
-            </button>
+            <textarea readOnly value={installScript} className="script-box" />
 
+            <button onClick={copyScript}>📋 Copy Script</button>
             <button onClick={() => setShowInstaller(false)}>Close</button>
           </div>
         </div>
