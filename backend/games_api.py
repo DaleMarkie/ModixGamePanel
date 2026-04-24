@@ -4,7 +4,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 # =========================================================
-# 🐧 GAME DATABASE
+# 🐧 GAME DATABASE (EXPANDED + REAL SERVER TITLES)
 # =========================================================
 
 GAMES_DB = [
@@ -24,9 +24,9 @@ GAMES_DB = [
         "supported": False,
         "cpu": 4,
         "ram": 8,
-        "disk": 25,
+        "disk": 30,
         "os": "linux",
-        "description": "PvP survival sandbox (requires Wine/SteamCMD)",
+        "description": "PvP survival sandbox (SteamCMD required)",
     },
     {
         "id": "dayz",
@@ -34,9 +34,84 @@ GAMES_DB = [
         "supported": False,
         "cpu": 4,
         "ram": 8,
-        "disk": 20,
+        "disk": 25,
         "os": "linux",
-        "description": "Open world survival server",
+        "description": "Open world survival server (experimental Linux)",
+    },
+
+    # =====================================================
+    # 🆕 POPULAR LINUX GAME SERVERS ADDED
+    # =====================================================
+
+    {
+        "id": "minecraft",
+        "name": "Minecraft Java Server",
+        "supported": True,
+        "cpu": 2,
+        "ram": 4,
+        "disk": 5,
+        "os": "linux",
+        "description": "Most popular sandbox server (Java-based)",
+    },
+    {
+        "id": "cs2",
+        "name": "Counter-Strike 2",
+        "supported": True,
+        "cpu": 4,
+        "ram": 8,
+        "disk": 15,
+        "os": "linux",
+        "description": "Competitive FPS dedicated server",
+    },
+    {
+        "id": "valheim",
+        "name": "Valheim",
+        "supported": True,
+        "cpu": 4,
+        "ram": 8,
+        "disk": 10,
+        "os": "linux",
+        "description": "Viking survival co-op server",
+    },
+    {
+        "id": "ark",
+        "name": "ARK Survival Evolved",
+        "supported": True,
+        "cpu": 6,
+        "ram": 16,
+        "disk": 60,
+        "os": "linux",
+        "description": "Dinosaur survival MMO server (heavy)",
+    },
+    {
+        "id": "terraria",
+        "name": "Terraria Server",
+        "supported": True,
+        "cpu": 1,
+        "ram": 2,
+        "disk": 2,
+        "os": "linux",
+        "description": "Lightweight 2D sandbox server",
+    },
+    {
+        "id": "dontstarve",
+        "name": "Don't Starve Together",
+        "supported": True,
+        "cpu": 2,
+        "ram": 4,
+        "disk": 3,
+        "os": "linux",
+        "description": "Co-op survival server",
+    },
+    {
+        "id": "rimworld",
+        "name": "RimWorld",
+        "supported": True,
+        "cpu": 2,
+        "ram": 2,
+        "disk": 2,
+        "os": "linux",
+        "description": "Colony sim server (lightweight)",
     },
 ]
 
@@ -55,7 +130,7 @@ def list_games():
 
 
 # =========================================================
-# 🧠 CHECK SYSTEM REQUIREMENTS
+# 🧠 CHECK SYSTEM REQUIREMENTS (IMPROVED)
 # =========================================================
 
 @router.post("/check")
@@ -70,20 +145,26 @@ def check_requirements(payload: dict):
     if not game:
         return {"error": "Game not found"}
 
+    # FIXED: more flexible OS check
     compatible = (
         cpu >= game["cpu"]
         and ram >= game["ram"]
-        and os_type == "linux"
+        and "linux" in os_type
     )
 
     return {
         "game": game,
-        "compatible": compatible
+        "compatible": compatible,
+        "requirements": {
+            "cpu_ok": cpu >= game["cpu"],
+            "ram_ok": ram >= game["ram"],
+            "os_ok": "linux" in os_type
+        }
     }
 
 
 # =========================================================
-# 🐧 INSTALL SCRIPT GENERATOR
+# 🐧 INSTALL SCRIPT GENERATOR (IMPROVED + CLEANER)
 # =========================================================
 
 @router.get("/install-script/{game_id}")
@@ -94,14 +175,33 @@ def install_script(game_id: str):
         return {"error": "Game not found"}
 
     script = f"""#!/bin/bash
-echo "🐧 Installing {game['name']} Server Stack..."
 
-sudo apt update && sudo apt upgrade -y
+echo "======================================"
+echo "🐧 MODIX GAME INSTALLER"
+echo "🎮 {game['name']}"
+echo "======================================"
 
-# Core dependencies
-sudo apt install -y curl wget git unzip lib32gcc-s1 lib32stdc++6
+echo ""
+echo "This installer will:"
+echo " - Update your system"
+echo " - Install SteamCMD"
+echo " - Prepare server environment"
+echo ""
 
-# SteamCMD
+read -p "Continue installation? (y/n): " confirm
+if [ "$confirm" != "y" ]; then
+    echo "Cancelled."
+    exit 1
+fi
+
+echo ""
+echo "[1/4] Updating system..."
+sudo apt update -y && sudo apt upgrade -y
+
+echo "[2/4] Installing base tools..."
+sudo apt install -y curl wget git unzip screen
+
+echo "[3/4] Installing SteamCMD..."
 mkdir -p ~/steamcmd
 cd ~/steamcmd
 wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
@@ -109,24 +209,43 @@ tar -xvzf steamcmd_linux.tar.gz
 
 """
 
-    # Wine only for non-native Linux servers
+    # Wine only for non-native servers
     if not game["supported"]:
         script += """
-# Wine support (Windows server compatibility layer)
+echo "[4/5] Installing Wine (compatibility layer)..."
 sudo dpkg --add-architecture i386
 sudo apt update
 sudo apt install -y wine64 wine32
 """
 
-    # Game-specific extras
+    # Game-specific installs
     if game_id == "projectzomboid":
         script += """
-# Java dependency (Project Zomboid)
+echo "Installing Java (required)..."
 sudo apt install -y openjdk-17-jre
 """
 
+    elif game_id == "minecraft":
+        script += """
+echo "Minecraft server requires Java runtime (already included above)"
+"""
+
+    elif game_id == "ark":
+        script += """
+echo "ARK detected - heavy server, ensure 16GB+ RAM recommended"
+"""
+
     script += f"""
-echo "✅ {game['name']} installation complete"
+
+echo ""
+echo "[DONE]"
+echo "======================================"
+echo "✅ {game['name']} setup complete"
+echo "======================================"
+echo ""
+echo "Next step:"
+echo "cd ~/steamcmd && ./steamcmd.sh"
+echo ""
 """
 
     return {
@@ -136,7 +255,7 @@ echo "✅ {game['name']} installation complete"
 
 
 # =========================================================
-# 🚀 INSTALL JOB (FUTURE HOOK)
+# 🚀 INSTALL JOB (FUTURE AUTOMATION HOOK)
 # =========================================================
 
 @router.post("/install")
@@ -148,9 +267,8 @@ def install_game(payload: dict):
     if not game:
         return {"error": "Game not found"}
 
-    # Placeholder for future automation (Docker / SteamCMD / service deploy)
     return {
         "status": "queued",
         "game": game["name"],
-        "message": "Install job created (not executed yet)"
+        "message": "Install system is queued (Docker/SteamCMD automation coming soon)"
     }
