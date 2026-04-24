@@ -50,6 +50,6 @@ class RCONPool:
 # ✅ GLOBAL INSTANCE
 rcon_pool = RCONPool(
     host="127.0.0.1",
-    password="your_rcon_password",
+    password="modixgamepanel",
     port=27015
 )

@@ -22,7 +22,7 @@ from backend.serverports import router as serverports_router
 from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
 from backend.rcon_pool import rcon_pool
-from backend.steam.steam_install_api import router as steam_install_router
+from backend.steam_installer import router as steam_installer_router
 
 from backend.API.Core.games_api.projectzomboid import (
     PlayersBannedAPI,
@@ -306,7 +306,7 @@ app.include_router(sidebar_router, prefix="/api/sidebar")
 app.include_router(terminal_router, prefix="/api/terminal")
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api/ports")
-app.include_router(steam_install_router, prefix="/api/steam")
+app.include_router(steam_installer_router, prefix="/api/steam")
 
 
 # ---------------- ROOT ----------------
