@@ -2,10 +2,12 @@ import os
 import subprocess
 import asyncio
 import signal
+import json
 from threading import Thread, Lock
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 import uvicorn
 
 # ---------------- CORE ROUTES ----------------
@@ -208,7 +210,7 @@ async def terminal_api(payload: dict):
     return {"error": "invalid action"}
 
 
-# ---------------- FIXED WEBSOCKET ----------------
+# ---------------- WEBSOCKET ----------------
 @app.websocket("/ws/terminal")
 async def terminal_ws(websocket: WebSocket):
     await websocket.accept()
@@ -220,16 +222,13 @@ async def terminal_ws(websocket: WebSocket):
         while True:
             msg = await websocket.receive_text()
 
-            # raw RCON command
             if msg.startswith("/"):
                 cmd = msg[1:]
                 result = await execute_rcon(cmd)
                 await websocket.send_text(str(result))
                 continue
 
-            # JSON support
             try:
-                import json
                 data = json.loads(msg)
 
                 if data.get("type") == "rcon":
@@ -242,6 +241,48 @@ async def terminal_ws(websocket: WebSocket):
     except WebSocketDisconnect:
         with log_lock:
             log_clients.discard(websocket)
+
+
+# ---------------- REAL PLAYERS STREAM (NEW) ----------------
+@app.get("/api/projectzomboid/players-stream")
+async def players_stream():
+    async def event_generator():
+        while True:
+            try:
+                raw = await execute_rcon("players")
+
+                players = []
+
+                if raw and isinstance(raw, str):
+                    lines = raw.splitlines()
+
+                    for line in lines:
+                        line = line.strip()
+
+                        if not line:
+                            continue
+
+                        # Skip headers or noise
+                        if "players" in line.lower():
+                            continue
+
+                        # Basic safe parse
+                        name = line.split(" ")[0]
+
+                        players.append({
+                            "name": name,
+                            "lastSeen": "Now",
+                            "totalHours": 0
+                        })
+
+                yield f"data: {json.dumps(players)}\n\n"
+
+            except Exception:
+                yield f"data: {json.dumps([])}\n\n"
+
+            await asyncio.sleep(2)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ---------------- ROUTERS ----------------

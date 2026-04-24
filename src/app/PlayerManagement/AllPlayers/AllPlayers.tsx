@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { RefreshCw, Search, User, Clock } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { RefreshCw, Search, User, Clock, Wifi, WifiOff } from "lucide-react";
 
 interface Player {
   name: string;
@@ -9,45 +9,100 @@ interface Player {
   totalHours: number;
 }
 
+const API_BASE = "http://localhost:2010/api/projectzomboid";
+
 const AllPlayers: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState("");
   const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const API_BASE = "http://localhost:2010/api/projectzomboid";
+  const esRef = useRef<EventSource | null>(null);
+  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const connect = () => {
+    setLoading(true);
+
+    if (esRef.current) {
+      esRef.current.close();
+    }
+
     const es = new EventSource(`${API_BASE}/players-stream`);
+    esRef.current = es;
+
+    es.onopen = () => {
+      setConnected(true);
+      setLoading(false);
+    };
 
     es.onmessage = (event) => {
-      const data: Player[] = JSON.parse(event.data);
-      setPlayers(data);
-      setConnected(true);
+      try {
+        const data = JSON.parse(event.data);
+        if (Array.isArray(data)) {
+          setPlayers(data);
+        }
+      } catch (err) {
+        console.error("Invalid player data:", err);
+      }
     };
 
     es.onerror = () => {
       setConnected(false);
-      es.close();
-    };
+      setLoading(false);
 
-    return () => es.close();
+      es.close();
+
+      // auto-reconnect (prevents dead UI)
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+
+      reconnectTimeout.current = setTimeout(() => {
+        connect();
+      }, 3000);
+    };
+  };
+
+  useEffect(() => {
+    connect();
+
+    return () => {
+      esRef.current?.close();
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+    };
   }, []);
 
-  const filteredPlayers = players.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.lastSeen.toLowerCase().includes(search.toLowerCase())
+  const filteredPlayers = players.filter((p) =>
+    `${p.name} ${p.lastSeen}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-green-400 flex items-center gap-2">
-        <User className="w-8 h-8 text-green-500" />
-        All Players {connected ? "●" : "○"}
-      </h1>
+      {/* HEADER */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-green-400 flex items-center gap-2">
+          <User className="w-8 h-8 text-green-500" />
+          All Players
+        </h1>
 
+        <div className="flex items-center gap-2 text-sm">
+          {loading ? (
+            <span className="text-yellow-400">Connecting...</span>
+          ) : connected ? (
+            <span className="text-green-400 flex items-center gap-1">
+              <Wifi className="w-4 h-4" /> Live
+            </span>
+          ) : (
+            <span className="text-red-400 flex items-center gap-1">
+              <WifiOff className="w-4 h-4" /> Disconnected
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* SEARCH + REFRESH */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2 bg-zinc-900 border border-green-600 rounded-lg px-3 py-2 shadow-inner w-full md:w-auto">
+        <div className="flex items-center gap-2 bg-zinc-900 border border-green-600 rounded-lg px-3 py-2 w-full md:w-auto">
           <Search className="w-5 h-5 text-green-400" />
           <input
             type="text"
@@ -57,17 +112,21 @@ const AllPlayers: React.FC = () => {
             className="bg-transparent outline-none text-green-300 placeholder-green-500 w-full"
           />
         </div>
+
         <button
-          onClick={() => setPlayers([...players])}
-          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition-all duration-200"
+          onClick={connect}
+          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 transition"
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          Reconnect
         </button>
       </div>
 
+      {/* BODY */}
       <div className="bg-zinc-900 border border-green-600 rounded-xl p-4 max-h-[600px] overflow-y-auto shadow-lg">
-        {filteredPlayers.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-green-400">Connecting to server...</p>
+        ) : filteredPlayers.length === 0 ? (
           <p className="text-green-400 text-center mt-10 text-lg">
             No players connected.
           </p>
@@ -79,15 +138,17 @@ const AllPlayers: React.FC = () => {
               .map((player, i) => (
                 <div
                   key={i}
-                  className="bg-zinc-800 border border-green-700 rounded-2xl shadow-md p-4 flex flex-col gap-2 hover:bg-zinc-700 transition-all duration-200"
+                  className="bg-zinc-800 border border-green-700 rounded-2xl p-4 flex flex-col gap-2 hover:bg-zinc-700 transition"
                 >
                   <p className="text-xl font-semibold text-green-300">
                     {player.name}
                   </p>
+
                   <p className="text-sm text-zinc-400 flex items-center gap-1">
                     <Clock className="w-4 h-4 text-green-400" />
                     Last seen: {player.lastSeen}
                   </p>
+
                   <p className="text-sm text-green-500">
                     Total hours: {player.totalHours}
                   </p>
