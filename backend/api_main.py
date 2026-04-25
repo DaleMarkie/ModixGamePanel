@@ -1,9 +1,9 @@
-import os
 import asyncio
 import uvicorn
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 # ---------------- CORE ROUTES ----------------
 from backend.API.Core.auth import auth_router
@@ -15,10 +15,9 @@ from backend.server_scheduler import router as scheduler_router
 from backend.serverports import router as serverports_router
 from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
-from backend.rcon_pool import rcon_pool
 from backend.steam_installer import router as steam_installer_router
 
-# ---------------- NEW TERMINAL ROUTER ----------------
+# ✅ TERMINAL
 from backend.terminal.terminal_api import router as terminal_router, set_event_loop
 
 from backend.API.Core.games_api.projectzomboid import (
@@ -32,26 +31,28 @@ from backend.API.Core.games_api.projectzomboid import (
 from backend.API.Core.tools_api import ddos_manager_api
 
 
+# ---------------- LIFESPAN (FIXES WARNING) ----------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    loop = asyncio.get_running_loop()
+    set_event_loop(loop)
+    yield
+
+
 # ---------------- APP ----------------
-app = FastAPI(title="Modix Panel Backend")
+app = FastAPI(title="Modix Panel Backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",   # 👈 allow alt port
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# ---------------- STARTUP ----------------
-@app.on_event("startup")
-async def startup_event():
-    loop = asyncio.get_running_loop()
-    set_event_loop(loop)
 
 
 # ---------------- ROUTERS ----------------
@@ -72,7 +73,7 @@ app.include_router(ddos_manager_api.router, prefix="/api/ddos")
 app.include_router(performance_router, prefix="/api")
 app.include_router(sidebar_router, prefix="/api/sidebar")
 
-# ✅ TERMINAL NOW CLEANLY IMPORTED
+# ✅ TERMINAL (no prefix so paths stay /api/terminal)
 app.include_router(terminal_router)
 
 app.include_router(scheduler_router, prefix="/api/scheduler")
