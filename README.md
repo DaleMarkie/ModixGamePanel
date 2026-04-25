@@ -1,6 +1,6 @@
 Default Login: 
-Username: owner
-Password: owner
+- Username: owner
+- Password: owner
 
 🧩 Modix: Game Panel - https://discord.gg/ftWcJBgr69
 
