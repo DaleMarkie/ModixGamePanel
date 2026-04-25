@@ -37,7 +37,7 @@ const GAMES: Game[] = [
     image:
       "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg",
     supported: false,
-    description: "PvP survival sandbox (SteamCMD / Wine required)",
+    description: "PvP survival sandbox (SteamCMD required)",
     steamUrl: "https://store.steampowered.com/app/252490/Rust/",
     discordUrl: "https://discord.com/invite/playrust",
     cpu: 4,
@@ -73,7 +73,8 @@ const GAMES: Game[] = [
 
 export default function Games() {
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showInstaller, setShowInstaller] = useState(false);
@@ -86,94 +87,153 @@ export default function Games() {
 
   /* ---------------- SYSTEM DETECT ---------------- */
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     setUserSpecs({
-      cpu: navigator.hardwareConcurrency || 0,
-      ram: navigator.deviceMemory || 0,
+      cpu: navigator.hardwareConcurrency || 2,
+      ram: (navigator as any).deviceMemory || 4,
       os: navigator.userAgent.toLowerCase(),
     });
   }, []);
 
   const isLinux = userSpecs.os.includes("linux");
 
-  /* ---------------- DEBOUNCE SEARCH ---------------- */
+  /* ---------------- DEBOUNCE ---------------- */
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 150);
+    const t = setTimeout(() => setDebounced(search), 150);
     return () => clearTimeout(t);
   }, [search]);
 
-  /* ---------------- FILTERED GAMES ---------------- */
-  const filteredGames = useMemo(() => {
+  /* ---------------- FILTER ---------------- */
+  const filtered = useMemo(() => {
     return GAMES.filter((g) =>
-      g.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+      g.name.toLowerCase().includes(debounced.toLowerCase())
     );
-  }, [debouncedSearch]);
+  }, [debounced]);
 
   /* ---------------- REQUIREMENT CHECK ---------------- */
   const meetsReq = useCallback(
-    (game: Game) => {
-      return userSpecs.cpu >= game.cpu && userSpecs.ram >= game.ram && isLinux;
-    },
+    (game: Game) =>
+      userSpecs.cpu >= game.cpu && userSpecs.ram >= game.ram && isLinux,
     [userSpecs, isLinux]
   );
 
-  /* ---------------- MODAL OPEN ---------------- */
+  /* ---------------- OPEN GAME ---------------- */
   const openGame = useCallback((game: Game) => {
     setSelectedGame(game);
     setShowModal(true);
   }, []);
 
-  /* ---------------- INSTALL SCRIPT (CLEAN USER FRIENDLY) ---------------- */
+  /* ---------------- CLEAN INSTALL SCRIPT ---------------- */
   const installScript = useMemo(() => {
     if (!selectedGame) return "";
 
-    return `#!/bin/bash
-echo "======================================"
-echo "🐧 Installing ${selectedGame.name} Server"
-echo "======================================"
+    const g = selectedGame;
 
-# 1. Update system
-sudo apt update && sudo apt upgrade -y
+    const header = `#!/bin/bash
+set -e
 
-# 2. Install core tools
-sudo apt install -y curl wget git unzip
+GAME="${g.name}"
+DIR="$HOME/game-servers/${g.id}"
+STEAM="$HOME/steamcmd"
 
-# 3. SteamCMD setup
-mkdir -p ~/steamcmd
-cd ~/steamcmd
-wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-tar -xvzf steamcmd_linux.tar.gz
+echo "=================================="
+echo "🐧 Installing $GAME"
+echo "📁 Path: $DIR"
+echo "=================================="
 
-# 4. Dependencies
-sudo apt install -y lib32gcc-s1 lib32stdc++6
+mkdir -p "$DIR"
+mkdir -p "$STEAM"
 
-${
-  selectedGame.id === "projectzomboid"
-    ? "sudo apt install -y openjdk-17-jre"
-    : ""
-}
+echo "[1/5] Checking system..."
+`;
+
+    const deps = `
+if ! command -v wget &> /dev/null; then
+  sudo apt update && sudo apt install -y wget curl git unzip
+fi
+
+sudo apt install -y lib32gcc-s1 lib32stdc++6 tmux screen
+echo "✔ Dependencies ready"
+`;
+
+    const steamcmd = `
+echo "[2/5] SteamCMD..."
+
+if [ ! -f "$STEAM/steamcmd.sh" ]; then
+  cd "$STEAM"
+  wget -q https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+  tar -xzf steamcmd_linux.tar.gz
+fi
+
+echo "✔ SteamCMD ready"
+`;
+
+    const gameInstall =
+      g.id === "projectzomboid"
+        ? `
+echo "[3/5] Installing Project Zomboid..."
+
+sudo apt install -y openjdk-17-jre
+
+$STEAM/steamcmd.sh +login anonymous \\
++force_install_dir "$DIR" \\
++app_update 380870 validate +quit
+`
+        : g.id === "rust"
+        ? `
+echo "[3/5] Installing Rust..."
+
+$STEAM/steamcmd.sh +login anonymous \\
++force_install_dir "$DIR" \\
++app_update 258550 validate +quit
+`
+        : g.id === "dayz"
+        ? `
+echo "DayZ requires Windows server / experimental setup"
+echo "Skipping auto install"
+`
+        : `
+echo "[3/5] Generic install"
+mkdir -p "$DIR"
+`;
+
+    const footer = `
+echo "[4/5] Creating start script..."
+
+cat <<EOF > "$DIR/start.sh"
+#!/bin/bash
+cd "$DIR"
+echo "Starting $GAME server..."
+EOF
+
+chmod +x "$DIR/start.sh"
+
+echo "[5/5] Writing log..."
+echo "$GAME installed at $(date)" >> "$DIR/install.log"
 
 echo ""
-echo "======================================"
+echo "=================================="
 echo "✅ INSTALL COMPLETE"
-echo "Run your server using your panel or scripts"
-echo "======================================"
+echo "🚀 Run: ./start.sh"
+echo "=================================="
 `;
+
+    return header + deps + steamcmd + gameInstall + footer;
   }, [selectedGame]);
 
-  const copyScript = () => {
+  const copyScript = useCallback(() => {
     navigator.clipboard.writeText(installScript);
-  };
+    alert("Copied!");
+  }, [installScript]);
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="games-page">
       <div className="games-header">
         <h1>🐧 Linux Game Server Hub</h1>
 
-        {!isLinux && (
-          <p className="warn">
-            ❌ Linux not detected (installing not recommended)
-          </p>
-        )}
+        {!isLinux && <p className="warn">⚠ Linux not detected</p>}
 
         <input
           className="search-input"
@@ -183,16 +243,10 @@ echo "======================================"
         />
       </div>
 
-      {/* GRID */}
       <div className="games-grid">
-        {filteredGames.map((game) => (
+        {filtered.map((game) => (
           <div key={game.id} className="game-card">
-            <img
-              src={game.image}
-              loading="lazy"
-              className="game-img"
-              alt={game.name}
-            />
+            <img src={game.image} alt={game.name} />
 
             <div className="game-info">
               <h3>{game.name}</h3>
@@ -211,38 +265,31 @@ echo "======================================"
                 )}
               </div>
 
-              <button className="install-btn" onClick={() => openGame(game)}>
-                🐧 Install Setup
-              </button>
+              <button onClick={() => openGame(game)}>🐧 Install Setup</button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* REQUIREMENTS MODAL */}
+      {/* MODAL */}
       {showModal && selectedGame && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>{selectedGame.name}</h2>
 
-            <p>System Check</p>
+            <p>
+              Status: {meetsReq(selectedGame) ? "✔ Ready" : "⚠ Not recommended"}
+            </p>
 
             <ul>
-              <li>CPU: {selectedGame.cpu} cores</li>
-              <li>RAM: {selectedGame.ram} GB</li>
-              <li>Disk: {selectedGame.disk} GB</li>
+              <li>CPU: {selectedGame.cpu}</li>
+              <li>RAM: {selectedGame.ram}</li>
+              <li>Disk: {selectedGame.disk}</li>
               <li>Linux: {isLinux ? "✔" : "❌"}</li>
             </ul>
 
-            <p>
-              Status:{" "}
-              {meetsReq(selectedGame)
-                ? "✔ Ready to install"
-                : "❌ Not recommended"}
-            </p>
-
             <button onClick={() => setShowInstaller(true)}>
-              🐧 Open Installer
+              Open Installer
             </button>
 
             <button onClick={() => setShowModal(false)}>Close</button>
@@ -250,17 +297,15 @@ echo "======================================"
         </div>
       )}
 
-      {/* INSTALLER MODAL */}
+      {/* INSTALLER */}
       {showInstaller && selectedGame && (
         <div className="modal-backdrop" onClick={() => setShowInstaller(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🐧 Linux Installer</h2>
+            <h2>🐧 Installer</h2>
 
-            <p>Copy and paste into terminal:</p>
+            <textarea className="script-box" readOnly value={installScript} />
 
-            <textarea readOnly value={installScript} className="script-box" />
-
-            <button onClick={copyScript}>📋 Copy Script</button>
+            <button onClick={copyScript}>Copy Script</button>
             <button onClick={() => setShowInstaller(false)}>Close</button>
           </div>
         </div>

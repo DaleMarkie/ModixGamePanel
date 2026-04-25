@@ -18,6 +18,38 @@ interface SettingsData {
   [section: string]: SectionSettings;
 }
 
+/**
+ * 🧠 SMART PROJECT ZOMBOID SETTINGS MAP
+ * Only known settings get special UI (dropdowns, toggles, etc)
+ */
+const PZ_SETTING_MAP: Record<
+  string,
+  Record<
+    string,
+    {
+      type: "boolean" | "number" | "text" | "select";
+      options?: string[];
+    }
+  >
+> = {
+  SandboxVars: {
+    Zombies: { type: "select", options: ["0", "1", "2", "3", "4"] },
+    LootRarity: {
+      type: "select",
+      options: ["VeryRare", "Rare", "Normal", "Abundant"],
+    },
+    DayLength: { type: "select", options: ["15", "30", "60", "120"] },
+    StarterKit: { type: "boolean" },
+  },
+
+  Server: {
+    Password: { type: "text" },
+    Public: { type: "boolean" },
+    PauseEmpty: { type: "boolean" },
+    MaxPlayers: { type: "number" },
+  },
+};
+
 const PROJECT_ZOMBOID = {
   id: "108600",
   name: "Project Zomboid",
@@ -31,32 +63,36 @@ export default function ServerSettings() {
   const [originalSettings, setOriginalSettings] = useState<SettingsData>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
   const [message, setMessage] = useState<{
     text: string;
     type: "success" | "error";
   } | null>(null);
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [iniFiles, setIniFiles] = useState<string[]>([]);
   const [selectedIni, setSelectedIni] = useState<string>("");
   const [search, setSearch] = useState("");
 
-  // Load INI files
+  // ---------------- LOAD INI LIST ----------------
   useEffect(() => {
     fetch(`/api/server_settings/list-inis`)
       .then((res) => res.json())
       .then((data: string[]) => {
-        setIniFiles(data);
-        if (data.length > 0) setSelectedIni(data[0]);
+        setIniFiles(data || []);
+        if (data?.length) setSelectedIni(data[0]);
       })
       .catch(() =>
         setMessage({ text: "Failed to list .ini files.", type: "error" })
       );
   }, []);
 
-  // Load selected INI
+  // ---------------- LOAD FILE ----------------
   useEffect(() => {
     if (!selectedIni) return;
+
     setLoading(true);
+
     fetch(
       `/api/server_settings/projectzomboid?file=${encodeURIComponent(
         selectedIni
@@ -64,11 +100,18 @@ export default function ServerSettings() {
     )
       .then((res) => res.json())
       .then((data: SettingsData) => {
-        setSettings(data);
-        setOriginalSettings(JSON.parse(JSON.stringify(data)));
+        const safe = data || {};
+
+        setSettings(safe);
+        setOriginalSettings(JSON.parse(JSON.stringify(safe)));
+
         setOpenSections(
-          Object.keys(data).reduce((acc, s) => ({ ...acc, [s]: true }), {})
+          Object.keys(safe).reduce(
+            (acc, s) => ({ ...acc, [s]: true }),
+            {} as Record<string, boolean>
+          )
         );
+
         setLoading(false);
       })
       .catch(() => {
@@ -77,30 +120,42 @@ export default function ServerSettings() {
       });
   }, [selectedIni]);
 
+  // ---------------- HANDLE CHANGE ----------------
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     section: string,
     key: string
   ) => {
-    let value: string | number | boolean = e.target.value;
-    if (e.target.type === "checkbox") value = e.target.checked;
-    if (e.target.type === "number") value = Number(value);
+    let value: any = e.target.value;
+
+    if (e.target instanceof HTMLInputElement) {
+      if (e.target.type === "checkbox") value = e.target.checked;
+      if (e.target.type === "number") value = value === "" ? "" : Number(value);
+    }
 
     setSettings((prev) => ({
       ...prev,
-      [section]: { ...prev[section], [key]: value },
+      [section]: {
+        ...(prev[section] || {}),
+        [key]: value,
+      },
     }));
   };
 
+  // ---------------- UNDO ----------------
   const undoSection = (section: string) => {
+    if (!originalSettings[section]) return;
+
     setSettings((prev) => ({
       ...prev,
-      [section]: { ...originalSettings[section] },
+      [section]: JSON.parse(JSON.stringify(originalSettings[section])),
     }));
   };
 
+  // ---------------- SAVE ----------------
   const handleSave = async () => {
     if (!selectedIni) return;
+
     setSaving(true);
     setMessage(null);
 
@@ -120,140 +175,141 @@ export default function ServerSettings() {
 
       if (res.ok && data.success) {
         setOriginalSettings(JSON.parse(JSON.stringify(settings)));
-        setMessage({ text: "Settings saved successfully!", type: "success" });
+        setMessage({ text: "Saved successfully!", type: "success" });
       } else {
         setMessage({
-          text: data.error || "Failed to save settings.",
+          text: data.error || "Save failed.",
           type: "error",
         });
       }
-    } catch (err) {
-      setMessage({ text: "Failed to save settings.", type: "error" });
+    } catch {
+      setMessage({ text: "Save failed.", type: "error" });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);
     }
   };
 
+  // ---------------- TOGGLE SECTION ----------------
   const toggleSection = (section: string) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections((p) => ({ ...p, [section]: !p[section] }));
   };
 
-  const filteredSettings: SettingsData = {};
-  Object.entries(settings).forEach(([section, keys]) => {
+  // ---------------- SMART FIELD TYPE ----------------
+  const getField = (section: string, key: string, value: any) => {
+    return (
+      PZ_SETTING_MAP?.[section]?.[key] || {
+        type:
+          typeof value === "boolean"
+            ? "boolean"
+            : typeof value === "number"
+            ? "number"
+            : "text",
+      }
+    );
+  };
+
+  // ---------------- FILTER ----------------
+  const filtered: SettingsData = {};
+
+  Object.entries(settings || {}).forEach(([section, keys]) => {
     const filteredKeys = Object.fromEntries(
-      Object.entries(keys).filter(([k]) =>
+      Object.entries(keys || {}).filter(([k]) =>
         k.toLowerCase().includes(search.toLowerCase())
       )
     );
-    if (Object.keys(filteredKeys).length > 0)
-      filteredSettings[section] = filteredKeys;
+
+    if (Object.keys(filteredKeys).length) filtered[section] = filteredKeys;
   });
 
-  const isChanged = (section: string, key: string) =>
-    settings[section][key] !== originalSettings[section][key];
+  // ---------------- CHANGE CHECK ----------------
+  const isChanged = (s: string, k: string) =>
+    settings?.[s]?.[k] !== originalSettings?.[s]?.[k];
 
   return (
     <div className="server-settings-container">
       <header className="server-header">
-        <img
-          src={PROJECT_ZOMBOID.logo}
-          alt="Project Zomboid"
-          className="game-logo"
-        />
+        <img src={PROJECT_ZOMBOID.logo} className="game-logo" />
+
         <div className="header-info">
           <h1>Project Zomboid Server Settings</h1>
-          <p>Edit your server INI easily.</p>
+          <p>Edit server INI files</p>
+
           <div className="header-links">
-            <a href={PROJECT_ZOMBOID.steam} target="_blank" rel="noreferrer">
+            <a href={PROJECT_ZOMBOID.steam} target="_blank">
               <FaSteam /> Steam
             </a>
-            <a href={PROJECT_ZOMBOID.discord} target="_blank" rel="noreferrer">
+            <a href={PROJECT_ZOMBOID.discord} target="_blank">
               <FaDiscord /> Discord
             </a>
           </div>
         </div>
       </header>
 
-      <div className="dev-warning">
-        ⚠️ <strong>Work in Progress:</strong> This panel is not fully developed
-        yet. Some settings may behave unexpectedly.
+      <div className="ini-selector">
+        <select
+          value={selectedIni}
+          onChange={(e) => setSelectedIni(e.target.value)}
+        >
+          {iniFiles.map((f) => (
+            <option key={f}>{f}</option>
+          ))}
+        </select>
       </div>
 
-      {iniFiles.length > 0 && (
-        <div className="ini-selector">
-          <label>Select server config:</label>
-          <select
-            value={selectedIni}
-            onChange={(e) => setSelectedIni(e.target.value)}
-          >
-            {iniFiles.map((file) => (
-              <option key={file} value={file}>
-                {file}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <input
+        placeholder="Search settings..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      <div className="settings-search">
-        <input
-          type="text"
-          placeholder="Search settings…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      {loading && <div>Loading...</div>}
 
-      {loading && <div className="status loading">Loading settings…</div>}
-      {message && (
-        <div className={`status message ${message.type}`}>{message.text}</div>
-      )}
+      {message && <div className={message.type}>{message.text}</div>}
 
       {!loading &&
-        Object.entries(filteredSettings).map(([section, values]) => (
+        Object.entries(filtered).map(([section, values]) => (
           <div key={section} className="settings-section">
-            <div className="section-header">
-              <div onClick={() => toggleSection(section)}>
-                <h2>{section}</h2>
-                {openSections[section] ? <FaChevronUp /> : <FaChevronDown />}
-              </div>
-              <button
-                className="undo-btn"
-                onClick={() => undoSection(section)}
-                title="Undo changes"
-              >
-                <FaUndo />
-              </button>
+            <div onClick={() => toggleSection(section)}>
+              <h2>{section}</h2>
+              {openSections[section] ? <FaChevronUp /> : <FaChevronDown />}
             </div>
 
+            <button onClick={() => undoSection(section)}>
+              <FaUndo />
+            </button>
+
             {openSections[section] && (
-              <div className="section-body">
+              <div>
                 {Object.entries(values).map(([key, val]) => {
-                  const inputType =
-                    typeof val === "boolean"
-                      ? "checkbox"
-                      : typeof val === "number"
-                      ? "number"
-                      : "text";
+                  const field = getField(section, key, val);
+
                   return (
                     <div
                       key={key}
-                      className={`setting-item ${
-                        isChanged(section, key) ? "changed" : ""
-                      }`}
+                      className={isChanged(section, key) ? "changed" : ""}
                     >
                       <label>{key}</label>
-                      {inputType === "checkbox" ? (
+
+                      {field.type === "boolean" ? (
                         <input
                           type="checkbox"
-                          checked={val as boolean}
+                          checked={Boolean(val)}
                           onChange={(e) => handleChange(e, section, key)}
                         />
+                      ) : field.type === "select" ? (
+                        <select
+                          value={val as any}
+                          onChange={(e) => handleChange(e, section, key)}
+                        >
+                          {field.options?.map((o) => (
+                            <option key={o}>{o}</option>
+                          ))}
+                        </select>
                       ) : (
                         <input
-                          type={inputType}
-                          value={val as string | number}
+                          type={field.type}
+                          value={val as any}
                           onChange={(e) => handleChange(e, section, key)}
                         />
                       )}
@@ -265,15 +321,9 @@ export default function ServerSettings() {
           </div>
         ))}
 
-      <div className="sticky-save">
-        <button
-          className="save-btn"
-          onClick={handleSave}
-          disabled={loading || saving || !selectedIni}
-        >
-          {saving ? "Saving…" : "Save Settings"}
-        </button>
-      </div>
+      <button onClick={handleSave} disabled={saving}>
+        {saving ? "Saving..." : "Save Settings"}
+      </button>
     </div>
   );
 }
