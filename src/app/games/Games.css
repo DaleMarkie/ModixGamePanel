@@ -303,3 +303,52 @@
     height: 120px;
   }
 }
+/* ---------------- TAGS ---------------- */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  margin: 0.6rem 0 0.9rem;
+}
+
+.tags span {
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  color: #cbd5e1;
+
+  transition: all 0.2s ease;
+
+  cursor: default;
+  user-select: none;
+}
+
+/* hover glow */
+.tags span:hover {
+  transform: translateY(-1px);
+  background: rgba(29, 185, 84, 0.12);
+  border-color: rgba(29, 185, 84, 0.35);
+  color: #1db954;
+
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.25);
+}
+
+/* optional category colors */
+.tags span:nth-child(3n + 1) {
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.tags span:nth-child(3n + 2) {
+  border-color: rgba(34, 211, 238, 0.25);
+}
+
+.tags span:nth-child(3n + 3) {
+  border-color: rgba(251, 191, 36, 0.25);
+}
