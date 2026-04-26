@@ -16,6 +16,7 @@ from backend.serverports import router as serverports_router
 from backend.performance import router as performance_router
 from backend.sidebar_api import router as sidebar_router
 from backend.steam_installer import router as steam_installer_router
+from backend.zomboid_backup_api import router as zomboid_backup_router
 
 # ✅ TERMINAL
 from backend.terminal.terminal_api import router as terminal_router, set_event_loop
@@ -79,6 +80,7 @@ app.include_router(terminal_router)
 app.include_router(scheduler_router, prefix="/api/scheduler")
 app.include_router(serverports_router, prefix="/api/ports")
 app.include_router(steam_installer_router, prefix="/api/steam")
+app.include_router(zomboid_backup_router, prefix="/api/zomboid/backup")
 
 
 # ---------------- ROOT ----------------
