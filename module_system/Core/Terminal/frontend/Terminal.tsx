@@ -22,27 +22,17 @@ interface Log {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2010";
 
-const suggestions = [
-  "players",
-  "save",
-  "quit",
-  "help",
-  "ping",
-  "kick",
-  "ban",
-  "status",
-];
-
 export default function Terminal() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState<"RUNNING" | "STOPPED">("STOPPED");
 
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  const [filtered, setFiltered] = useState<string[]>([]);
   const [searchMode, setSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -62,6 +52,17 @@ export default function Terminal() {
         time: new Date().toLocaleTimeString(),
       },
     ]);
+  };
+
+  // ---------------- LOAD ACTIVE GAME ----------------
+  const loadActiveGame = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/games/active`);
+      const data = await res.json();
+      setActiveGame(data.active_game);
+    } catch (err) {
+      push("error", "Failed to load active game");
+    }
   };
 
   // ---------------- API ----------------
@@ -86,24 +87,21 @@ export default function Terminal() {
     }
   };
 
-  // ---------------- SEND ----------------
+  // ---------------- SEND COMMAND ----------------
   const sendCommand = () => {
     if (!input.trim()) return;
 
     push("command", `> ${input}`);
 
-    setHistory((h) => [input, ...h].slice(0, 50));
-    setHistoryIndex(-1);
-
     wsRef.current?.send(
       JSON.stringify({
         type: "rcon",
         command: input,
+        game: activeGame, // 🔥 KEY LINK TO ACTIVE GAME
       })
     );
 
     setInput("");
-    setFiltered([]);
   };
 
   // ---------------- CLEAR ----------------
@@ -115,31 +113,6 @@ export default function Terminal() {
     setLogs([]);
   };
 
-  // ---------------- SEARCH ----------------
-  const searchLogs = async (q: string) => {
-    setSearchQuery(q);
-
-    if (!q.trim()) {
-      setSearchMode(false);
-      return;
-    }
-
-    setSearchMode(true);
-
-    const res = await fetch(`${API_BASE}/api/terminal/search?q=${q}`);
-
-    const data = await res.json();
-
-    setLogs(
-      data.results.map((r: string, i: number) => ({
-        id: i,
-        text: r,
-        type: "output",
-        time: "",
-      }))
-    );
-  };
-
   // ---------------- WS ----------------
   useEffect(() => {
     const connect = () => {
@@ -149,7 +122,9 @@ export default function Terminal() {
 
       ws.onopen = () => {
         setConnected(true);
-        push("system", "Connected");
+        push("system", "Connected to terminal");
+
+        loadActiveGame();
       };
 
       ws.onmessage = (e) => {
@@ -182,31 +157,8 @@ export default function Terminal() {
 
   // ---------------- KEY HANDLER ----------------
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.ctrlKey && e.key === "k") {
-      setSearchMode(!searchMode);
-      return;
-    }
-
     if (e.key === "Enter") {
-      if (searchMode) {
-        searchLogs(searchQuery);
-        return;
-      }
       sendCommand();
-    }
-
-    if (e.key === "ArrowUp") {
-      const next = history[historyIndex + 1];
-      if (next) {
-        setHistoryIndex(historyIndex + 1);
-        setInput(next);
-      }
-    }
-
-    if (e.key === "ArrowDown") {
-      const prev = history[historyIndex - 1] || "";
-      setHistoryIndex(Math.max(historyIndex - 1, -1));
-      setInput(prev);
     }
   };
 
@@ -221,7 +173,8 @@ export default function Terminal() {
         </div>
 
         <div className="right">
-          WS: {connected ? "ONLINE" : "OFFLINE"} | SERVER: {status}
+          WS: {connected ? "ONLINE" : "OFFLINE"} | SERVER: {status} | GAME:{" "}
+          {activeGame || "NONE"}
         </div>
       </div>
 
@@ -243,22 +196,10 @@ export default function Terminal() {
           <FaTrash /> Clear
         </button>
 
-        <button onClick={() => setFollowTail(!followTail)}>
-          {followTail ? "Pause Scroll" : "Follow Scroll"}
+        <button onClick={loadActiveGame}>
+          <FaRedo /> Refresh Game
         </button>
       </div>
-
-      {/* SEARCH BAR */}
-      {searchMode && (
-        <div className="terminal-input-bar">
-          <FaSearch />
-          <input
-            placeholder="Search logs..."
-            value={searchQuery}
-            onChange={(e) => searchLogs(e.target.value)}
-          />
-        </div>
-      )}
 
       {/* LOGS */}
       <div className="terminal-log">
