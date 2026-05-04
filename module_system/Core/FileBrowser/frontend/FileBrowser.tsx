@@ -29,6 +29,7 @@ interface Tab {
 
 const FILE_API = "http://localhost:2010/api/filemanager";
 const WORKSHOP_API = "http://localhost:2010/api/workshop";
+const GAME_API = "http://localhost:2010/api/games/active";
 
 export default function FileBrowser() {
   const [mods, setMods] = useState<Mod[]>([]);
@@ -36,11 +37,12 @@ export default function FileBrowser() {
   const [active, setActive] = useState<string | null>(null);
 
   const [selectedMod, setSelectedMod] = useState<Mod | null>(null);
-  const [search, setSearch] = useState("");
   const [modSearch, setModSearch] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [activeGame, setActiveGame] = useState<string | null>(null);
 
   // ---------------- FILTER MODS ----------------
   const filteredMods = useMemo(() => {
@@ -49,28 +51,60 @@ export default function FileBrowser() {
     );
   }, [mods, modSearch]);
 
-  // ---------------- LOAD WORKSHOP ----------------
-  const loadMods = async () => {
-    setLoading(true);
+  // ---------------- LOAD ACTIVE GAME ----------------
+  const loadActiveGame = async () => {
     try {
-      const res = await axios.get(`${WORKSHOP_API}`);
-      const data = res.data;
+      const res = await axios.get(GAME_API);
+      const game = res.data?.active_game || null;
 
-      const list = data?.mods || data || [];
+      setActiveGame(game);
+      return game;
+    } catch {
+      setActiveGame(null);
+      return null;
+    }
+  };
+
+  // ---------------- LOAD MODS (GAME-AWARE) ----------------
+  const loadMods = async (gameOverride?: string | null) => {
+    setLoading(true);
+
+    try {
+      const game = gameOverride || activeGame;
+
+      const res = await axios.get(WORKSHOP_API, {
+        params: {
+          game: game || undefined,
+        },
+      });
+
+      const list = res.data?.mods || [];
 
       setMods(Array.isArray(list) ? list : []);
       setError("");
     } catch {
-      setError("Failed to load Steam Workshop mods");
+      setError("Failed to load mods");
       setMods([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------------- INIT ----------------
   useEffect(() => {
-    loadMods();
+    const init = async () => {
+      const game = await loadActiveGame();
+      if (game) await loadMods(game);
+    };
+
+    init();
   }, []);
+
+  // reload when active game changes
+  useEffect(() => {
+    if (!activeGame) return;
+    loadMods(activeGame);
+  }, [activeGame]);
 
   // ---------------- OPEN FILE ----------------
   const openFile = async (path: string) => {
@@ -132,9 +166,7 @@ export default function FileBrowser() {
     });
 
     setTabs((prev) =>
-      prev.map((t) =>
-        t.filePath === active ? { ...t, unsaved: false } : t
-      )
+      prev.map((t) => (t.filePath === active ? { ...t, unsaved: false } : t))
     );
   };
 
@@ -175,15 +207,10 @@ export default function FileBrowser() {
         {n.type === "folder" ? (
           <div className="fb-folder">
             📁 {n.name}
-            <div className="fb-folder-children">
-              {renderTree(n.children)}
-            </div>
+            <div className="fb-folder-children">{renderTree(n.children)}</div>
           </div>
         ) : (
-          <div
-            className="fb-file-item"
-            onClick={() => openFile(n.path)}
-          >
+          <div className="fb-file-item" onClick={() => openFile(n.path)}>
             📄 {n.name}
           </div>
         )}
@@ -195,7 +222,6 @@ export default function FileBrowser() {
     <div className="fb-root">
       {/* LEFT SIDEBAR */}
       <div className="fb-sidebar">
-
         <div className="fb-sidebar-header">
           <input
             className="fb-search"
@@ -204,7 +230,7 @@ export default function FileBrowser() {
             onChange={(e) => setModSearch(e.target.value)}
           />
 
-          <button className="fb-btn" onClick={loadMods}>
+          <button className="fb-btn" onClick={() => loadMods()}>
             {loading ? "loading..." : "refresh"}
           </button>
         </div>
@@ -215,21 +241,14 @@ export default function FileBrowser() {
           {filteredMods.map((mod) => (
             <div
               key={mod.id}
-              className={`fb-mod ${
-                selectedMod?.id === mod.id ? "active" : ""
-              }`}
+              className={`fb-mod ${selectedMod?.id === mod.id ? "active" : ""}`}
               onClick={() => setSelectedMod(mod)}
             >
               <div className="fb-mod-title">{mod.name}</div>
               <div className="fb-mod-id">{mod.id}</div>
 
-              <button className="fb-small-btn">
-                open
-              </button>
-
-              <button className="fb-small-btn">
-                subscribe
-              </button>
+              <button className="fb-small-btn">open</button>
+              <button className="fb-small-btn">subscribe</button>
             </div>
           ))}
         </div>
@@ -237,9 +256,7 @@ export default function FileBrowser() {
         {/* FILE TREE */}
         {selectedMod && (
           <div className="fb-tree">
-            <div className="fb-tree-title">
-              {selectedMod.name}
-            </div>
+            <div className="fb-tree-title">{selectedMod.name}</div>
             {renderTree(selectedMod.files)}
           </div>
         )}
@@ -247,15 +264,11 @@ export default function FileBrowser() {
 
       {/* MAIN EDITOR */}
       <div className="fb-main">
-
-        {/* TABS */}
         <div className="fb-tabs">
           {tabs.map((t) => (
             <div
               key={t.filePath}
-              className={`fb-tab ${
-                active === t.filePath ? "active" : ""
-              }`}
+              className={`fb-tab ${active === t.filePath ? "active" : ""}`}
               onClick={() => setActive(t.filePath)}
             >
               {t.filePath.split("/").pop()}
@@ -264,18 +277,16 @@ export default function FileBrowser() {
           ))}
         </div>
 
-        {/* TOPBAR */}
         <div className="fb-topbar">
           <button className="fb-btn" onClick={save}>
             save
           </button>
 
           <div className="fb-path">
-            {active || "no file selected"}
+            {activeGame ? `Active Game: ${activeGame}` : "No active game"}
           </div>
         </div>
 
-        {/* EDITOR */}
         <div className="fb-editor">
           {current ? (
             <Editor

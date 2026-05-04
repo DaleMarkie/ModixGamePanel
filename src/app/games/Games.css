@@ -17,28 +17,41 @@
 /* ---------------- HEADER ---------------- */
 .games-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .games-header h1 {
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-
   text-shadow: 0 0 18px rgba(29, 185, 84, 0.35),
     0 0 40px rgba(29, 185, 84, 0.15);
+}
+
+/* ---------------- DESCRIPTION ---------------- */
+.page-description {
+  margin: 0.75rem auto 1.5rem;
+  max-width: 750px;
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+
+  text-align: center;
+}
+
+.page-description b {
+  color: #1db954;
 }
 
 /* ---------------- SEARCH ---------------- */
 .search-input {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-
   width: 300px;
   max-width: 92%;
 
   border-radius: 12px;
-
   border: 1px solid rgba(255, 255, 255, 0.08);
 
   background: rgba(18, 18, 18, 0.85);
@@ -46,7 +59,7 @@
 
   outline: none;
 
-  transition: all 0.25s ease;
+  transition: 0.25s ease;
 
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
@@ -66,13 +79,15 @@
 
 /* ---------------- CARD ---------------- */
 .game-card {
+  position: relative;
+
   background: rgba(18, 18, 18, 0.72);
   border-radius: 16px;
   overflow: hidden;
 
   border: 1px solid rgba(255, 255, 255, 0.06);
 
-  transition: all 0.25s ease;
+  transition: 0.25s ease;
 
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -84,22 +99,20 @@
   box-shadow: 0 18px 55px rgba(0, 0, 0, 0.75), 0 0 25px rgba(29, 185, 84, 0.12);
 }
 
-/* ---------------- ACTIVE STATE ---------------- */
+/* ACTIVE */
 .game-card.active {
-  border: 1px solid rgba(29, 185, 84, 0.7);
+  border-color: rgba(29, 185, 84, 0.7);
   box-shadow: 0 0 35px rgba(29, 185, 84, 0.25), 0 20px 60px rgba(0, 0, 0, 0.75);
-  transform: scale(1.01);
 }
 
 .game-card.active::before {
-  content: "ACTIVE GAME";
+  content: "ACTIVE";
   position: absolute;
-
-  margin: 10px;
+  top: 10px;
+  left: 10px;
 
   background: rgba(29, 185, 84, 0.15);
   border: 1px solid rgba(29, 185, 84, 0.4);
-
   color: #1db954;
 
   font-size: 0.65rem;
@@ -112,6 +125,10 @@
 }
 
 /* ---------------- IMAGE ---------------- */
+.image-wrapper {
+  position: relative;
+}
+
 .game-card img {
   width: 100%;
   height: 150px;
@@ -122,6 +139,40 @@
 
 .game-card:hover img {
   transform: scale(1.08);
+}
+
+/* ---------------- SOCIALS ---------------- */
+.socials {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  display: flex;
+  gap: 6px;
+}
+
+.socials a {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+
+  font-size: 0.9rem;
+
+  transition: 0.2s ease;
+}
+
+.socials a:hover {
+  background: #1db954;
+  color: #000;
+  transform: scale(1.1);
 }
 
 /* ---------------- INFO ---------------- */
@@ -140,65 +191,87 @@
   margin: 0.5rem 0 0.8rem;
 }
 
-/* ---------------- TAGS ---------------- */
-.tags {
+/* ---------------- REQUIREMENTS ---------------- */
+.requirements {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 0.6rem 0 0.9rem;
 }
 
-.tags span {
+.req {
   font-size: 0.7rem;
   font-weight: 600;
 
-  padding: 0.25rem 0.55rem;
+  padding: 0.3rem 0.55rem;
   border-radius: 999px;
 
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
 
   color: #cbd5e1;
-
-  transition: all 0.2s ease;
-
-  user-select: none;
 }
 
-/* ---------------- BUTTON ---------------- */
-.game-info button {
-  width: 100%;
-  padding: 0.65rem;
+.req.cpu {
+  border-color: rgba(99, 102, 241, 0.4);
+}
 
-  border: none;
+.req.ram {
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+.req.disk {
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+/* ---------------- ACTIONS ---------------- */
+.action-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* base button */
+.game-info button {
+  flex: 1;
+
+  padding: 0.65rem;
   border-radius: 12px;
+  border: none;
 
   cursor: pointer;
   font-weight: 700;
 
-  transition: all 0.2s ease;
-
-  box-shadow: 0 0 14px rgba(29, 185, 84, 0.15);
-}
-
-/* inactive */
-.inactive-btn {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-/* active */
-.active-btn {
-  background: linear-gradient(135deg, #1db954, #0f7a38);
-  color: #000;
-  box-shadow: 0 0 25px rgba(29, 185, 84, 0.35);
+  transition: 0.2s ease;
 }
 
 .game-info button:hover {
   transform: scale(1.03);
 }
 
-/* ---------------- ACTIVE BADGE ---------------- */
+/* states */
+.inactive-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.active-btn {
+  background: linear-gradient(135deg, #1db954, #0f7a38);
+  color: #000;
+}
+
+.install-btn {
+  background: linear-gradient(135deg, #005f21, #0047ab);
+  color: #fff;
+
+  box-shadow: 0 0 12px rgba(1, 65, 1, 0.25);
+}
+
+.install-btn:hover {
+  box-shadow: 0 0 20px rgba(0, 81, 14, 0.45);
+}
+
+/* ---------------- BADGE ---------------- */
 .active-badge {
   margin-top: 0.75rem;
 
@@ -229,57 +302,4 @@
   .game-card img {
     height: 120px;
   }
-}
-/* ---------------- REQUIREMENTS ---------------- */
-.requirements {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-
-  margin: 0.6rem 0 0.9rem;
-}
-
-.req {
-  font-size: 0.7rem;
-  font-weight: 600;
-
-  padding: 0.3rem 0.55rem;
-  border-radius: 999px;
-
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  color: #cbd5e1;
-
-  user-select: none;
-}
-
-/* colour coding */
-.req.cpu {
-  border-color: rgba(99, 102, 241, 0.4);
-}
-
-.req.ram {
-  border-color: rgba(34, 211, 238, 0.4);
-}
-
-.req.disk {
-  border-color: rgba(251, 191, 36, 0.4);
-}
-.page-description {
-  margin: 0.75rem auto 1.5rem;
-  max-width: 750px;
-
-  font-size: 0.9rem;
-  line-height: 1.5;
-
-  color: rgba(255, 255, 255, 0.7);
-
-  text-align: center;
-
-  padding: 0 1rem;
-}
-
-.page-description b {
-  color: #1db954;
 }

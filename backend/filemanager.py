@@ -1,23 +1,58 @@
 import os
+import re
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter()
 
-STEAM_WORKSHOP = os.path.expanduser(
-    "~/.local/share/Steam/steamapps/workshop/content/108600"
-)
+# -------------------------
+# GAME → APPID MAP
+# -------------------------
+GAME_APPIDS = {
+    "projectzomboid": "108600",
+    "rust": "252490",
+    "dayz": "221100",
+    "ark_se": "346110",
+    "gmod": "4000",
+    "cs2": "730",
+    "arma3": "107410",
+    "squad": "393380",
+    "valheim": "892970",
+}
 
 # -------------------------
-# MODEL
+# FIND STEAM LIBRARIES (MULTI-DRIVE)
 # -------------------------
-class SaveFile(BaseModel):
-    path: str
-    content: str
+def get_steam_libraries():
+    paths = []
+
+    default = os.path.expanduser("~/.local/share/Steam")
+    vdf_path = os.path.join(default, "steamapps/libraryfolders.vdf")
+
+    if os.path.exists(vdf_path):
+        try:
+            with open(vdf_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            # crude but reliable path extraction
+            matches = re.findall(r'"path"\s+"([^"]+)"', content)
+
+            for m in matches:
+                steamapps = os.path.join(m, "steamapps/workshop/content")
+                paths.append(steamapps)
+
+        except Exception:
+            pass
+
+    # fallback default install
+    paths.append(os.path.join(default, "steamapps/workshop/content"))
+
+    # remove duplicates
+    return list(set(paths))
 
 
 # -------------------------
-# SAFE TREE BUILDER
+# SAFE TREE
 # -------------------------
 def build_tree(path):
     items = []
@@ -50,37 +85,57 @@ def build_tree(path):
 
 
 # -------------------------
-# MODS
+# FIND WORKSHOP MODS ACROSS ALL DRIVES
 # -------------------------
-@router.get("/workshop-mods")
-def workshop_mods():
+@router.get("/workshop")
+def workshop_mods(game: str = Query(None)):
     try:
-        if not os.path.exists(STEAM_WORKSHOP):
+        if not game:
+            return {"mods": []}
+
+        appid = GAME_APPIDS.get(game)
+
+        if not appid:
             return {
                 "mods": [],
-                "warning": "Steam workshop folder not found (no Steam install or no mods downloaded yet)"
+                "warning": f"No AppID mapping for {game}"
             }
+
+        libraries = get_steam_libraries()
 
         mods = []
 
-        for mod_id in os.listdir(STEAM_WORKSHOP):
-            mod_path = os.path.join(STEAM_WORKSHOP, mod_id)
+        # search ALL steam libraries
+        for base in libraries:
+            workshop_path = os.path.join(base, appid)
 
-            if os.path.isdir(mod_path):
-                mods.append({
-                    "modId": mod_id,
-                    "title": mod_id,
-                    "files": build_tree(mod_path)
-                })
+            if not os.path.exists(workshop_path):
+                continue
 
-        return {"mods": mods}
+            for mod_id in os.listdir(workshop_path):
+                mod_path = os.path.join(workshop_path, mod_id)
+
+                if os.path.isdir(mod_path):
+                    mods.append({
+                        "id": mod_id,
+                        "name": f"Mod {mod_id}",
+                        "path": mod_path,
+                        "files": build_tree(mod_path)
+                    })
+
+        return {
+            "game": game,
+            "appid": appid,
+            "libraries_found": len(libraries),
+            "mods": mods
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # -------------------------
-# OPEN FILE
+# FILE OPEN
 # -------------------------
 @router.get("/file")
 def open_file(path: str = Query(...)):
@@ -98,6 +153,11 @@ def open_file(path: str = Query(...)):
 # -------------------------
 # SAVE FILE
 # -------------------------
+class SaveFile(BaseModel):
+    path: str
+    content: str
+
+
 @router.post("/file/save")
 def save_file(data: SaveFile):
     try:

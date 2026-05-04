@@ -1,5 +1,5 @@
 /* =========================
-   MODIX MODERN FILE BROWSER
+   MODIX MODERN FILE BROWSER (v2)
    ========================= */
 
 :root {
@@ -11,6 +11,7 @@
   --muted: #94a3b8;
   --accent: #3b82f6;
   --accent-2: #22c55e;
+  --warn: #f59e0b;
 }
 
 /* ROOT */
@@ -21,7 +22,7 @@
   background: var(--bg);
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    Helvetica, Arial;
 }
 
 /* =========================
@@ -55,6 +56,7 @@
   background: var(--panel-2);
   color: var(--text);
   outline: none;
+  transition: 0.15s ease;
 }
 
 .fb-search:focus {
@@ -78,7 +80,26 @@
   transform: translateY(-1px);
 }
 
-/* MOD LIST */
+/* =========================
+     ACTIVE GAME BANNER
+     ========================= */
+
+.fb-game-banner {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.fb-game-banner strong {
+  color: var(--accent);
+}
+
+/* =========================
+     MOD LIST
+     ========================= */
+
 .fb-mod-list {
   overflow-y: auto;
   padding: 6px;
@@ -127,6 +148,7 @@
   background: transparent;
   color: var(--text);
   cursor: pointer;
+  transition: 0.15s ease;
 }
 
 .fb-small-btn:hover {
@@ -141,6 +163,8 @@
 .fb-tree {
   border-top: 1px solid var(--border);
   padding: 10px;
+  max-height: 35%;
+  overflow-y: auto;
 }
 
 .fb-tree-title {
@@ -155,6 +179,9 @@
   padding: 4px 6px;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.fb-file-item {
   color: var(--text);
 }
 
@@ -196,6 +223,11 @@
   border: 1px solid var(--border);
   cursor: pointer;
   white-space: nowrap;
+  transition: 0.15s ease;
+}
+
+.fb-tab:hover {
+  border-color: var(--accent);
 }
 
 .fb-tab.active {
@@ -247,14 +279,19 @@
   color: var(--muted);
 }
 
-/* SCROLLBAR (Linux/ChromeOS clean) */
+/* =========================
+     SCROLLBARS (CLEAN LINUX LOOK)
+     ========================= */
+
 .fb-sidebar::-webkit-scrollbar,
-.fb-mod-list::-webkit-scrollbar {
+.fb-mod-list::-webkit-scrollbar,
+.fb-tree::-webkit-scrollbar {
   width: 8px;
 }
 
 .fb-sidebar::-webkit-scrollbar-thumb,
-.fb-mod-list::-webkit-scrollbar-thumb {
+.fb-mod-list::-webkit-scrollbar-thumb,
+.fb-tree::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
