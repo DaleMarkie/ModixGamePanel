@@ -31,7 +31,7 @@ export const navLinks: NavItem[] = [
     label: "🎮 My Server",
     href: "/server",
     submenu: [
-      { label: "🎮 Install Server Files", href: "/games" },
+      { label: "🎮 Active Game", href: "/games" },
       { label: "⚙️ Server Settings", href: "/servermanagement/ServerSettings" },
       { label: "💾 Backups", href: "/servermanagement/backup" },
       {
