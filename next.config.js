@@ -1,16 +1,8 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1:2010/api/:path*",
-      },
-    ];
-  },
+  output: "export",
 
   images: {
-    domains: ["cdn.cloudflare.steamstatic.com"],
+    unoptimized: true,
   },
 
   eslint: {
@@ -21,12 +13,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // FIXED: proper dev origins
-  allowedDevOrigins: [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://*.csb.app",
-  ],
+  experimental: {
+    optimizeCss: false,
+  },
 };
 
 module.exports = nextConfig;
